@@ -1,4 +1,4 @@
-/* Stop 15 · Build the Future Together. The painted town stands in for Pecan Grove 2050: five glowing clearings
+/* Stop 15 · Build the Future Together. The painted town stands in for Pecan Grove 2035: five glowing clearings
    on it, six neighbors' wishes above it, a tray of tiles per place, then the check-in, the planning table and the
    picnic on the river meadow. Only --cb-* tokens. Authored line icons for small things; painted portraits for faces. */
 .cb-s15 { position: relative; }
@@ -185,7 +185,7 @@
 .cb-s15-person__stamp { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; background: var(--cb-stage-2); color: var(--cb-on-accent); animation: cb-pop 0.45s var(--cb-ease) both; }
 .cb-s15-person__stamp .cb-ico { width: 16px; height: 16px; stroke-width: 3.2; }
 
-/* ── the neighbors react on the 2050 scene ── */
+/* ── the neighbors react on the 2035 scene ── */
 .cb-s15-reacts { display: grid; gap: 18px; }
 .cb-s15-reactlist { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px 16px; margin: 0; padding: 0; list-style: none; animation: cb-rise 0.5s var(--cb-ease) both; }
 .cb-s15-reacts__town { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 18px 20px; align-items: start; }

@@ -1,5 +1,5 @@
 /* Community Builders of Pecan Grove · Stop 15 · Build the Future Together / Construyamos el futuro juntos
-   The town draws a plan for Pecan Grove in 2050. Six neighbors each share one wish. The player plans five
+   The town draws a plan for Pecan Grove in 2035. Six neighbors each share one wish. The player plans five
    places on the painted town (opening each tile's good and hard parts), adds a yearly check-in and invites
    someone who is missing from the planning table. Then the neighbors react and everyone meets for a picnic.
    Score (process only, never a side, never speed): +10 per neighbor whose wish is in the plan (60), +4 per place
@@ -15,8 +15,8 @@
   /* ── words (exact) ─────────────────────────────────────────────────── */
   var WORDS = {
     en: {
-      lucia1: "Imagine Pecan Grove in 2050. Jayden is grown up, and so are you!",
-      theo1: "Today the town draws a plan for 2050. Every neighbor shares one wish.",
+      lucia1: "Imagine Pecan Grove in 2035. Jayden is grown up, and so are you!",
+      theo1: "Today the town draws a plan for 2035. Every neighbor shares one wish.",
       plan: "Plan 5 places so every neighbor's wish is in the plan. Use all your skills: listen, weigh, include and check. There's no wrong choice for the old farm.",
       start: "Start",
       step: function (n) { return "Step " + n + " of 3"; },
@@ -28,7 +28,7 @@
       lblOn: function (p, t) { return p + ", planned: " + t; },
       placesN: function (n) { return "Places planned: " + n + " of 5"; },
       wishesN: function (n) { return "Wishes in the plan: " + n + " of 6"; },
-      myWish: "My wish for 2050", forHere: "Wishes for this place",
+      myWish: "My wish for 2035", forHere: "Wishes for this place",
       theo2: "A plan needs care over time. Add one yearly check-in.",
       added: "Check-in added!",
       lucia3: "Who isn't at the table yet? Invite one person.",
@@ -50,16 +50,16 @@
       tipCheck: "Next time, add a yearly check-in, so the plan gets checked over time.",
       tipInvite: "Next time, look at who's already at the table, then invite someone who's missing.",
       tip100: "A plan for everyone! Try a new round with new wishes.",
-      real: "Draw your town in 2050 and share it with your family or class. When you're in high school, you can apply to a youth commission. Ask a grown-up.",
+      real: "Draw your town in 2035 and share it with your family or class. When you're in high school, you can apply to a youth commission. Ask a grown-up.",
       askK: "Ask a grown-up",
       ask: "What do you hope our town looks like when I'm grown up?",
       journeyDone: "You finished the journey! Play any stop again for a new round.",
       gu: "For grown-ups: about this stop",
-      guText: "Kids plan Pecan Grove in 2050 using every skill. The old farm can hold a data center as planned or with changes, stay a farm, or wait for a study. Every choice can earn full points if every neighbor is heard. In Fulton County, high school students can apply to the county Youth Commission."
+      guText: "Kids plan Pecan Grove in 2035 using every skill. The old farm can hold a data center as planned or with changes, stay a farm, or wait for a study. Every choice can earn full points if every neighbor is heard. In Fulton County, high school students can apply to the county Youth Commission. In Georgia, county plans usually look about 20 years ahead and are updated every five years."
     },
     es: {
-      lucia1: "Imagina Pecan Grove en 2050. Jayden ya es adulto, ¡y tú también!",
-      theo1: "Hoy el pueblo dibuja un plan para 2050. Cada vecino comparte un deseo.",
+      lucia1: "Imagina Pecan Grove en 2035. Jayden ya es adulto, ¡y tú también!",
+      theo1: "Hoy el pueblo dibuja un plan para 2035. Cada vecino comparte un deseo.",
       plan: "Planea 5 lugares para que el deseo de cada vecino esté en el plan. Usa todas tus habilidades: escuchar, pesar, incluir y revisar. Para la vieja granja no hay una opción equivocada.",
       start: "Empezar",
       step: function (n) { return "Paso " + n + " de 3"; },
@@ -71,7 +71,7 @@
       lblOn: function (p, t) { return p + ", planeado: " + t; },
       placesN: function (n) { return "Lugares planeados: " + n + " de 5"; },
       wishesN: function (n) { return "Deseos en el plan: " + n + " de 6"; },
-      myWish: "Mi deseo para 2050", forHere: "Deseos para este lugar",
+      myWish: "Mi deseo para 2035", forHere: "Deseos para este lugar",
       theo2: "Un plan necesita cuidado con el tiempo. Agrega una revisión cada año.",
       added: "¡Revisión agregada!",
       lucia3: "¿Quién todavía no está en la mesa? Invita a una persona.",
@@ -93,12 +93,12 @@
       tipCheck: "La próxima vez, agrega una revisión cada año, para que el plan se revise con el tiempo.",
       tipInvite: "La próxima vez, mira quién ya está en la mesa y luego invita a alguien que falte.",
       tip100: "¡Un plan para todos! Prueba una nueva ronda con otros deseos.",
-      real: "Dibuja tu pueblo en 2050 y compártelo con tu familia o tu clase. Cuando estés en la preparatoria, podrás postularte a una comisión juvenil. Pregúntale a un adulto.",
+      real: "Dibuja tu pueblo en 2035 y compártelo con tu familia o tu clase. Cuando estés en la preparatoria, podrás postularte a una comisión juvenil. Pregúntale a un adulto.",
       askK: "Pregúntale a un adulto",
       ask: "¿Cómo te gustaría que fuera nuestro pueblo cuando yo sea grande?",
       journeyDone: "¡Terminaste el camino! Juega cualquier parada otra vez para una nueva ronda.",
       gu: "Para adultos: sobre esta parada",
-      guText: "Los niños planean Pecan Grove en 2050 usando todas sus habilidades. En la vieja granja puede haber un centro de datos como se planeó o con cambios, puede seguir siendo granja o se puede esperar un estudio, y cualquier opción puede ganar todos los puntos si se escucha a todos los vecinos. En el condado de Fulton, los estudiantes de preparatoria pueden postularse a la Comisión Juvenil del condado."
+      guText: "Los niños planean Pecan Grove en 2035 usando todas sus habilidades. En la vieja granja puede haber un centro de datos como se planeó o con cambios, puede seguir siendo granja o se puede esperar un estudio, y cualquier opción puede ganar todos los puntos si se escucha a todos los vecinos. En el condado de Fulton, los estudiantes de preparatoria pueden postularse a la Comisión Juvenil del condado. En Georgia, los planes de los condados suelen mirar unos 20 años hacia adelante y se actualizan cada cinco años."
     }
   };
 
@@ -604,7 +604,7 @@
       api.say(m);
     }
 
-    /* ── the neighbors react on the 2050 scene ──────────────────────── */
+    /* ── the neighbors react on the 2035 scene ──────────────────────── */
     function react() {
       var cards = NB.map(function (n) {
         var ok = answered(n.id);
