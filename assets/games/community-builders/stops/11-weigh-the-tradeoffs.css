@@ -1,0 +1,387 @@
+/* Stop 11 · Weigh the Trade-offs. Four signposts stand in the painted town square; a pecan-wood balance holds
+   each path's good parts and hard parts and always settles level. Only --cb-* tokens. Good and hard parts look
+   equally friendly: a blue or an orange edge, an icon and a word tell them apart. */
+.cb-s11 {
+  --s11-wood: var(--cb-warn-ink);
+  --s11-wood-hi: color-mix(in srgb, var(--cb-warn-ink) 74%, var(--cb-c2));
+  --s11-good: color-mix(in srgb, var(--cb-info-ink) 78%, var(--cb-c1));
+  --s11-hard: var(--cb-c2);
+  --s11-dir: 1; --s11-amp: 8px; --s11-gap: 64px; --pan-mb: 24px; --pan-pb: 14px;
+}
+.cb-s11.is-swing-b { --s11-dir: -1; }
+.cb-s11 [data-k="good"] { --k-soft: var(--cb-info-soft); --k-edge: var(--s11-good); --k-ink: var(--cb-info-ink); }
+.cb-s11 [data-k="hard"] { --k-soft: var(--cb-warn-soft); --k-edge: var(--s11-hard); --k-ink: var(--cb-warn-ink); }
+.cb-s11-big { min-height: 64px; }
+
+/* ── the balance parts, shared by the play scene, the intro and the aha card ── */
+.cb-s11-post { position: absolute; left: 50%; width: 14px; margin-left: -7px; border-radius: 7px 7px 3px 3px; background: var(--s11-wood); }
+.cb-s11-base { position: absolute; left: 50%; bottom: 0; width: 128px; height: 14px; margin-left: -64px; border-radius: 9px 9px 4px 4px; background: var(--s11-wood); }
+.cb-s11-beam { position: absolute; height: 12px; border-radius: 6px; background: var(--s11-wood-hi); transform-origin: 50% 50%; }
+.cb-s11-beam::before, .cb-s11-beam::after { content: ""; position: absolute; top: 50%; width: 16px; height: 16px; margin-top: -8px; border-radius: 50%; background: var(--s11-wood); }
+.cb-s11-beam::before { left: -4px; }
+.cb-s11-beam::after { right: -4px; }
+.cb-s11-pivot { position: absolute; left: 50%; top: 50%; z-index: 1; width: 28px; height: 28px; margin: -14px 0 0 -14px; border-radius: 50%; background: var(--s11-wood); border: 5px solid var(--cb-card); box-shadow: var(--cb-shadow-1); }
+.cb-s11-bowl { --hang: 16px; position: absolute; top: calc(50% + var(--hang)); display: none; width: 44%; transform: translateX(-50%); }
+.cb-s11-bowl[data-k="good"] { left: 0; }
+.cb-s11-bowl[data-k="hard"] { left: 100%; }
+.cb-s11-bowl::before { content: ""; position: absolute; left: 12%; right: 12%; bottom: calc(100% - 2px); height: var(--hang);   /* two strings up to the beam end */
+  background: linear-gradient(to bottom right, transparent calc(50% - 1.3px), var(--s11-wood) calc(50% - 0.3px), var(--s11-wood) calc(50% + 0.3px), transparent calc(50% + 1.3px)) left top / 50% 100% no-repeat,
+    linear-gradient(to bottom left, transparent calc(50% - 1.3px), var(--s11-wood) calc(50% - 0.3px), var(--s11-wood) calc(50% + 0.3px), transparent calc(50% + 1.3px)) right top / 50% 100% no-repeat; }
+.cb-s11-bowl__dish { position: relative; display: flex; justify-content: center; gap: 4px; min-height: 30px; padding: 4px 6px 6px; border-radius: 6px 6px 22px 22px; background: var(--k-soft); border: 2px solid var(--k-edge); }
+.cb-s11-bowl__ic { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: var(--cb-card); color: var(--cb-ink); }
+.cb-s11-bowl__ic .cb-ico { width: 18px; height: 18px; }
+.cb-s11-bowl__n { align-self: center; padding: 1px 6px; border-radius: 6px; background: var(--cb-card); font-size: 0.75rem; font-weight: 760; line-height: 1.2; color: var(--cb-ink); white-space: nowrap; }
+
+/* ── intro: the painted square with the four signposts and the balance ── */
+.cb-s11-intro { display: grid; grid-template-columns: minmax(0, 6fr) minmax(0, 5fr); gap: 28px; align-items: center; }
+.cb-s11-hero { box-shadow: var(--cb-shadow-2); }
+.cb-s11-hero::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 52%, color-mix(in srgb, var(--cb-stage) 32%, transparent) 100%); }
+.cb-s11-hero__stage { position: absolute; inset: 0; z-index: 1; }
+.cb-s11-hero__signs { position: absolute; inset: 0; margin: 0; padding: 0; list-style: none; }
+.cb-s11-hero__signs li { position: absolute; bottom: 6%; padding-bottom: 20px; transform: translateX(-50%); }
+/* two signposts, one each side of the balance, two planks on each */
+.cb-s11-hero__signs li:nth-child(1) { left: 16%; bottom: 36%; }
+.cb-s11-hero__signs li:nth-child(2) { left: 16%; bottom: 7%; }
+.cb-s11-hero__signs li:nth-child(3) { left: 84%; bottom: 36%; }
+.cb-s11-hero__signs li:nth-child(4) { left: 84%; bottom: 7%; }
+.cb-s11-hero__signs li::after { content: ""; position: absolute; left: 50%; bottom: 0; width: 8px; height: 26px; margin-left: -4px; border-radius: 0 0 3px 3px; background: var(--s11-wood); }
+/* each path is a wooden plank sign with its name in carved cream letters (the storybook wood, DESIGN.md "Things on a scene") */
+.cb-s11-hero__sign { position: relative; z-index: 1; display: block; width: max-content; max-width: min(28cqi, 120px); padding: 0.35em 0.55em 0.4em; border-radius: 5px; border: 2px solid #47321F;
+  background: #845630; color: #FFF8EA; box-shadow: 0 4px 6px -2px rgba(48, 30, 14, 0.5); font-family: var(--a2-font-display); font-size: clamp(0.5625rem, 0.3rem + 0.75cqi, 0.8125rem);
+  font-weight: 760; line-height: 1.1; letter-spacing: -0.005em; text-align: center; text-wrap: balance; transform: rotate(-2.5deg); }
+.cb-s11-hero__signs li:nth-child(even) .cb-s11-hero__sign { transform: rotate(2deg); }
+.cb-s11-hero__thing { width: clamp(28px, 6cqi, 44px); aspect-ratio: 1; }
+.cb-s11-hero__bal { position: absolute; left: 50%; bottom: 6%; width: 32%; height: 46%; transform: translateX(-50%); }
+.cb-s11-hero__bal .cb-s11-post { top: 0; bottom: 8px; }
+.cb-s11-hero__bal .cb-s11-base { width: 46%; margin-left: -23%; }
+.cb-s11-hero__bal .cb-s11-beam { top: 0; left: 10%; right: 10%; }
+.cb-s11-hero__bal .cb-s11-bowl { --hang: 20px; display: block; width: 46%; }
+.cb-s11-hero__bal .cb-s11-bowl__dish { padding: 6px; }
+.cb-s11-intro__text { gap: 16px; }
+.cb-s11-intro__p { margin: 0; font-size: 1.0625rem; font-weight: 600; line-height: 1.45; color: var(--cb-ink-2); text-wrap: pretty; }
+.cb-s11-kinds { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.cb-s11-kinds li { display: inline-flex; align-items: center; gap: 10px; padding: 5px 16px 5px 5px; border-radius: 999px; background: var(--k-soft); border: 2px solid var(--k-edge); font-weight: 700; color: var(--cb-ink); }
+.cb-s11-kinds__ic { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: var(--cb-card); color: var(--k-ink); }
+.cb-s11-kinds__ic .cb-ico { width: 21px; height: 21px; }
+.cb-s11-note { display: flex; align-items: center; gap: 14px; margin: 0; padding: 12px 16px 12px 12px; border-radius: 16px; background: var(--cb-pine-soft); font-weight: 650; line-height: 1.4; color: var(--cb-ink); text-wrap: pretty; }
+.cb-s11-note__ic { display: grid; place-items: center; flex: none; width: 44px; height: 44px; border-radius: 50%; background: var(--cb-card); color: var(--cb-stage-2); }
+.cb-s11-note__ic .cb-ico { width: 26px; height: 26px; }
+
+/* ── the play scene: a painted band of the square fading into the paper ground ── */
+.cb-s11-scene { position: relative; isolation: isolate; display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; padding: 16px; border-radius: 22px; overflow: hidden;
+  background: var(--cb-sunken); }
+.cb-s11-scene > .cb-s11-art { position: absolute; left: 0; right: 0; top: 0; z-index: -1; border-radius: 0; box-shadow: none; }
+.cb-s11-scene > .cb-s11-art::after { content: ""; position: absolute; inset: 0;
+  background: linear-gradient(180deg, transparent 0%, transparent 18%, color-mix(in srgb, var(--cb-sunken) 45%, transparent) 36%, color-mix(in srgb, var(--cb-sunken) 88%, transparent) 60%, var(--cb-sunken) 82%); }
+.cb-s11[data-part="1"] .cb-s11-scene > .cb-s11-art::after { background: linear-gradient(180deg, transparent 0%, transparent 26%, color-mix(in srgb, var(--cb-sunken) 45%, transparent) 42%, color-mix(in srgb, var(--cb-sunken) 88%, transparent) 64%, var(--cb-sunken) 84%); }
+
+/* the four signposts: white boards on pecan-wood posts */
+.cb-s11-signs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin: 0; padding: 0; list-style: none; }
+.cb-s11-signs li { position: relative; display: grid; padding-bottom: 16px; }
+.cb-s11-signs li::after { content: ""; position: absolute; left: 50%; bottom: 0; width: 10px; height: 24px; margin-left: -5px; border-radius: 0 0 3px 3px; background: var(--s11-wood); }
+.cb .cb-s11-sign { position: relative; z-index: 1; display: flex; align-items: center; gap: 12px; width: 100%; min-height: 76px; padding: 10px 14px 10px 10px; border-radius: 16px;
+  border: 2px solid var(--cb-card); background: var(--cb-card); color: var(--cb-ink); box-shadow: var(--cb-shadow-2); text-align: left;
+  font-family: var(--a2-font-display); font-size: 1.0625rem; font-weight: 680; line-height: 1.15; letter-spacing: -0.01em;
+  transition: transform var(--a2-dur-2) var(--cb-ease), box-shadow var(--a2-dur-2) var(--cb-ease), border-color var(--a2-dur-2); }
+.cb-s11-sign:hover { transform: translateY(-3px); border-color: var(--cb-stage-2); }
+.cb-s11-sign:active { transform: scale(0.98); }
+.cb-s11-sign__ic { position: relative; display: grid; place-items: center; flex: none; width: 52px; height: 52px; border-radius: 14px; background: var(--cb-sunken); color: var(--cb-ink); }
+.cb-s11-sign__ic .cb-ico { width: 30px; height: 30px; }
+.cb-s11-sign .cb-badge { right: -7px; bottom: -7px; width: 26px; height: 26px; }
+.cb-s11-sign__t { display: grid; gap: 3px; min-width: 0; text-wrap: balance; }
+.cb-s11-sign__t small { font-family: var(--a2-font-body); font-size: 0.8125rem; font-weight: 720; letter-spacing: 0; color: var(--cb-stage-2); }
+.cb-s11-sign.is-on { border-color: var(--cb-ink); }
+.cb-s11-sign.is-on::after { content: ""; position: absolute; left: 50%; bottom: -10px; width: 16px; height: 16px; margin-left: -8px; background: var(--cb-card);
+  border-right: 2px solid var(--cb-ink); border-bottom: 2px solid var(--cb-ink); border-radius: 0 0 4px 0; transform: rotate(45deg); }
+
+/* the balance: the path's sign on the post, the beam, two pans hanging level */
+.cb-s11-bal { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-areas: "head head" "good hard" ". tag"; column-gap: var(--s11-gap); }
+.cb-s11-head { grid-area: head; position: relative; z-index: 2; justify-self: center; display: flex; align-items: center; gap: 12px; max-width: 100%; min-height: 52px;
+  padding: 6px 20px 6px 6px; border-radius: 16px; background: var(--cb-card); box-shadow: var(--cb-shadow-2); }
+.cb-s11-head.is-empty { padding: 6px; border-radius: 18px; }
+.cb-s11-head__ic { display: grid; place-items: center; flex: none; width: 44px; height: 44px; border-radius: 12px; background: var(--cb-sunken); color: var(--cb-ink); }
+.cb-s11-head__ic .cb-ico { width: 28px; height: 28px; }
+.cb-s11-head__n { margin: 0; font-family: var(--a2-font-display); font-size: 1.1875rem; font-weight: 700; line-height: 1.15; letter-spacing: -0.015em; color: var(--cb-ink); text-wrap: balance; }
+.cb-s11-ribbon { position: absolute; left: 50%; top: -13px; z-index: 1; padding: 3px 12px; border-radius: 999px; transform: translateX(-50%);
+  background: var(--cb-clay); color: var(--cb-on-accent); font-size: 0.8125rem; font-weight: 750; line-height: 1.3; white-space: nowrap; box-shadow: var(--cb-shadow-1); }
+.cb-s11-rig { grid-area: 2 / 1 / 3 / 3; position: relative; z-index: 0; pointer-events: none; }
+.cb-s11-bal .cb-s11-post { top: -30px; bottom: 10px; }
+.cb-s11-bal .cb-s11-beam { top: 0; left: calc((100% - var(--s11-gap)) / 4 - 12px); right: calc((100% - var(--s11-gap)) / 4 - 12px); }
+.cb-s11-pan { position: relative; z-index: 1; display: grid; gap: 10px; align-content: start; margin: 42px 0 var(--pan-mb); padding: 10px 12px var(--pan-pb);
+  border-radius: 14px 14px 30px 30px; background: var(--k-soft); box-shadow: var(--cb-shadow-1); }
+.cb-s11-pan[data-k="good"] { grid-area: good; }
+.cb-s11-pan[data-k="hard"] { grid-area: hard; }
+.cb-s11-hanger { position: absolute; left: 14%; top: -42px; width: 72%; height: 42px; overflow: visible; pointer-events: none; }
+.cb-s11-hanger path { fill: none; stroke: var(--s11-wood); stroke-width: 2.5; stroke-linecap: round; }
+.cb-s11-ring { position: absolute; left: 50%; top: -49px; width: 16px; height: 16px; margin-left: -8px; border-radius: 50%; background: var(--cb-card); border: 3px solid var(--s11-wood); }
+.cb-s11-pan__h { display: flex; align-items: center; gap: 8px; margin: 0; padding: 2px 4px 0; font-family: var(--a2-font-display); font-size: 1rem; font-weight: 720; letter-spacing: -0.01em; color: var(--k-ink); }
+.cb-s11-pan__h .cb-ico { width: 22px; height: 22px; }
+.cb-s11-cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin: 0; padding: 0; list-style: none; }
+
+/* a path card: icon, kind (icon + word), the line */
+.cb-s11-card { position: relative; display: grid; align-content: start; gap: 8px; padding: 10px 12px 13px; border-radius: 14px; background: var(--cb-card); border: 2px solid var(--k-edge); box-shadow: var(--cb-shadow-1);
+  transition: background-color var(--a2-dur-3); }
+.cb-s11-card__top { display: flex; align-items: center; gap: 8px; min-height: 40px; }
+.cb-s11-card__ic { display: grid; place-items: center; flex: none; width: 40px; height: 40px; border-radius: 50%; background: var(--k-soft); color: var(--cb-ink); }
+.cb-s11-card__ic .cb-ico { width: 24px; height: 24px; }
+.cb-s11-kind { display: inline-flex; align-items: center; gap: 4px; margin: 0; font-size: 0.8125rem; font-weight: 760; line-height: 1.2; color: var(--k-ink); white-space: nowrap; }
+.cb-s11-kind .cb-ico { width: 18px; height: 18px; }
+.cb-s11-card__t { margin: 0; font-size: 1rem; font-weight: 600; line-height: 1.38; color: var(--cb-ink); text-wrap: pretty; }
+.cb-s11-card.is-lit { background: var(--cb-pine-soft); }
+.cb-s11-stk { position: absolute; top: -12px; right: 10px; z-index: 1; display: flex; }
+.cb-s11-stk__f { display: block; width: 32px; height: 32px; margin-left: -9px; border-radius: 50%; overflow: hidden; border: 2px solid var(--cb-card); background: var(--cb-card); box-shadow: var(--cb-shadow-1); animation: cb-pop 0.45s var(--cb-ease) both; }
+.cb-s11-stk__f img, .cb-s11-face img, .cb-s11-chips__f img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.cb-s11-slot { display: grid; place-items: center; min-height: 128px; border-radius: 14px; border: 2px dashed color-mix(in srgb, var(--k-edge) 55%, transparent); color: color-mix(in srgb, var(--k-ink) 55%, transparent); }
+.cb-s11-slot .cb-ico { width: 30px; height: 30px; }
+.cb-s11-easy { display: inline-flex; align-items: center; justify-self: start; gap: 6px; margin: 0; padding: 3px 12px 3px 6px; border-radius: 999px; background: var(--cb-pine-soft); color: var(--cb-stage-2); font-size: 0.8125rem; font-weight: 760; }
+.cb-s11-easy .cb-ico { width: 16px; height: 16px; stroke-width: 3; }
+.cb-s11-card.is-easy .cb-s11-easy { background: var(--cb-stage-2); color: var(--cb-on-accent); }
+/* the change hangs below the hard pan on a short string, under the hard part it makes easier */
+.cb-s11-hung { --at: 25%; --mt: 10px; grid-area: tag; position: relative; z-index: 1; display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: 12px; align-items: center; margin-top: var(--mt);
+  padding: 10px 14px 11px 10px; border-radius: 14px; background: var(--cb-card); border: 2px solid var(--cb-stage-2); box-shadow: var(--cb-shadow-1); }
+.cb-s11-hung[data-at="1"] { --at: 75%; }
+.cb-s11-hung::before { content: ""; position: absolute; left: var(--at); top: calc(-2px - var(--mt) - var(--pan-mb) - var(--pan-pb)); width: 0; height: calc(var(--mt) + var(--pan-mb) + var(--pan-pb)); border-left: 2.5px dashed var(--cb-stage-2); }
+.cb-s11-hung__ic { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; background: var(--cb-pine-soft); color: var(--cb-stage-2); }
+.cb-s11-hung__ic .cb-ico { width: 24px; height: 24px; }
+.cb-s11-hung b { display: block; font-family: var(--a2-font-display); font-size: 0.9375rem; font-weight: 700; line-height: 1.25; color: var(--cb-ink); }
+.cb-s11-hung p { margin: 2px 0 0; font-size: 0.875rem; font-weight: 600; line-height: 1.38; color: var(--cb-ink-2); }
+
+/* the six neighbors stand around the square */
+.cb-s11-nbrs { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px; margin: 0; padding: 0; list-style: none; }
+.cb-s11-nbrs li { display: grid; }
+.cb .cb-s11-nb { position: relative; display: grid; justify-items: center; align-content: start; gap: 5px; width: 100%; padding: 8px 6px 10px; border-radius: 18px; border: 2px solid transparent;
+  background: var(--cb-card); color: var(--cb-ink); box-shadow: var(--cb-shadow-1); text-align: center; line-height: 1.15;
+  transition: transform var(--a2-dur-2) var(--cb-ease), box-shadow var(--a2-dur-2), border-color var(--a2-dur-2), background-color var(--a2-dur-2); }
+.cb-s11-nb__face { position: relative; width: 58px; height: 58px; }
+.cb-s11-nb__face img { display: block; width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
+.cb-s11-nb__t { display: grid; gap: 2px; }
+.cb-s11-nb b { font-family: var(--a2-font-display); font-size: 0.9375rem; font-weight: 680; }
+.cb-s11-nb small { font-size: 0.8125rem; font-weight: 600; color: var(--cb-ink-3); text-wrap: balance; }
+.cb-s11-nbrs.is-live .cb-s11-nb { border-color: var(--cb-line); box-shadow: var(--cb-shadow-2); }
+.cb-s11-nbrs.is-live .cb-s11-nb:hover:not([aria-disabled="true"]) { transform: translateY(-3px); border-color: var(--cb-stage-2); }
+.cb-s11-nbrs.is-live .cb-s11-nb:active:not([aria-disabled="true"]) { transform: scale(0.97); }
+.cb-s11-nb[aria-disabled="true"] { cursor: default; }
+.cb-s11-nbrs.is-live .cb-s11-nb.is-tried { border-style: dashed; border-color: var(--cb-ink-3); background: var(--cb-board); box-shadow: var(--cb-shadow-1); }
+.cb-s11-nbrs.is-live .cb-s11-nb.is-right { border-color: var(--cb-stage-2); background: var(--cb-pine-soft); }
+.cb-s11-nb .cb-badge { width: 28px; height: 28px; }
+.cb-s11-tried { position: absolute; top: -11px; right: 8px; padding: 1px 10px; border-radius: 999px; background: var(--cb-card); border: 1.5px dashed var(--cb-ink-3);
+  font-family: var(--a2-font-body); font-size: 0.8125rem; font-weight: 700; line-height: 1.4; color: var(--cb-ink-2); white-space: nowrap; }
+
+/* a soft line from a card to the neighbor it reaches */
+.cb-s11-links { position: absolute; inset: 0; z-index: 3; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+.cb-s11-link path { fill: none; stroke-linecap: round; }
+.cb-s11-link__case { stroke: var(--cb-card); stroke-width: 8; opacity: 0.9; }
+.cb-s11-link__core { stroke: var(--cb-stage-2); stroke-width: 3.5; }
+.cb-s11-link__dot { fill: var(--cb-card); stroke: var(--cb-stage-2); stroke-width: 3; }
+.cb-s11-link.is-new path { stroke-dasharray: 1; stroke-dashoffset: 1; animation: cb-s11-draw 0.75s var(--cb-ease) both; animation-delay: calc(var(--i) * 110ms + 80ms); }
+.cb-s11-link.is-new circle { animation: cb-pop 0.4s var(--cb-ease) both; animation-delay: calc(var(--i) * 110ms); }
+@keyframes cb-s11-draw { to { stroke-dashoffset: 0; } }
+
+/* Part 3: the Changes tray takes the signposts' place at the top of the square */
+.cb-s11-tray { order: -1; display: grid; gap: 10px; padding: 12px 14px 14px; border-radius: 20px; background: var(--cb-card); box-shadow: var(--cb-shadow-2); animation: cb-rise 0.45s var(--cb-ease) both; }
+.cb-s11-tray__h { display: flex; align-items: center; gap: 8px; margin: 0; font-family: var(--a2-font-display); font-size: 1.0625rem; font-weight: 720; letter-spacing: -0.01em; color: var(--cb-ink); }
+.cb-s11-tray__h .cb-ico { width: 24px; height: 24px; color: var(--cb-stage-2); }
+.cb-s11-chgs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin: 0; padding: 0; list-style: none; }
+.cb-s11-chgs li { display: grid; }
+.cb .cb-s11-chg { position: relative; display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 10px; align-items: start; width: 100%; min-height: 72px; padding: 10px 12px 11px 10px;
+  border-radius: 16px; border: 2px solid var(--cb-line); background: var(--cb-card); color: var(--cb-ink); text-align: left;
+  font-family: var(--a2-font-display); font-size: 0.9375rem; font-weight: 680; line-height: 1.22; letter-spacing: -0.005em;
+  transition: transform var(--a2-dur-2) var(--cb-ease), box-shadow var(--a2-dur-2), border-color var(--a2-dur-2), background-color var(--a2-dur-2); }
+.cb-s11-chg:hover:not([aria-disabled="true"]) { transform: translateY(-3px); border-color: var(--cb-stage-2); box-shadow: var(--cb-shadow-2); }
+.cb-s11-chg:active:not([aria-disabled="true"]) { transform: scale(0.98); }
+.cb-s11-chg[aria-disabled="true"] { cursor: default; }
+.cb-s11-chg__ic { position: relative; display: grid; place-items: center; width: 44px; height: 44px; border-radius: 12px; background: var(--cb-sunken); color: var(--cb-ink); }
+.cb-s11-chg__ic .cb-ico { width: 26px; height: 26px; }
+.cb-s11-chg .cb-badge { right: -7px; bottom: -7px; width: 24px; height: 24px; }
+.cb-s11-chg__t { display: grid; gap: 4px; padding-top: 1px; text-wrap: pretty; }
+.cb-s11-chg__t small { font-family: var(--a2-font-body); font-size: 0.8125rem; font-weight: 600; line-height: 1.35; letter-spacing: 0; color: var(--cb-ink-2); }
+.cb-s11-chg.is-tried { border-style: dashed; border-color: var(--cb-ink-3); background: var(--cb-board); }
+.cb-s11-chg.is-right { border-color: var(--cb-stage-2); background: var(--cb-pine-soft); }
+.cb-s11[data-part="3"] .cb-s11-chg[aria-disabled="true"]:not(.is-right):not(.is-tried) { opacity: 0.7; }
+
+/* ── the action bar: progress, the question, feedback ── */
+.cb-s11-dots { display: flex; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.cb-s11-dots li { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 50%; background: var(--cb-sunken); color: var(--cb-ink-3); transition: background-color var(--a2-dur-3), color var(--a2-dur-3); }
+.cb-s11-dots li .cb-ico { width: 22px; height: 22px; opacity: 0.55; }
+.cb-s11-dots li.is-on { background: var(--cb-stage-2); color: var(--cb-on-accent); }
+.cb-s11-dots li.is-on .cb-ico { opacity: 1; }
+.cb-s11-askbtns { flex: none; }
+.cb-s11-chose { display: flex; align-items: center; gap: 12px; margin: 0; font-weight: 650; line-height: 1.4; color: var(--cb-ink); }
+.cb-s11-chose__ic { display: grid; place-items: center; flex: none; width: 42px; height: 42px; border-radius: 12px; background: var(--cb-sunken); color: var(--cb-ink); }
+.cb-s11-chose__ic .cb-ico { width: 26px; height: 26px; }
+.cb-s11-fbtext { min-width: 0; line-height: 1.6; }
+.cb-s11-hl { padding: 2px 6px 3px; border-radius: 8px; background: var(--cb-card); border-bottom: 2px solid var(--k-edge, var(--cb-stage-2)); font-weight: 650;
+  -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+.cb-s11-hl[data-k="chg"] { --k-edge: var(--cb-stage-2); }
+.cb-s11-hl b { font-weight: 760; }
+.cb-s11-chips { display: inline-flex; flex-wrap: wrap; gap: 6px 8px; vertical-align: middle; }
+.cb-s11-chip { display: inline-flex; align-items: center; gap: 8px; padding: 3px 12px 3px 3px; border-radius: 999px; background: var(--cb-card); font-weight: 700; line-height: 1.3; }
+.cb-s11-chips__f { display: block; width: 30px; height: 30px; border-radius: 50%; overflow: hidden; }
+
+/* ── the aha card: four paths, four level balances ── */
+.cb-s11-aha { padding-top: 22px; }
+.cb-s11-aha__paths { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin: 0; padding: 0; list-style: none; }
+.cb-s11-aha__paths li { display: grid; justify-items: center; gap: 10px; padding: 14px 10px 16px; border-radius: 20px; background: var(--cb-card); box-shadow: var(--cb-shadow-2); text-align: center; }
+.cb-s11-aha__bal { position: relative; width: 100%; max-width: 190px; height: 128px; }
+.cb-s11-aha__ic { position: absolute; left: 50%; top: 0; z-index: 2; display: grid; place-items: center; width: 52px; height: 52px; margin-left: -26px; border-radius: 14px; background: var(--cb-card); border: 2px solid var(--cb-line); color: var(--cb-ink); box-shadow: var(--cb-shadow-1); }
+.cb-s11-aha__ic .cb-ico { width: 30px; height: 30px; }
+.cb-s11-aha__bal .cb-s11-post { top: 48px; bottom: 8px; }
+.cb-s11-aha__bal .cb-s11-base { width: 70px; margin-left: -35px; height: 11px; }
+.cb-s11-aha__bal .cb-s11-beam { top: 60px; left: 12%; right: 12%; height: 9px; }
+.cb-s11-aha__bal .cb-s11-pivot { width: 20px; height: 20px; margin: -10px 0 0 -10px; border-width: 4px; }
+.cb-s11-aha__bal .cb-s11-bowl { --hang: 12px; display: block; width: 40%; }
+.cb-s11-aha__bal .cb-s11-bowl__dish { min-height: 20px; padding: 0; border-radius: 4px 4px 16px 16px; }
+.cb-s11-aha__bal .cb-s11-beam::before, .cb-s11-aha__bal .cb-s11-beam::after { width: 12px; height: 12px; margin-top: -6px; }
+.cb-s11-aha__n { font-family: var(--a2-font-display); font-size: 1rem; font-weight: 700; line-height: 1.2; color: var(--cb-ink); text-wrap: balance; }
+.cb-s11-aha__line { display: flex; align-items: center; gap: 16px; margin: 0; padding: 4px 4px 0; font-family: var(--a2-font-display); font-size: clamp(1.375rem, 1rem + 1.2cqi, 1.875rem); font-weight: 700;
+  line-height: 1.2; letter-spacing: -0.022em; color: var(--cb-ink); text-wrap: balance; }
+.cb-s11-aha__lic { display: grid; place-items: center; flex: none; width: 56px; height: 56px; border-radius: 50%; background: var(--cb-pine-soft); color: var(--cb-stage-2); }
+.cb-s11-aha__lic .cb-ico { width: 32px; height: 32px; }
+.cb-s11-aha__foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px 24px; }
+.cb-s11-aha__foot .cb-s11-aha__line { flex: 1 1 420px; }
+
+/* ── score card: the "Ask a grown-up" card under "Try it for real" ── */
+.cb-s11-ask { background: var(--cb-pine-soft); }
+.cb-s11-ask > .cb-ico { color: var(--cb-stage-2); }
+.cb-s11-gu { min-height: 64px; }
+
+/* ── motion: feedback only. The beam swings with equal lean both ways and always settles level ── */
+@keyframes cb-s11-rock { 0% { transform: rotate(0); } 20% { transform: rotate(calc(var(--s11-dir) * -1.8deg)); } 42% { transform: rotate(calc(var(--s11-dir) * 1.8deg)); }
+  62% { transform: rotate(calc(var(--s11-dir) * -0.9deg)); } 80% { transform: rotate(calc(var(--s11-dir) * 0.9deg)); } 100% { transform: rotate(0); } }
+@keyframes cb-s11-swayL { 0%, 100% { transform: none; } 20% { transform: translateY(calc(var(--s11-dir) * var(--s11-amp))); } 42% { transform: translateY(calc(var(--s11-dir) * var(--s11-amp) * -1)); }
+  62% { transform: translateY(calc(var(--s11-dir) * var(--s11-amp) * 0.5)); } 80% { transform: translateY(calc(var(--s11-dir) * var(--s11-amp) * -0.5)); } }
+@keyframes cb-s11-swayR { 0%, 100% { transform: none; } 20% { transform: translateY(calc(var(--s11-dir) * var(--s11-amp) * -1)); } 42% { transform: translateY(calc(var(--s11-dir) * var(--s11-amp))); }
+  62% { transform: translateY(calc(var(--s11-dir) * var(--s11-amp) * -0.5)); } 80% { transform: translateY(calc(var(--s11-dir) * var(--s11-amp) * 0.5)); } }
+@keyframes cb-s11-drop { from { opacity: 0; transform: translateY(-16px); } }
+@keyframes cb-s11-fade { from { opacity: 0; } }
+.cb-s11.is-hang .cb-s11-beam, .cb-s11.is-settle .cb-s11-beam { animation: cb-s11-rock 1.5s ease-in-out both; }
+.cb-s11.is-hang .cb-s11-pan[data-k="good"], .cb-s11.is-settle .cb-s11-pan[data-k="good"] { animation: cb-s11-swayL 1.5s ease-in-out both; }
+.cb-s11.is-hang .cb-s11-pan[data-k="hard"], .cb-s11.is-settle .cb-s11-pan[data-k="hard"] { animation: cb-s11-swayR 1.5s ease-in-out both; }
+.cb-s11.is-hang .cb-s11-card { animation: cb-s11-drop 0.5s var(--cb-ease) both; animation-delay: calc(var(--i) * 70ms); }
+.cb-s11.is-hang .cb-s11-bowl__ic { animation: cb-pop 0.45s var(--cb-ease) both; }
+.cb-s11.is-hang .cb-s11-head { animation: cb-rise 0.4s var(--cb-ease) both; }
+.cb-s11.is-settle .cb-s11-hung { animation: cb-s11-fade 0.45s var(--cb-ease) both, cb-s11-swayR 1.5s ease-in-out both; }   /* it swings with the hard pan */
+.cb-s11.is-settle .cb-s11-easy { animation: cb-pop 0.45s var(--cb-ease) 0.2s both; }
+.cb-s11.is-aha .cb-s11-aha__bal .cb-s11-beam { animation: cb-s11-rock 1.4s ease-in-out both; animation-delay: calc(var(--i) * 160ms + 250ms); }
+.cb-s11.is-aha .cb-s11-aha__paths li { animation: cb-rise 0.5s var(--cb-ease) both; animation-delay: calc(var(--i) * 90ms); }
+
+/* ── wide stage between 900 and 1100px: tighter signposts ── */
+@container cb (max-width: 1099.98px) {
+  .cb .cb-s11-sign { gap: 10px; padding: 8px 10px 8px 8px; font-size: 1rem; }
+  .cb-s11-sign__ic { width: 46px; height: 46px; }
+  .cb-s11-sign__ic .cb-ico { width: 27px; height: 27px; }
+  .cb-s11 { --s11-gap: 52px; }
+  .cb-s11-card__t { font-size: 0.9375rem; }
+}
+
+/* ── a short wide screen (the 1366x768 floor): a tighter rhythm, so the question, the balance and the six
+   neighbors share one screen above the sticky action bar ── */
+@media (max-height: 820px) {
+  @container cb (min-width: 900px) {
+    .cb-board.cb-s11 { gap: 14px; }
+    .cb-s11 > .cb-coach { padding-top: 8px; padding-bottom: 8px; }
+    .cb-s11-scene { gap: 10px; padding: 12px 14px 14px; }
+    .cb-s11-signs li { padding-bottom: 12px; }
+    .cb-s11-signs li::after { height: 20px; }
+    .cb .cb-s11-sign { min-height: 68px; }
+    .cb-s11-head { min-height: 48px; padding-top: 4px; padding-bottom: 4px; }
+    .cb-s11-head__ic { width: 40px; height: 40px; }
+    .cb-s11 { --pan-mb: 16px; --pan-pb: 10px; }
+    .cb-s11-pan { gap: 8px; margin-top: 32px; padding: 8px 10px var(--pan-pb); }
+    .cb-s11-hanger { top: -32px; height: 32px; }
+    .cb-s11-ring { top: -39px; }
+    .cb-s11-card { gap: 6px; padding: 8px 10px 10px; }
+    .cb-s11-card__top { min-height: 36px; }
+    .cb-s11-card__ic { width: 36px; height: 36px; }
+    .cb-s11-card__ic .cb-ico { width: 22px; height: 22px; }
+    .cb-s11-slot { min-height: 112px; }
+    .cb .cb-s11-nb { gap: 3px; padding: 6px 6px 8px; }
+    .cb-s11-nb__face { width: 50px; height: 50px; }
+    .cb-s11-tray { gap: 8px; padding: 10px 12px 12px; }
+    .cb .cb-s11-chg { min-height: 64px; padding: 8px 10px 9px 8px; }
+  }
+}
+
+/* ── narrow stage (phone): signposts in 2 columns, a small balance, the cards as two lists, neighbors in 2 columns ── */
+@container cb (max-width: 899.98px) {
+  .cb-s11-intro { grid-template-columns: minmax(0, 1fr); gap: 18px; }
+  .cb-s11-scene { gap: 12px; padding: 12px 12px 14px; border-radius: 18px; }
+  .cb-s11-scene > .cb-s11-art::after, .cb-s11[data-part="1"] .cb-s11-scene > .cb-s11-art::after { background: linear-gradient(180deg, transparent 0%, transparent 40%, color-mix(in srgb, var(--cb-sunken) 70%, transparent) 72%, var(--cb-sunken) 100%); }
+  .cb-s11-signs { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .cb-s11-signs li { padding-bottom: 0; }
+  .cb-s11-signs li::after, .cb-s11-sign.is-on::after { display: none; }
+  .cb .cb-s11-sign { min-height: 72px; gap: 9px; padding: 8px 10px 8px 8px; font-size: 0.9375rem; box-shadow: var(--cb-shadow-1); }
+  .cb-s11-sign.is-on { border-color: var(--cb-ink); box-shadow: var(--cb-shadow-2); }
+  .cb-s11-sign__ic { width: 42px; height: 42px; border-radius: 12px; }
+  .cb-s11-sign__ic .cb-ico { width: 25px; height: 25px; }
+  .cb-s11-sign .cb-badge { width: 22px; height: 22px; right: -6px; bottom: -6px; }
+  .cb-s11-sign .cb-badge .cb-ico { width: 13px; height: 13px; }
+  /* the small balance */
+  .cb-s11-bal { display: contents; }
+  .cb-s11-head, .cb-s11-rig, .cb-s11-pan[data-k="good"], .cb-s11-pan[data-k="hard"] { grid-area: auto; }
+  .cb-s11-head { justify-self: stretch; justify-content: center; min-height: 52px; padding-right: 14px; }
+  .cb-s11-head.is-empty { justify-self: center; }
+  .cb-s11-head__n { font-size: 1.0625rem; }
+  .cb-s11-rig { position: relative; height: 112px; margin-top: -12px; }
+  .cb-s11-bal .cb-s11-post { top: 0; bottom: 8px; }
+  .cb-s11-bal .cb-s11-base { width: 96px; margin-left: -48px; height: 12px; }
+  .cb-s11-bal .cb-s11-beam { top: 22px; left: 16%; right: 16%; height: 10px; }
+  .cb-s11-pivot { width: 24px; height: 24px; margin: -12px 0 0 -12px; border-width: 4px; }
+  .cb-s11-rig .cb-s11-bowl { --hang: 18px; display: block; width: 44%; min-width: 92px; }
+  .cb-s11 { --pan-mb: 0px; --pan-pb: 12px; }
+  .cb-s11-pan { margin: 0; padding: 10px 10px var(--pan-pb); border-radius: 18px; box-shadow: none; }
+  .cb-s11-hanger, .cb-s11-ring { display: none; }
+  .cb-s11-pan__h { font-size: 1.0625rem; }
+  .cb-s11-cards { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+  .cb-s11-card { grid-template-columns: 40px minmax(0, 1fr); column-gap: 12px; row-gap: 4px; padding: 10px 12px 12px 10px; }
+  .cb-s11-card__top { display: contents; }
+  .cb-s11-card__ic { grid-row: 1 / span 3; }
+  .cb-s11-kind { grid-column: 2; }
+  .cb-s11-stk { top: -10px; right: 8px; }
+  .cb-s11-stk__f { width: 28px; height: 28px; }
+  .cb-s11-card__t, .cb-s11-easy { grid-column: 2; }
+  .cb-s11-hung { --at: 30px; --mt: 0px; grid-area: auto; grid-template-columns: 36px minmax(0, 1fr); gap: 10px; }
+  .cb-s11-hung::before { top: -14px; height: 12px; }
+  .cb-s11-hung[data-at="1"] { --at: 30px; }
+  .cb-s11-hung__ic { width: 36px; height: 36px; }
+  .cb-s11-slot { min-height: 76px; }
+  .cb-s11.is-hang .cb-s11-pan { animation: none; }
+  .cb-s11-tray { order: 0; padding: 12px; }
+  .cb-s11-chgs { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+  .cb-s11-nbrs { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 2px; }
+  .cb .cb-s11-nb { grid-template-columns: 48px minmax(0, 1fr); justify-items: start; align-items: center; align-content: center; gap: 10px; min-height: 72px; padding: 8px 10px 8px 8px; text-align: left; }
+  .cb-s11-nb__face { width: 48px; height: 48px; }
+  .cb-s11-nb .cb-badge { width: 24px; height: 24px; right: -6px; bottom: -4px; }
+  .cb-s11-nb .cb-badge .cb-ico { width: 13px; height: 13px; }
+  .cb-s11-links { display: none; }
+  .cb-s11-dots li { width: 32px; height: 32px; }
+  .cb-s11-dots li .cb-ico { width: 18px; height: 18px; }
+  /* the faces in "Here is who it helps:" wrap two to a row, so the action bar stays short */
+  .cb-s11-chips { display: flex; gap: 6px; margin-top: 6px; }
+  .cb-s11-chip { gap: 6px; padding: 2px 10px 2px 2px; font-size: 0.9375rem; }
+  .cb-s11-chips__f { width: 26px; height: 26px; }
+  /* card words inside the feedback: a coloured underline, which wraps cleanly in a narrow bar */
+  .cb-s11-hl { padding: 0; border-radius: 0; background: none; border-bottom: 0; font-weight: 700;
+    text-decoration-line: underline; text-decoration-color: var(--k-edge, var(--cb-stage-2)); text-decoration-thickness: 2px; text-underline-offset: 4px; }
+  .cb-s11-aha__paths { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .cb-s11-aha__bal { height: 112px; }
+  .cb-s11-aha__line { gap: 12px; }
+  .cb-s11-aha__lic { width: 46px; height: 46px; }
+}
+@container cb (max-width: 480px) {
+  .cb .cb-s11-sign { font-size: 0.875rem; }
+  .cb-s11-sign__ic { width: 38px; height: 38px; }
+  .cb-s11-sign__ic .cb-ico { width: 23px; height: 23px; }
+  /* signposts and neighbors stand upright, so long Spanish names get the full width */
+  .cb .cb-s11-sign { flex-direction: column; align-items: flex-start; justify-content: flex-start; gap: 6px; padding: 10px 10px 11px; }
+  .cb .cb-s11-nb { grid-template-columns: minmax(0, 1fr); justify-items: center; align-content: start; gap: 5px; padding: 10px 6px 11px; text-align: center; }
+  .cb-s11-nb__face { width: 52px; height: 52px; }
+  .cb-s11-nb small { font-size: 0.8125rem; }
+  .cb-s11-dots { display: none; }                  /* the progress line says the same in words; the bar stays short */
+  .cb-s11-askbtns { width: 100%; }
+  .cb-s11-askbtns .cb-btn { flex: 1 1 100%; }
+  .cb-s11-hero__bal .cb-s11-bowl { --hang: 14px; }
+}
+
+/* part 2: what matters to each neighbor, under the name */
+.cb-s11-nb__cares { display: block; margin-top: 3px; font-size: 0.8125rem; font-weight: 600; line-height: 1.3; color: var(--cb-ink-2); text-wrap: balance; }

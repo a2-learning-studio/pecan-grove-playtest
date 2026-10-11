@@ -1,0 +1,189 @@
+/* Stop 1 · Notice the Signs. The road by the creek, two views, twelve painted things with their names.
+   Shell tokens only (var(--cb-*)); feedback-level motion only (cb.css switches it all off under reduced motion). */
+
+/* ── start ── */
+.cb-s01-start { display: grid; grid-template-columns: minmax(0, 11fr) minmax(0, 9fr); gap: clamp(20px, 3.2cqi, 44px); align-items: center; }
+.cb-s01-startart { box-shadow: var(--cb-shadow-2); }
+.cb-s01-intro { display: grid; gap: 22px; align-content: center; justify-items: start; }
+.cb-s01-lead { margin: 0; max-width: 19ch; font-family: var(--a2-font-display); font-size: clamp(1.5rem, 0.9rem + 1.7cqi, 2.25rem); font-weight: 680; line-height: 1.14; letter-spacing: -0.026em; color: var(--cb-ink); text-wrap: balance; }
+.cb-s01-story { margin: -8px 0 0; max-width: 46ch; font-size: 1.0625rem; line-height: 1.5; color: var(--cb-ink-2); text-wrap: pretty; }
+.cb-s01-about { display: grid; gap: 6px; max-width: 62ch; padding-top: 18px; border-top: 1px solid var(--cb-line); }
+.cb-s01-about h3 { margin: 0; font-family: var(--a2-font-display); font-size: 1.0625rem; font-weight: 680; line-height: 1.25; letter-spacing: -0.01em; color: var(--cb-ink); }
+.cb-s01-about p { margin: 0; font-size: 0.9375rem; line-height: 1.55; color: var(--cb-ink-2); text-wrap: pretty; }
+@container cb (max-width: 899.98px) { .cb-s01-start { grid-template-columns: 1fr; } .cb-s01-lead { max-width: 24ch; } }
+
+/* ── instruction line + the two views ── */
+.cb-s01-top { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; }
+.cb-s01-top .cb-coach { flex: 1 1 340px; min-width: 0; }
+.cb-s01-views { display: inline-flex; flex: none; gap: 4px; padding: 4px; border-radius: 999px; background: var(--cb-card); border: 1.5px solid var(--cb-line); box-shadow: var(--cb-shadow-1); }
+.cb-s01-view { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; padding: 0 20px; border: 0; border-radius: 999px; background: transparent; color: var(--cb-ink-2);
+  font-weight: 680; font-size: 1rem; line-height: 1.15; white-space: nowrap; transition: background-color var(--a2-dur-2), color var(--a2-dur-2), box-shadow var(--a2-dur-2); }
+.cb-s01-view:hover { background: var(--cb-sunken); color: var(--cb-ink); }
+.cb-s01-view[aria-pressed="true"] { background: var(--cb-stage-2); color: var(--cb-on-accent); cursor: default; }
+.cb-s01-view__ic { width: 18px; height: 18px; stroke-width: 2.8; }
+.cb-s01-view[aria-pressed="false"] .cb-s01-view__ic { display: none; }
+.cb-s01-views.is-cue .cb-s01-view[data-view="today"] { color: var(--cb-clay-ink); box-shadow: inset 0 0 0 2px var(--cb-clay); }
+.cb-s01-views.is-cue .cb-s01-view[data-view="today"]:hover { background: var(--cb-clay-soft); }
+
+/* ── the scene: a painted crop; "Last month" is the same road, older light and no new things ── */
+/* --s picture size, --bw word-board width, --bf word-board type size. overflow: clip, because a panel that can scroll
+   (overflow: hidden) slides the spots off the picture when focus or find-in-page scrolls it */
+.cb-s01-scene { --s: clamp(76px, 7.6cqi, 96px); --bw: calc(var(--s) * 1.62); --bf: max(11px, calc(var(--s) * 0.15)); aspect-ratio: 21 / 10; overflow: clip; box-shadow: var(--cb-shadow-1); }
+.cb .cb-s01-scene .cb-art__map--crop { transition: filter 0.5s var(--cb-ease); }
+.cb .cb-s01-scene.is-past .cb-art__map--crop { filter: sepia(0.42) saturate(0.72) brightness(1.04); }
+.cb-s01-spots { position: absolute; inset: 0; margin: 0; padding: 0; list-style: none; transition: opacity 0.4s var(--cb-ease); }
+.cb-s01-scene.is-past .cb-s01-spots { visibility: hidden; opacity: 0; transition: opacity 0.2s, visibility 0s linear 0.2s; }
+.cb-s01-spots li { position: absolute; left: var(--x); top: var(--y); width: 0; height: 0; }
+.cb-s01-spot { position: absolute; left: 0; top: 0; display: block; padding: 0; border: 0; background: none; color: var(--cb-ink); transform: translate(-50%, -50%); }
+
+/* the things on the road: painted-style pictures standing on the ground, each named on a small paper tag.
+   No discs or cards behind them, so they read as part of the painting; a thin cream edge and a soft
+   ground shadow keep them clear of the busy brushwork. */
+.cb-s01-spot { display: grid; justify-items: center; width: max-content; border-radius: 16px; cursor: pointer; }
+.cb-s01-stk { position: relative; display: grid; place-items: center; width: var(--s); height: var(--s);
+  filter: drop-shadow(0 0 0.8px #FFF8EA) drop-shadow(0 0 0.8px #FFF8EA) drop-shadow(0 4px 4px rgba(48, 30, 14, 0.34));
+  transition: transform var(--a2-dur-3) var(--cb-ease), opacity var(--a2-dur-2), filter var(--a2-dur-2); }
+.cb-s01-scene.is-past .cb-s01-stk { transform: translateY(10px) scale(0.92); }
+.cb-s01-spot:not([disabled]):hover .cb-s01-stk { transform: translateY(-4px) scale(1.04); }
+.cb-s01-spot:not([disabled]):active .cb-s01-stk { transform: scale(0.96); }
+.cb-s01-spot:focus-visible { outline: 3px solid var(--cb-focus); outline-offset: 3px; box-shadow: 0 0 0 3px #FFF8EA; }
+.cb-s01-stk--board { width: var(--bw); height: auto; min-height: var(--s); align-content: end; }
+.cb-s01-stk--post { width: calc(var(--bw) * 1.42); }            /* the rezoning sign has the most words: wider, so its type stays readable */
+
+/* the paper tag: the thing's name, always; after a tap, a second line in words */
+.cb-s01-tag { position: relative; z-index: 1; display: grid; justify-items: center; gap: 0; max-width: 132px; margin-top: -2px; padding: 2px 9px 3px;
+  border-radius: 9px; border: 1.5px solid rgba(71, 50, 31, 0.24); background: #FFF8EA; color: #3A2A1C;
+  box-shadow: 0 1px 2px rgba(48, 30, 14, 0.22), 0 4px 10px -4px rgba(48, 30, 14, 0.42);
+  font-size: 0.8125rem; font-weight: 720; line-height: 1.1; letter-spacing: -0.005em; text-align: center; text-wrap: balance;
+  transition: background-color var(--a2-dur-2), color var(--a2-dur-2), border-color var(--a2-dur-2); }
+.cb-s01-tag__s { display: inline-flex; align-items: center; gap: 3px; font-size: 0.71875rem; font-weight: 780; }
+.cb-s01-tag__s .cb-ico { width: 13px; height: 13px; stroke-width: 3.4; }
+
+/* the storybook palette itself lives in the shell (cb.css, .cb-story) so every stop draws things the same way */
+.cb-s01-art { width: 100%; height: 100%; overflow: visible; }
+
+/* words on a board or paper are real text, on wood and paper that match the pictures; sizes in em so the card copy can grow */
+.cb-s01-brd { display: grid; justify-items: center; width: 100%; font-size: var(--bf, 1rem); }
+.cb-s01-brd__face { position: relative; display: block; width: 100%; padding: 0.4em 0.5em 0.45em; border: 2px solid #47321F; border-radius: 0.4em; background: #FFFDF6;
+  font-family: var(--a2-font-display); font-size: 1em; font-weight: 650; line-height: 1.12; letter-spacing: -0.008em; text-align: center; text-wrap: balance; color: #3A2A1C; }
+.cb-s01-brd__face b { display: block; font-weight: 780; }
+.cb-s01-brd--post .cb-s01-brd__face { border-top: 0.42em solid #4F8FB6; }
+.cb-s01-brd--post::after { content: ""; width: 0.55em; height: 0.95em; border: 2px solid #47321F; border-top: 0; border-radius: 0 0 0.15em 0.15em; background: #B07A43; }
+.cb-s01-brd--hang { position: relative; padding: 0.95em 0 0.25em 0.75em; }
+.cb-s01-brd--hang::before { content: ""; position: absolute; left: 0; top: 0; width: 88%; height: 100%; border-top: 0.32em solid #845630; border-left: 0.32em solid #845630; border-radius: 0.25em 0 0 0; }
+.cb-s01-brd--hang .cb-s01-brd__face { background: #F4C94E; font-weight: 780; font-size: 1.12em; }
+.cb-s01-brd--hang .cb-s01-brd__face::before, .cb-s01-brd--hang .cb-s01-brd__face::after { content: ""; position: absolute; top: -0.78em; width: 0.14em; height: 0.62em; background: #47321F; }
+.cb-s01-brd--hang .cb-s01-brd__face::before { left: 22%; }
+.cb-s01-brd--hang .cb-s01-brd__face::after { right: 22%; }
+.cb-s01-brd--paper { padding: 0.15em 0.2em; }
+.cb-s01-brd--paper .cb-s01-brd__face { padding: 0.75em 0.55em 0.85em; border-radius: 0.2em; background: #FFF6E3; font-weight: 780; font-size: 1.12em; transform: rotate(-3deg); }
+.cb-s01-brd--paper .cb-s01-brd__face::after { content: ""; position: absolute; top: -2px; right: -2px; width: 0.95em; height: 0.95em; border-left: 2px solid #47321F; border-bottom: 2px solid #47321F; border-radius: 0 0 0 0.2em;
+  background: linear-gradient(225deg, #FFFDF6 50%, #EAD8B4 50%); }
+
+/* ── states: words always carry the meaning (the tag's second line); the ring and the badge only add to them ── */
+.cb-s01-ring { position: absolute; left: 50%; top: calc(var(--s) / 2); width: calc(var(--s) + 6px); aspect-ratio: 1; border-radius: 50%; opacity: 0; pointer-events: none; transform: translate(-50%, -50%); }
+.cb-s01-spot--board .cb-s01-ring { width: calc(100% + 8px); height: calc(var(--s) + 6px); aspect-ratio: auto; border-radius: 20px; }
+.cb-s01-spot.is-found .cb-s01-ring { opacity: 1; background: rgba(233, 242, 238, 0.34); border: 3px solid var(--cb-stage-2); box-shadow: 0 0 0 2px rgba(255, 248, 234, 0.85); }
+.cb-s01-spot.is-missed .cb-s01-ring { opacity: 1; border: 3px dashed #3A2A1C; background: rgba(255, 248, 234, 0.4); }
+.cb-s01-spot.is-not .cb-s01-stk { opacity: 0.72; filter: saturate(0.55) drop-shadow(0 2px 2px rgba(48, 30, 14, 0.25)); }
+.cb-s01-spot.is-found .cb-s01-tag { background: var(--cb-stage-2); border-color: var(--cb-stage-2); color: var(--cb-on-accent); }
+.cb-s01-spot.is-not .cb-s01-tag { background: var(--cb-sunken); border-color: var(--cb-line-strong); color: var(--cb-ink-2); }
+.cb-s01-spot.is-missed .cb-s01-tag { border: 1.5px dashed #3A2A1C; }
+.cb-s01-spot .cb-badge { top: -4px; right: -6px; bottom: auto; width: 28px; height: 28px; z-index: 1; }
+.cb-s01-spot--board .cb-badge { top: -9px; right: -9px; }
+.cb-s01-spot:not(.is-fresh) .cb-badge { animation: none; }
+.cb-s01-spot.is-fresh .cb-s01-ring { animation: cb-s01-ring 0.5s var(--cb-ease) both; }
+.cb-s01-spot.is-fresh .cb-s01-tag__s { animation: cb-s01-say 0.45s var(--cb-ease) 0.08s both; }
+@keyframes cb-s01-ring { from { opacity: 0; transform: translate(-50%, -50%) scale(0.82); } }
+@keyframes cb-s01-say { from { opacity: 0; transform: translateY(-4px); } }
+.cb-s01-spot[disabled] { cursor: default; }
+.cb-s01-spot[disabled] .cb-s01-stk { opacity: 0.55; filter: grayscale(1) drop-shadow(0 2px 2px rgba(48, 30, 14, 0.2)); }
+.cb-s01-spot[disabled] .cb-s01-tag { opacity: 0.75; }
+
+/* the first look at Today: the new things pop up out of the ground, left to right (none with reduced motion) */
+.cb-s01-scene.is-arriving .cb-s01-spot { animation: cb-s01-in 0.6s cubic-bezier(0.16, 1, 0.3, 1) both; animation-delay: calc(var(--i, 0) * 70ms + 140ms); }
+@keyframes cb-s01-in { from { opacity: 0; transform: translate(-50%, -38%) scale(0.55); } }
+
+/* ── progress in the action bar: six signs, in words and in dots ── */
+.cb-s01-dots { display: flex; gap: 5px; margin: 0; padding: 0; list-style: none; }
+.cb-s01-dots li { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; border: 2px dashed var(--cb-line-strong); color: var(--cb-on-accent); }
+.cb-s01-dots li.is-on { border-style: solid; border-color: var(--cb-stage-2); background: var(--cb-stage-2); }
+.cb-s01-dots li.is-pop { animation: cb-pop 0.45s var(--cb-ease) both; }
+.cb-s01-dots .cb-ico { width: 14px; height: 14px; stroke-width: 3.2; }
+
+/* ── cards ── */
+.cb-s01-dlg .cb-dlg__head { padding-right: 0; }
+.cb-s01-dlgbadge { display: grid; place-items: center; flex: none; width: 84px; height: 84px; border-radius: 50%; background: #FFF8EA; border: 4px solid var(--cb-info-soft); box-shadow: var(--cb-shadow-1); color: var(--cb-ink); }
+.cb-s01-dlgbadge.is-sign { border-color: var(--cb-pine-soft); }
+.cb-s01-dlgbadge .cb-s01-art { width: 76%; height: 76%; }
+.cb-s01-cardbody { display: grid; gap: 12px; }
+.cb-s01-dlg .cb-s01-line, .cb-s01-dlg .cb-s01-ask { display: grid; grid-template-columns: 26px minmax(0, 1fr); gap: 12px; margin: 0; border-radius: 18px; color: var(--cb-ink); }
+.cb-s01-dlg .cb-s01-line { padding: 14px 18px 15px 14px; background: var(--cb-pine-soft); font-size: 1.1875rem; font-weight: 600; line-height: 1.4; text-wrap: pretty; }
+.cb-s01-line .cb-ico { width: 26px; height: 26px; margin-top: 1px; color: var(--cb-stage-2); stroke-width: 2.6; }
+.cb-s01-dlg .cb-s01-line--every { background: var(--cb-info-soft); }
+.cb-s01-line--every .cb-ico { color: var(--cb-info-ink); stroke-width: 2; }
+.cb-s01-dlg .cb-s01-ask { align-items: center; padding: 12px 18px 12px 14px; background: var(--cb-warn-soft); font-weight: 650; line-height: 1.4; }
+.cb-s01-ask .cb-ico { width: 26px; height: 26px; color: var(--cb-warn-ink); }
+.cb-s01-bigboard { display: grid; justify-items: center; padding: 18px 16px 6px; border-radius: 18px; background: var(--cb-sunken); }
+.cb-s01-brd--big { width: auto; max-width: min(22rem, 100%); font-size: 1.1875rem; }
+.cb-s01-brd--big .cb-s01-brd__face { border-width: 3px; line-height: 1.25; padding: 0.55em 0.9em 0.6em; }
+.cb-s01-brd--big.cb-s01-brd--hang .cb-s01-brd__face, .cb-s01-brd--big.cb-s01-brd--paper .cb-s01-brd__face { font-size: 1.15em; }
+.cb-s01-brd--big.cb-s01-brd--post::after { height: 1.4em; }
+.cb-s01-brd--big.cb-s01-brd--paper .cb-s01-brd__face { padding: 1em 1.4em 1.1em; }
+.cb-s01-brd--big.cb-s01-brd--paper .cb-s01-brd__face::after { top: -3px; right: -3px; border-width: 3px; }
+
+/* ── score card: the two counts sit under the score; 3 stars gives the check badge one gentle lift ── */
+.cb-s01-stats { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.cb-s01-stats li { display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px 6px 6px; border-radius: 999px; background: var(--cb-sunken); color: var(--cb-ink); font-weight: 650; font-size: 0.9375rem; line-height: 1.3; font-variant-numeric: tabular-nums; }
+.cb-s01-stats .cb-ico { width: 26px; height: 26px; padding: 4px; border-radius: 50%; background: var(--cb-card); color: var(--cb-stage-2); stroke-width: 2.6; }
+.cb-s01-card--3 .cb-card__can > .cb-ico { animation: cb-s01-lift 0.9s var(--cb-ease) 1.7s both; }
+@keyframes cb-s01-lift { 0%, 100% { transform: none; } 40% { transform: translateY(-6px) scale(1.08); } }
+
+/* ── short laptop screens (1366x768): the site keeps 76px above the stage, so the scene gives a little height back ── */
+@media (max-height: 820px) {
+  .cb-s01-board { gap: 16px; }
+  .cb-s01-scene { --s: clamp(62px, 6.2cqi, 80px); aspect-ratio: 24 / 10; }
+  .cb-s01-spots li { top: var(--sy, var(--y)); }                 /* the river sits higher in the shorter crop: the bank row moves up with it */
+}
+
+/* ── narrower stages ── */
+@container cb (min-width: 600px) and (max-width: 899.98px) {
+  .cb-s01-scene { aspect-ratio: 4 / 3; }                           /* taller than 3:2, so the bank row and the road row keep apart */
+  .cb-s01-spots li { top: var(--y); }
+  .cb-s01-scene { --bf: calc(var(--s) * 0.135); }                /* the narrower tablet scene keeps compact boards */
+  .cb-s01-stk--post { width: var(--bw); }
+  .cb-s01-tag { max-width: 112px; font-size: 0.75rem; }
+}
+@container cb (min-width: 600px) and (max-width: 699.98px) {       /* the narrowest tablet scenes: slightly smaller pictures and tags */
+  .cb-s01-scene { --s: 64px; --bw: 100px; }
+  .cb-s01-tag { max-width: 100px; font-size: 0.71875rem; }
+}
+@container cb (max-width: 599.98px) {
+  .cb-s01-views { display: flex; width: 100%; }
+  .cb-s01-view { flex: 1 1 auto; padding: 0 14px; }
+  /* the scene turns tall so twelve 64px spots still fit without overlapping */
+  .cb-s01-scene { --s: 56px; --bw: 96px; --bf: 9.25px; aspect-ratio: 5 / 7.7; }   /* tall enough for three-line Spanish tags */
+  .cb-s01-stk--post { width: var(--bw); }
+  /* a compact action bar: it stays on screen while the player scrolls the tall scene, so it should cover as little of it as it can */
+  .cb-s01-board .cb-actions { gap: 10px; padding: 10px; }
+  .cb-s01-board .cb-actions__info { flex-basis: 100%; padding: 2px 4px 0; }
+  .cb-s01-board .cb-actions > .cb-btn { flex: 1 1 100%; }
+  .cb-s01-spots li { left: var(--px); top: var(--py); }
+  .cb .cb-s01-scene .cb-art__map--crop { object-position: 50% 100% !important; transform-origin: 50% 100% !important; transform: scale(2.2) !important; }
+  .cb-s01-tag { max-width: 102px; padding: 1px 6px 2px; border-radius: 8px; font-size: 0.6875rem; line-height: 1.08; }
+  .cb-s01-spot--board .cb-s01-ring { width: calc(100% + 2px); }
+  .cb-s01-tag__s { font-size: 0.65625rem; }
+  .cb-s01-tag__s .cb-ico { width: 11px; height: 11px; }
+  .cb-s01-dlgbadge { width: 68px; height: 68px; }
+  .cb-s01-dlg .cb-s01-line { font-size: 1.0625rem; }
+}
+/* the narrowest phones (320-360px): two columns, six rows, a taller scene */
+@container cb (max-width: 419.98px) { .cb-s01-dots { display: none; } }   /* the words carry the count; the dots would add a row */
+@container cb (max-width: 349.98px) {
+  .cb-s01-scene { --bw: 112px; --bf: 9px; aspect-ratio: 1 / 2.55; }
+  .cb-s01-tag { max-width: 124px; }                               /* two columns leave room for one-line tags */
+  .cb-s01-spots li { left: var(--qx); top: var(--qy); }
+  .cb .cb-s01-scene .cb-art__map--crop { transform: scale(2) !important; }   /* garden, river and road, without the town hall */
+  .cb-s01-board .cb-actions .cb-msg { font-size: 1rem; }
+  .cb-s01-board .cb-actions > .cb-btn { gap: 8px; padding: 0 16px; font-size: 1rem; }
+}

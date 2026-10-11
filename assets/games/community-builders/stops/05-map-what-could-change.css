@@ -1,0 +1,238 @@
+/* Stop 5 · Map What Could Change. A stone drops on the Old Miller Farm; ripples and dotted paths reach every place.
+   Only --cb-* tokens. Helpful and hard changes share one look: an icon and a word tell them apart. */
+
+/* ── intro: the farm plan on the town notice board, neighbors of all ages around it ── */
+.cb-s05-intro { display: grid; grid-template-columns: minmax(0, 6fr) minmax(0, 5fr); gap: 28px; align-items: center; }
+.cb-s05-hero { box-shadow: var(--cb-shadow-2); }
+.cb-s05-hero__rings .cb-s05-ring { stroke-width: 4; }
+.cb-s05-plan { position: absolute; left: 37%; top: 40%; display: grid; justify-items: center; width: 27%; transform: translate(-50%, -50%) rotate(-2.5deg); }
+.cb-s05-plan .cb-story-obj { width: 100%; aspect-ratio: 1; }
+.cb-s05-plan .cb-story-tag { margin-top: -10%; }
+.cb-s05-plan::before { content: ""; position: absolute; z-index: 1; left: 50%; top: 2%; width: 14px; height: 14px; margin-left: -7px; border-radius: 50%; background: #CF5B45; border: 2px solid #47321F; }
+.cb-s05-face { position: absolute; width: 12.5%; aspect-ratio: 1; transform: translate(-50%, -50%); border-radius: 50%; overflow: hidden; background: var(--cb-card); border: 3px solid var(--cb-card); box-shadow: var(--cb-shadow-2); }
+.cb-s05-face img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.cb-s05-intro__text { gap: 16px; }
+.cb-s05-ripple { display: flex; align-items: flex-start; gap: 14px; margin: 0; font-size: 1.0625rem; font-weight: 600; line-height: 1.45; color: var(--cb-ink-2); text-wrap: pretty; }
+.cb-s05-ripple__ic { display: grid; place-items: center; flex: none; width: 44px; height: 44px; border-radius: 50%; background: var(--cb-info-soft); color: var(--cb-info-ink); }
+.cb-s05-ripple__ic .cb-ico { width: 24px; height: 24px; }
+.cb-s05-kinds { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.cb-s05-kinds li { display: inline-flex; align-items: center; gap: 10px; padding: 6px 16px 6px 6px; border-radius: 999px; background: var(--cb-sunken); font-weight: 680; color: var(--cb-ink); }
+.cb-s05-kinds__ic { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; background: var(--cb-card); color: var(--cb-stage-2); }
+.cb-s05-kinds__ic .cb-ico { width: 22px; height: 22px; }
+.cb-s05-big { min-height: 64px; }
+
+/* ── the play map: a wide crop of the painted town, farm fields down to the river ── */
+.cb-s05-play { position: relative; display: grid; gap: 18px; }
+.cb-s05 .cb-s05-map { aspect-ratio: 1376 / 553; border-radius: 20px; box-shadow: var(--cb-shadow-1), inset 0 0 0 1px rgba(22, 58, 48, 0.12); }
+.cb-s05-svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+.cb-s05-ring { fill: none; stroke: var(--cb-on-stage); stroke-width: 3.5; }
+.cb-s05-svg.is-drop .cb-s05-ring { transform-box: fill-box; transform-origin: center; animation: cb-s05-ring 1.5s var(--cb-ease) both; animation-delay: calc(var(--i) * 120ms + 150ms); }
+@keyframes cb-s05-ring { from { opacity: 0; transform: scale(0.3); } }
+.cb-s05-stones { fill: none; stroke: var(--cb-on-stage); stroke-width: 8; stroke-linecap: round; stroke-dasharray: 0.1 17; filter: drop-shadow(0 1.5px 1px rgba(22, 58, 48, 0.55)); }
+.cb-s05-trail { fill: none; stroke: var(--cb-clay); stroke-width: 8; stroke-linecap: round; filter: drop-shadow(0 1.5px 1.5px rgba(22, 58, 48, 0.4)); }
+.cb-s05-trail.is-old { stroke-width: 6; opacity: 0.7; }
+
+/* the stone: this change's icon, dropped on the farm */
+.cb-s05-farm { position: absolute; z-index: 2; display: flex; align-items: center; gap: 8px; transform: translate(-30px, -50%); pointer-events: none; }
+.cb-s05-farm__stone { flex: none; width: 60px; height: 60px; }
+.cb-s05-farm.is-drop .cb-s05-farm__stone { animation: cb-s05-drop 0.6s var(--cb-ease) both; }
+@keyframes cb-s05-drop { from { opacity: 0; transform: translateY(-22px) scale(1.18); } }
+.cb-s05-farm__name { padding: 3px 10px 4px; border-radius: 9px; border: 1.5px solid rgba(71, 50, 31, 0.24); background: #FFF8EA; box-shadow: 0 1px 2px rgba(48, 30, 14, 0.22), 0 4px 10px -4px rgba(48, 30, 14, 0.42);
+  font-size: 0.875rem; font-weight: 720; line-height: 1.15; color: #3A2A1C; white-space: nowrap; }
+
+/* small markers for the phone list layout */
+/* phone: each place is a numbered paper marker on the painting; the list below repeats the number with the name */
+.cb-s05-pin { position: absolute; display: none; place-items: center; width: 24px; height: 24px; transform: translate(-50%, -50%); border-radius: 50%; border: 2px solid #47321F; background: #FFF8EA; color: #3A2A1C;
+  box-shadow: 0 2px 4px rgba(48, 30, 14, 0.35); font-family: var(--a2-font-display); font-size: 0.8125rem; font-weight: 780; line-height: 1; }
+.cb-s05-pin.is-lit { border-color: var(--cb-stage-2); background: var(--cb-stage-2); color: var(--cb-on-accent); box-shadow: 0 0 0 3px #FFF8EA, 0 2px 4px rgba(48, 30, 14, 0.35); }
+.cb-s05-place__no { display: none; }
+
+/* ── places: plates on the map ── */
+.cb-s05-places { margin: 0; padding: 0; list-style: none; }
+.cb-s05-place { position: relative; display: inline-flex; align-items: center; gap: 10px; min-width: 64px; min-height: 64px; padding: 6px 16px 6px 7px; border-radius: 20px;
+  border: 2px solid transparent; background: var(--cb-card); color: var(--cb-ink); box-shadow: var(--cb-shadow-2); text-align: left;
+  transition: transform var(--a2-dur-2) var(--cb-ease), box-shadow var(--a2-dur-2) var(--cb-ease), border-color var(--a2-dur-2), background-color var(--a2-dur-2); }
+.cb-s05-place__ic { position: relative; display: grid; place-items: center; flex: none; width: 46px; height: 46px; border-radius: 50%; background: var(--cb-sunken); color: var(--cb-ink-2); transition: background-color var(--a2-dur-2), color var(--a2-dur-2); }
+.cb-s05-place__ic .cb-ico { width: 24px; height: 24px; }
+.cb-s05-place__t { display: grid; gap: 1px; max-width: 7.6rem; text-wrap: balance; }
+.cb-s05-place__t small { font-family: var(--a2-font-body); font-size: 0.8125rem; font-weight: 650; color: var(--cb-ink-3); }
+.cb .cb-s05-place { font-family: var(--a2-font-display); font-size: 0.9375rem; font-weight: 680; line-height: 1.15; letter-spacing: -0.008em; }   /* beats .cb button { font: inherit } */
+button.cb-s05-place:hover:not([aria-disabled="true"]) { transform: translateY(-3px); border-color: var(--cb-stage-2); box-shadow: 0 4px 6px rgba(22, 58, 48, 0.16), 0 18px 34px -10px rgba(22, 58, 48, 0.55); }
+button.cb-s05-place:hover:not([aria-disabled="true"]) .cb-s05-place__ic { background: var(--cb-pine-soft); color: var(--cb-stage-2); }
+button.cb-s05-place:active:not([aria-disabled="true"]) { transform: scale(0.97); }
+button.cb-s05-place[aria-disabled="true"] { cursor: default; }
+.cb-s05-place.is-tried { border-style: dashed; border-color: var(--cb-ink-3); background: var(--cb-board); box-shadow: var(--cb-shadow-1); }
+.cb-s05-place.is-tried .cb-s05-place__ic { background: var(--cb-card); color: var(--cb-ink-3); }
+.cb-s05-place.is-right { border-color: var(--cb-stage-2); background: var(--cb-pine-soft); }
+.cb-s05-place.is-right .cb-s05-place__ic { background: var(--cb-stage-2); color: var(--cb-on-accent); }
+button.cb-s05-place.is-right .cb-s05-place__ic { animation: cb-pop 0.45s var(--cb-ease) both; }
+.cb-s05-place.is-right .cb-s05-place__ic .cb-ico { stroke-width: 3; width: 22px; height: 22px; }
+.cb-s05-place.is-quiet { box-shadow: var(--cb-shadow-1); }
+.cb-s05-place.is-quiet .cb-s05-place__ic { background: var(--cb-board); }
+.cb-s05-recap__at { display: block; font-family: var(--a2-font-body); font-size: 0.8125rem; font-weight: 650; color: var(--cb-ink-3); }
+
+@container cb (min-width: 900px) {
+  .cb-s05-places { position: absolute; left: 0; top: 0; z-index: 3; width: 100%; aspect-ratio: 1376 / 553; pointer-events: none; }
+  .cb-s05-places li { position: absolute; width: 0; height: 0; }
+  .cb-s05-places li:has(:hover), .cb-s05-places li:has(:focus-visible) { z-index: 2; }
+  .cb-s05-place { position: absolute; left: 0; top: 0; width: max-content; transform: translate(-50%, calc(-100% - 8px)); pointer-events: auto;
+    min-height: 48px; padding: 5px 14px 6px 12px; border-radius: 12px; border: 1.5px solid rgba(71, 50, 31, 0.28); background: #FFF8EA; color: #3A2A1C;
+    box-shadow: 0 1px 2px rgba(48, 30, 14, 0.22), 0 6px 14px -6px rgba(48, 30, 14, 0.5); }
+  .cb-s05-place::after { content: ""; position: absolute; left: 50%; bottom: -7px; width: 12px; height: 12px; margin-left: -6px; transform: rotate(45deg);
+    background: inherit; border-right: 1.5px solid rgba(71, 50, 31, 0.28); border-bottom: 1.5px solid rgba(71, 50, 31, 0.28); }
+  .cb-s05-place__ic { display: none; }
+  .cb-s05-place.is-right .cb-s05-place__ic { display: grid; width: 30px; height: 30px; }
+  .cb-s05-place.is-right { background: var(--cb-pine-soft); border-color: var(--cb-stage-2); }
+  .cb-s05-place.is-right::after { border-color: var(--cb-stage-2); }
+  .cb-s05-place.is-tried { border-style: dashed; }
+  /* step 2 and the end: the places the change did not reach step back, so only the neighbors look tappable */
+  .cb-s05-places.is-passive .cb-s05-place.is-quiet { opacity: 0.5; box-shadow: none; }
+  .cb-s05-place__t { max-width: var(--fit, 7.6rem); }      /* --fit: the widest line of a two-line label (set by the script) */
+  button.cb-s05-place:hover:not([aria-disabled="true"]) { transform: translate(-50%, calc(-100% - 11px)); }
+  button.cb-s05-place:active:not([aria-disabled="true"]) { transform: translate(-50%, calc(-100% - 8px)) scale(0.97); }
+  .cb-s05-places.is-passive .cb-s05-place { pointer-events: none; }
+}
+
+/* ── the change card and the task, under the map ── */
+.cb-s05-panel { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 18px; align-items: start; }
+.cb-s05-card { display: grid; gap: 14px; align-content: start; padding: 18px 20px 20px 18px; border-radius: 22px; background: var(--cb-card); border: 1.5px solid var(--cb-line); box-shadow: var(--cb-shadow-1); }
+.cb-s05-card.is-new { animation: cb-rise 0.5s var(--cb-ease) both; }
+.cb-s05-card__top { display: flex; align-items: center; gap: 16px; }
+.cb-s05-card__ic { display: grid; place-items: center; flex: none; width: 76px; height: 76px; border-radius: 50%; background: var(--cb-board); border: 4px solid var(--cb-c1); color: var(--cb-ink); }
+.cb-s05-card__ic .cb-ico { width: 40px; height: 40px; stroke-width: 1.8; }
+.cb-s05-card__head { display: grid; gap: 6px; justify-items: start; min-width: 0; }
+.cb-s05-card__name { margin: 0; font-family: var(--a2-font-display); font-size: clamp(1.25rem, 0.9rem + 0.9cqi, 1.625rem); font-weight: 690; line-height: 1.14; letter-spacing: -0.02em; color: var(--cb-ink); text-wrap: balance; }
+.cb-s05-kind { display: inline-flex; align-items: center; gap: 6px; margin: 0; padding: 3px 12px 3px 4px; border-radius: 999px; background: var(--cb-sunken); font-size: 0.875rem; font-weight: 700; line-height: 1.3; color: var(--cb-ink-2); }
+.cb-s05-kind .cb-ico { width: 22px; height: 22px; padding: 2px; border-radius: 50%; background: var(--cb-card); color: var(--cb-stage-2); }
+.cb-s05-lines { display: grid; gap: 8px; }
+.cb-s05-line { display: grid; grid-template-columns: 24px minmax(0, 1fr); gap: 10px; margin: 0; padding: 11px 14px 12px 11px; border-radius: 14px; background: var(--cb-board); font-weight: 600; line-height: 1.42; color: var(--cb-ink); text-wrap: pretty; }
+.cb-s05-line .cb-ico { width: 22px; height: 22px; margin-top: 1px; color: var(--cb-clay-ink); }
+.cb-s05-line.is-new { animation: cb-rise 0.45s var(--cb-ease) both; }
+.cb-s05-task { display: grid; gap: 12px; align-content: start; }
+.cb-s05-stepno { display: flex; align-items: center; gap: 10px; margin: 0; font-size: 0.875rem; font-weight: 700; color: var(--cb-ink-3); font-variant-numeric: tabular-nums; }
+.cb-s05-stepno__dots { display: flex; gap: 5px; }
+.cb-s05-stepno__dots i { width: 22px; height: 6px; border-radius: 3px; background: var(--cb-line-strong); }
+.cb-s05-stepno__dots i.is-on { background: var(--cb-clay); }
+.cb-s05-stepno__dots i.is-done { background: var(--cb-stage-2); }
+
+/* step 2: the six neighbors, a portrait list in a fixed order. Two columns keep every name on one line,
+   so the "Tried" tag on the top edge never sits on text; phones get a one-column list. */
+.cb-pick.cb-s05-who { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 10px; }
+.cb-s05-who .cb-face-btn { grid-template-columns: auto minmax(0, 1fr); grid-template-rows: auto auto; align-content: center; align-items: center; justify-items: start; column-gap: 12px; row-gap: 1px;
+  min-height: 72px; padding: 7px 14px 7px 8px; border-radius: 18px; text-align: left; line-height: 1.2; }
+.cb-s05-who .cb-face-btn__img { grid-row: 1 / span 2; width: 52px; height: 52px; }
+.cb-s05-who .cb-face-btn b, .cb-s05-who .cb-face-btn small { grid-column: 2; }
+.cb-s05-who .cb-face-btn b { font-size: 1rem; align-self: end; }
+.cb-s05-who .cb-face-btn small { align-self: start; }
+.cb-s05-who .cb-badge { width: 26px; height: 26px; right: -5px; bottom: -4px; }
+.cb-s05-who .cb-face-btn { position: relative; }
+.cb-s05-tried { position: absolute; top: -12px; right: 10px; padding: 1px 10px; border-radius: 999px; background: var(--cb-card); border: 1.5px dashed var(--cb-ink-3); font-size: 0.8125rem; font-weight: 700; line-height: 1.4; color: var(--cb-ink-2); white-space: nowrap; }
+.cb-s05-who .cb-face-btn[aria-disabled="true"] { cursor: default; }
+.cb-s05-who .cb-face-btn[aria-disabled="true"]:hover { transform: none; box-shadow: none; }
+/* answered, not picked: the portrait steps back, the words keep full contrast (names and roles still help) */
+.cb-s05-who .cb-face-btn[aria-disabled="true"]:not(.is-right):not(.is-chosen) .cb-face-btn__img img { opacity: 0.55; filter: grayscale(0.5); }
+.cb-s05-who .cb-face-btn[aria-disabled="true"]:not(.is-right):not(.is-chosen):hover { border-color: var(--cb-line); }
+.cb-s05-who .cb-face-btn.is-chosen { background: var(--cb-board); }
+
+/* feedback extras */
+.cb-s05-fbtext { display: grid; gap: 4px; }
+.cb-s05-fbtext b { font-weight: 760; }
+.cb-s05-also { margin: 0; font-weight: 600; color: var(--cb-ink-2); }
+.cb-s05-also b { color: var(--cb-ink); }
+
+/* ── end of round: every path stays lit ── */
+.cb-s05-panel--end { grid-template-columns: minmax(0, 1fr); gap: 14px; }
+.cb-s05-endrow { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 20px; }
+.cb-s05-endmsg { display: flex; align-items: center; gap: 14px; margin: 0; font-family: var(--a2-font-display); font-size: clamp(1.375rem, 1rem + 1.2cqi, 1.875rem); font-weight: 700; line-height: 1.15; letter-spacing: -0.022em; color: var(--cb-ink); text-wrap: balance; }
+.cb-s05-endmsg .cb-ico { width: 48px; height: 48px; padding: 10px; border-radius: 50%; background: var(--cb-info-soft); color: var(--cb-info-ink); }
+.cb-s05-recap { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; margin: 0; padding: 0; list-style: none; }
+.cb-s05-recap li { display: grid; justify-items: start; align-content: start; gap: 8px; padding: 12px 12px 14px; border-radius: 18px; background: var(--cb-card); border: 1.5px solid var(--cb-line); }
+.cb-s05-recap__ic { display: grid; place-items: center; flex: none; width: 44px; height: 44px; border-radius: 50%; background: var(--cb-board); border: 3px solid var(--cb-c1); color: var(--cb-ink); }
+.cb-s05-recap__ic .cb-ico { width: 24px; height: 24px; }
+.cb-s05-recap__n { font-family: var(--a2-font-display); font-size: 0.9375rem; font-weight: 680; line-height: 1.22; color: var(--cb-ink); text-wrap: balance; }
+.cb-s05-kind--sm { padding: 2px 10px 2px 3px; font-size: 0.8125rem; }
+.cb-s05-kind--sm .cb-ico { width: 20px; height: 20px; }
+
+/* ── score card: the round's ripple map ── */
+.cb-s05-sum { container: s05sum / inline-size; display: grid; gap: 10px; }
+.cb-s05-sum > strong { font-family: var(--a2-font-display); font-size: 1.0625rem; font-weight: 700; color: var(--cb-ink); }
+.cb-s05-sum__grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; align-items: start; }
+.cb-s05-mini { border-radius: 16px; }
+.cb-s05-mini .cb-s05-farm__name, .cb-s05-mini .cb-s05-pin { display: none; }
+.cb-s05-mini .cb-s05-farm { transform: translate(-50%, -50%); }
+.cb-s05-mini .cb-s05-farm__stone { width: 38px; height: 38px; }
+.cb-s05-mini .cb-s05-stones { stroke-width: 10; stroke-dasharray: 0.1 26; }
+.cb-s05-mini .cb-s05-trail { stroke-width: 12; opacity: 1; }
+.cb-s05-mini .cb-s05-ring { stroke-width: 6; }
+.cb-s05-mtag { position: absolute; z-index: 2; transform: translate(-50%, -50%); font-size: 0.75rem; white-space: nowrap; }
+.cb-s05-mini.is-glow .cb-s05-ring { animation: cb-s05-glow 2.2s var(--cb-ease) 1.9s both; animation-delay: calc(1.9s + var(--i) * 90ms); }
+@keyframes cb-s05-glow { 0%, 100% { stroke: var(--cb-on-stage); } 35% { stroke: var(--cb-gold); stroke-opacity: 1; stroke-width: 14; filter: drop-shadow(0 0 10px rgba(230, 159, 0, 0.9)); } }
+.cb-s05-recap--card { grid-template-columns: minmax(0, 1fr); gap: 6px; }
+.cb-s05-recap--card li { grid-template-columns: auto minmax(0, 1fr); align-items: center; column-gap: 10px; row-gap: 3px; padding: 6px 10px 6px 6px; border-radius: 14px; }
+.cb-s05-recap--card .cb-s05-recap__ic { grid-row: 1 / span 2; }
+.cb-s05-recap--card .cb-s05-kind { grid-column: 2; }
+/* the recap answers to its own width, so it also fits the narrow Team challenge cards */
+@container s05sum (min-width: 560px) { .cb-s05-sum__grid { grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); } }
+@container s05sum (min-width: 700px) {
+  .cb-s05-recap--card li { grid-template-columns: auto minmax(0, 1fr) auto; }
+  .cb-s05-recap--card .cb-s05-recap__ic { grid-row: auto; }
+  .cb-s05-recap--card .cb-s05-kind { grid-column: auto; }
+}
+.cb-s05-recap--card .cb-s05-recap__ic { width: 36px; height: 36px; border-width: 2px; }
+.cb-s05-recap--card .cb-s05-recap__ic .cb-ico { width: 20px; height: 20px; }
+.cb-s05-recap--card .cb-s05-recap__n { font-size: 0.875rem; }
+.cb-s05-gu { min-height: 64px; }
+
+/* ── narrow stage: the map sits on top, the buttons go below it as a list ── */
+@container cb (max-width: 1099.98px) {
+  .cb-s05-recap:not(.cb-s05-recap--card) { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+}
+@container cb (max-width: 899.98px) {
+  .cb-s05-intro { grid-template-columns: minmax(0, 1fr); gap: 18px; }
+  .cb-s05-play { gap: 14px; }
+  .cb-s05 .cb-s05-map { border-radius: 16px; }
+  .cb-s05-pin { display: grid; }
+  .cb-s05-farm { flex-direction: row-reverse; transform: translate(calc(-100% + 19px), -50%); gap: 5px; }
+  .cb-s05-farm__stone { width: 38px; height: 38px; }
+  .cb-s05-farm__name { padding: 3px 8px; font-size: 0.75rem; }
+  .cb-s05-stones { stroke-width: 12; stroke-dasharray: 0.1 26; }
+  .cb-s05-trail { stroke-width: 12; }
+  .cb-s05-trail.is-old { stroke-width: 10; }
+  .cb-s05-ring { stroke-width: 6; }
+  .cb-s05-panel { grid-template-columns: minmax(0, 1fr); gap: 14px; }
+  .cb-s05-places { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  /* steps after the first: only the places the change reached stay, as small named chips with their map numbers */
+  .cb-s05-places.is-passive { display: flex; flex-wrap: wrap; gap: 8px; }
+  .cb-s05-places.is-passive li:has(.is-quiet) { display: none; }
+  .cb-s05-places.is-passive .cb-s05-place { width: auto; min-height: 44px; padding: 4px 12px 4px 4px; }
+  .cb-s05-place__no { display: grid; place-items: center; flex: none; width: 34px; height: 34px; border-radius: 50%; border: 2px solid #47321F; background: #FFF8EA; color: #3A2A1C; font-size: 0.9375rem; font-weight: 780; }
+  .cb-s05-place.is-right .cb-s05-place__no { border-color: var(--cb-stage-2); background: var(--cb-stage-2); color: var(--cb-on-accent); }
+  .cb-s05-place__ic { display: none; }
+  .cb-s05-place { width: 100%; height: 100%; padding-right: 10px; box-shadow: none; border-color: var(--cb-line); border-width: 1.5px; }
+  .cb-s05-place.is-tried { border-width: 2px; }
+  .cb-s05-place.is-right { border-width: 2px; }
+  .cb-s05-place__ic { width: 40px; height: 40px; }
+  .cb-s05-place__t { max-width: none; }
+  .cb-s05-card { padding: 14px 16px 16px 14px; }
+  .cb-s05-card__ic { width: 64px; height: 64px; }
+  .cb-s05-card__ic .cb-ico { width: 34px; height: 34px; }
+  .cb-s05-who .cb-face-btn { padding: 8px 12px 8px 8px; column-gap: 10px; }
+  .cb-s05-who .cb-face-btn__img { width: 48px; height: 48px; }
+  .cb-s05-who .cb-face-btn b { font-size: 0.9375rem; }
+  .cb-s05-mtag { font-size: 0.625rem; padding: 1px 5px 2px; }
+  .cb-s05-mini .cb-s05-farm__stone { width: 28px; height: 28px; }
+  .cb-s05-mini .cb-s05-farm { transform: translate(-50%, -50%); }
+}
+@container cb (max-width: 480px) {
+  .cb-pick.cb-s05-who { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+  .cb-s05-who .cb-face-btn { min-height: 68px; }
+  .cb-s05-place { gap: 8px; padding: 6px 8px 6px 6px; }
+  .cb .cb-s05-place { font-size: 0.875rem; }
+  .cb-s05-place__ic { width: 36px; height: 36px; }
+  .cb-s05-place__ic .cb-ico { width: 20px; height: 20px; }
+  .cb-s05-kinds li { font-size: 0.9375rem; }
+  .cb-s05-recap:not(.cb-s05-recap--card) { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+  .cb-s05-recap li { grid-template-columns: auto minmax(0, 1fr); align-items: center; column-gap: 12px; row-gap: 4px; padding: 8px 12px 8px 8px; }
+  .cb-s05-recap .cb-s05-recap__ic { grid-row: 1 / span 2; }
+  .cb-s05-recap li .cb-s05-kind { grid-column: 2; }
+}

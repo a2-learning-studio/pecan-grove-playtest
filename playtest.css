@@ -1,0 +1,24 @@
+/* play-test page shell: the game's pine stage colours, the A2 fonts; the game itself brings its own styles (cb.css) */
+html { background: #F4F1EA; }
+body { margin: 0; background: #F4F1EA; color: #163A30; font-family: var(--a2-font-body, system-ui, sans-serif); }
+.pt-in { box-sizing: border-box; width: min(100%, 1240px); margin: 0 auto; padding: 0 16px; }
+.pt-bar { background: #163A30; color: #F7F4EE; }
+.pt-bar .pt-in { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; min-height: 60px; }
+.pt-brand { display: inline-flex; align-items: center; gap: 10px; font-family: var(--a2-font-display, system-ui); font-size: 1.0625rem; letter-spacing: -0.01em; }
+.pt-tag { padding: 3px 10px; border-radius: 999px; background: #F0B43C; color: #163A30; font-size: 0.8125rem; font-weight: 700; }
+.pt-lang { margin-left: auto; padding: 8px 14px; border-radius: 999px; border: 1.5px solid #BFD1C8; color: #F7F4EE; font-weight: 650; text-decoration: none; }
+.pt-lang:hover { background: #1E5A47; }
+.pt-lang:focus-visible, .pt-btn:focus-visible { outline: 3px solid #F0B43C; outline-offset: 3px; }
+.pt-main { box-sizing: border-box; width: min(100%, 1240px); margin: 0 auto; padding: 24px 16px 40px; display: grid; gap: 24px; }
+.pt-note { display: grid; gap: 10px; max-width: 72ch; padding: 20px 22px; border-radius: 20px; background: #FFFFFF; border: 1.5px solid #E4DDD1; }
+.pt-note h1 { margin: 0; font-family: var(--a2-font-display, system-ui); font-size: clamp(1.5rem, 1.1rem + 1.5vw, 2rem); line-height: 1.15; letter-spacing: -0.02em; }
+.pt-note p, .pt-steps { margin: 0; font-size: 1rem; line-height: 1.55; }
+.pt-goal { font-weight: 650; }
+.pt-steps { padding-left: 1.3em; display: grid; gap: 4px; }
+.pt-cta { margin-top: 6px; }
+.pt-btn { display: inline-flex; align-items: center; min-height: 48px; padding: 0 22px; border-radius: 999px; background: #A9492A; color: #FFFFFF; font-weight: 700; text-decoration: none; }
+.pt-btn:hover { background: #94401F; }
+.pt-cta--wait { color: #33443D; font-style: italic; }
+.pt-privacy { color: #56625C; font-size: 0.875rem !important; }
+.pt-foot { background: #163A30; color: #BFD1C8; font-size: 0.875rem; }
+.pt-foot p { margin: 0; padding: 16px 0; }

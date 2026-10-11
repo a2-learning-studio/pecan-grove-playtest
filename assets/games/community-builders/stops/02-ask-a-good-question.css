@@ -1,0 +1,207 @@
+/* Stop 2 · Ask a Good Question — the library porch, a three-row tile tray, the question strip and the question board.
+   Only var(--cb-*) tokens; classes are .cb-s02-*; the phone layout follows the stage container (cb).
+   While the player builds a question the worry never leaves the screen: on a wide stage the porch and the board
+   form a sticky side column beside the tiles; on a narrow stage the speech bubble sticks under the screen top. */
+
+/* ── scene: the painted library with four neighbors on its steps ── */
+.cb-s02-scene { display: grid; grid-template-rows: minmax(0, 1fr); overflow: hidden; border-radius: 20px; background: var(--cb-stage-2); box-shadow: var(--cb-shadow-1); }
+.cb-s02-scene > * { grid-area: 1 / 1; min-width: 0; }
+.cb-s02-scene .cb-art { align-self: stretch; border-radius: 0; box-shadow: none; }
+.cb-s02-art--narrow { display: none; }
+.cb-s02-porch { align-self: end; z-index: 1; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); align-items: end; gap: 6px; margin: 0 12px 14px; padding: 0; list-style: none; }
+.cb-s02-nb { display: grid; justify-items: center; gap: 6px; min-width: 0; }
+.cb-s02-nb__face { position: relative; display: block; width: 62px; height: 62px; padding: 3px; border-radius: 50%; background: var(--cb-card); box-shadow: var(--cb-shadow-2);
+  transition: transform var(--a2-dur-3) var(--cb-ease), width var(--a2-dur-3) var(--cb-ease), height var(--a2-dur-3) var(--cb-ease); }
+.cb-s02-nb__face img { display: block; width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
+.cb-s02-nb__name { max-width: 100%; padding: 4px 9px 5px; border-radius: 10px; background: var(--cb-card); box-shadow: var(--cb-shadow-1);
+  font-family: var(--a2-font-display); font-size: 0.875rem; font-weight: 650; line-height: 1.15; letter-spacing: -0.005em; color: var(--cb-ink); text-align: center; text-wrap: balance; }
+.cb-s02-nb[data-s="now"] .cb-s02-nb__face { width: 78px; height: 78px; padding: 4px; background: var(--cb-clay); transform: translateY(-4px); }
+.cb-s02-nb[data-s="now"] .cb-s02-nb__name { background: var(--cb-ink); color: var(--cb-on-stage); }
+.cb-s02-nb .cb-badge { right: -5px; bottom: -3px; }
+
+/* the neighbor's speech bubble, its tail pointing at whoever is talking */
+.cb-s02-say { align-self: start; z-index: 2; max-width: none; margin: 14px 12px 0; padding: 16px 20px 17px 54px; outline: none;
+  font-size: clamp(1.125rem, 0.78rem + 0.75cqi, 1.375rem); line-height: 1.28; box-shadow: var(--cb-shadow-2); animation: cb-rise 0.45s var(--cb-ease) both; }
+.cb-s02-say::before { left: 14px; top: 7px; font-size: 3rem; }
+.cb-s02-say::after { left: calc(var(--tail, 50%) - 8px); }
+.cb-s02-say:focus, .cb-s02-say:focus-visible, .cb-s02-talk:focus, .cb-s02-talk:focus-visible { outline: none; }
+
+/* ── intro ── */
+.cb-s02-intro { display: grid; grid-template-columns: minmax(0, 11fr) minmax(0, 9fr); gap: clamp(20px, 3cqi, 36px); align-items: center; }
+.cb-s02-intro__copy { display: grid; gap: 18px; justify-items: start; align-content: start; }
+.cb-s02-intro__lead { margin: 0; font-family: var(--a2-font-display); font-size: clamp(1.25rem, 0.95rem + 1cqi, 1.625rem); font-weight: 640; line-height: 1.3; letter-spacing: -0.016em; color: var(--cb-ink); text-wrap: pretty; }
+.cb-s02-ex { display: grid; gap: 8px; margin: 0; }
+.cb-s02-ex__line { display: grid; grid-template-columns: 24px minmax(0, 1fr); gap: 12px; align-items: start; padding: 12px 16px 12px 12px; border-radius: 16px; background: var(--cb-sunken); color: var(--cb-ink-2); line-height: 1.42; }
+.cb-s02-ex__line + .cb-s02-ex__line { background: var(--cb-pine-soft); }
+.cb-s02-ex__line .cb-ico { margin-top: 1px; color: var(--cb-ink-3); }
+.cb-s02-ex__line + .cb-s02-ex__line .cb-ico { color: var(--cb-stage-2); stroke-width: 2.6; }
+.cb-s02-ex b { font-family: var(--a2-font-display); font-weight: 680; color: var(--cb-ink); }
+
+/* ── play: the porch and the board in a sticky side column, the instruction and the tiles (or the answer) beside it ── */
+.cb-s02-play { display: grid; grid-template-columns: minmax(0, 4fr) minmax(0, 8fr); align-items: start; gap: 20px clamp(18px, 2.2cqi, 28px); }
+.cb-s02-side { position: sticky; top: 12px; z-index: 1; display: grid; gap: 14px; min-width: 0; }
+.cb-s02-work { display: grid; gap: 14px; min-width: 0; }
+.cb-s02-work > .cb-coach { padding: 10px 16px 10px 10px; font-size: 1.0625rem; }
+.cb-s02-play .cb-s02-scene { grid-template-rows: auto minmax(36px, 1fr) auto; min-height: clamp(290px, 31cqi, 360px); }
+.cb-s02-play .cb-s02-scene > .cb-art { grid-area: 1 / 1 / -1 / -1; aspect-ratio: auto; }
+.cb-s02-play .cb-s02-scene > .cb-s02-say { grid-area: 1 / 1; }
+.cb-s02-play .cb-s02-scene > .cb-s02-porch { grid-area: 3 / 1; }
+.cb-s02-play .cb-s02-nb__name { padding: 3px 7px 4px; font-size: 0.8125rem; }
+
+/* the question board: four slots that fill with Pecan Stickers */
+.cb-s02-board { display: grid; grid-auto-rows: minmax(54px, auto); gap: 8px; margin: 0; padding: 12px; border-radius: 20px; background: var(--cb-sunken); border: 1.5px solid var(--cb-line); list-style: none; }
+.cb-s02-board li { display: grid; grid-template-columns: 36px minmax(0, 1fr) 28px; align-items: center; gap: 10px; padding: 8px 10px 8px 8px; border-radius: 14px; background: var(--cb-card); box-shadow: var(--cb-shadow-1); }
+.cb-s02-boardwrap { display: grid; gap: 8px; }
+.cb-s02-board__k { margin: 0; padding: 0 4px; font-family: var(--a2-font-display); font-size: 0.9375rem; font-weight: 700; letter-spacing: -0.01em; color: var(--cb-ink); }
+.cb-s02-board__hint { color: var(--cb-clay-ink) !important; font-weight: 650 !important; }
+.cb-s02-board li.is-empty { background: rgba(255, 255, 255, 0.45); box-shadow: none; border: 1.5px solid var(--cb-line); }
+.cb-s02-board li.is-empty .cb-s02-board__face { filter: grayscale(1); opacity: 0.4; }
+.cb-s02-board li.is-now { border: 2px solid var(--cb-clay); background: var(--cb-card); }
+.cb-s02-board li.is-now .cb-s02-board__face { filter: none; opacity: 1; box-shadow: 0 0 0 2px var(--cb-clay); }
+.cb-s02-sticker .cb-story-obj { width: 100%; height: 100%; }
+.cb-s02-board p { margin: 0; font-size: 0.875rem; font-weight: 620; line-height: 1.32; color: var(--cb-ink); text-wrap: pretty; }
+.cb-s02-board .cb-s02-sticker { width: 36px; height: 36px; }
+
+.cb-s02-board__face { width: 28px; height: 28px; border-radius: 50%; object-fit: cover; }
+.cb-s02-board li.is-new { animation: cb-s02-pin 0.5s var(--cb-ease) 0.2s both; }
+.cb-s02-board li.is-new .cb-s02-sticker { animation: cb-s02-settle 0.8s var(--cb-ease) 0.45s both; }
+@keyframes cb-s02-pin { from { opacity: 0; transform: translateY(10px); } }
+@keyframes cb-s02-settle { 0% { opacity: 0; transform: translateY(-26px) rotate(-24deg) scale(1.3); box-shadow: 0 0 0 3px var(--cb-card), var(--cb-shadow-2); } 60% { opacity: 1; } }
+
+/* the Pecan Sticker */
+.cb-s02-sticker { display: grid; place-items: center; flex: none; width: 40px; height: 40px; padding: 3px; border-radius: 50%; background: var(--cb-warn-soft); box-shadow: 0 0 0 3px var(--cb-card), var(--cb-shadow-1); }
+.cb-s02-sticker.is-empty { background: transparent; box-shadow: none; }
+.cb-s02-sticker.is-empty .cb-story-obj { opacity: 0.32; filter: grayscale(1); }
+
+/* ── the tile tray: three colour-coded rows, one tile each ── */
+.cb-s02-tray { display: grid; gap: 10px; }
+.cb-s02-row { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; padding: 10px 12px 12px; border-radius: 20px; background: var(--row-soft);
+  transition: box-shadow var(--a2-dur-2) var(--cb-ease); }
+.cb-s02-row[data-row="start"] { --row-soft: var(--cb-info-soft); --row-ink: var(--cb-info-ink); --row-dot: var(--cb-info-ink); }
+.cb-s02-row[data-row="topic"] { --row-soft: var(--cb-pine-soft); --row-ink: var(--cb-stage-2); --row-dot: var(--cb-c3); }
+.cb-s02-row[data-row="detail"] { --row-soft: var(--cb-warn-soft); --row-ink: var(--cb-warn-ink); --row-dot: var(--cb-c2); }
+.cb-s02-row.is-needed { box-shadow: 0 0 0 3px var(--cb-clay); }
+.cb-s02-row, .cb-s02-tile, .cb-s02-tray__foot .cb-btn { scroll-margin: 24px 0 168px; }   /* focus and hints land above the sticky strip */
+.cb-s02-row__k { display: flex; align-items: center; gap: 10px; margin: 0; padding: 2px 0 0 4px; font-family: var(--a2-font-display); font-size: 1rem; font-weight: 700; letter-spacing: -0.01em; color: var(--cb-ink); }
+.cb-s02-row__k i { width: 14px; height: 14px; flex: none; border-radius: 50%; background: var(--row-dot); box-shadow: 0 0 0 3px var(--cb-card); }
+.cb-s02-row.is-needed .cb-s02-row__k { color: var(--cb-clay-ink); }
+.cb-s02-tiles { display: flex; flex-wrap: wrap; gap: 8px; }
+.cb-s02-tile { position: relative; display: inline-flex; align-items: center; min-height: 64px; padding: 10px 16px; border-radius: 16px; border: 2px solid var(--cb-line); background: var(--cb-card); color: var(--cb-ink);
+  font-size: 1.0625rem; font-weight: 650; line-height: 1.25; letter-spacing: -0.005em; text-align: left;
+  transition: border-color var(--a2-dur-2), box-shadow var(--a2-dur-2) var(--cb-ease), transform var(--a2-dur-2) var(--cb-ease); }
+.cb-s02-tile:hover { border-color: var(--row-ink); transform: translateY(-2px); box-shadow: var(--cb-shadow-1); }
+.cb-s02-tile:active { transform: scale(0.98); box-shadow: none; }
+/* fixing a question: the tile the neighbor's tip names wears a dashed clay ring until it is picked */
+.cb-s02-tile.is-hint:not([aria-pressed="true"]) { border: 2.5px dashed var(--cb-clay); background: var(--cb-clay-soft); }
+.cb-s02-tile[aria-pressed="true"] { border-color: var(--row-ink); box-shadow: 0 0 0 1.5px var(--row-ink), var(--cb-shadow-1); }
+.cb-s02-tile__ck { position: absolute; top: -9px; right: -9px; display: none; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: var(--row-ink); color: var(--cb-on-accent); border: 3px solid var(--cb-card); }
+.cb-s02-tile__ck .cb-ico { width: 15px; height: 15px; stroke-width: 3.2; }
+.cb-s02-tile[aria-pressed="true"] .cb-s02-tile__ck { display: grid; animation: cb-pop 0.35s var(--cb-ease) both; }
+
+.cb-s02-tray__foot { display: flex; justify-content: flex-end; margin-top: -4px; }
+
+/* ── the question strip: always in view, beside Ask it ── */
+.cb-s02-strip { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "k ask" "line ask"; align-items: center; gap: 2px 18px; padding: 10px 10px 12px 20px; }
+.cb-s02-strip > .cb-btn { grid-area: ask; }
+.cb-s02-q__k { grid-area: k; align-self: end; font-size: 0.875rem; font-weight: 720; color: var(--cb-ink-3); }
+.cb-s02-q__line { grid-area: line; align-self: start; margin: 0; min-height: 1.3em; font-family: var(--a2-font-display); font-size: clamp(1.125rem, 0.95rem + 0.6cqi, 1.375rem); font-weight: 660; line-height: 1.3; letter-spacing: -0.012em; color: var(--cb-ink); text-wrap: pretty; }
+.cb-s02-q__line.is-empty { width: min(100%, 22rem); border-bottom: 2px dashed var(--cb-line-strong); }
+/* "Ask it" before Start and Topic are picked: a pending state that keeps its words readable (it still answers a tap with the hint) */
+.cb-s02-strip .cb-btn--go[aria-disabled="true"] { background: var(--cb-clay-soft); border-color: var(--cb-clay-soft); color: var(--cb-clay-ink); box-shadow: none; transform: none; }
+.cb-s02-strip .cb-btn--go[aria-disabled="true"]:hover { background: var(--cb-clay-soft); border-color: var(--cb-clay); }
+.cb-s02-tray .cb-btn[aria-disabled="true"] { opacity: 0.6; box-shadow: none; transform: none; }
+.cb-s02-tray .cb-btn--quiet[aria-disabled="true"]:hover { background: transparent; }
+.cb-s02-strip.is-done { display: flex; justify-self: end; width: max-content; max-width: 100%; padding: 8px; }
+
+/* ── the answer: your question, then the neighbor's reply ── */
+.cb-s02-talk { display: grid; gap: 14px; scroll-margin: 16px; }
+.cb-s02-you { justify-self: end; max-width: min(40rem, 92%); margin: 0; padding: 12px 20px 13px; border-radius: 22px 22px 6px 22px; background: var(--cb-clay-soft); color: var(--cb-ink);
+  font-family: var(--a2-font-display); font-size: clamp(1.0625rem, 0.95rem + 0.5cqi, 1.25rem); font-weight: 650; line-height: 1.32; letter-spacing: -0.01em; text-wrap: pretty;
+  animation: cb-rise 0.4s var(--cb-ease) both; }
+.cb-s02-reply { display: grid; grid-template-columns: 56px minmax(0, 1fr); grid-template-areas: "face line" "notes notes"; gap: 12px 14px; align-items: center;
+  padding: 14px 16px 16px; border-radius: 6px 22px 22px 22px; background: var(--cb-card); border: 1.5px solid var(--cb-line); box-shadow: var(--cb-shadow-1); animation: cb-rise 0.5s var(--cb-ease) 0.18s both; }
+.cb-s02-reply__face { grid-area: face; width: 56px; height: 56px; border-radius: 50%; object-fit: cover; box-shadow: 0 0 0 3px var(--cb-pine-soft); }
+.cb-s02-reply__line { grid-area: line; margin: 0; font-family: var(--a2-font-display); font-size: clamp(1.1875rem, 0.95rem + 0.7cqi, 1.4375rem); font-weight: 680; line-height: 1.25; letter-spacing: -0.016em; color: var(--cb-ink); text-wrap: balance; }
+.cb-s02-notes { grid-area: notes; display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.cb-s02-notes li { display: grid; grid-template-columns: 26px minmax(0, 1fr); gap: 10px; align-items: start; padding: 9px 14px 9px 10px; border-radius: 14px; background: var(--cb-info-soft); color: var(--cb-ink); font-weight: 600; line-height: 1.45; }
+.cb-s02-notes li.is-ok { background: var(--cb-pine-soft); }
+.cb-s02-notes .cb-ico { width: 26px; height: 26px; margin-top: -1px; color: var(--cb-info-ink); }
+.cb-s02-notes li.is-ok .cb-ico { color: var(--cb-stage-2); stroke-width: 2.8; }
+
+/* ── score card: this round's four questions ── */
+.cb-s02-asked ul { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.cb-s02-asked li { display: grid; grid-template-columns: 40px 32px minmax(0, 1fr); align-items: center; gap: 12px; padding: 9px 14px 9px 9px; border-radius: 16px; background: var(--cb-sunken); }
+.cb-s02-asked__face { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; }
+.cb-s02-asked q { font-weight: 620; line-height: 1.35; color: var(--cb-ink); text-wrap: pretty; }
+.cb-s02-asked.is-3 .cb-s02-sticker { animation: cb-s02-hop 0.9s var(--cb-ease) 1.7s both; }
+.cb-s02-asked.is-3 li:nth-child(2) .cb-s02-sticker { animation-delay: 1.82s; }
+.cb-s02-asked.is-3 li:nth-child(3) .cb-s02-sticker { animation-delay: 1.94s; }
+.cb-s02-asked.is-3 li:nth-child(4) .cb-s02-sticker { animation-delay: 2.06s; }
+@keyframes cb-s02-hop { 0%, 100% { transform: none; } 32% { transform: translateY(-9px) rotate(-10deg); } }
+
+/* a wide stage that is still short of room (the 1366 laptop floor): a lower porch */
+@container cb (max-width: 1099.98px) {
+  .cb-s02-play { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); }
+  .cb-s02-play .cb-s02-scene { min-height: 280px; }
+  .cb-s02-nb__face { width: 54px; height: 54px; }
+  .cb-s02-nb[data-s="now"] .cb-s02-nb__face { width: 70px; height: 70px; }
+  .cb-s02-tile { font-size: 1rem; padding: 10px 15px; }
+}
+
+/* ── narrow stage: picture on top, the neighbors and the bubble listed below it, rows stacked ── */
+@container cb (max-width: 899.98px) {
+  .cb-s02-intro { grid-template-columns: minmax(0, 1fr); }
+  .cb-s02-scene { grid-template-rows: none; gap: 12px; overflow: visible; border-radius: 0; background: none; box-shadow: none; }
+  .cb-s02-scene > * { grid-area: auto; }
+  .cb-s02-scene .cb-art { border-radius: 16px; box-shadow: var(--cb-shadow-1); }
+  .cb-s02-art--wide { display: none; }
+  .cb-s02-art--narrow { display: block; }
+  /* one column; the side column and the scene dissolve so the bubble can stick while the tiles scroll under it */
+  .cb-s02-play { display: flex; flex-direction: column; align-items: stretch; gap: 12px; }
+  .cb-s02-side, .cb-s02-play .cb-s02-scene { display: contents; }
+  .cb-s02-play .cb-s02-scene > * { align-self: stretch; }
+  .cb-s02-play .cb-s02-scene > .cb-art { aspect-ratio: 2 / 1; }
+  .cb-s02-play .cb-s02-art--narrow { order: 1; }
+  .cb-s02-play .cb-s02-porch { order: 2; }
+  .cb-s02-play .cb-s02-say { order: 3; position: sticky; top: 12px; z-index: 3; }
+  .cb-s02-work { order: 4; margin-top: 4px; }
+  .cb-s02-board { order: 5; }
+  .cb-s02-row, .cb-s02-tile, .cb-s02-tray__foot .cb-btn, .cb-s02-talk { scroll-margin-top: calc(var(--s02-stick, 150px) + 16px); }
+  .cb-s02-porch { gap: 4px; margin: 0; }
+  .cb-s02-nb__face { width: 50px; height: 50px; box-shadow: var(--cb-shadow-1); }
+  .cb-s02-nb[data-s="now"] .cb-s02-nb__face { width: 60px; height: 60px; transform: none; }
+  .cb-s02-nb__name, .cb-s02-play .cb-s02-nb__name { padding: 0; background: none; box-shadow: none; font-size: 0.8125rem; }
+  .cb-s02-nb[data-s="now"] .cb-s02-nb__name { padding: 2px 8px 3px; border-radius: 8px; }
+  .cb-s02-say { margin: 2px 0 0; padding: 14px 18px 15px 48px; font-size: 1.1875rem; }
+  .cb-s02-say::before { left: 12px; top: 5px; font-size: 2.75rem; }
+  .cb-s02-say::after { top: -9px; bottom: auto; transform: rotate(225deg); }
+  .cb-s02-row { padding: 10px; }
+  .cb-s02-row__k { padding: 4px 0 2px 6px; }
+  .cb-s02-tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .cb-s02-tile { padding: 10px 14px; font-size: 1rem; }
+  .cb-s02-board p { font-size: 0.9375rem; }
+  .cb-s02-strip { grid-template-areas: "k ask" "line line"; gap: 4px 12px; padding: 8px 8px 12px 16px; }
+  .cb-s02-strip > .cb-btn--big { min-height: 52px; padding: 0 20px; font-size: 1.0625rem; }
+  .cb-s02-q__k { align-self: center; }
+  .cb-s02-q__line { font-size: 1.0625rem; padding-right: 8px; }
+  .cb-s02-reply { grid-template-columns: 48px minmax(0, 1fr); gap: 12px; padding: 14px 12px 12px; }
+  .cb-s02-reply__face { width: 48px; height: 48px; }
+  .cb-s02-you { max-width: 94%; }
+}
+@container cb (max-width: 420px) {
+  .cb-s02-asked li { grid-template-columns: 40px minmax(0, 1fr); }
+  .cb-s02-asked__face { display: none; }
+}
+@container cb (max-width: 340px) {
+  .cb-s02-strip { gap: 4px 8px; padding-left: 14px; }
+  .cb-s02-strip > .cb-btn--big { padding: 0 14px; gap: 8px; }
+  .cb-s02-q__k { white-space: nowrap; }
+}
+
+/* fixing a question: the coach line, then the tips that still need work, right above the tiles */
+.cb-s02-fixhead { display: grid; gap: 8px; }
+.cb-s02-tips { grid-area: auto; }                                  /* the answer card's notes sit in a named area; here they just stack */
+.cb-s02-tips li { background: var(--cb-warn-soft); }
+.cb-s02-tips .cb-ico { color: var(--cb-warn-ink); }
+.cb-s02-strip.is-done { gap: 10px; flex-wrap: wrap; }
+@container cb (max-width: 599.98px) { .cb-s02-strip.is-done { width: 100%; } .cb-s02-strip.is-done > .cb-btn { flex: 1 1 100%; } }

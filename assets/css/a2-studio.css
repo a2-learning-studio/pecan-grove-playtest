@@ -1,0 +1,653 @@
+/* A² Studio 1.0 — design tokens, base and components
+   A² Learning Studio · Dr. Ali Keyvanfar & Dr. Arezou Shafaghat · Kennesaw State University
+
+   Contract
+   - Tokens live on :root as --a2-* custom properties. Light is the default; dark applies with
+     <html data-theme="dark">, or follows the OS with <html data-theme="auto">.
+   - Base element styling (body type, links, selection, scrollbars, focus) applies ONLY under <html class="a2">,
+     so this file can be dropped into an existing engine (SCORM players, older tools) without restyling it.
+     Components are namespaced .a2-* and are safe anywhere.
+   - Fonts are self-hosted from ../fonts (OFL). tools/inline_bundle.py turns them into data URIs for SCORM.
+   - Everything works without JavaScript and under prefers-reduced-motion. */
+
+/* ── Fonts ─────────────────────────────────────────────────────────────── */
+@font-face { font-family: "Geist A2"; src: url("../fonts/Geist-var.woff2") format("woff2"); font-weight: 100 900; font-style: normal; font-display: swap; }
+@font-face { font-family: "Inter A2"; src: url("../fonts/Inter-var.woff2") format("woff2"); font-weight: 100 900; font-style: normal; font-display: swap; }
+@font-face { font-family: "Geist Mono A2"; src: url("../fonts/GeistMono-var.woff2") format("woff2"); font-weight: 100 900; font-style: normal; font-display: swap; }
+
+/* ── Tokens: Studio Light (default) ────────────────────────────────────── */
+:root {
+  color-scheme: light;
+
+  /* brand constants — identical in both themes */
+  --a2-navy: #13243B;
+  --a2-gold: #E0A12C;
+
+  /* surfaces and ink */
+  --a2-bg: #F6F8FB;
+  --a2-surface: #FFFFFF;
+  --a2-sunken: #EEF2F7;
+  --a2-raised: #FFFFFF;
+  --a2-line: #E2E8F0;
+  --a2-line-strong: #C9D2DE;
+  --a2-ink-1: #13243B;            /* headings, primary text      14.7:1 on bg */
+  --a2-ink-2: #3A4A60;            /* body                         8.5:1 */
+  --a2-ink-3: #5B687C;            /* secondary, captions          5.3:1 */
+
+  /* roles */
+  --a2-primary: #13243B;          /* the main action: ink-filled */
+  --a2-primary-hover: #1F3654;
+  --a2-on-primary: #FFFFFF;
+  --a2-accent: #E0A12C;           /* KSU gold: you are here / act now */
+  --a2-accent-hover: #D0911B;
+  --a2-on-accent: #13243B;        /* 6.9:1 */
+  --a2-accent-text: #8A5B00;      /* gold as text on light         5.9:1 */
+  --a2-accent-soft: #FBF1DC;
+  --a2-link: #2753A3;             /* 7.4:1 */
+
+  --a2-success: #1F6F5C;  --a2-success-soft: #E3F3EE;
+  --a2-warn: #8A5B00;     --a2-warn-soft: #FBF1DC;
+  --a2-danger: #A43F28;   --a2-danger-soft: #FBE9E4;
+  --a2-info: #2753A3;     --a2-info-soft: #E6EEFB;
+  --a2-on-status: #FFFFFF;
+
+  --a2-focus: #13243B;
+  --a2-focus-halo: rgba(224, 161, 44, 0.55);
+  --a2-selection: rgba(224, 161, 44, 0.32);
+  --a2-scrim: rgba(10, 17, 29, 0.45);
+  --a2-on-primary-accent: #E0A12C;  /* gold icon on the ink-filled toast */
+  --a2-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%235B687C' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m4 6 4 4 4-4'/%3E%3C/svg%3E");
+
+  /* the hero field: navy, gold and teal light sources */
+  --a2-field-1: rgba(19, 36, 59, 0.10);
+  --a2-field-2: rgba(224, 161, 44, 0.22);
+  --a2-field-3: rgba(46, 125, 107, 0.14);
+  --a2-grid-line: rgba(19, 36, 59, 0.055);
+
+  /* elevation — navy-tinted, offset + blur */
+  --a2-sh-1: 0 1px 2px rgba(19, 36, 59, 0.06), 0 1px 1px rgba(19, 36, 59, 0.03);
+  --a2-sh-2: 0 1px 2px rgba(19, 36, 59, 0.05), 0 8px 20px -6px rgba(19, 36, 59, 0.12);
+  --a2-sh-3: 0 2px 6px rgba(19, 36, 59, 0.05), 0 28px 56px -16px rgba(19, 36, 59, 0.26);
+  --a2-sh-inset: inset 0 1px 1px rgba(19, 36, 59, 0.04);
+
+  /* type */
+  --a2-font-display: "Geist A2", "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --a2-font-body: "Inter A2", "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --a2-font-mono: "Geist Mono A2", "Geist Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+
+  --a2-fs-xs: 0.75rem;
+  --a2-fs-sm: 0.875rem;
+  --a2-fs-base: 1rem;
+  --a2-fs-md: 1.125rem;
+  --a2-fs-lg: 1.3125rem;
+  --a2-fs-xl: clamp(1.5rem, 1.25rem + 0.9vw, 1.875rem);
+  --a2-fs-2xl: clamp(1.875rem, 1.45rem + 1.6vw, 2.5rem);
+  --a2-fs-3xl: clamp(2.25rem, 1.55rem + 2.8vw, 3.5rem);
+  --a2-fs-display: clamp(2.625rem, 1.5rem + 4.6vw, 5rem);
+
+  /* space: 4 px base */
+  --a2-s-1: 4px;  --a2-s-2: 8px;  --a2-s-3: 12px; --a2-s-4: 16px; --a2-s-5: 24px;
+  --a2-s-6: 32px; --a2-s-7: 48px; --a2-s-8: 64px; --a2-s-9: 96px; --a2-s-10: 128px;
+  --a2-gutter: clamp(16px, 4vw, 40px);
+  --a2-max: 1200px;
+  --a2-measure: 68ch;
+
+  /* radius: controls 8, cards 12, panels 16, pills for status */
+  --a2-r-1: 6px; --a2-r-2: 8px; --a2-r-3: 12px; --a2-r-4: 16px; --a2-r-pill: 999px;
+
+  /* motion */
+  --a2-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --a2-ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --a2-dur-1: 120ms; --a2-dur-2: 200ms; --a2-dur-3: 320ms; --a2-dur-4: 560ms;
+}
+
+/* ── Tokens: Studio Dark ───────────────────────────────────────────────── */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --a2-bg: #0A111D;
+  --a2-surface: #101A2A;
+  --a2-sunken: #0C1523;
+  --a2-raised: #16223A;
+  --a2-line: rgba(233, 238, 246, 0.08);
+  --a2-line-strong: rgba(233, 238, 246, 0.16);
+  --a2-ink-1: #E9EEF6;
+  --a2-ink-2: #AEB9CA;
+  --a2-ink-3: #8592A6;
+  --a2-primary: #E9EEF6;
+  --a2-primary-hover: #FFFFFF;
+  --a2-on-primary: #0A111D;
+  --a2-accent: #F0B43C;
+  --a2-accent-hover: #F5C258;
+  --a2-on-accent: #0A111D;
+  --a2-accent-text: #F2BC4E;
+  --a2-accent-soft: rgba(240, 180, 60, 0.12);
+  --a2-link: #8DB1F5;
+  --a2-success: #4CC3A5;  --a2-success-soft: rgba(76, 195, 165, 0.12);
+  --a2-warn: #F2BC4E;     --a2-warn-soft: rgba(242, 188, 78, 0.12);
+  --a2-danger: #F0806A;   --a2-danger-soft: rgba(240, 128, 106, 0.12);
+  --a2-info: #7FA6F0;     --a2-info-soft: rgba(127, 166, 240, 0.12);
+  --a2-on-status: #0A111D;
+  --a2-focus: #F0B43C;
+  --a2-focus-halo: rgba(240, 180, 60, 0.28);
+  --a2-selection: rgba(240, 180, 60, 0.30);
+  --a2-scrim: rgba(3, 6, 12, 0.62);
+  --a2-on-primary-accent: #8A5B00;
+  --a2-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%238592A6' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m4 6 4 4 4-4'/%3E%3C/svg%3E");
+  --a2-field-1: rgba(64, 104, 170, 0.20);
+  --a2-field-2: rgba(240, 180, 60, 0.13);
+  --a2-field-3: rgba(76, 195, 165, 0.12);
+  --a2-grid-line: rgba(233, 238, 246, 0.045);
+  --a2-sh-1: 0 1px 2px rgba(0, 0, 0, 0.40);
+  --a2-sh-2: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 10px 28px -8px rgba(0, 0, 0, 0.55);
+  --a2-sh-3: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 36px 72px -18px rgba(0, 0, 0, 0.70);
+  --a2-sh-inset: inset 0 1px 2px rgba(0, 0, 0, 0.30);
+}
+@media (prefers-color-scheme: dark) {
+  :root[data-theme="auto"] {
+    color-scheme: dark;
+    --a2-bg: #0A111D;
+    --a2-surface: #101A2A;
+    --a2-sunken: #0C1523;
+    --a2-raised: #16223A;
+    --a2-line: rgba(233, 238, 246, 0.08);
+    --a2-line-strong: rgba(233, 238, 246, 0.16);
+    --a2-ink-1: #E9EEF6;
+    --a2-ink-2: #AEB9CA;
+    --a2-ink-3: #8592A6;
+    --a2-primary: #E9EEF6;
+    --a2-primary-hover: #FFFFFF;
+    --a2-on-primary: #0A111D;
+    --a2-accent: #F0B43C;
+    --a2-accent-hover: #F5C258;
+    --a2-on-accent: #0A111D;
+    --a2-accent-text: #F2BC4E;
+    --a2-accent-soft: rgba(240, 180, 60, 0.12);
+    --a2-link: #8DB1F5;
+    --a2-success: #4CC3A5;  --a2-success-soft: rgba(76, 195, 165, 0.12);
+    --a2-warn: #F2BC4E;     --a2-warn-soft: rgba(242, 188, 78, 0.12);
+    --a2-danger: #F0806A;   --a2-danger-soft: rgba(240, 128, 106, 0.12);
+    --a2-info: #7FA6F0;     --a2-info-soft: rgba(127, 166, 240, 0.12);
+    --a2-on-status: #0A111D;
+    --a2-focus: #F0B43C;
+    --a2-focus-halo: rgba(240, 180, 60, 0.28);
+    --a2-selection: rgba(240, 180, 60, 0.30);
+    --a2-scrim: rgba(3, 6, 12, 0.62);
+    --a2-on-primary-accent: #8A5B00;
+    --a2-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%238592A6' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m4 6 4 4 4-4'/%3E%3C/svg%3E");
+    --a2-field-1: rgba(64, 104, 170, 0.20);
+    --a2-field-2: rgba(240, 180, 60, 0.13);
+    --a2-field-3: rgba(76, 195, 165, 0.12);
+    --a2-grid-line: rgba(233, 238, 246, 0.045);
+    --a2-sh-1: 0 1px 2px rgba(0, 0, 0, 0.40);
+    --a2-sh-2: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 10px 28px -8px rgba(0, 0, 0, 0.55);
+    --a2-sh-3: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 36px 72px -18px rgba(0, 0, 0, 0.70);
+    --a2-sh-inset: inset 0 1px 2px rgba(0, 0, 0, 0.30);
+  }
+}
+
+/* ── Base (opt-in: <html class="a2">) ──────────────────────────────────
+   Every selector is wrapped in :where() so base rules carry (almost) no specificity:
+   any component class, and any project stylesheet, overrides them without !important. */
+html.a2 { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; scroll-padding-top: 76px; caret-color: var(--a2-accent-text); accent-color: var(--a2-primary); scrollbar-color: var(--a2-line-strong) transparent; scrollbar-width: thin; }
+:where(html.a2) *, :where(html.a2) *::before, :where(html.a2) *::after { box-sizing: border-box; }
+:where(html.a2) body {
+  margin: 0;
+  background: var(--a2-bg);
+  color: var(--a2-ink-2);
+  font: 400 var(--a2-fs-base)/1.6 var(--a2-font-body);
+  font-feature-settings: "cv05" 1, "cv08" 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+:where(html.a2) :where(h1, h2, h3, h4) { margin: 0; color: var(--a2-ink-1); font-family: var(--a2-font-display); font-weight: 620; text-wrap: balance; }
+:where(html.a2) :where(h1) { font-size: var(--a2-fs-3xl); line-height: 1.08; letter-spacing: -0.032em; }
+:where(html.a2) :where(h2) { font-size: var(--a2-fs-2xl); line-height: 1.15; letter-spacing: -0.026em; }
+:where(html.a2) :where(h3) { font-size: var(--a2-fs-lg); line-height: 1.3; letter-spacing: -0.014em; }
+:where(html.a2) :where(h4) { font-size: var(--a2-fs-md); line-height: 1.35; letter-spacing: -0.008em; }
+:where(html.a2) :where(p, ul, ol, dl, figure, blockquote) { margin: 0; }
+:where(html.a2) :where(p) { text-wrap: pretty; }
+:where(html.a2) :where(img, svg, video, canvas) { display: block; max-width: 100%; }
+:where(html.a2) :where(button, input, select, textarea) { font: inherit; color: inherit; }
+:where(html.a2) [hidden] { display: none !important; }
+:where(html.a2 a:not([class])) { color: var(--a2-link); text-decoration-line: underline; text-decoration-thickness: 1px; text-underline-offset: 0.22em; text-decoration-color: color-mix(in srgb, currentColor 40%, transparent); transition: text-decoration-color var(--a2-dur-2) var(--a2-ease-out); }
+:where(html.a2 a:not([class]):hover) { text-decoration-color: currentColor; }
+:where(html.a2) ::selection { background: var(--a2-selection); color: var(--a2-ink-1); }
+:where(html.a2) ::-webkit-scrollbar { width: 10px; height: 10px; }
+:where(html.a2) ::-webkit-scrollbar-thumb { background: var(--a2-line-strong); border: 3px solid var(--a2-bg); border-radius: 999px; }
+:where(html.a2) ::-webkit-scrollbar-track { background: transparent; }
+:where(html.a2) :where(a, button, [tabindex], summary, input, select, textarea):focus-visible {
+  outline: 2px solid var(--a2-focus);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 6px var(--a2-focus-halo);
+}
+:where(html.a2) :where(hr) { border: 0; border-top: 1px solid var(--a2-line); margin: var(--a2-s-6) 0; }
+:where(html.a2) :where(code, kbd, samp) { font-family: var(--a2-font-mono); }
+
+/* the same focus ring on components anywhere, even without html.a2 */
+:where(.a2-btn, .a2-option, .a2-seg button, .a2-tab, .a2-chip, .a2-link-quiet):focus-visible {
+  outline: 2px solid var(--a2-focus);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 6px var(--a2-focus-halo);
+}
+
+.a2-skip { position: absolute; left: 16px; top: -48px; z-index: 200; padding: 10px 16px; border-radius: var(--a2-r-2); background: var(--a2-accent); color: var(--a2-on-accent); font-weight: 600; text-decoration: none; transition: top var(--a2-dur-2) var(--a2-ease-out); }
+.a2-skip:focus { top: 12px; }
+.a2-visually-hidden { position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
+/* ── Layout primitives ─────────────────────────────────────────────────── */
+.a2-container { width: min(100% - 2 * var(--a2-gutter), var(--a2-max)); margin-inline: auto; }
+.a2-stack { display: flex; flex-direction: column; gap: var(--a2-gap, var(--a2-s-4)); }
+.a2-cluster { display: flex; flex-wrap: wrap; align-items: center; gap: var(--a2-gap, var(--a2-s-3)); }
+.a2-grid { display: grid; gap: var(--a2-gap, var(--a2-s-4)); grid-template-columns: repeat(auto-fill, minmax(min(var(--a2-min, 260px), 100%), 1fr)); }
+.a2-split { display: grid; gap: var(--a2-gap, var(--a2-s-6)); grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 960px) { .a2-split { grid-template-columns: var(--a2-split, minmax(0, 1fr) minmax(0, 1fr)); } }
+.a2-prose { max-width: var(--a2-measure); }
+.a2-lede { font-size: var(--a2-fs-md); line-height: 1.6; color: var(--a2-ink-2); max-width: 58ch; }
+.a2-muted { color: var(--a2-ink-3); }
+.a2-num { font-family: var(--a2-font-mono); font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+
+/* ── Brand mark ────────────────────────────────────────────────────────── */
+.a2-mark { display: inline-flex; align-items: center; gap: 10px; color: var(--a2-ink-1); text-decoration: none; }
+.a2-mark__tile {
+  display: inline-flex; align-items: center; justify-content: center; flex: none;
+  width: 30px; height: 30px; border-radius: 8px;
+  background: var(--a2-gold); color: var(--a2-navy);
+  font: 760 15px/1 var(--a2-font-display); letter-spacing: -0.04em;
+  box-shadow: inset 0 -2px 0 rgba(19, 36, 59, 0.16), 0 1px 2px rgba(19, 36, 59, 0.22);
+}
+.a2-mark__tile sup { font-size: 0.56em; line-height: 1; position: relative; top: -0.42em; margin-left: 0.5px; }
+.a2-mark__word { font: 640 13px/1 var(--a2-font-display); letter-spacing: 0.07em; text-transform: uppercase; }
+.a2-mark--lg .a2-mark__tile { width: 44px; height: 44px; border-radius: 11px; font-size: 21px; }
+
+/* ── Navigation bar ────────────────────────────────────────────────────── */
+.a2-nav {
+  position: sticky; top: 0; z-index: 60;
+  background: var(--a2-bg);
+  background: color-mix(in srgb, var(--a2-bg) 84%, transparent);
+  -webkit-backdrop-filter: saturate(1.5) blur(14px);
+  backdrop-filter: saturate(1.5) blur(14px);
+  border-bottom: 1px solid var(--a2-line);
+}
+.a2-nav__inner { display: flex; align-items: center; gap: var(--a2-s-5); height: 60px; }
+.a2-nav__links { display: flex; align-items: center; gap: 2px; margin-left: auto; }
+.a2-nav__links a {
+  position: relative; display: inline-flex; align-items: center; height: 36px; padding: 0 12px;
+  border-radius: var(--a2-r-2); color: var(--a2-ink-2); font-size: var(--a2-fs-sm); font-weight: 520; text-decoration: none;
+  transition: color var(--a2-dur-2) var(--a2-ease-out), background-color var(--a2-dur-2) var(--a2-ease-out);
+}
+.a2-nav__links a:hover { color: var(--a2-ink-1); background: var(--a2-sunken); }
+.a2-nav__links a[aria-current="page"], .a2-nav__links a[aria-current="true"] { color: var(--a2-ink-1); }
+.a2-nav__links a[aria-current="page"]::after, .a2-nav__links a[aria-current="true"]::after {
+  content: ""; position: absolute; left: 12px; right: 12px; bottom: -12px; height: 2px; border-radius: 2px; background: var(--a2-accent);
+}
+@media (max-width: 720px) { .a2-nav__links { display: none; } }
+
+/* ── Buttons ───────────────────────────────────────────────────────────── */
+.a2-btn {
+  --a2-btn-h: 40px;
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  height: var(--a2-btn-h); padding: 0 16px;
+  border: 1px solid transparent; border-radius: var(--a2-r-2);
+  background: var(--a2-surface); color: var(--a2-ink-1);
+  font: 600 var(--a2-fs-sm)/1 var(--a2-font-body); letter-spacing: -0.006em;
+  text-decoration: none; white-space: nowrap; cursor: pointer; user-select: none;
+  transition: background-color var(--a2-dur-2) var(--a2-ease-out), border-color var(--a2-dur-2) var(--a2-ease-out),
+              color var(--a2-dur-2) var(--a2-ease-out), box-shadow var(--a2-dur-2) var(--a2-ease-out), transform var(--a2-dur-1) var(--a2-ease-out);
+}
+.a2-btn svg { width: 16px; height: 16px; flex: none; }
+.a2-btn:active { transform: translateY(1px); }
+.a2-btn--primary { background: var(--a2-primary); color: var(--a2-on-primary); box-shadow: var(--a2-sh-1), inset 0 1px 0 rgba(255, 255, 255, 0.10); }
+.a2-btn--primary:hover { background: var(--a2-primary-hover); }
+.a2-btn--accent { background: var(--a2-accent); color: var(--a2-on-accent); box-shadow: var(--a2-sh-1), inset 0 -1px 0 rgba(19, 36, 59, 0.14); }
+.a2-btn--accent:hover { background: var(--a2-accent-hover); }
+.a2-btn--secondary { background: var(--a2-surface); border-color: var(--a2-line-strong); box-shadow: var(--a2-sh-1); }
+.a2-btn--secondary:hover { background: var(--a2-sunken); }
+.a2-btn--ghost { background: transparent; color: var(--a2-ink-2); }
+.a2-btn--ghost:hover { background: var(--a2-sunken); color: var(--a2-ink-1); }
+.a2-btn--danger { background: var(--a2-danger); color: var(--a2-on-status); }
+.a2-btn--danger:hover { background: color-mix(in srgb, var(--a2-danger) 88%, black); }
+.a2-btn--sm { --a2-btn-h: 32px; padding: 0 12px; font-size: 0.8125rem; border-radius: 7px; }
+.a2-btn--lg { --a2-btn-h: 48px; padding: 0 22px; font-size: var(--a2-fs-base); border-radius: 10px; }
+.a2-btn--icon { width: var(--a2-btn-h); padding: 0; }
+.a2-btn:disabled, .a2-btn[aria-disabled="true"] { opacity: 0.48; cursor: not-allowed; transform: none; box-shadow: none; }
+.a2-btn.is-loading { pointer-events: none; }
+.a2-btn.is-loading::before {
+  content: ""; width: 14px; height: 14px; flex: none; border-radius: 50%;
+  border: 2px solid currentColor; border-right-color: transparent;
+  animation: a2-spin 0.7s linear infinite;
+}
+@keyframes a2-spin { to { transform: rotate(360deg); } }
+
+/* ── Fields ────────────────────────────────────────────────────────────── */
+.a2-field { display: grid; gap: 6px; align-content: start; }
+.a2-label { color: var(--a2-ink-1); font-size: var(--a2-fs-sm); font-weight: 580; }
+.a2-label small { color: var(--a2-ink-3); font-weight: 450; font-size: inherit; }
+.a2-hint { color: var(--a2-ink-3); font-size: 0.8125rem; line-height: 1.45; }
+.a2-error[hidden], .a2-alert[hidden], .a2-card[hidden], .a2-btn[hidden], .a2-badge[hidden], .a2-chip[hidden], .a2-field[hidden], .a2-option[hidden] { display: none; }
+.a2-error { display: flex; gap: 6px; align-items: flex-start; color: var(--a2-danger); font-size: 0.8125rem; font-weight: 520; line-height: 1.45; }
+.a2-error svg { width: 15px; height: 15px; flex: none; margin-top: 2px; }
+.a2-input, .a2-select, .a2-textarea {
+  width: 100%; height: 40px; padding: 0 12px;
+  border: 1px solid var(--a2-line-strong); border-radius: var(--a2-r-2);
+  background: var(--a2-surface); color: var(--a2-ink-1);
+  font: 400 var(--a2-fs-base)/1.4 var(--a2-font-body);
+  box-shadow: var(--a2-sh-inset);
+  transition: border-color var(--a2-dur-2) var(--a2-ease-out), box-shadow var(--a2-dur-2) var(--a2-ease-out);
+}
+.a2-input::placeholder, .a2-textarea::placeholder { color: var(--a2-ink-3); opacity: 1; }
+.a2-input:hover, .a2-select:hover, .a2-textarea:hover { border-color: var(--a2-ink-3); }
+.a2-input:focus, .a2-select:focus, .a2-textarea:focus { outline: none; border-color: var(--a2-focus); box-shadow: 0 0 0 4px var(--a2-focus-halo); }
+.a2-input[aria-invalid="true"], .a2-select[aria-invalid="true"], .a2-textarea[aria-invalid="true"] { border-color: var(--a2-danger); }
+.a2-input[aria-invalid="true"]:focus, .a2-textarea[aria-invalid="true"]:focus { box-shadow: 0 0 0 4px var(--a2-danger-soft); }
+.a2-input:disabled, .a2-select:disabled, .a2-textarea:disabled { background: var(--a2-sunken); color: var(--a2-ink-3); cursor: not-allowed; }
+.a2-textarea { height: auto; min-height: 104px; padding: 10px 12px; line-height: 1.55; resize: vertical; }
+.a2-select {
+  appearance: none; -webkit-appearance: none; padding-right: 36px; cursor: pointer;
+  background-image: var(--a2-chevron);
+  background-repeat: no-repeat; background-position: right 12px center;
+}
+.a2-input-group { display: flex; align-items: stretch; }
+.a2-input-group > .a2-addon {
+  display: inline-flex; align-items: center; padding: 0 12px; border: 1px solid var(--a2-line-strong); border-right: 0;
+  border-radius: var(--a2-r-2) 0 0 var(--a2-r-2); background: var(--a2-sunken); color: var(--a2-ink-3);
+  font: 500 var(--a2-fs-sm)/1 var(--a2-font-mono);
+}
+.a2-input-group > .a2-input { border-radius: 0 var(--a2-r-2) var(--a2-r-2) 0; }
+
+/* check, radio, switch */
+.a2-check, .a2-radio, .a2-switch { display: inline-flex; align-items: flex-start; gap: 10px; color: var(--a2-ink-1); font-size: var(--a2-fs-sm); line-height: 1.45; cursor: pointer; }
+.a2-check input, .a2-radio input {
+  appearance: none; -webkit-appearance: none; flex: none; margin: 1px 0 0; width: 18px; height: 18px;
+  display: inline-grid; place-content: center;
+  border: 1.5px solid var(--a2-line-strong); border-radius: 5px; background: var(--a2-surface);
+  transition: background-color var(--a2-dur-2) var(--a2-ease-out), border-color var(--a2-dur-2) var(--a2-ease-out);
+  cursor: pointer;
+}
+.a2-radio input { border-radius: 50%; }
+.a2-check input::before {
+  content: ""; width: 12px; height: 12px; background: var(--a2-on-primary); transform: scale(0);
+  transition: transform var(--a2-dur-2) var(--a2-ease-out);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.5 6.2 5 8.6l4.6-5' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.5 6.2 5 8.6l4.6-5' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+.a2-radio input::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--a2-on-primary); transform: scale(0); transition: transform var(--a2-dur-2) var(--a2-ease-out); }
+.a2-check input:checked, .a2-radio input:checked { background: var(--a2-primary); border-color: var(--a2-primary); }
+.a2-check input:checked::before, .a2-radio input:checked::before { transform: scale(1); }
+.a2-check input:hover, .a2-radio input:hover { border-color: var(--a2-ink-3); }
+.a2-switch input {
+  appearance: none; -webkit-appearance: none; flex: none; position: relative; margin: 0; width: 36px; height: 20px;
+  border-radius: 999px; background: var(--a2-line-strong); cursor: pointer;
+  transition: background-color var(--a2-dur-2) var(--a2-ease-out);
+}
+.a2-switch input::before {
+  content: ""; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%;
+  background: #FFFFFF; box-shadow: 0 1px 2px rgba(10, 17, 29, 0.3);
+  transition: transform var(--a2-dur-3) var(--a2-ease-out);
+}
+.a2-switch input:checked { background: var(--a2-primary); }
+.a2-switch input:checked::before { transform: translateX(16px); background: var(--a2-on-primary); }
+.a2-check input:focus-visible, .a2-radio input:focus-visible, .a2-switch input:focus-visible { outline: 2px solid var(--a2-focus); outline-offset: 2px; box-shadow: 0 0 0 6px var(--a2-focus-halo); }
+
+/* segmented control */
+.a2-seg { display: inline-flex; gap: 2px; padding: 3px; border: 1px solid var(--a2-line); border-radius: 10px; background: var(--a2-sunken); }
+.a2-seg button {
+  height: 30px; padding: 0 12px; border: 0; border-radius: 7px; background: transparent; color: var(--a2-ink-3);
+  font: 560 0.8125rem/1 var(--a2-font-body); cursor: pointer; white-space: nowrap;
+  transition: color var(--a2-dur-2) var(--a2-ease-out), background-color var(--a2-dur-2) var(--a2-ease-out), box-shadow var(--a2-dur-2) var(--a2-ease-out);
+}
+.a2-seg button:hover { color: var(--a2-ink-1); }
+.a2-seg button[aria-pressed="true"], .a2-seg button[aria-selected="true"] { background: var(--a2-surface); color: var(--a2-ink-1); box-shadow: var(--a2-sh-1), 0 0 0 1px var(--a2-line); }
+
+/* ── Cards and panels ──────────────────────────────────────────────────── */
+.a2-card { background: var(--a2-surface); border: 1px solid var(--a2-line); border-radius: var(--a2-r-3); box-shadow: var(--a2-sh-1); }
+.a2-card__body { padding: var(--a2-s-5); }
+.a2-card__head { display: flex; align-items: center; justify-content: space-between; gap: var(--a2-s-3); padding: 14px var(--a2-s-5); border-bottom: 1px solid var(--a2-line); }
+.a2-card__head h3, .a2-card__head h4 { font-size: var(--a2-fs-base); letter-spacing: -0.01em; }
+.a2-card__foot { display: flex; align-items: center; justify-content: flex-end; gap: var(--a2-s-2); padding: 12px var(--a2-s-5); border-top: 1px solid var(--a2-line); background: var(--a2-sunken); border-radius: 0 0 var(--a2-r-3) var(--a2-r-3); }
+.a2-card--interactive { transition: box-shadow var(--a2-dur-3) var(--a2-ease-out), border-color var(--a2-dur-3) var(--a2-ease-out), transform var(--a2-dur-3) var(--a2-ease-out); }
+.a2-card--interactive:hover { box-shadow: var(--a2-sh-2); border-color: var(--a2-line-strong); transform: translateY(-2px); }
+.a2-panel { background: var(--a2-surface); border: 1px solid var(--a2-line); border-radius: var(--a2-r-4); box-shadow: var(--a2-sh-2); }
+
+/* ── Status: badges, chips, alerts ─────────────────────────────────────── */
+.a2-badge {
+  display: inline-flex; align-items: center; gap: 6px; height: 22px; padding: 0 8px;
+  border: 1px solid var(--a2-line); border-radius: var(--a2-r-pill);
+  background: var(--a2-sunken); color: var(--a2-ink-2);
+  font: 600 0.75rem/1 var(--a2-font-body); letter-spacing: 0.005em; white-space: nowrap;
+}
+.a2-badge--dot::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.a2-badge--success { background: var(--a2-success-soft); color: var(--a2-success); border-color: color-mix(in srgb, var(--a2-success) 24%, transparent); }
+.a2-badge--warn    { background: var(--a2-warn-soft); color: var(--a2-warn); border-color: color-mix(in srgb, var(--a2-warn) 26%, transparent); }
+.a2-badge--danger  { background: var(--a2-danger-soft); color: var(--a2-danger); border-color: color-mix(in srgb, var(--a2-danger) 24%, transparent); }
+.a2-badge--info    { background: var(--a2-info-soft); color: var(--a2-info); border-color: color-mix(in srgb, var(--a2-info) 24%, transparent); }
+.a2-badge--accent  { background: var(--a2-accent); color: var(--a2-on-accent); border-color: transparent; }
+
+.a2-chip {
+  display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 12px;
+  border: 1px solid var(--a2-line-strong); border-radius: var(--a2-r-pill); background: var(--a2-surface);
+  color: var(--a2-ink-2); font: 540 0.8125rem/1 var(--a2-font-body); cursor: pointer;
+  transition: background-color var(--a2-dur-2) var(--a2-ease-out), color var(--a2-dur-2) var(--a2-ease-out), border-color var(--a2-dur-2) var(--a2-ease-out);
+}
+.a2-chip:hover { border-color: var(--a2-ink-3); color: var(--a2-ink-1); }
+.a2-chip[aria-pressed="true"] { background: var(--a2-primary); border-color: var(--a2-primary); color: var(--a2-on-primary); }
+.a2-chip .a2-num { font-size: 0.75rem; opacity: 0.75; }
+
+.a2-alert {
+  display: grid; grid-template-columns: 20px minmax(0, 1fr); gap: 12px; align-items: start;
+  padding: 14px 16px; border: 1px solid var(--a2-line); border-radius: var(--a2-r-3);
+  background: var(--a2-sunken); color: var(--a2-ink-2); font-size: var(--a2-fs-sm); line-height: 1.5;
+}
+.a2-alert > svg { width: 20px; height: 20px; }
+.a2-alert strong { display: block; color: var(--a2-ink-1); font-weight: 620; margin-bottom: 2px; }
+.a2-alert--info    { background: var(--a2-info-soft);    border-color: color-mix(in srgb, var(--a2-info) 22%, transparent); }
+.a2-alert--info > svg { color: var(--a2-info); }
+.a2-alert--success { background: var(--a2-success-soft); border-color: color-mix(in srgb, var(--a2-success) 22%, transparent); }
+.a2-alert--success > svg { color: var(--a2-success); }
+.a2-alert--warn    { background: var(--a2-warn-soft);    border-color: color-mix(in srgb, var(--a2-warn) 26%, transparent); }
+.a2-alert--warn > svg { color: var(--a2-warn); }
+.a2-alert--danger  { background: var(--a2-danger-soft);  border-color: color-mix(in srgb, var(--a2-danger) 22%, transparent); }
+.a2-alert--danger > svg { color: var(--a2-danger); }
+
+/* ── Tabs ──────────────────────────────────────────────────────────────── */
+.a2-tablist { display: flex; gap: 4px; border-bottom: 1px solid var(--a2-line); overflow-x: auto; scrollbar-width: none; }
+.a2-tab {
+  position: relative; flex: none; height: 42px; padding: 0 12px; border: 0; background: transparent;
+  color: var(--a2-ink-3); font: 560 var(--a2-fs-sm)/1 var(--a2-font-body); cursor: pointer;
+  transition: color var(--a2-dur-2) var(--a2-ease-out);
+}
+.a2-tab:hover { color: var(--a2-ink-1); }
+.a2-tab[aria-selected="true"] { color: var(--a2-ink-1); }
+.a2-tab[aria-selected="true"]::after { content: ""; position: absolute; left: 10px; right: 10px; bottom: -1px; height: 2px; border-radius: 2px; background: var(--a2-accent); }
+.a2-tabpanel { padding-top: var(--a2-s-5); }
+.a2-tabpanel[hidden] { display: none; }
+
+/* ── Tables ────────────────────────────────────────────────────────────── */
+.a2-table-wrap { overflow: auto; border: 1px solid var(--a2-line); border-radius: var(--a2-r-3); background: var(--a2-surface); box-shadow: var(--a2-sh-1); }
+.a2-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: var(--a2-fs-sm); font-variant-numeric: tabular-nums; }
+.a2-table th {
+  position: sticky; top: 0; z-index: 1; padding: 10px 14px; text-align: left; white-space: nowrap;
+  background: var(--a2-sunken); border-bottom: 1px solid var(--a2-line);
+  color: var(--a2-ink-3); font-size: 0.8125rem; font-weight: 600;
+}
+.a2-table td { padding: 12px 14px; border-bottom: 1px solid var(--a2-line); color: var(--a2-ink-2); vertical-align: middle; }
+.a2-table td:first-child { color: var(--a2-ink-1); font-weight: 540; }
+.a2-table tbody tr:last-child td { border-bottom: 0; }
+.a2-table tbody tr { transition: background-color var(--a2-dur-1) linear; }
+.a2-table tbody tr:hover { background: color-mix(in srgb, var(--a2-sunken) 70%, transparent); }
+.a2-table .a2-num, .a2-table td.is-num, .a2-table th.is-num { text-align: right; }
+.a2-sort { display: inline-flex; align-items: center; gap: 6px; padding: 0; border: 0; background: none; color: inherit; font: inherit; cursor: pointer; }
+.a2-sort:hover { color: var(--a2-ink-1); }
+.a2-sort svg { width: 12px; height: 12px; opacity: 0.45; transition: transform var(--a2-dur-2) var(--a2-ease-out), opacity var(--a2-dur-2); }
+th[aria-sort="ascending"] .a2-sort, th[aria-sort="descending"] .a2-sort { color: var(--a2-ink-1); }
+th[aria-sort="ascending"] .a2-sort svg { opacity: 1; }
+th[aria-sort="descending"] .a2-sort svg { opacity: 1; transform: rotate(180deg); }
+.a2-bar { display: inline-block; width: 64px; height: 6px; border-radius: 3px; background: var(--a2-sunken); overflow: hidden; vertical-align: middle; margin-right: 8px; }
+.a2-bar > i { display: block; height: 100%; width: calc(var(--v, 0) * 1%); background: var(--a2-ink-1); border-radius: inherit; }
+
+/* ── Progress and steps ────────────────────────────────────────────────── */
+.a2-progress { height: 6px; border-radius: var(--a2-r-pill); background: var(--a2-sunken); overflow: hidden; box-shadow: var(--a2-sh-inset); }
+.a2-progress > span { display: block; height: 100%; width: 100%; background: var(--a2-accent); border-radius: inherit; transform: scaleX(calc(var(--value, 0) / 100)); transform-origin: left center; transition: transform var(--a2-dur-4) var(--a2-ease-out); }
+.a2-steps { display: flex; gap: 4px; margin: 0; padding: 0; list-style: none; }
+.a2-steps li { flex: 1; height: 4px; border-radius: 2px; background: var(--a2-line-strong); transition: background-color var(--a2-dur-3) var(--a2-ease-out); }
+.a2-steps li.is-done { background: var(--a2-ink-1); }
+.a2-steps li[aria-current="step"] { background: var(--a2-accent); }
+
+/* ── Dialog, toast, tooltip ────────────────────────────────────────────── */
+.a2-dialog {
+  width: min(520px, 100% - 32px); padding: 0; border: 1px solid var(--a2-line); border-radius: var(--a2-r-4);
+  background: var(--a2-raised); color: var(--a2-ink-2); box-shadow: var(--a2-sh-3);
+}
+.a2-dialog[open] { animation: a2-pop var(--a2-dur-3) var(--a2-ease-out); }
+.a2-dialog::backdrop { background: var(--a2-scrim); }
+.a2-dialog[open]::backdrop { animation: a2-fade var(--a2-dur-3) var(--a2-ease-out); }
+.a2-dialog__body { display: grid; gap: 10px; padding: var(--a2-s-5); }
+.a2-dialog__foot { display: flex; justify-content: flex-end; gap: var(--a2-s-2); padding: 14px var(--a2-s-5); border-top: 1px solid var(--a2-line); }
+@keyframes a2-pop { from { opacity: 0; transform: translateY(8px) scale(0.98); } }
+@keyframes a2-fade { from { opacity: 0; } }
+
+.a2-toast-region { position: fixed; right: 16px; bottom: 16px; z-index: 120; display: grid; gap: 8px; width: min(380px, 100% - 32px); }
+.a2-toast {
+  display: grid; grid-template-columns: 18px minmax(0, 1fr) auto; gap: 12px; align-items: center;
+  padding: 12px 12px 12px 16px; border-radius: var(--a2-r-3);
+  background: var(--a2-primary); color: var(--a2-on-primary); box-shadow: var(--a2-sh-3);
+  font-size: var(--a2-fs-sm); line-height: 1.4;
+  animation: a2-toast-in var(--a2-dur-4) var(--a2-ease-out);
+}
+.a2-toast > svg { width: 18px; height: 18px; color: var(--a2-on-primary-accent); }
+.a2-toast button { height: 28px; padding: 0 10px; border: 0; border-radius: 6px; background: transparent; color: inherit; opacity: 0.8; font: 600 0.8125rem/1 var(--a2-font-body); cursor: pointer; }
+.a2-toast button:hover { opacity: 1; background: color-mix(in srgb, currentColor 12%, transparent); }
+.a2-toast.is-leaving { animation: a2-toast-out var(--a2-dur-3) var(--a2-ease-in-out) forwards; }
+@keyframes a2-toast-in { from { opacity: 0; transform: translateY(12px) scale(0.98); } }
+@keyframes a2-toast-out { to { opacity: 0; transform: translateY(8px); } }
+
+[data-a2-tip] { position: relative; }
+[data-a2-tip]::after {
+  content: attr(data-a2-tip); position: absolute; left: 50%; bottom: calc(100% + 8px); z-index: 30;
+  padding: 6px 9px; border-radius: 6px; background: var(--a2-primary); color: var(--a2-on-primary);
+  font: 520 0.75rem/1.3 var(--a2-font-body); white-space: nowrap; pointer-events: none;
+  opacity: 0; transform: translate(-50%, 4px); transition: opacity var(--a2-dur-2) var(--a2-ease-out), transform var(--a2-dur-2) var(--a2-ease-out);
+}
+[data-a2-tip]:hover::after, [data-a2-tip]:focus-visible::after { opacity: 1; transform: translate(-50%, 0); }
+
+/* ── Loading and empty states ──────────────────────────────────────────── */
+.a2-skeleton { border-radius: 6px; background: linear-gradient(90deg, var(--a2-sunken) 0%, var(--a2-line) 50%, var(--a2-sunken) 100%); background-size: 200% 100%; animation: a2-shimmer 1.4s linear infinite; }
+@keyframes a2-shimmer { to { background-position: -200% 0; } }
+.a2-empty { display: grid; justify-items: center; gap: 8px; padding: 40px 24px; text-align: center; border: 1px dashed var(--a2-line-strong); border-radius: var(--a2-r-3); color: var(--a2-ink-3); font-size: var(--a2-fs-sm); }
+.a2-empty svg { width: 32px; height: 32px; color: var(--a2-ink-3); }
+.a2-empty strong { color: var(--a2-ink-1); font-size: var(--a2-fs-base); font-weight: 600; }
+
+/* ── Inline text elements ──────────────────────────────────────────────── */
+.a2-kbd { display: inline-block; min-width: 22px; padding: 2px 6px; border: 1px solid var(--a2-line-strong); border-bottom-width: 2px; border-radius: 5px; background: var(--a2-surface); color: var(--a2-ink-1); font: 520 0.75rem/1.3 var(--a2-font-mono); text-align: center; }
+.a2-code { padding: 0.1em 0.38em; border-radius: 5px; background: var(--a2-sunken); color: var(--a2-ink-1); font: 500 0.86em/1.4 var(--a2-font-mono); }
+.a2-spec { display: inline-flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; color: var(--a2-ink-3); font-size: var(--a2-fs-sm); }
+.a2-spec b { white-space: nowrap; color: var(--a2-accent-text); font: 600 0.8125rem/1 var(--a2-font-mono); letter-spacing: 0.02em; }
+
+/* code blocks */
+.a2-pre { margin: 0; padding: 14px 16px; overflow-x: auto; border: 1px solid var(--a2-line); border-radius: var(--a2-r-3); background: var(--a2-sunken); color: var(--a2-ink-1); font: 450 0.8125rem/1.65 var(--a2-font-mono); tab-size: 2; }
+.a2-pre .c { color: var(--a2-ink-3); }
+
+/* ── Signature: dimension line — a rule that carries a measurement ─────── */
+.a2-dim { display: flex; align-items: center; gap: 12px; white-space: nowrap; color: var(--a2-ink-3); font: 500 0.75rem/1 var(--a2-font-mono); letter-spacing: 0.01em; font-variant-numeric: tabular-nums; }
+.a2-dim::before, .a2-dim::after {
+  content: ""; flex: 1; height: 9px; min-width: 16px;
+  background: linear-gradient(var(--a2-line-strong), var(--a2-line-strong)) center / 100% 1px no-repeat;
+}
+.a2-dim::before { border-left: 1px solid var(--a2-line-strong); }
+.a2-dim::after { border-right: 1px solid var(--a2-line-strong); }
+
+/* ── Signature: title block — the drawing-sheet footer every A² tool ends on ─ */
+.a2-titleblock { margin-top: var(--a2-s-9); padding: var(--a2-s-6) 0 var(--a2-s-7); border-top: 1px solid var(--a2-line); }
+.a2-titleblock__grid {
+  display: grid; grid-template-columns: minmax(0, 2.2fr) repeat(3, minmax(0, 1fr));
+  border: 1px solid var(--a2-line-strong); background: var(--a2-surface);
+}
+.a2-titleblock__cell { display: grid; align-content: start; gap: 6px; padding: 12px 14px; border-right: 1px solid var(--a2-line-strong); border-bottom: 1px solid var(--a2-line-strong); min-width: 0; }
+.a2-titleblock__cell:nth-child(4) { border-right: 0; }
+.a2-titleblock__cell--wide { grid-column: 1 / -1; border-right: 0; border-bottom: 0; color: var(--a2-ink-3); font-size: 0.8125rem; line-height: 1.5; }
+.a2-titleblock__k { color: var(--a2-ink-3); font: 600 0.6875rem/1 var(--a2-font-body); letter-spacing: 0.06em; text-transform: uppercase; }
+.a2-titleblock__v { color: var(--a2-ink-1); font: 560 0.9375rem/1.3 var(--a2-font-display); letter-spacing: -0.01em; overflow-wrap: anywhere; }
+.a2-titleblock__v.a2-num { font-family: var(--a2-font-mono); font-size: 0.875rem; font-weight: 520; }
+@media (max-width: 720px) {
+  .a2-titleblock__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .a2-titleblock__cell:first-child { grid-column: 1 / -1; border-right: 0; }
+  .a2-titleblock__cell:nth-child(3) { border-right: 0; }
+  .a2-titleblock__cell:nth-child(4) { border-right: 1px solid var(--a2-line-strong); }
+}
+
+/* ── Lesson pattern (SCORM players) ────────────────────────────────────── */
+.a2-lesson { display: grid; gap: var(--a2-s-5); grid-template-columns: minmax(0, 1fr); align-items: start; }
+@media (min-width: 1024px) { .a2-lesson { grid-template-columns: minmax(0, 1.55fr) minmax(300px, 1fr); } }
+.a2-media { position: relative; aspect-ratio: 16 / 9; overflow: hidden; border: 1px solid var(--a2-line); border-radius: var(--a2-r-3); background: var(--a2-surface); }
+.a2-media > svg { width: 100%; height: 100%; }
+.a2-player { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border: 1px solid var(--a2-line); border-top: 0; border-radius: 0 0 var(--a2-r-3) var(--a2-r-3); background: var(--a2-surface); }
+.a2-media + .a2-player { margin-top: -1px; }
+.a2-media:has(+ .a2-player) { border-radius: var(--a2-r-3) var(--a2-r-3) 0 0; }
+.a2-player .a2-progress { flex: 1; }
+.a2-player .a2-num { color: var(--a2-ink-3); font-size: 0.75rem; }
+.a2-transcript p { padding: 6px 8px; margin: 0 -8px; border-radius: 6px; color: var(--a2-ink-3); line-height: 1.6; transition: background-color var(--a2-dur-3) var(--a2-ease-out), color var(--a2-dur-3) var(--a2-ease-out); }
+.a2-transcript p.is-current { background: var(--a2-accent-soft); color: var(--a2-ink-1); }
+
+.a2-options { display: grid; gap: 8px; }
+.a2-option {
+  display: grid; grid-template-columns: 28px minmax(0, 1fr) 20px; gap: 12px; align-items: center; width: 100%;
+  padding: 12px 14px; border: 1px solid var(--a2-line-strong); border-radius: var(--a2-r-2);
+  background: var(--a2-surface); color: var(--a2-ink-1); text-align: left;
+  font: 460 var(--a2-fs-base)/1.4 var(--a2-font-body); cursor: pointer;
+  transition: border-color var(--a2-dur-2) var(--a2-ease-out), background-color var(--a2-dur-2) var(--a2-ease-out), box-shadow var(--a2-dur-2) var(--a2-ease-out);
+}
+.a2-option:hover { border-color: var(--a2-ink-3); background: color-mix(in srgb, var(--a2-sunken) 55%, var(--a2-surface)); }
+.a2-option__key { display: grid; place-items: center; width: 28px; height: 28px; border: 1px solid var(--a2-line-strong); border-radius: 7px; color: var(--a2-ink-2); font: 600 0.8125rem/1 var(--a2-font-mono); transition: inherit; }
+.a2-option__mark { width: 20px; height: 20px; opacity: 0; }
+.a2-option[aria-checked="true"] { border-color: var(--a2-ink-1); box-shadow: 0 0 0 1px var(--a2-ink-1); }
+.a2-option[aria-checked="true"] .a2-option__key { background: var(--a2-primary); border-color: var(--a2-primary); color: var(--a2-on-primary); }
+.a2-option.is-correct { border-color: var(--a2-success); background: var(--a2-success-soft); box-shadow: 0 0 0 1px var(--a2-success); }
+.a2-option.is-correct .a2-option__key { background: var(--a2-success); border-color: var(--a2-success); color: var(--a2-on-status); }
+.a2-option.is-correct .a2-option__mark { opacity: 1; color: var(--a2-success); }
+.a2-option.is-wrong { border-color: var(--a2-danger); background: var(--a2-danger-soft); box-shadow: 0 0 0 1px var(--a2-danger); }
+.a2-option.is-wrong .a2-option__key { background: var(--a2-danger); border-color: var(--a2-danger); color: var(--a2-on-status); }
+.a2-option.is-wrong .a2-option__mark { opacity: 1; color: var(--a2-danger); }
+.a2-option:disabled { cursor: default; }
+.a2-option:disabled:not(.is-correct):not(.is-wrong) { opacity: 0.6; }
+
+/* ── Hero field (marketing and landing surfaces) ───────────────────────── */
+.a2-field-bg { position: relative; isolation: isolate; }
+.a2-field-bg::before {
+  content: ""; position: absolute; inset: 0; z-index: -2; pointer-events: none;
+  background:
+    radial-gradient(60% 70% at 88% 8%, var(--a2-field-2), transparent 60%),
+    radial-gradient(55% 60% at 8% 30%, var(--a2-field-1), transparent 65%),
+    radial-gradient(50% 55% at 55% 100%, var(--a2-field-3), transparent 70%);
+}
+/* Signature: structural grid lines — the lettered column lines of a construction plan, used sparingly
+   behind a hero or a band: <span class="a2-axis" style="--x:18%" data-axis="A"></span> */
+.a2-axis { position: absolute; top: 0; bottom: 0; left: var(--x, 50%); z-index: -1; width: 0; border-left: 1px dashed var(--a2-line-strong); pointer-events: none; }
+.a2-axis::before {
+  content: attr(data-axis); position: absolute; top: 16px; left: -14px; display: grid; place-items: center;
+  width: 28px; height: 28px; border: 1px solid var(--a2-line-strong); border-radius: 50%;
+  background: var(--a2-bg); color: var(--a2-ink-3); font: 500 0.6875rem/1 var(--a2-font-mono);
+}
+@media (max-width: 720px) { .a2-axis:nth-of-type(n+3) { display: none; } }
+
+/* ── Motion hooks ──────────────────────────────────────────────────────
+   html.a2-motion is set by a one-line head script (see a2-motion.js) so the first paint is prepared.
+   If GSAP never arrives, the 2.5 s CSS failsafe reveals everything anyway. */
+html.a2-motion [data-a2-split]:not(.is-split) { visibility: hidden; animation: a2-failsafe-v 0s linear 2.5s forwards; }
+html.a2-motion [data-a2-intro]:not(.is-in) { opacity: 0; animation: a2-failsafe-o 0s linear 2.5s forwards; }
+@keyframes a2-failsafe-v { to { visibility: visible; } }
+@keyframes a2-failsafe-o { to { opacity: 1; } }
+
+/* ── Reduced motion: a complete experience, not a degraded one ─────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+  html.a2-motion [data-a2-split]:not(.is-split) { visibility: visible; animation: none; }
+  html.a2-motion [data-a2-intro]:not(.is-in) { opacity: 1; animation: none; }
+}
+
+/* ── Print: clean black on white, no chrome ────────────────────────────── */
+@media print {
+  :root { --a2-bg: #FFFFFF; --a2-surface: #FFFFFF; --a2-sunken: #FFFFFF; --a2-ink-1: #000000; --a2-ink-2: #111111; --a2-ink-3: #333333; --a2-line: #BBBBBB; --a2-line-strong: #888888; }
+  .a2-nav, .a2-toast-region, .a2-skip, [data-a2-noprint] { display: none !important; }
+  .a2-card, .a2-panel, .a2-table-wrap { box-shadow: none !important; }
+  .a2-field-bg::before, .a2-axis { display: none; }
+}

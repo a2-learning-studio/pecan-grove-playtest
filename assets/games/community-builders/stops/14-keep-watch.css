@@ -1,0 +1,251 @@
+/* Community Builders · Stop 14 · Keep Watch / Vigila las promesas
+   The Promise notebook beside the town one year later. Tokens only from cb.css (var(--cb-*)); classes are .cb-s14-*.
+   Status reads as a soft fill + icon + word (kept pine-soft, not yet warn-soft, need to ask info-soft), never red/green. */
+
+.cb-s14-chip[data-st="kept"], .cb-s14-st[data-st="kept"] { --s-bg: var(--cb-pine-soft); --s-ink: var(--cb-stage-2); }
+.cb-s14-chip[data-st="notyet"], .cb-s14-st[data-st="notyet"] { --s-bg: var(--cb-warn-soft); --s-ink: var(--cb-warn-ink); }
+.cb-s14-chip[data-st="ask"], .cb-s14-st[data-st="ask"] { --s-bg: var(--cb-info-soft); --s-ink: var(--cb-info-ink); }
+.cb-s14-knock { fill: var(--s14-knock, var(--cb-card)); }
+
+/* the Checkmark Badge and the status icons */
+.cb-s14-tick { display: grid; place-items: center; flex: none; width: 24px; height: 24px; border-radius: 50%; background: var(--cb-stage-2); color: var(--cb-on-accent); }
+.cb-s14-tick .cb-ico { width: 14px; height: 14px; stroke-width: 3.2; }
+.cb-s14-stic { display: grid; place-items: center; flex: none; width: 24px; height: 24px; color: var(--s-ink); }
+.cb-s14-stic .cb-ico { width: 22px; height: 22px; }
+
+.cb-s14-chip { display: inline-flex; align-items: center; gap: 6px; justify-self: start; min-height: 30px; padding: 3px 12px 3px 4px; border-radius: 999px;
+  background: var(--s-bg); color: var(--s-ink); font-size: 0.875rem; font-weight: 750; line-height: 1.15; white-space: nowrap; }
+.cb-s14-chip[data-st="none"] { padding: 3px 12px; background: transparent; border: 1.5px dashed var(--cb-line-strong); color: var(--cb-ink-3); font-weight: 650; }
+.cb-s14-chip.is-new { animation: cb-pop 0.42s var(--cb-ease) both; }
+
+/* who promised */
+.cb-s14-who { display: grid; place-items: center; flex: none; width: 44px; height: 44px; border-radius: 50%; overflow: hidden; background: var(--cb-sunken); color: var(--cb-ink-2); }
+.cb-s14-who img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.cb-s14-who--ic .cb-ico { width: 26px; height: 26px; }
+.cb-s14-who--sm { width: 32px; height: 32px; }
+.cb-s14-who--sm.cb-s14-who--ic .cb-ico { width: 20px; height: 20px; }
+
+/* ── start and closed: the town, the notebook, the words ── */
+.cb-s14-intro, .cb-s14-end { display: grid; grid-template-columns: minmax(0, 6fr) minmax(0, 5fr); gap: clamp(18px, 3cqi, 36px); align-items: center; }
+@container cb (max-width: 760px) { .cb-s14-intro, .cb-s14-end { grid-template-columns: minmax(0, 1fr); } }
+.cb-s14-intro__copy, .cb-s14-end__copy { display: grid; gap: 18px; justify-items: start; align-content: center; }
+.cb-s14-intro__lead { margin: 0; font-family: var(--a2-font-display); font-size: clamp(1.3125rem, 0.95rem + 1.2cqi, 1.75rem); font-weight: 660; line-height: 1.26;
+  letter-spacing: -0.018em; color: var(--cb-ink); text-wrap: pretty; }
+.cb-s14-intro__fair { display: flex; align-items: flex-start; gap: 12px; margin: 0; padding: 14px 18px 14px 14px; border-radius: 18px; background: var(--cb-pine-soft);
+  color: var(--cb-ink); font-weight: 600; line-height: 1.45; }
+.cb-s14-intro__fair .cb-ico { width: 26px; height: 26px; margin-top: -1px; color: var(--cb-stage-2); }
+/* the Promise notebook and the data center: storybook things on the painting, each with its name */
+.cb-s14-pad { position: absolute; left: 14px; bottom: 12px; z-index: 1; display: grid; justify-items: center; }
+.cb-s14-pad .cb-story-obj { width: 72px; height: 72px; }
+.cb-s14-pad .cb-story-tag, .cb-s14-site .cb-story-tag { margin-top: -6px; }
+.cb-s14-end__line { margin: 0; font-family: var(--a2-font-display); font-size: clamp(1.375rem, 0.95rem + 1.4cqi, 2rem); font-weight: 680; line-height: 1.22;
+  letter-spacing: -0.022em; color: var(--cb-ink); text-wrap: balance; }
+
+/* "built": the low, plain building on the old farm land, a map label (not a button) */
+.cb-s14-site { position: absolute; left: var(--x); top: var(--y); z-index: 1; display: grid; justify-items: center; transform: translate(-50%, -30%); }
+.cb-s14-site .cb-story-obj { width: 70px; height: 70px; }
+
+/* the closed Promise notebook: the cover swings shut over its pages, then the Checkmark Badge lands */
+.cb-s14-end__desk { position: absolute; inset: 0; z-index: 2; display: grid; place-items: center; }
+.cb-s14-cover { container: s14cv / inline-size; position: relative; display: block; width: clamp(120px, 30%, 184px); aspect-ratio: 4 / 5; }
+.cb-s14-cover__pages { position: absolute; inset: 5% 0 0 4%; border-radius: 6px 16px 16px 6px; box-shadow: var(--cb-shadow-2);
+  background: repeating-linear-gradient(var(--cb-card) 0 15px, var(--cb-line) 15px 16.5px); }
+.cb-s14-cover__face { position: absolute; inset: 0 4% 5% 0; display: grid; place-items: center; border-radius: 6px 16px 16px 6px; background: var(--cb-c4);
+  box-shadow: var(--cb-shadow-1); transform-origin: 0 50%; backface-visibility: hidden; animation: cb-s14-shut 0.95s var(--cb-ease) 0.2s both; }
+@keyframes cb-s14-shut { from { transform: perspective(900px) rotateY(-165deg); } to { transform: perspective(900px) rotateY(0deg); } }
+.cb-s14-cover__rings { position: absolute; left: 9px; top: 14%; bottom: 14%; display: flex; flex-direction: column; justify-content: space-between; }
+.cb-s14-cover__rings i { display: block; width: 9px; height: 9px; border-radius: 50%; background: var(--cb-board); }
+.cb-s14-cover__plate { display: grid; justify-items: center; gap: 6px; width: 70%; margin-left: 8%; padding: 12px 8px; border-radius: 10px; background: var(--cb-card); color: var(--cb-ink); text-align: center; }
+.cb-s14-cover__plate .cb-ico { width: 30px; height: 30px; color: var(--cb-stage-2); }
+.cb-s14-cover__plate b { font-family: var(--a2-font-display); font-size: 0.9375rem; font-weight: 700; line-height: 1.15; text-wrap: balance; }
+.cb-s14-cover__badge { position: absolute; right: -12px; bottom: -8px; display: grid; place-items: center; width: 54px; height: 54px; border-radius: 50%;
+  background: var(--cb-stage-2); color: var(--cb-on-accent); border: 4px solid var(--cb-card); box-shadow: var(--cb-shadow-2); animation: cb-pop 0.5s var(--cb-ease) 1.05s both; }
+.cb-s14-cover__badge .cb-ico { width: 26px; height: 26px; stroke-width: 3.2; }
+/* a small cover (phone): the plate keeps its words inside, the badge stays clear of them */
+@container s14cv (max-width: 159.98px) {
+  .cb-s14-cover__plate { width: 76%; margin-left: 6%; padding: 10px 6px; gap: 4px; }
+  .cb-s14-cover__plate .cb-ico { width: 24px; height: 24px; }
+  .cb-s14-cover__plate b { font-size: 0.8125rem; }
+  .cb-s14-cover__badge { width: 42px; height: 42px; border-width: 3px; right: -14px; bottom: -10px; }
+  .cb-s14-cover__badge .cb-ico { width: 20px; height: 20px; }
+}
+/* the closed notebook (a line icon) leads the score card's takeaway, in the shell's disc */
+.cb-card__can .cb-ico.cb-s14-can { stroke-width: 2.2; }
+
+/* ── the play scene: the notebook (read first) beside the town (look second) ── */
+.cb-s14-play { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: clamp(16px, 2.4cqi, 28px); align-items: start; }
+.cb-s14-play[data-step="2"] { grid-template-columns: minmax(0, 1fr); }      /* Step 2: the notebook is the whole scene */
+@container cb (max-width: 899.98px) { .cb-s14-play { grid-template-columns: minmax(0, 1fr); } }
+
+/* the Promise notebook */
+.cb-s14-nb { container: s14nb / inline-size; display: grid; gap: 12px; align-content: start; padding: 14px; border-radius: 22px; background: var(--cb-card);
+  border: 1.5px solid var(--cb-line); box-shadow: var(--cb-shadow-1); }
+.cb-s14-nb__head { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; padding: 2px 2px 0; }
+.cb-s14-nb__ic { display: grid; place-items: center; flex: none; width: 40px; height: 40px; border-radius: 50%; background: var(--cb-pine-soft); color: var(--cb-stage-2); }
+.cb-s14-nb__ic .cb-ico { width: 24px; height: 24px; }
+.cb-s14-nb__head h3 { margin: 0; font-family: var(--a2-font-display); font-size: 1.1875rem; font-weight: 690; letter-spacing: -0.015em; color: var(--cb-ink); }
+.cb-s14-nb__count { margin: 0 0 0 auto; padding: 4px 12px; border-radius: 999px; background: var(--cb-sunken); font-size: 0.875rem; font-weight: 720; color: var(--cb-ink-2); }
+.cb .cb-s14-msg { font-variant-numeric: normal; }
+.cb-s14-rows { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.cb-s14-row { display: grid; gap: 12px; padding: 12px 14px; border-radius: 16px; border: 1.5px solid var(--cb-line); background: var(--cb-board); }
+.cb-s14-row:focus { outline: none; }
+.cb-s14-row:focus-visible { outline: 3px solid var(--cb-focus); outline-offset: 2px; }
+.cb-s14-row[data-now] { padding: 10.5px 12.5px; border: 3px solid var(--cb-clay); background: var(--cb-card); box-shadow: var(--cb-shadow-1); scroll-margin: 12px 0 14px; }
+.cb-s14-row__main { display: grid; grid-template-columns: 44px minmax(0, 1fr); grid-template-areas: "who txt" "who chip"; gap: 8px 12px; align-items: start; }
+.cb-s14-row__main > .cb-s14-who { grid-area: who; }
+.cb-s14-row__main > .cb-s14-row__txt { grid-area: txt; }
+.cb-s14-row__main > .cb-s14-chip { grid-area: chip; }
+@container s14nb (min-width: 600px) {
+  .cb-s14-row__main { grid-template-columns: 48px minmax(0, 1fr) auto; grid-template-areas: "who txt chip"; align-items: center; }
+  .cb-s14-row__main > .cb-s14-who { width: 48px; height: 48px; }
+}
+.cb-s14-row__txt { display: grid; gap: 2px; min-width: 0; }
+.cb-s14-row__txt b { font-size: 0.8125rem; font-weight: 760; line-height: 1.3; color: var(--cb-ink-3); }
+.cb-s14-row__txt q { font-weight: 620; line-height: 1.38; color: var(--cb-ink); text-wrap: pretty; }
+.cb-s14-row__txt q.is-big { font-family: var(--a2-font-display); font-size: 1.1875rem; font-weight: 650; line-height: 1.3; letter-spacing: -0.01em; }
+/* Step 1: the promise you are checking in full, the others as one line each, so that promise and the town
+   stay in view together down to the 1366 x 768 floor */
+.cb-s14-play[data-step="1"] .cb-s14-row:not([data-now]) { padding: 7px 12px 7px 8px; }
+.cb-s14-play[data-step="1"] .cb-s14-row:not([data-now]) .cb-s14-row__main { grid-template-columns: 34px minmax(0, 1fr) auto; grid-template-areas: "who txt chip"; gap: 10px; align-items: center; }
+.cb-s14-play[data-step="1"] .cb-s14-row:not([data-now]) .cb-s14-who { width: 34px; height: 34px; }
+.cb-s14-play[data-step="1"] .cb-s14-row:not([data-now]) .cb-s14-who--ic .cb-ico { width: 20px; height: 20px; }
+.cb-s14-play[data-step="1"] .cb-s14-row:not([data-now]) .cb-s14-row__txt { gap: 0; }
+/* the face or icon says who promised; the maker's words stay for screen readers */
+.cb-s14-play[data-step="1"] .cb-s14-row:not([data-now]) .cb-s14-row__txt > b { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.cb-s14-play[data-step="1"] .cb-s14-row:not([data-now]) .cb-s14-row__txt > q { display: block; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 0.9375rem; line-height: 1.35; }
+.cb-s14-play[data-step="1"] .cb-s14-row:not([data-now]) .cb-s14-chip { min-height: 28px; font-size: 0.8125rem; }
+@container cb (max-width: 599.98px) { .cb-s14-nb { padding: 12px; } }
+
+/* the town one year later, with the clues on it */
+.cb-s14-scene { container: s14scene / inline-size; display: grid; gap: 14px; align-content: start; }
+.cb-s14-stage { position: relative; }
+.cb-s14-art { border-radius: 20px; }
+.cb-s14-clues { position: absolute; inset: 0; z-index: 2; margin: 0; padding: 0; list-style: none; pointer-events: none; }
+.cb-s14-clues li { position: absolute; left: var(--x); top: var(--y); width: 0; height: 0; }
+.cb-s14-clue { position: absolute; left: 0; top: 0; display: grid; justify-items: center; gap: 0; width: max-content; max-width: 8rem; padding: 0; border: 0;
+  background: none; color: var(--cb-ink); transform: translate(-50%, -50%); pointer-events: auto; }
+/* each clue is the storybook thing itself, standing on the painting, named on a paper tag */
+.cb-s14-clue__disc { position: relative; width: 68px; height: 68px; transition: transform var(--a2-dur-2) var(--cb-ease), opacity var(--a2-dur-2), filter var(--a2-dur-2); }
+.cb-s14-clue__lbl { position: relative; z-index: 1; margin-top: -4px; padding: 2px 9px 3px; border-radius: 9px; border: 1.5px solid rgba(71, 50, 31, 0.24); background: #FFF8EA; color: #3A2A1C;
+  box-shadow: 0 1px 2px rgba(48, 30, 14, 0.22), 0 4px 10px -4px rgba(48, 30, 14, 0.42); font-size: 0.8125rem; font-weight: 720;
+  line-height: 1.12; text-align: center; text-wrap: balance; transition: background-color var(--a2-dur-2), color var(--a2-dur-2); }
+.cb-s14-clue:not([aria-disabled="true"]):hover .cb-s14-clue__disc { transform: translateY(-4px) scale(1.04); }
+.cb-s14-clue:not([aria-disabled="true"]):active .cb-s14-clue__disc { transform: scale(0.95); }
+.cb-s14-clue { border-radius: 14px; }
+.cb-s14-clue:focus-visible { outline: 3px solid var(--cb-focus); outline-offset: 3px; box-shadow: 0 0 0 3px #FFF8EA; }
+.cb-s14-clue[aria-disabled="true"] { cursor: default; }
+/* the clues that are not this promise's step back, but their plates stay solid so the words never sit on bare paint */
+.cb-s14-play:not([data-phase="clue"]) .cb-s14-clue:not(.is-this):not(.is-tapped) .cb-s14-clue__disc { opacity: 0.6; filter: saturate(0.45) drop-shadow(0 2px 2px rgba(48, 30, 14, 0.25)); }
+.cb-s14-play:not([data-phase="clue"]) .cb-s14-clue:not(.is-this):not(.is-tapped) .cb-s14-clue__lbl { color: var(--cb-ink-3); }
+.cb-s14-clue.is-this .cb-s14-clue__disc { filter: drop-shadow(0 0 0.8px #FFF8EA) drop-shadow(0 0 7px rgba(169, 73, 42, 0.75)) drop-shadow(0 4px 4px rgba(48, 30, 14, 0.34)); }
+.cb-s14-clue.is-this .cb-s14-clue__lbl { background: var(--cb-clay); color: var(--cb-on-accent); }
+.cb-s14-clue.is-tapped .cb-s14-clue__lbl { border: 1.5px dashed var(--cb-ink-3); }
+/* phone: the picture on top, the clue buttons in one column under it */
+@container cb (max-width: 599.98px) {
+  .cb-s14-clues { position: static; display: grid; gap: 8px; margin-top: 12px; pointer-events: auto; }
+  .cb-s14-clues li { position: static; width: auto; height: auto; }
+  .cb-s14-clue { position: relative; width: 100%; max-width: none; grid-template-columns: 64px minmax(0, 1fr); justify-items: start; align-items: center; gap: 14px;
+    min-height: 76px; padding: 6px 16px 6px 6px; border-radius: 22px; border: 1.5px solid var(--cb-line); background: var(--cb-card); transform: none; text-align: left;
+    transition: border-color var(--a2-dur-2), box-shadow var(--a2-dur-2); }
+  .cb-s14-clue__disc { width: 60px; height: 60px; }
+  .cb-s14-clue__lbl { margin: 0; padding: 0; border: 0; background: none; box-shadow: none; font-family: var(--a2-font-display); font-size: 1.0625rem; font-weight: 680; text-align: left; }
+  .cb-s14-clue.is-tapped .cb-s14-clue__lbl { border: 0; }
+  .cb-s14-clue:not([aria-disabled="true"]):hover { border-color: var(--cb-stage-2); box-shadow: var(--cb-shadow-1); }
+  .cb-s14-clue:not([aria-disabled="true"]):hover .cb-s14-clue__disc { transform: none; }
+  .cb-s14-clue:focus-visible { outline: 3px solid var(--cb-focus); outline-offset: 2px; }
+  .cb-s14-clue:focus-visible { box-shadow: none; }
+  .cb-s14-clue.is-this { border: 3px solid var(--cb-clay); padding: 4.5px 14.5px 4.5px 4.5px; box-shadow: var(--cb-shadow-1); }
+  .cb-s14-clue.is-this .cb-s14-clue__disc { filter: none; }
+  .cb-s14-clue.is-this .cb-s14-clue__lbl { background: none; color: var(--cb-ink); }
+  .cb-s14-clue.is-tapped { border-style: dashed; border-color: var(--cb-ink-3); }
+}
+
+/* "No clue found" */
+.cb-s14-none { justify-self: start; display: inline-flex; align-items: center; gap: 12px; min-height: 64px; padding: 6px 24px 6px 6px; border-radius: 999px;
+  border: 2px solid var(--cb-line-strong); background: var(--cb-card); color: var(--cb-ink); font-family: var(--a2-font-display); font-size: 1.0625rem; font-weight: 680;
+  letter-spacing: -0.005em; text-align: left; box-shadow: var(--cb-shadow-1);
+  transition: transform var(--a2-dur-2) var(--cb-ease), border-color var(--a2-dur-2), box-shadow var(--a2-dur-2), opacity var(--a2-dur-3); }
+.cb-s14-none__disc { display: grid; place-items: center; flex: none; width: 50px; height: 50px; border-radius: 50%; background: var(--cb-info-soft); color: var(--cb-info-ink); }
+.cb-s14-none__disc .cb-ico { width: 30px; height: 30px; }
+.cb-s14-none:not([aria-disabled="true"]):hover { border-color: var(--cb-stage-2); transform: translateY(-2px); box-shadow: var(--cb-shadow-2); }
+.cb-s14-none:not([aria-disabled="true"]):active { transform: scale(0.98); }
+.cb-s14-none[aria-disabled="true"] { cursor: default; box-shadow: none; }
+.cb-s14-play:not([data-phase="clue"]) .cb-s14-none:not(.is-this):not(.is-tapped) { opacity: 0.55; }
+.cb-s14-none.is-this { padding: 5px 23px 5px 5px; border: 3px solid var(--cb-clay); box-shadow: var(--cb-shadow-1); }
+.cb-s14-none.is-tapped { border-style: dashed; border-color: var(--cb-ink-3); }
+@container cb (max-width: 599.98px) { .cb-s14-none { width: 100%; border-radius: 22px; } }
+
+/* the clue box: what you see, then how the promise is doing */
+.cb-s14-box { display: grid; gap: 14px; padding: 16px; border-radius: 22px; background: var(--cb-card); border: 1.5px solid var(--cb-line); box-shadow: var(--cb-shadow-1);
+  scroll-margin: 16px 0 132px; }
+.cb-s14-box.is-new { animation: cb-rise 0.42s var(--cb-ease) both; }
+.cb-s14-box:not(.is-new) .cb-feedback { animation: none; }
+.cb-s14-box .cb-feedback { flex: none; }
+.cb-s14-box:focus { outline: none; }
+.cb-s14-box:focus-visible { outline: 3px solid var(--cb-focus); outline-offset: 2px; }
+.cb-s14-see { display: grid; grid-template-columns: 56px minmax(0, 1fr); gap: 14px; align-items: start; }
+.cb-s14-see__ic { display: grid; place-items: center; flex: none; width: 72px; height: 72px; border-radius: 50%; background: #FFF8EA; border: 3px solid var(--cb-sunken); }
+.cb-s14-see__ic .cb-story-obj { width: 80%; height: 80%; }
+.cb-s14-see__k { margin: 0; font-size: 0.875rem; font-weight: 760; color: var(--cb-ink-3); }
+.cb-s14-see__line { margin: 2px 0 0; font-family: var(--a2-font-display); font-size: clamp(1.125rem, 0.95rem + 0.6cqi, 1.375rem); font-weight: 630; line-height: 1.32;
+  letter-spacing: -0.01em; color: var(--cb-ink); text-wrap: pretty; }
+.cb-s14-how { display: grid; gap: 10px; }
+.cb-s14-box > * + .cb-s14-how { padding-top: 14px; border-top: 1px solid var(--cb-line); }
+.cb-s14-how__q { margin: 0; font-size: 1.0625rem; font-weight: 740; color: var(--cb-ink); }
+.cb-s14-sts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+@container s14scene (max-width: 479.98px) { .cb-s14-sts { grid-template-columns: minmax(0, 1fr); } }
+.cb-s14-st { position: relative; display: flex; align-items: center; gap: 10px; min-height: 64px; padding: 8px 14px 8px 8px; border-radius: 18px; border: 2px solid transparent;
+  background: var(--s-bg); color: var(--cb-ink); font-family: var(--a2-font-display); font-size: 1.0625rem; font-weight: 690; line-height: 1.15; letter-spacing: -0.005em; text-align: left;
+  transition: transform var(--a2-dur-2) var(--cb-ease), box-shadow var(--a2-dur-2), border-color var(--a2-dur-2), opacity var(--a2-dur-3); }
+.cb-s14-st > .cb-s14-tick, .cb-s14-st > .cb-s14-stic { width: 40px; height: 40px; }
+.cb-s14-st > .cb-s14-tick { border: 3px solid var(--cb-card); }
+.cb-s14-st > .cb-s14-tick .cb-ico { width: 20px; height: 20px; }
+.cb-s14-st > .cb-s14-stic { border-radius: 50%; background: var(--cb-card); }
+.cb-s14-st > .cb-s14-stic .cb-ico { width: 26px; height: 26px; }
+.cb-s14-st:not([aria-disabled="true"]):hover { border-color: var(--s-ink); transform: translateY(-2px); box-shadow: var(--cb-shadow-2); }
+.cb-s14-st:not([aria-disabled="true"]):active { transform: scale(0.98); }
+.cb-s14-st[aria-disabled="true"] { cursor: default; opacity: 0.5; }
+.cb-s14-st.is-right { opacity: 1; border-color: var(--s-ink); box-shadow: var(--cb-shadow-1); }
+.cb-s14-st.is-chosen { opacity: 1; border-style: dashed; border-color: var(--cb-ink-3); }
+.cb-s14-st__stamp { position: absolute; top: -10px; right: -8px; display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; background: var(--s-ink);
+  color: var(--cb-on-accent); border: 3px solid var(--cb-card); animation: cb-pop 0.45s var(--cb-ease) both; }
+.cb-s14-st__stamp .cb-ico { width: 16px; height: 16px; stroke-width: 3.2; }
+
+/* ── Step 2: one kind follow-up per late or unclear promise ── */
+.cb-s14-row--need { background: var(--cb-card); }
+.cb-s14-fus { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+@container s14nb (max-width: 599.98px) { .cb-s14-fus { grid-template-columns: minmax(0, 1fr); } }
+.cb-s14-fu { display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: 10px; align-items: start; min-height: 64px; padding: 12px 14px 12px 10px; border-radius: 18px;
+  border: 2px solid var(--cb-line); background: var(--cb-card); color: var(--cb-ink); text-align: left;
+  transition: transform var(--a2-dur-2) var(--cb-ease), border-color var(--a2-dur-2), box-shadow var(--a2-dur-2), background-color var(--a2-dur-2); }
+.cb-s14-fu__ic { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; background: var(--cb-sunken); color: var(--cb-ink-2); transition: background-color var(--a2-dur-2), color var(--a2-dur-2); }
+.cb-s14-fu__ic .cb-ico { width: 22px; height: 22px; }
+.cb-s14-fu__txt { display: grid; gap: 3px; padding-top: 1px; min-width: 0; }
+.cb-s14-fu__txt b { font-family: var(--a2-font-display); font-size: 1rem; font-weight: 700; line-height: 1.2; }
+.cb-s14-fu__line { font-size: 0.9375rem; line-height: 1.38; color: var(--cb-ink-2); }
+.cb-s14-fu:hover { border-color: var(--cb-line-strong); box-shadow: var(--cb-shadow-1); transform: translateY(-2px); }
+.cb-s14-fu:active { transform: scale(0.99); }
+.cb-s14-fu[aria-pressed="true"] { border-color: var(--cb-clay); background: var(--cb-clay-soft); box-shadow: var(--cb-shadow-1); }
+.cb-s14-fu[aria-pressed="true"] .cb-s14-fu__ic { background: var(--cb-clay); color: var(--cb-on-accent); }
+.cb-s14-talk { display: grid; gap: 8px; scroll-margin: 16px 0 156px; }
+.cb-s14-say { margin: 0; padding: 10px 14px; border-radius: 18px; color: var(--cb-ink); font-weight: 620; line-height: 1.42; max-width: min(100%, 36rem); }
+.cb-s14-say--me { justify-self: end; border-bottom-right-radius: 6px; background: var(--cb-clay-soft); }
+.cb-s14-say--them { justify-self: start; display: flex; align-items: flex-start; gap: 10px; padding: 8px 14px 8px 8px; border-bottom-left-radius: 6px; background: var(--cb-pine-soft); }
+.cb-s14-say--them p { margin: 0; padding-top: 4px; }
+.cb-s14-talk.is-new .cb-s14-say--me { animation: cb-rise 0.35s var(--cb-ease) both; }
+.cb-s14-talk.is-new .cb-s14-say--them { animation: cb-rise 0.45s var(--cb-ease) 0.45s both; }
+.cb-s14-confirm { margin-top: 4px; }
+
+/* ── score card: ask a grown-up, and the notebook as it closed ── */
+.cb-s14-extra { display: grid; gap: 14px; }
+.cb-s14-askcard { background: var(--cb-pine-soft); }
+.cb-s14-askcard > .cb-ico { color: var(--cb-stage-2); }
+.cb-s14-recap { container: s14rc / inline-size; display: grid; gap: 10px; padding: 14px; border-radius: 18px; background: var(--cb-card); border: 1.5px solid var(--cb-line); }
+.cb-s14-recap__h { display: flex; align-items: center; gap: 10px; margin: 0; font-family: var(--a2-font-display); font-size: 1.0625rem; color: var(--cb-ink); }
+.cb-s14-recap__h .cb-ico { width: 24px; height: 24px; color: var(--cb-stage-2); }
+.cb-s14-recap ul { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.cb-s14-recap li { display: grid; grid-template-columns: 32px minmax(0, 1fr) auto; align-items: center; gap: 10px; padding: 6px 10px 6px 6px; border-radius: 14px; background: var(--cb-board); }
+.cb-s14-recap__txt { display: grid; gap: 1px; min-width: 0; }
+.cb-s14-recap__txt b { font-size: 0.8125rem; font-weight: 760; line-height: 1.3; color: var(--cb-ink-3); }
+.cb-s14-recap__txt q { font-size: 0.9375rem; font-weight: 600; line-height: 1.32; color: var(--cb-ink); }
+@container s14rc (max-width: 459.98px) { .cb-s14-recap li { grid-template-columns: 32px minmax(0, 1fr); } .cb-s14-recap li > .cb-s14-chip { grid-column: 2; } }

@@ -1,0 +1,215 @@
+/* Stop 9 · Include Every Voice. The library (a painted crop of the clock-tower building), five lamp-lit chairs,
+   the open chair's card and six ways. Only --cb-* tokens. Authored line icons for small things. */
+.cb-s09 { position: relative; }
+
+/* ── the room ── */
+.cb-s09-room, .cb-s09-stage { position: relative; display: grid; grid-template-columns: minmax(0, 1fr); align-content: start; }
+.cb-s09-scene { border-radius: 20px; }
+.cb .cb-s09-scene--wide { aspect-ratio: 1376 / 620; border-radius: 22px; }
+/* intro and aha: the picture and the card share one grid cell, so a long card makes the picture taller
+   instead of covering the chairs along its bottom edge */
+.cb-s09-stage::before { content: ""; grid-area: 1 / 1; aspect-ratio: 1376 / 620; pointer-events: none; }   /* the picture's least height */
+.cb .cb-s09-stage > .cb-s09-scene--wide { grid-area: 1 / 1; align-self: stretch; aspect-ratio: auto; }
+.cb .cb-s09-play .cb-s09-scene { aspect-ratio: 3 / 2; }
+.cb-s09-place { position: absolute; left: 14px; top: 14px; z-index: 1; display: inline-flex; align-items: center; gap: 8px; margin: 0; padding: 5px 14px 5px 5px; border-radius: 999px;
+  background: var(--cb-card); box-shadow: var(--cb-shadow-1); font-family: var(--a2-font-display); font-size: 0.9375rem; font-weight: 660; line-height: 1.1; color: var(--cb-ink); }
+.cb-s09-place .cb-ico { width: 32px; height: 32px; padding: 6px; border-radius: 50%; background: var(--cb-warn-soft); color: var(--cb-warn-ink); }
+
+/* the note from last time: a small card pinned on the picture */
+.cb-s09-note { position: absolute; left: 14px; top: 60px; z-index: 1; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 7px; max-width: calc(100% - 28px); margin: 0;
+  padding: 8px 14px 8px 12px; border-radius: 14px; background: var(--cb-card); box-shadow: var(--cb-shadow-1); font-size: 0.9375rem; font-weight: 640; line-height: 1.3; color: var(--cb-ink); }
+.cb-s09-note__k { font-weight: 760; }
+.cb-s09-note__i { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
+.cb-s09-note__i .cb-ico { width: 20px; height: 20px; color: var(--cb-warn-ink); }
+.cb-s09-note__dot { color: var(--cb-ink-3); font-weight: 760; }
+.cb-s09-stage .cb-s09-note { max-width: calc(55% - 48px); }
+
+/* ── five chairs in a row along the bottom edge of the picture ── */
+.cb-s09-chairs { position: relative; z-index: 2; display: flex; justify-content: center; align-items: flex-start; gap: 6px; margin: -50px 0 0; padding: 0 4px; list-style: none; }
+.cb-s09-chairs li { display: flex; justify-content: center; flex: 0 1 112px; min-width: 0; }
+.cb .cb-s09-chair { --d: 88px; position: relative; display: grid; justify-items: center; align-content: start; gap: 7px; width: 100%; padding: 0; border: 0; background: none; color: var(--cb-ink); text-align: center; }
+/* a soft circle of lamp light behind every chair */
+.cb-s09-chair::before { content: ""; position: absolute; left: 50%; top: calc(var(--d) * -0.32); z-index: -1; width: calc(var(--d) * 1.64); height: calc(var(--d) * 1.64); margin-left: calc(var(--d) * -0.82);
+  border-radius: 50%; background: radial-gradient(closest-side, color-mix(in srgb, var(--cb-gold) 58%, transparent) 52%, color-mix(in srgb, var(--cb-gold) 0%, transparent)); pointer-events: none; }
+.cb-s09-chair.is-filled::before { background: radial-gradient(closest-side, color-mix(in srgb, var(--cb-gold) 40%, transparent) 52%, color-mix(in srgb, var(--cb-gold) 0%, transparent)); }
+.cb-s09-chair__disc { position: relative; display: grid; place-items: center; width: var(--d); height: var(--d); border-radius: 50%; background: var(--cb-card); border: 4px solid var(--cb-c2);
+  box-shadow: var(--cb-shadow-2); transition: transform var(--a2-dur-2) var(--cb-ease), border-color var(--a2-dur-2), background-color var(--a2-dur-2); }
+/* an empty chair: the storybook chair itself stands in the lamp light, no disc */
+.cb-s09-chair__disc--empty { border: 0; border-radius: 0; background: none; box-shadow: none; }
+.cb-s09-chair__disc--empty .cb-story { width: 86%; height: 86%; }
+.cb-s09-chair__tag { margin-top: -4px; }
+@media (hover: hover) { button.cb-s09-chair:hover:not([aria-disabled="true"]) .cb-s09-chair__disc { transform: translateY(-3px); box-shadow: var(--cb-shadow-2); } }   /* no sticky hover on touch */
+button.cb-s09-chair:active:not([aria-disabled="true"]) .cb-s09-chair__disc { transform: scale(0.96); }
+.cb-s09-chair:focus-visible { outline: none; }
+.cb-s09-chair:focus-visible .cb-s09-chair__disc { outline: 3px solid var(--cb-focus); outline-offset: 4px; }
+.cb-s09-chair.is-open .cb-s09-chair__disc { border: 5px solid var(--cb-clay); transform: translateY(-4px); }
+.cb-s09-chair.is-open .cb-s09-chair__disc--empty { border: 0; filter: drop-shadow(0 0 0.8px #FFF8EA) drop-shadow(0 0 6px rgba(169, 73, 42, 0.55)) drop-shadow(0 4px 4px rgba(48, 30, 14, 0.34)); }
+.cb-s09-chair.is-wait { cursor: default; }
+.cb-s09-chair.is-wait::before { opacity: 0.45; }
+.cb-s09-chair.is-wait .cb-s09-chair__disc { background: var(--cb-sunken); border-color: var(--cb-line-strong); box-shadow: var(--cb-shadow-1); }
+.cb-s09-chair.is-wait .cb-s09-chair__disc--empty { background: none; opacity: 0.55; filter: grayscale(0.8); }
+.cb-s09-chair.is-filled .cb-s09-chair__disc { background: var(--cb-stage-2); border-color: var(--cb-card); }
+.cb-s09-chair.is-filled .cb-s09-av { position: absolute; inset: 2px; width: auto; height: auto; }
+.cb-s09-chair:not(.is-new) .cb-badge { animation: none; }
+.cb-s09-chair.is-new .cb-s09-av { animation: cb-s09-sit 0.55s var(--cb-ease) both; }
+@keyframes cb-s09-sit { from { opacity: 0; transform: scale(0.7); } }
+.cb-s09-chair__plate { display: grid; justify-items: center; max-width: 100%; padding: 4px 7px 5px; border-radius: 10px; background: var(--cb-card); box-shadow: var(--cb-shadow-1); line-height: 1.15; }
+.cb-s09-chair__plate b { font-family: var(--a2-font-display); font-size: 0.875rem; font-weight: 680; letter-spacing: -0.01em; text-wrap: balance; }
+.cb-s09-chair__plate small { font-size: 0.8125rem; font-weight: 740; color: var(--cb-stage-2); white-space: nowrap; }
+.cb-s09-chair.is-open:not(.is-filled) .cb-s09-chair__plate { background: var(--cb-clay-soft); }
+.cb-s09-chair.is-open:not(.is-filled) .cb-s09-chair__plate b { color: var(--cb-clay-ink); }
+
+/* avatars: the six painted neighbors; Lucía's family and Theo show their initial in a ring until they have painted portraits */
+.cb-s09-av { display: block; width: 100%; height: 100%; border-radius: 50%; overflow: hidden; }
+.cb-s09-av img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.cb-s09-av--mono { overflow: visible; }
+.cb-s09-av--mono .cb-mono { width: 100%; height: 100%; }
+.cb-s09-chair__disc .cb-s09-av--mono .cb-mono { border-width: 0; }               /* the chair disc already draws the ring */
+
+/* ── the play screen: the room on the left, the card and the ways on the right ── */
+.cb-s09-play { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 24px; align-items: start; }
+.cb-s09-work { display: grid; gap: 14px; align-content: start; }
+.cb-s09-coach, .cb-s09-card, .cb-s09-unity { min-height: 186px; }
+/* before a chair is open, the card's place waits as an empty slot with the instruction */
+.cb .cb-s09-coach { display: grid; justify-items: center; align-content: center; gap: 12px; padding: 18px 22px; border: 2px dashed var(--cb-line-strong); background: transparent; text-align: center; text-wrap: balance; }
+.cb-s09-coach__ic { display: grid; place-items: center; width: 64px; height: 64px; border-radius: 50%; background: var(--cb-card); border: 4px solid var(--cb-c2); box-shadow: var(--cb-shadow-1); }
+.cb .cb-s09-coach__ic .cb-ico { width: 34px; height: 34px; padding: 0; border-radius: 0; background: none; color: var(--cb-ink-2); stroke-width: 1.7; }
+.cb-s09-unity { display: flex; align-items: center; gap: 16px; margin: 0; padding: 14px 20px; border-radius: 20px; background: var(--cb-warn-soft); color: var(--cb-ink);
+  font-family: var(--a2-font-display); font-size: 1.375rem; line-height: 1.25; letter-spacing: -0.012em; animation: cb-rise 0.5s var(--cb-ease) both; }
+.cb-s09-unity img { width: 84px; height: auto; flex: none; }
+
+/* the open chair's card: who, why, and the question */
+.cb-s09-card { display: grid; align-content: start; gap: 9px; padding: 14px 16px 14px; border-radius: 20px; background: var(--cb-card); border: 1.5px solid var(--cb-line); box-shadow: var(--cb-shadow-1); }
+.cb-s09-card.is-new { animation: cb-rise 0.45s var(--cb-ease) both; }
+.cb-s09-card__head { display: flex; align-items: center; gap: 14px; }
+.cb-s09-card__face { position: relative; flex: none; width: 64px; height: 64px; padding: 3px; border-radius: 50%; background: var(--cb-card); box-shadow: 0 0 0 2px var(--cb-line); }
+.cb-s09-card.is-joined .cb-s09-card__face { background: var(--cb-stage-2); box-shadow: none; }
+.cb-s09-card .cb-badge { animation: none; }
+.cb-s09-card__id { display: grid; gap: 4px; justify-items: start; min-width: 0; }
+.cb-s09-card h3 { margin: 0; font-family: var(--a2-font-display); font-size: 1.375rem; font-weight: 700; line-height: 1.15; letter-spacing: -0.018em; color: var(--cb-ink); }
+.cb-s09-card h3:focus { outline: none; }
+.cb-s09-joined { display: inline-flex; align-items: center; gap: 6px; padding: 3px 11px 3px 4px; border-radius: 999px; background: var(--cb-pine-soft); color: var(--cb-stage-2); font-size: 0.875rem; font-weight: 740; line-height: 1.2;
+  animation: cb-pop 0.45s var(--cb-ease) both; }
+.cb-s09-joined .cb-ico { width: 20px; height: 20px; padding: 3px; border-radius: 50%; background: var(--cb-stage-2); color: var(--cb-on-accent); stroke-width: 3.2; }
+.cb-s09-card__why { margin: 0; font-size: 1.0625rem; font-weight: 560; line-height: 1.45; color: var(--cb-ink); text-wrap: pretty; }
+.cb-s09-card__ask { display: flex; align-items: center; gap: 10px; margin: 2px 0 0; padding: 8px 14px 8px 8px; border-radius: 14px; background: var(--cb-pine-soft); font-weight: 720; line-height: 1.35; color: var(--cb-ink); }
+.cb-s09-card__ask .cb-ico { width: 30px; height: 30px; padding: 6px; border-radius: 50%; background: var(--cb-card); color: var(--cb-stage-2); transform: rotate(90deg); }
+.cb-s09-card .cb-feedback { margin-top: 2px; }
+.cb-s09-card:not(.is-new) .cb-feedback { animation-duration: 0.3s; }
+
+/* ── the six ways ── */
+.cb-s09-ways { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px 10px; margin: 0; padding: 0; list-style: none; }
+.cb .cb-s09-way { position: relative; display: grid; justify-items: center; align-content: start; gap: 5px; width: 100%; height: 100%; min-height: 64px; padding: 9px 6px 10px; border-radius: 18px;
+  border: 2px solid var(--cb-line); background: var(--cb-card); color: var(--cb-ink); text-align: center; font-size: 0.9375rem; font-weight: 650; line-height: 1.22;
+  transition: border-color var(--a2-dur-2), transform var(--a2-dur-2) var(--cb-ease), box-shadow var(--a2-dur-2), background-color var(--a2-dur-2), opacity var(--a2-dur-3); }
+.cb-s09-way__ic { display: grid; place-items: center; flex: none; width: 46px; height: 46px; border-radius: 50%; background: var(--cb-sunken); color: var(--cb-ink); transition: background-color var(--a2-dur-2); }
+.cb-s09-way__ic .cb-ico { width: 30px; height: 30px; stroke-width: 1.7; }
+.cb-s09-way__name { text-wrap: balance; }
+@media (hover: hover) {
+  .cb-s09-way:hover:not([aria-disabled="true"]) { border-color: var(--cb-stage-2); transform: translateY(-2px); box-shadow: var(--cb-shadow-2); }
+  .cb-s09-way:hover:not([aria-disabled="true"]) .cb-s09-way__ic { background: var(--cb-pine-soft); }
+}
+.cb-s09-way:active:not([aria-disabled="true"]) { transform: scale(0.98); }
+.cb-s09-way[aria-disabled="true"] { cursor: default; }
+.cb-s09-way.is-wait { background: var(--cb-board); }
+.cb-s09-way.is-wait .cb-s09-way__ic { background: var(--cb-card); color: var(--cb-ink-3); }
+.cb-s09-way.is-tried { border-style: dashed; border-color: var(--cb-ink-3); background: var(--cb-board); }
+.cb-s09-way.is-tried .cb-s09-way__ic { background: var(--cb-card); color: var(--cb-ink-3); }
+/* "Tried" sits on the dashed outline like a sticker, so a tried way keeps its size */
+.cb-s09-way__tag { position: absolute; left: 50%; top: 0; transform: translate(-50%, -50%); padding: 2px 10px; border-radius: 999px; background: var(--cb-info-soft); color: var(--cb-info-ink);
+  box-shadow: 0 0 0 2px var(--cb-board); font-size: 0.8125rem; font-weight: 760; line-height: 1.3; white-space: nowrap; }
+.cb .cb-s09-way.is-ring { border: 3px solid var(--cb-stage-2); padding: 8px 5px 9px; background: var(--cb-pine-soft); box-shadow: var(--cb-shadow-1); }
+.cb-s09-way.is-ring .cb-s09-way__ic { background: var(--cb-card); color: var(--cb-stage-2); }
+.cb-s09-way.is-rest { opacity: 0.7; }
+.cb-s09-way__stamp { position: absolute; top: -10px; right: -8px; display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; background: var(--cb-stage-2); color: var(--cb-on-accent);
+  border: 3px solid var(--cb-board); animation: cb-pop 0.45s var(--cb-ease) both; }
+.cb-s09-way__stamp .cb-ico { width: 16px; height: 16px; stroke-width: 3.2; }
+
+/* ── the action bar ── */
+.cb-s09-actions .cb-btn--big { flex: none; }
+.cb .cb-s09-finish { background: var(--cb-card); }
+.cb-s09-fb { display: grid; gap: 4px; }
+.cb-s09-fb p { margin: 0; }
+.cb-s09-also { font-weight: 600; }
+.cb-s09-ask { font-size: 1.0625rem; }
+.cb-s09-btns { gap: 10px; }
+.cb-s09-pips { display: flex; gap: 4px; margin: 0; padding: 0; list-style: none; }
+.cb-s09-pips li { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; border: 2px dashed var(--cb-line-strong); color: var(--cb-ink-3); }
+.cb-s09-pips li .cb-ico { width: 18px; height: 18px; }
+.cb-s09-pips li.is-on { border: 2px solid var(--cb-stage-2); padding: 1px; }
+
+/* ── intro and aha: the room with a card over it ── */
+.cb-s09-say { position: relative; z-index: 3; grid-area: 1 / 1; justify-self: end; align-self: start; display: grid; gap: 16px; justify-items: start; width: min(450px, 45%);
+  margin: 20px 20px 76px; padding: 22px 24px 24px;
+  border-radius: 24px; background: var(--cb-card); box-shadow: var(--cb-shadow-2); animation: cb-rise 0.5s var(--cb-ease) both; }
+.cb-s09-say__text { margin: 0; font-family: var(--a2-font-display); font-size: clamp(1.125rem, 0.9rem + 0.75cqi, 1.4375rem); font-weight: 620; line-height: 1.36; letter-spacing: -0.012em; color: var(--cb-ink); text-wrap: pretty; }
+.cb-s09-say__text:focus { outline: none; }
+.cb-s09-unity--say { min-height: 0; padding: 8px 16px 8px 8px; font-size: 1.125rem; }
+.cb-s09-unity--say img { width: 56px; }
+
+/* ── narrower stages ── */
+@container cb (max-width: 1099.98px) {
+  .cb-s09-play { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 18px; }
+  .cb .cb-s09-chair { --d: 76px; }
+  .cb-s09-chairs { margin-top: -44px; gap: 4px; padding: 0; }
+  .cb-s09-chair__plate { padding: 3px 6px 4px; }
+  .cb-s09-chair__plate b { font-size: 0.8125rem; }
+  .cb-s09-chair__plate small { font-size: 0.75rem; }
+  .cb-s09-say { margin-bottom: 70px; }
+  .cb-s09-note { font-size: 0.875rem; }
+  .cb .cb-s09-play .cb-s09-scene { aspect-ratio: 4 / 3; }
+  .cb .cb-s09-way { gap: 4px; padding: 8px 6px 9px; font-size: 0.875rem; }
+  .cb .cb-s09-way.is-ring { padding: 7px 5px 8px; }
+  .cb-s09-way__ic { width: 40px; height: 40px; }
+  .cb-s09-way__ic .cb-ico { width: 27px; height: 27px; }
+  .cb-s09-work { gap: 12px; }
+  .cb-s09-card { gap: 8px; padding: 12px 14px; }
+  .cb-s09-card__face { width: 58px; height: 58px; }
+  .cb-s09-card__why { font-size: 1rem; }
+}
+/* phone and tablet: the note, then the picture on top, then the chairs, the card and the ways */
+@container cb (max-width: 899.98px) {
+  .cb-s09-play { grid-template-columns: 1fr; }
+  .cb .cb-s09-play .cb-s09-scene, .cb .cb-s09-scene--wide { aspect-ratio: 1376 / 768; }
+  .cb-s09-note, .cb-s09-stage .cb-s09-note { position: static; order: -1; max-width: none; margin: 0 0 12px; box-shadow: none; border: 1.5px solid var(--cb-line); }
+  .cb-s09-stage::before { display: none; }
+  .cb .cb-s09-stage > .cb-s09-scene--wide { grid-area: auto; align-self: auto; aspect-ratio: 1376 / 768; }
+  .cb-s09-say { grid-area: auto; }
+  .cb-s09-say { justify-self: stretch; width: auto; margin: 18px 0 0; }
+  .cb-s09-coach, .cb-s09-card, .cb-s09-unity { min-height: 0; }
+  .cb .cb-s09-coach { grid-template-columns: auto minmax(0, 1fr); justify-items: start; text-align: left; padding: 12px 16px 12px 12px; }
+  .cb-s09-coach__ic { width: 52px; height: 52px; border-width: 3px; }
+  .cb .cb-s09-coach__ic .cb-ico { width: 28px; height: 28px; }
+}
+@container cb (max-width: 599.98px) {
+  .cb-s09-chairs, .cb-s09-room .cb-s09-chairs, .cb-s09-stage .cb-s09-chairs { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 18px 6px; margin: 22px 0 0; padding: 0; }
+  .cb-s09-chairs li { grid-column: span 2; }
+  .cb-s09-chairs li:nth-child(4) { grid-column: 2 / span 2; }
+  .cb-s09-chairs li:nth-child(5) { grid-column: 4 / span 2; }
+  .cb .cb-s09-chair { --d: 74px; }
+  .cb-s09-ways { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 8px; }
+  .cb .cb-s09-way { gap: 6px; padding: 10px 5px 12px; font-size: 0.9375rem; }
+  .cb .cb-s09-way.is-ring { padding: 9px 4px 11px; }
+  .cb-s09-way__ic { width: 46px; height: 46px; }
+  .cb-s09-way__ic .cb-ico { width: 30px; height: 30px; }
+  .cb-s09-actions .cb-actions__info { display: none; }
+  .cb-s09-actions:has(.cb-s09-ask) .cb-actions__info { display: flex; }
+  .cb-s09-card { padding: 14px; }
+  .cb-s09-card__face { width: 60px; height: 60px; }
+  .cb-s09-card h3 { font-size: 1.25rem; }
+  .cb-s09-card__why { font-size: 1rem; }
+  .cb-s09-unity { font-size: 1.125rem; padding: 10px 14px; }
+  .cb-s09-unity img { width: 60px; }
+  .cb-s09-actions .cb-btn--big { width: 100%; justify-content: center; }
+  .cb-s09-btns { width: 100%; }
+  .cb-s09-btns .cb-btn { flex: 1 1 140px; justify-content: center; }
+  .cb-s09-place { left: 10px; top: 10px; }
+  .cb-s09-say { margin-top: 16px; padding: 18px 18px 20px; }
+  /* intro and aha: a small row of chairs on the picture's edge, so the card stays in view */
+  .cb-s09-stage .cb-s09-chairs { display: flex; gap: 6px; margin: -32px 0 0; padding: 0 4px; }
+  .cb-s09-stage .cb-s09-chairs li { flex: 0 1 60px; }
+  .cb .cb-s09-stage .cb-s09-chair { --d: 56px; }
+  .cb-s09-stage .cb-s09-chair__plate { display: none; }
+  .cb-s09-stage .cb-s09-chair .cb-badge { width: 24px; height: 24px; border-width: 2px; }
+  .cb-s09-stage .cb-s09-chair .cb-badge .cb-ico { width: 13px; height: 13px; }
+}

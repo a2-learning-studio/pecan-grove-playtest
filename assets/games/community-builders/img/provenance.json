@@ -1,0 +1,51 @@
+{
+ "about": "Provenance for every raster shipped with Community Builders of Pecan Grove. Disclosed on the game page: art made with Google's Playground AI tool and checked by the author.",
+ "source": "Google AI Studio Playground (Build) project export, project-files.zip, downloaded 2026-10-09 by the site owner. The export was opened read-only; no export code was run.",
+ "processing": "Each image was re-encoded to WebP for the web. Nothing was added or painted over. The export's music file was not shipped.",
+ "generator": "AI image generation inside the owner's Playground session (Google).",
+ "human_review": "Ali Keyvanfar, Ph.D. (author check before publication)",
+ "people_depicted": "None real. Neighbors are invented characters for a made-up town.",
+ "files": [
+  {
+   "file": "ana.webp",
+   "bytes": 18340,
+   "sha256": "3ebef627be596c878640bb8ab1982f4a275306d3ffc877c23dbea4fd2b97c59f"
+  },
+  {
+   "file": "grandma-ruth.webp",
+   "bytes": 25948,
+   "sha256": "c51ce23db6c79041eb44153ba7ea9685e678547363db0eadcea885316ccef9ca"
+  },
+  {
+   "file": "jayden.webp",
+   "bytes": 20890,
+   "sha256": "5177705e89955fa0885cbb20744f958974a52c8afd7a28370f77c8d08ec60117"
+  },
+  {
+   "file": "mr-johnson.webp",
+   "bytes": 23118,
+   "sha256": "ed0c5fc63d26e7aa75d8607fd6bd162b0c035f0c731866e38d5775760b7446a6"
+  },
+  {
+   "file": "mr-patel.webp",
+   "bytes": 16814,
+   "sha256": "d5a3d2188865bc236d7d8538e961471287063ac9f95b651f9448ac15c579b692"
+  },
+  {
+   "file": "ms-lee.webp",
+   "bytes": 16368,
+   "sha256": "e0716560b6da3c24785810cdba2fb5e8ee043b5f8aade39a93a6d9fddb8d4b5c"
+  },
+  {
+   "file": "town-map.webp",
+   "bytes": 161324,
+   "sha256": "f82ec9e8479008f96a71a85bbf1f84e04fab04d1ea9c3a63708581e54bb75c5e"
+  },
+  {
+   "file": "unity.webp",
+   "bytes": 13056,
+   "sha256": "ffe80c0b219b900a53c37c5a3fe109b28aa3f892c28b6aa7a48a16944e37ae74"
+  }
+ ],
+ "not_shipped": "check.webp (unused since 2026-10-09) kept in import/unused-assets/."
+}
