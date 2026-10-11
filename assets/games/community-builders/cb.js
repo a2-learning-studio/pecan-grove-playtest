@@ -36,7 +36,7 @@
       stopSoon: function (n, name) { return "Stop " + n + ", " + name + ", coming soon"; },
       stopOpen: function (n, name) { return "Stop " + n + ", " + name + ", not played yet"; },
       chapters: ["Notice and understand", "Speak up well", "Find solutions", "Stay involved"],
-      footer: "Made with the help of AI tools. Ideas from construction research at Kennesaw State University. v0.1",
+      footer: "Made with the help of AI tools. Voices made with ElevenLabs AI. Ideas from construction research at Kennesaw State University. v0.1",
       part: function (n) { return "Part " + n + " of 3"; }
     },
     es: {
@@ -63,7 +63,7 @@
       stopSoon: function (n, name) { return "Parada " + n + ", " + name + ", próximamente"; },
       stopOpen: function (n, name) { return "Parada " + n + ", " + name + ", sin jugar"; },
       chapters: ["Observa y entiende", "Habla bien", "Busca soluciones", "Sigue participando"],
-      footer: "Hecho con ayuda de herramientas de IA. Ideas de investigación en construcción de Kennesaw State University. v0.1",
+      footer: "Hecho con ayuda de herramientas de IA. Voces hechas con IA de ElevenLabs. Ideas de investigación en construcción de Kennesaw State University. v0.1",
       part: function (n) { return "Parte " + n + " de 3"; }
     }
   }[L];
@@ -331,7 +331,9 @@
     chat: '<path d="M5 5.5h14A1.5 1.5 0 0 1 20.5 7v8.5A1.5 1.5 0 0 1 19 17h-7.5L7 20.5V17H5a1.5 1.5 0 0 1-1.5-1.5V7A1.5 1.5 0 0 1 5 5.5z"/>',
     expand: '<path d="M4.5 9V4.5H9M19.5 9V4.5H15M4.5 15v4.5H9M19.5 15v4.5H15"/>',
     shrink: '<path d="M9 4.5V9H4.5M15 4.5V9h4.5M9 19.5V15H4.5M15 19.5V15h4.5"/>',
-    ear: '<path d="M7 9.5a5 5 0 0 1 10 0c0 3-2.6 3.8-3.2 6.2-.4 1.9-1.6 3.3-3.5 3.3a3 3 0 0 1-2.8-2"/><path d="M10 10a2 2 0 0 1 4 0c0 1.2-1 1.6-1.5 2.4"/>'
+    ear: '<path d="M7 9.5a5 5 0 0 1 10 0c0 3-2.6 3.8-3.2 6.2-.4 1.9-1.6 3.3-3.5 3.3a3 3 0 0 1-2.8-2"/><path d="M10 10a2 2 0 0 1 4 0c0 1.2-1 1.6-1.5 2.4"/>',
+    voice: '<path d="M4.5 9.5h3l4.5-4v13l-4.5-4h-3z"/><path d="M15.5 9.2a4 4 0 0 1 0 5.6M18.2 6.6a7.6 7.6 0 0 1 0 10.8"/>',
+    voiceOff: '<path d="M4.5 9.5h3l4.5-4v13l-4.5-4h-3z"/><path d="m16 9.5 5 5M21 9.5l-5 5"/>'
   };
   function ico(name, cls) {
     var s = document.createElementNS(SVGNS, "svg");
@@ -346,8 +348,10 @@
     '<g fill="#F7F4EE"><circle cx="14.2" cy="17.4" r="4.6"/><circle cx="20" cy="13.4" r="5.6"/><circle cx="25.8" cy="17.4" r="4.6"/><rect x="11" y="16.5" width="18" height="5.2" rx="2.6"/></g>' +
     '<g fill="#E69F00"><circle cx="10.5" cy="31.2" r="1.5"/><circle cx="15.5" cy="32.6" r="1.5"/><circle cx="20.5" cy="33" r="1.5"/><circle cx="25.5" cy="32.4" r="1.5"/><circle cx="30.2" cy="31" r="1.5"/></g></svg>';
   var X = {
-    en: { parts3: ["Listen", "Find shared wishes", "Who said this?"], of: function (a, b) { return a + " of " + b; }, fsOn: "Full screen", fsOff: "Exit full screen", restored: "Scores are back." },
-    es: { parts3: ["Escucha", "Deseos compartidos", "¿Quién dijo esto?"], of: function (a, b) { return a + " de " + b; }, fsOn: "Pantalla completa", fsOff: "Salir de pantalla completa", restored: "Los puntajes volvieron." }
+    en: { parts3: ["Listen", "Find shared wishes", "Who said this?"], of: function (a, b) { return a + " of " + b; }, fsOn: "Full screen", fsOff: "Exit full screen", restored: "Scores are back.",
+      voice: "Voice", voiceOn: "Voice is on", voiceOff: "Voice is off", replay: "Hear it again" },
+    es: { parts3: ["Escucha", "Deseos compartidos", "¿Quién dijo esto?"], of: function (a, b) { return a + " de " + b; }, fsOn: "Pantalla completa", fsOff: "Salir de pantalla completa", restored: "Los puntajes volvieron.",
+      voice: "Voz", voiceOn: "La voz está activada", voiceOff: "La voz está desactivada", replay: "Escuchar otra vez" }
   }[L];
 
   /* ── shell ─────────────────────────────────────────────────────────── */
@@ -404,9 +408,12 @@
     })));
     var a = store.current && store.current !== "you" ? animalOf(store.current) : null;
     if (a) { var c = h("button", { type: "button", "class": "cb-chip", onclick: function () { openWho(c); } }, [animalFace(a), h("span", { text: W.playing(a.name) })]); bar.appendChild(c); }
+    bar.appendChild(voiceBtn(false));
     var f = fsBtn(false); if (f) bar.appendChild(f);
   }
   function screen(kids, focusSel) {
+    vMark(vEl, false); vEl = null;                            // a new screen: the voice stops unless the same line is shown again
+    if (mode !== "stop") vHeard = {};
     main.innerHTML = ""; kids.forEach(function (k) { if (k) main.appendChild(k); });
     root.setAttribute("data-screen", mode); renderBar();
     var f = focusSel ? main.querySelector(focusSel) : null;
@@ -432,6 +439,99 @@
   }
   function coach(text, icon) { return h("p", { "class": "cb-coach" }, [ico(icon || "bulb"), h("span", { text: text })]); }
   function fb(text, ok) { return text ? h("div", { "class": "cb-feedback" + (ok ? " is-ok" : "") }, [ico(ok ? "check" : "bulb"), h("p", { text: text })]) : null; }
+
+  /* ── voice: when a screen shows one of its key lines (voice/index.js maps the exact on-screen text to a clip),
+     the guide or neighbor reads it once and a small speaker button beside it replays it. Nothing plays before the
+     player's first tap; the Voice switch is remembered on this device. No voice files: the game is simply quiet. ── */
+  var VKEY = "pecan-grove-voice", vOn = true, vIdx = null, vLoading = false, vAudio = null, vEl = null, vQueue = [], vLast = { f: "", t: -1e9 };
+  var vHeard = {};                                            // guide lines already read on this visit to a stop (the town map starts a new visit)
+  try { vOn = localStorage.getItem(VKEY) !== "off"; } catch (e) { /* storage blocked: voice stays on */ }
+  function vNorm(t) { return (t || "").replace(/\s+/g, " ").trim(); }
+  function vLoad() {
+    if (vIdx || vLoading) return; vLoading = true;
+    var s = h("script", { src: BASE + "voice/index.js" });
+    s.onload = function () { vIdx = (window.CB_VOICE || {})[L] || {}; vScan([main].concat([].slice.call(root.querySelectorAll("dialog[open]")))); };
+    s.onerror = function () { vIdx = {}; };
+    document.head.appendChild(s);
+  }
+  function vMark(el, on) { if (el) el.classList.toggle("is-speaking", on); }
+  function vStop() { vQueue = []; if (vAudio) { vAudio.pause(); vAudio = null; } vMark(vEl, false); vEl = null; }
+  function vPlay(item, el) {
+    if (vAudio) vAudio.pause();
+    vMark(vEl, false);
+    var a = new Audio(BASE + "voice/" + item.f); vAudio = a; vEl = el || null; vMark(vEl, true); vLast = { f: item.f, t: performance.now() };
+    if (item.k !== "nb") vHeard[item.f] = 1;                  // neighbors speak on every tap; the guide once a visit
+    function done() { if (vAudio !== a) return; vMark(vEl, false); vAudio = null; vEl = null; var nx = vQueue.shift(); if (nx && nx.el.isConnected) vPlay(nx.item, nx.el); }
+    a.onended = done; a.onerror = done;
+    var p = a.play(); if (p && p.catch) p.catch(done);      // the browser said no (no tap yet): stay quiet
+  }
+  function vAttach(el, b) {                                   // the button stays on the line's last word, whatever the layout
+    var w = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, null), tn = null, n;
+    while ((n = w.nextNode())) if (n.nodeValue.trim()) tn = n;
+    if (!tn) { el.appendChild(b); return; }
+    var host = tn.parentElement;
+    if (/flex|grid/.test(getComputedStyle(host).display)) {  // bare text in a flex or grid box: give it one inline home first
+      var wrap = h("span", { "class": "cb-vbtn-wrap" }); host.replaceChild(wrap, tn); wrap.appendChild(tn);
+    }
+    var cut = tn.nodeValue.replace(/\s+$/, "").lastIndexOf(" ") + 1, tail = cut > 0 ? tn.splitText(cut) : tn;
+    var glue = h("span", { "class": "cb-vbtn-glue" }); tail.parentNode.replaceChild(glue, tail); glue.appendChild(tail); glue.appendChild(b);
+  }
+  function vScan(nodes) {
+    if (!vIdx) return;
+    var best = {};                                            // per clip, the deepest element that shows its text
+    nodes.forEach(function (n) {
+      if (!n || !n.querySelectorAll) return;
+      [n].concat([].slice.call(n.querySelectorAll("p, h2, h3, span, li, div, strong, blockquote"))).forEach(function (el) {
+        if (el.closest(".cb-vbtn, .cb-live, .cb-vh, [hidden], [aria-hidden=\"true\"]")) return;   // never the hidden announcer or a decorative copy
+        var t = vNorm(el.textContent); if (!t || t.length > 700) return;
+        var item = vIdx[t]; if (!item || el.closest('[data-cb-voiced="' + item.f + '"]')) return;
+        var d = 0; for (var p = el; p && p !== root; p = p.parentNode) d++;
+        if (!best[item.f] || d > best[item.f].d) best[item.f] = { item: item, el: el, d: d };
+      });
+    });
+    var found = Object.keys(best).map(function (k) { return best[k]; });
+    if (!found.length) return;
+    found.sort(function (a, b) { return a.el.compareDocumentPosition(b.el) & 4 ? -1 : 1; });
+    found.forEach(function (f) {
+      f.el.setAttribute("data-cb-voiced", f.item.f);
+      if (f.el.closest("button")) return;                     // never a button inside a button: the line still plays
+      vAttach(f.el, h("button", { type: "button", "class": "cb-vbtn", "aria-label": X.replay, title: X.replay,
+        onclick: function (e) { e.stopPropagation(); vQueue = []; vPlay(f.item, f.el); } }, [ico("voice")]));
+    });
+    if (!vOn || !acted) return;
+    var now = performance.now();
+    var nbs = found.filter(function (f) { return f.item.k === "nb"; }).length;   // a whole board of neighbors' lines: tap to hear each
+    var play = found.filter(function (f) { return f.item.k === "nb" ? nbs <= 2 : !vHeard[f.item.f] || (vAudio && f.item.f === vLast.f); }).slice(0, 3);
+    if (!play.length) return;
+    if (vAudio && play[0].item.f === vLast.f && now - vLast.t < 30000) {   // the same line was redrawn: keep reading, follow the new copy
+      vEl = play[0].el; vMark(vEl, true); vQueue = play.slice(1); return;
+    }
+    vStop(); vQueue = play.slice(1); vPlay(play[0].item, play[0].el);
+  }
+  function voiceBtn(iconOnly) {
+    return h("button", { type: "button", "class": "cb-btn cb-btn--onstage cb-voice" + (iconOnly ? " cb-fs--icon" : ""), "aria-pressed": vOn ? "true" : "false",
+      "aria-label": X.voice, title: vOn ? X.voiceOn : X.voiceOff, onclick: function () {
+        vOn = !vOn; try { localStorage.setItem(VKEY, vOn ? "on" : "off"); } catch (e) { /* ignore */ }
+        if (!vOn) vStop();
+        [].forEach.call(root.querySelectorAll(".cb-voice"), function (b) {
+          b.setAttribute("aria-pressed", vOn ? "true" : "false"); b.title = vOn ? X.voiceOn : X.voiceOff;
+          var i = b.querySelector("svg"); if (i) b.replaceChild(ico(vOn ? "voice" : "voiceOff"), i);
+        });
+        say(vOn ? X.voiceOn : X.voiceOff);
+      } }, [ico(vOn ? "voice" : "voiceOff"), iconOnly ? null : h("span", { text: X.voice })]);
+  }
+  new MutationObserver(function (recs) {
+    if (vEl && !vEl.isConnected) { vMark(vEl, false); vEl = null; }
+    var nodes = [];
+    recs.forEach(function (r) {
+      [].forEach.call(r.addedNodes, function (n) {
+        if (n.nodeType === 1 && !n.classList.contains("cb-vbtn")) nodes.push(n);
+        else if (n.nodeType === 3 && n.parentElement) nodes.push(n.parentElement);   // a line rewritten in place
+      });
+    });
+    if (nodes.length) { vLoad(); vScan(nodes); }
+    if (vAudio && !vEl) vStop();                              // the line being read left the screen: stop
+  }).observe(root, { childList: true, subtree: true });
 
   /* ── dialogs ───────────────────────────────────────────────────────── */
   function dialog(title, body, opener, onClose, opt) {
@@ -718,7 +818,7 @@
           h("span", { "class": labelled ? "cb-step__lbl" : "cb-vh", text: lbl || String(i + 1) })]);
       })), cap ? h("p", { "class": labelled ? "cb-vh" : "cb-steps__cap", text: cap }) : null]);
     }
-    var hud = h("div", { "class": "cb-stophud" }, [h("div", { "class": "cb-stophud__tools" }, [(function () { var b = btn(W.townmap, "cb-btn--onstage cb-stophud__back", function () { showMap(); }, "back"); b.setAttribute("aria-label", W.townmap); return b; })(), fsBtn(true)]), title, stepper]);
+    var hud = h("div", { "class": "cb-stophud" }, [h("div", { "class": "cb-stophud__tools" }, [(function () { var b = btn(W.townmap, "cb-btn--onstage cb-stophud__back", function () { showMap(); }, "back"); b.setAttribute("aria-label", W.townmap); return b; })(), voiceBtn(true), fsBtn(true)]), title, stepper]);
     hud.style.setProperty("--cb-chap", CHAP[stop.chap - 1]);
     return hud;
   }

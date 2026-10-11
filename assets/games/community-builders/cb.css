@@ -217,7 +217,20 @@
 .cb-stophud__tools { grid-area: back; display: flex; align-items: center; gap: 8px; }
 .cb-fs { flex: none; }
 .cb-fs--icon { width: 48px; padding: 0; }
-@container cb (max-width: 1239.98px) { .cb-bar .cb-fs span { display: none; } .cb-bar .cb-fs { width: 48px; padding: 0; } }
+@container cb (max-width: 1239.98px) { .cb-bar .cb-fs span, .cb-bar .cb-voice span { display: none; } .cb-bar .cb-fs, .cb-bar .cb-voice { width: 48px; padding: 0; } }
+/* voice: the switch, the replay button beside a spoken line, and that line's button while it is read */
+.cb-voice { flex: none; }
+.cb-voice[aria-pressed="false"] { color: var(--cb-on-stage-2); }
+.cb-vbtn-glue { white-space: nowrap; }
+.cb-vbtn { display: inline-grid; place-items: center; width: clamp(28px, 1.5em, 38px); height: clamp(28px, 1.5em, 38px); margin: -0.3em 0 -0.3em 0.3em; padding: 0; vertical-align: middle;
+  border: 1.5px solid var(--cb-line-strong); border-radius: 50%; background: var(--cb-card); color: var(--cb-ink); cursor: pointer;
+  transition: background-color .2s var(--cb-ease), color .2s var(--cb-ease), border-color .2s var(--cb-ease); }
+.cb .cb-vbtn .cb-ico { width: 18px; height: 18px; padding: 0; border-radius: 0; background: none; color: inherit; }   /* never the coach's big icon disc */
+.cb-vbtn:hover { border-color: var(--cb-ink); }
+.cb-vbtn:focus-visible { outline: 3px solid var(--cb-focus); outline-offset: 2px; }
+.is-speaking .cb-vbtn { background: var(--cb-ink); border-color: var(--cb-ink); color: var(--cb-on-accent); }
+@media (prefers-reduced-motion: no-preference) { .is-speaking .cb-vbtn { animation: cb-vbtn 1.3s var(--cb-ease) infinite; } }
+@keyframes cb-vbtn { 50% { transform: scale(1.12); } }
 /* full-screen game */
 .cb.is-fs { width: 100%; max-width: none; height: 100%; margin: 0; border-radius: 0; overflow-y: auto; box-shadow: none; }
 .cb.is-fs .cb-world { width: min(100%, calc((100vh - 190px) * 1.79)); margin-inline: auto; }
