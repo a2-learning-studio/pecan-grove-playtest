@@ -1,13 +1,15 @@
 /* Community Builders of Pecan Grove / Constructores de comunidad de Pecan Grove
    Kids' civic-skills journey. One stop = one skill; points reward the process, never a side.
-   No network, no inputs, scores only in this device's localStorage. Language follows <html lang>. */
+   Scores stay in this device's localStorage. An optional playtest shell can listen for progress events.
+   Language follows <html lang>. */
 (function () {
   "use strict";
   var root = document.querySelector('[data-game="community-builders"]');
   if (!root) return;
   var BASE = root.getAttribute("data-base") || "/assets/games/community-builders/";
   var L = (document.documentElement.lang || "en").slice(0, 2) === "es" ? "es" : "en";
-  var KEY = "pecan-grove-journey";
+  var feedbackSession = root.getAttribute("data-feedback-session") || "";
+  var KEY = "pecan-grove-journey" + (/^[A-Za-z0-9_-]{16,80}$/.test(feedbackSession) ? ":" + feedbackSession : "");
   var REDUCED = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   /* ── words (exact, from the series design) ─────────────────────────── */
@@ -396,6 +398,7 @@
   root.innerHTML = "";
   [bar, main, foot, live].forEach(function (e) { root.appendChild(e); });
   var mode = "title", inStop = false, justDone = null, team = null, baseTitle = document.title, uid = 0;
+  var feedbackStop = null, feedbackScore = null;
   function say(t) { var to = root.querySelector("dialog[open] .cb-live") || live; to.textContent = ""; setTimeout(function () { to.textContent = t; }, 30); }
   function setTitle(t) { document.title = t ? t + " · " + W.series : baseTitle; }
   function animalOf(id) { return ANIMALS.filter(function (x) { return x.id === id; })[0] || null; }
@@ -465,10 +468,24 @@
     if (mode !== "stop") vHeard = {};
     main.innerHTML = ""; kids.forEach(function (k) { if (k) main.appendChild(k); });
     root.setAttribute("data-screen", mode); renderBar();
+    progressEvent();
     var f = focusSel ? main.querySelector(focusSel) : null;
     if (!f) { f = main.querySelector("h2"); if (f) f.setAttribute("tabindex", "-1"); }
     if (f && acted) f.focus({ preventScroll: true });
     guard();
+  }
+  // The separate playtest panel can follow the current activity without reading engine internals.
+  function progressEvent() {
+    var stop = mode === "stop" && feedbackStop ? STOPS.filter(function (s) { return s.id === feedbackStop; })[0] : null;
+    var phase = stop ? (feedbackScore === null ? "playing" : "result") : mode;
+    var detail = { stopId: stop ? stop.id : null, stopN: stop ? stop.n : 0,
+      phase: phase, score: stop ? feedbackScore : null, journey: journeyOf(player()) };
+    root.setAttribute("data-current-stop", String(detail.stopN));
+    root.setAttribute("data-feedback-phase", phase);
+    root.setAttribute("data-feedback-score", detail.score === null ? "" : String(detail.score));
+    if (typeof window.CustomEvent === "function" && typeof document.dispatchEvent === "function") {
+      document.dispatchEvent(new window.CustomEvent("cb:screen", { detail: detail }));
+    }
   }
   var acted = false, nudged = false;
   var tapX = -99, tapY = -99, swapAt = -1e9, swapX = -99, swapY = -99;
@@ -1215,6 +1232,7 @@
 
   /* ── stop header: back, the stop's own medallion, a part stepper ─── */
   function stopHud(stop, steps, cur, cap) {
+    feedbackStop = stop.id;
     var a = store.current && store.current !== "you" ? animalOf(store.current) : null;
     var title = h("div", { "class": "cb-stophud__title" }, [h("span", { "class": "cb-stophud__badge", "aria-hidden": "true", text: String(stop.n) }), h("div", null, [
       h("h2", { "class": "cb-stophud__h", text: stop.name }),
@@ -1236,6 +1254,7 @@
 
   /* ── results: the medal fills, the stars stamp, then the tip ───────── */
   function scoreCard(stop, score, info, tip, can, real, extra) {
+    feedbackStop = stop.id; feedbackScore = score;
     var st = starsFor(score), hid = "cb-sc-h" + (++uid);
     var stars = h("div", { "class": "cb-medal__stars", "aria-hidden": "true" }, [40, 70, 90].map(function (at) {
       var s = h("span", { "class": "cb-medal__star" + (REDUCED && score >= at ? " is-on" : ""), "data-at": String(at) }); s.innerHTML = STAR_OFF + STAR_ON; return s;
@@ -1308,10 +1327,14 @@
     screen([stopHud(stop, steps, steps.length), h("div", { "class": "cb-board cb-board--result" }, [cardEl, buttons])]);
     frame(); playCard(cardEl);
   }
-  function startStop(id) { if (REG[id]) runModule(id); else if (id === "listen-to-every-neighbor") stop3(); else if (id === "fact-or-rumor") stop4(); }
+  function startStop(id) {
+    feedbackStop = id; feedbackScore = null;
+    if (REG[id]) runModule(id); else if (id === "listen-to-every-neighbor") stop3(); else if (id === "fact-or-rumor") stop4();
+  }
 
   /* ── Stop 3 · Listen to Every Neighbor ─────────────────────────────── */
   function stop3() {
+    feedbackScore = null;
     inStop = true; mode = "stop";
     var stop = STOPS[2], r = rec(stop.id);
     var set = team && team.phase === "B" && team.setA ? (team.setA === "A" ? "B" : "A") : (r && r.lastSet ? (r.lastSet === "A" ? "B" : "A") : (Math.random() < 0.5 ? "A" : "B"));
@@ -1437,6 +1460,7 @@
 
   /* ── Stop 4 · Fact or Rumor? ──────────────────────────────────────── */
   function stop4() {
+    feedbackScore = null;
     inStop = true; mode = "stop";
     var stop = STOPS[3], r = rec(stop.id);
     setTitle(stop.name);
@@ -1529,6 +1553,7 @@
   var REG = {};
   function stopById(id) { return STOPS.filter(function (s) { return s.id === id; })[0] || null; }
   function runModule(id) {
+    feedbackStop = id; feedbackScore = null;
     var def = REG[id], stop = stopById(id);
     inStop = true; mode = "stop"; setTitle(stop.name);
     try { def.run(API, stop); }

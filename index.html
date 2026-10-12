@@ -7,12 +7,14 @@
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="robots" content="noindex, nofollow">
 <meta name="theme-color" content="#163A30">
-<meta name="build-id" content="7f805c04a6ae">
+<meta name="build-id" content="94010fbe9fb4">
 <title>Community Builders of Pecan Grove · play-test</title>
 <link rel="icon" href="assets/img/mark.svg" type="image/svg+xml">
 <link rel="stylesheet" href="assets/css/a2-studio.css">
 <link rel="stylesheet" href="assets/games/community-builders/cb.css">
 <link rel="stylesheet" href="playtest.css">
+<link rel="stylesheet" href="assets/playtest/feedback.css">
+<script src="assets/playtest/feedback.js" defer></script>
 <script src="assets/games/community-builders/cb.js" defer></script>
 </head>
 <body>
@@ -25,19 +27,37 @@
   <section class="pt-note" aria-labelledby="pt-h">
     <h1 id="pt-h">Help us test this game</h1>
     <p class="pt-lead">Community Builders of Pecan Grove is a free, bilingual game for kids 8 to 14, played with a grown-up at public libraries. Kids live in a made-up Georgia town that is deciding about a data center, and practice 15 civic skills: noticing change, asking good questions, listening, checking facts, speaking up kindly and planning together. The game never takes a side.</p>
-    <a class="pt-btn" href="#community-builders">Start or continue playing</a>
+    <div class="pt-feedback__actions"><a class="pt-btn" href="#community-builders">Start or continue playing</a><button class="pt-btn pt-btn--secondary" id="pt-feedback-new-player-top" type="button" aria-describedby="pt-feedback-shared">New player</button></div>
     <details class="pt-guide"><summary>Playtest instructions</summary>
       <p class="pt-goal">Before it goes to families, we want to find every place where a first-time player gets lost.</p>
-      <ol class="pt-steps"><li>Play at least three stops. Start with Stop 1, then pick any others on the town map.</li><li>If you can, try it on a phone too, and switch to Español if you read Spanish.</li><li>The game reads its main lines aloud, so turn your sound on or use headphones. The speaker button at the top turns the voice off.</li><li>Notice where you hesitated, what you could not tell, and anything that broke.</li><li>Then fill in the short feedback form (about 5 minutes, anonymous).</li></ol>
+      <ol class="pt-steps"><li>Play at least three stops. Start with Stop 1, then pick any others on the town map.</li><li>If you can, try it on a phone too, and switch to Español if you read Spanish.</li><li>The game reads its main lines aloud, so turn your sound on or use headphones. The speaker button at the top turns the voice off.</li><li>Notice where you hesitated, what you could not tell, and anything that broke.</li><li>Leave a note below the game whenever you notice something. Your draft saves as you type.</li></ol>
     </details>
     <p class="pt-privacy">Your game progress stays in this browser. No account or name is needed to play.</p>
   </section>
   <div class="cb" id="community-builders" tabindex="-1" aria-label="Community Builders of Pecan Grove" data-game="community-builders" data-language-url="espanol.html" data-base="assets/games/community-builders/"><noscript><p>This game needs JavaScript. Please turn it on.</p></noscript></div>
-  <section class="pt-note pt-feedback" aria-labelledby="pt-feedback-h">
+  <section class="pt-note pt-feedback" id="pt-feedback" aria-labelledby="pt-feedback-h" data-lang="en" data-build="94010fbe9fb4" data-endpoint="">
     <h2 id="pt-feedback-h">Playtest feedback</h2>
-    <p class="pt-cta pt-cta--wait">Your instructor will send you the feedback form link.</p>
+    <p>Tell us what you notice while you play. You can leave a separate note for each stop.</p>
+    <p class="pt-feedback__player">Anonymous player: <span id="pt-feedback-player">Starting…</span></p>
+    <p class="pt-feedback__context">Current activity: <span id="pt-feedback-context">Town map / general feedback</span></p>
+    <p class="pt-privacy" id="pt-feedback-privacy">Your draft and saved notes stay on this device. Download an Excel backup before clearing browser data. No name or contact details are needed.</p>
+    <form id="pt-feedback-form" aria-describedby="pt-feedback-privacy pt-feedback-hint">
+      <div class="pt-feedback__fields">
+        <label for="pt-feedback-stop">Which stop is this about?<select id="pt-feedback-stop" name="stop"><option value="0">Town map / general feedback</option><option value="1">Stop 1</option><option value="2">Stop 2</option><option value="3">Stop 3</option><option value="4">Stop 4</option><option value="5">Stop 5</option><option value="6">Stop 6</option><option value="7">Stop 7</option><option value="8">Stop 8</option><option value="9">Stop 9</option><option value="10">Stop 10</option><option value="11">Stop 11</option><option value="12">Stop 12</option><option value="13">Stop 13</option><option value="14">Stop 14</option><option value="15">Stop 15</option></select></label>
+        <label for="pt-feedback-rating">How was this part?<select id="pt-feedback-rating" name="rating"><option value="">Choose an answer (optional)</option><option value="unclear">I got stuck or confused</option><option value="okay">It was okay</option><option value="good">It worked well</option></select></label>
+        <label for="pt-feedback-category">What is your note about?<select id="pt-feedback-category" name="category"><option value="">Choose an answer (optional)</option><option value="clarity">Instructions or wording</option><option value="bug">Something did not work</option><option value="voice">Voice or sound</option><option value="spanish">Spanish language</option><option value="art">Pictures or layout</option><option value="other">Something else</option></select></label>
+      </div>
+      <label for="pt-feedback-worked">What worked well?<textarea id="pt-feedback-worked" name="worked" rows="3" maxlength="1200" aria-describedby="pt-feedback-hint"></textarea></label>
+      <label for="pt-feedback-fix">What should we change?<textarea id="pt-feedback-fix" name="fix" rows="3" maxlength="1200" aria-describedby="pt-feedback-hint"></textarea></label>
+      <p class="pt-privacy" id="pt-feedback-hint">A few words are enough. Please leave out names, email addresses and other personal details.</p>
+      <div class="pt-feedback__actions"><button class="pt-btn" id="pt-feedback-submit" type="submit">Save feedback</button></div>
+    </form>
+    <p id="pt-feedback-status" role="status" aria-live="polite">Your draft saves here as you type.</p>
+    <div class="pt-feedback__actions"><button class="pt-btn pt-btn--secondary" id="pt-feedback-download" type="button">Download Excel backup</button><button class="pt-btn pt-btn--secondary" id="pt-feedback-new-player" type="button" aria-describedby="pt-feedback-shared">New player</button></div>
+    <p class="pt-privacy" id="pt-feedback-shared">Sharing this computer? Choose New player before someone else plays. It starts a separate game and feedback session.</p>
+    <details class="pt-feedback__saved"><summary>Saved notes on this device</summary><ul id="pt-feedback-entries"><li>Your saved feedback will appear here.</li></ul></details>
 
-    <p class="pt-privacy">Build: <code>7f805c04a6ae</code></p>
+    <p class="pt-privacy">Build: <code>94010fbe9fb4</code></p>
   </section>
 </main>
 <footer class="pt-foot"><div class="pt-in"><p>A play-test build for students. Ideas from construction research at Kennesaw State University. Art made with the help of AI tools. Voices made with ElevenLabs AI.</p></div></footer>
