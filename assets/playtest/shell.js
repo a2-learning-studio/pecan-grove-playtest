@@ -9,7 +9,9 @@
     var panel = el('feedback'), home = el('feedback-home'), slot = el('feedback-window');
     var review = el('review-dialog'), tab = el('review-tab'), float = el('review-float');
     var move = el('review-move'), collapse = el('review-collapse'), tools = el('review-tools');
+    var dockHeader = el('feedback-dock-header'), dockCollapse = el('feedback-dock-collapse'), dockFloat = el('feedback-dock-float');
     var playing = false, reviewActive = false, opener = tab;
+    var dockCollapsed = false;
     var floatingPosition = null, floatingSize = null, drag = null;
     var es = document.documentElement.lang === 'es';
     function core() { return window.CommunityBuilders || {}; }
@@ -17,6 +19,15 @@
     function flush() { document.dispatchEvent(new window.CustomEvent('pt:feedback-flush')); }
     function focus(node) { if (node && node.isConnected !== false) node.focus({ preventScroll: true }); }
     function fs() { return document.fullscreenElement || document.webkitFullscreenElement; }
+    function renderDock() {
+      var docked = panel.parentNode === home;
+      if (dockHeader) dockHeader.hidden = !docked;
+      panel.hidden = docked && dockCollapsed;
+      if (dockCollapse) {
+        dockCollapse.setAttribute('aria-expanded', dockCollapsed ? 'false' : 'true');
+        dockCollapse.textContent = dockCollapse.getAttribute(dockCollapsed ? 'data-expand-label' : 'data-collapse-label');
+      }
+    }
     function isFloating() { return review.open && review.classList.contains('is-floating'); }
     function viewport() {
       var v = window.visualViewport;
@@ -125,6 +136,7 @@
     function restore() {
       flush();
       if (panel.parentNode !== home) home.appendChild(panel);
+      renderDock();
       review.classList.remove('is-floating');
       resetFloatControls();
       float.setAttribute('aria-pressed', 'false'); float.textContent = float.getAttribute('data-float-label');
@@ -142,6 +154,7 @@
       rememberFloat(); endDrag();
       if (review.open) review.close();
       slot.appendChild(panel);
+      renderDock();
       reviewActive = true;
       review.classList.toggle('is-floating', !!floating);
       resetFloatControls();
@@ -172,9 +185,14 @@
     el('start').addEventListener('click', start);
     el('exit').addEventListener('click', exit);
     tab.addEventListener('click', function () { opener = tab; openReview(false); });
+    if (dockCollapse) dockCollapse.addEventListener('click', function () {
+      flush(); dockCollapsed = !dockCollapsed; renderDock(); focus(dockCollapse);
+    });
+    if (dockFloat) dockFloat.addEventListener('click', function () { opener = dockFloat; openReview(true); });
     float.addEventListener('click', function () { openReview(!review.classList.contains('is-floating')); });
     el('review-close').addEventListener('click', closeReview);
     el('review-dock').addEventListener('click', function () {
+      dockCollapsed = false;
       closeReview(); panel.scrollIntoView({ block: 'start', behavior: 'auto' });
       el('feedback-h').setAttribute('tabindex', '-1'); focus(el('feedback-h'));
     });
@@ -194,7 +212,7 @@
     }
     document.addEventListener('fullscreenchange', fullscreenChanged);
     document.addEventListener('webkitfullscreenchange', fullscreenChanged);
-    suspend(true);
+    renderDock(); suspend(true);
     return { start: start, exit: exit, openReview: openReview, closeReview: closeReview };
   }
   if (typeof module !== 'undefined' && module.exports) module.exports = { mount: mount };

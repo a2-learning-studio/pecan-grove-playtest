@@ -20,6 +20,11 @@
 .pt-stage-content { width: min(100%,1240px); margin: auto; padding: 16px; box-sizing: border-box; }
 .pt-stage-content > .cb { width: 100%; min-width: 0; margin: 0; scroll-margin-top: 100px; }
 .pt-stage-content .pt-feedback { width: 100%; max-width: none; margin: 24px 0 0; scroll-margin-top: 110px; }
+#pt-feedback-home { width: 100%; min-width: 0; margin-top: 24px; }
+.pt-feedback-dock-header { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; padding: .75rem 1rem; border-radius: 1.25rem 1.25rem 0 0; background: #163a30; color: #fffdf8; }
+.pt-feedback-dock-header > strong { flex: 1; min-width: 6rem; font-size: 1rem; }
+#pt-feedback-home > .pt-feedback { margin: 0; border-top-left-radius: 0; border-top-right-radius: 0; }
+.pt-feedback-dock-header:has([aria-expanded="false"]) { border-radius: 1.25rem; }
 .pt-toolbar { display: flex; flex-wrap: wrap; gap: .5rem; position: sticky; top: 0; z-index: 20; padding: .75rem max(16px,calc((100% - 1208px)/2)); background: #163a30; color: #fff; box-shadow: 0 3px 12px #0002; }
 .pt-tool { display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box; min-height: 44px; padding: .6rem 1rem; border: 1px solid #a8beb1; border-radius: 999px; background: #fffdf8; color: #163a30; font: inherit; font-size: .92rem; line-height: 1.25; font-weight: 700; cursor: pointer; }
 .pt-tool:hover { background: #eaf2e3; }
@@ -56,3 +61,4 @@ body.pt-playing { overflow: hidden; }
 .pt-player-dialog p { line-height: 1.55; }
 @media (max-width: 760px) { .pt-intro { grid-template-columns: 1fr; } .pt-intro__art img { min-height: 0; max-height: 250px; } .pt-intro__art p { padding: 1.25rem; } .pt-toolbar { gap: .4rem; padding: .5rem; } .pt-toolbar .pt-tool { flex: 1 1 40%; font-size: .85rem; padding: .6rem; } #pt-exit { margin-left: 0; } .pt-stage-content { padding: 10px; } .pt-review-dialog { width: calc(100% - 16px); max-height: calc(100dvh - 16px); } .pt-review-tools { padding: .5rem; } .pt-review-tools .pt-tool { flex: 1; font-size: .8rem; padding: .6rem; } .pt-review-dialog.is-floating { right: 8px; bottom: 8px; width: calc(100% - 16px); height: 60dvh; } }
 @media (prefers-reduced-motion: reduce) { .pt-stage, .pt-review-dialog { scroll-behavior: auto; } }
+@media (max-width: 560px) { .pt-feedback-dock-header { padding: .75rem; } .pt-feedback-dock-header > strong { flex-basis: 100%; } .pt-feedback-dock-header .pt-tool { flex: 1 1 110px; min-width: 0; padding: .6rem .7rem; font-size: .85rem; } }
