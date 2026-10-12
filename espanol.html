@@ -7,7 +7,7 @@
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="robots" content="noindex, nofollow">
 <meta name="theme-color" content="#163A30">
-<meta name="build-id" content="6e6515230e34">
+<meta name="build-id" content="ba8f25735df3">
 <title>Constructores de comunidad de Pecan Grove · versión de prueba</title>
 <link rel="icon" href="assets/img/mark.svg" type="image/svg+xml">
 <link rel="stylesheet" href="assets/css/a2-studio.css">
@@ -57,7 +57,7 @@
       <p class="pt-sr" id="pt-play-status" role="status" aria-live="polite"></p>
       <div class="cb" id="community-builders" tabindex="-1" aria-label="Constructores de comunidad de Pecan Grove" data-playtest-paused="true" data-game="community-builders" data-language-url="index.html" data-base="assets/games/community-builders/"><noscript><p>Este juego necesita JavaScript. Por favor, actívalo.</p></noscript></div>
       <div id="pt-feedback-home">
-  <section class="pt-note pt-feedback" id="pt-feedback" aria-labelledby="pt-feedback-h" data-lang="es" data-build="6e6515230e34" data-endpoint="https://script.google.com/macros/s/AKfycby-hWTZOntlHtl1D3t7GuzIrG3LWQMz9EvErNbc7CkhDuX-PKENVlhhQ5xRYrtjbvQehw/exec">
+  <section class="pt-note pt-feedback" id="pt-feedback" aria-labelledby="pt-feedback-h" data-lang="es" data-build="ba8f25735df3" data-endpoint="https://script.google.com/macros/s/AKfycby-hWTZOntlHtl1D3t7GuzIrG3LWQMz9EvErNbc7CkhDuX-PKENVlhhQ5xRYrtjbvQehw/exec">
     <h2 id="pt-feedback-h">Comentarios de la prueba</h2>
     <p>Cuéntanos lo que notas mientras juegas. Puedes dejar una nota para cada parada.</p>
     <p class="pt-feedback__player">Jugador anónimo: <span id="pt-feedback-player">Iniciando…</span></p>
@@ -79,15 +79,20 @@
     <p class="pt-privacy" id="pt-feedback-shared">¿Comparten esta computadora? Elige Nuevo jugador antes de que juegue otra persona. Así empieza una sesión separada de juego y comentarios.</p>
     <details class="pt-feedback__saved"><summary>Notas guardadas en este dispositivo</summary><ul id="pt-feedback-entries"><li>Tus comentarios guardados aparecerán aquí.</li></ul></details>
 
-    <p class="pt-privacy">Build: <code>6e6515230e34</code></p>
+    <p class="pt-privacy">Build: <code>ba8f25735df3</code></p>
   </section>
       </div>
     </div>
     <dialog class="pt-review-dialog" id="pt-review-dialog" aria-label="Ventana de comentarios">
-      <div class="pt-review-tools">
+      <div class="pt-review-titlebar" id="pt-review-titlebar">
+        <button class="pt-review-move" id="pt-review-move" type="button" aria-label="Mover la ventana de comentarios" aria-describedby="pt-review-move-help" title="Mover la ventana de comentarios" disabled><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><circle cx="8" cy="5" r="1.6"/><circle cx="16" cy="5" r="1.6"/><circle cx="8" cy="12" r="1.6"/><circle cx="16" cy="12" r="1.6"/><circle cx="8" cy="19" r="1.6"/><circle cx="16" cy="19" r="1.6"/></svg><span>Comentarios</span></button>
+        <span class="pt-sr" id="pt-review-move-help">Arrastra para mover. Con este control enfocado, usa las flechas para mover, Mayús y las flechas para movimientos más grandes, o Inicio para volver a la esquina.</span>
+        <button class="pt-tool pt-review-collapse" id="pt-review-collapse" type="button" aria-expanded="true" aria-controls="pt-review-tools pt-feedback-window" data-collapse-label="Contraer" data-expand-label="Expandir" hidden>Contraer</button>
+        <button class="pt-tool pt-review-close" id="pt-review-close" type="button" aria-label="Cerrar comentarios" title="Cerrar comentarios"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
+      </div>
+      <div class="pt-review-tools" id="pt-review-tools">
         <button class="pt-tool" id="pt-review-float" type="button" aria-pressed="false" data-popup-label="Abrir como ventana" data-float-label="Flotar sobre el juego">Flotar sobre el juego</button>
         <button class="pt-tool" id="pt-review-dock" type="button">Mostrar debajo del juego</button>
-        <button class="pt-tool" id="pt-review-close" type="button">Cerrar comentarios</button>
       </div>
       <div id="pt-feedback-window"></div>
     </dialog>
