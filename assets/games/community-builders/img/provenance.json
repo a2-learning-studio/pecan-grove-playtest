@@ -45,7 +45,20 @@
    "file": "unity.webp",
    "bytes": 13056,
    "sha256": "ffe80c0b219b900a53c37c5a3fe109b28aa3f892c28b6aa7a48a16944e37ae74"
+  },
+  {
+   "file": "town-map@2x.webp",
+   "bytes": 616596,
+   "sha256": "f2069fd2afea440dcae0da10ca089a48be5f696db64f40fce7885d01eb99b5e1"
   }
  ],
- "not_shipped": "check.webp (unused since 2026-10-09) kept in import/unused-assets/."
+ "not_shipped": "check.webp (unused since 2026-10-09) kept in import/unused-assets/.",
+ "derived": [
+  {
+   "file": "town-map@2x.webp",
+   "from": "town-map.webp",
+   "date": "2026-10-11",
+   "steps": "Enlarged 2x (Lanczos), unsharp mask (radius 2.2, 85%, threshold 2), contrast +5%, colour +7%, saved as WebP. Used for the close-up scenes (Stop 1) so the picture stays sharp on large screens. Nothing was added or painted over."
+  }
+ ]
 }

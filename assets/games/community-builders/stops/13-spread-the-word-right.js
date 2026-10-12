@@ -102,23 +102,23 @@
   };
   /* 8 checked facts: 4 hope, 4 worry */
   var FACTS = [
-    { tag: "hope", src: "plan", t: ["There would be many jobs while they build.", "Habría muchos empleos mientras construyen."] },
-    { tag: "hope", src: "plan", t: ["Outdoor lights would point down, not into homes.", "Las luces de afuera apuntarían hacia abajo, no hacia las casas."] },
-    { tag: "hope", src: "board", t: ["The building would stay far from the old chapel.", "El edificio quedaría lejos de la vieja capilla."] },
-    { tag: "hope", src: "board", t: ["An expert would look for old graves before any digging.", "Una persona experta buscaría tumbas antiguas antes de excavar."] },
-    { tag: "worry", src: "plan", t: ["Only a few jobs would stay after it opens.", "Solo quedarían unos pocos empleos cuando abra."] },
-    { tag: "worry", src: "plan", t: ["It would use some water every day.", "Usaría algo de agua todos los días."] },
-    { tag: "worry", src: "plan", t: ["Backup engines would run when the power goes out, and for short tests.", "Los motores de respaldo se prenderían cuando se vaya la luz, y en pruebas cortas."] },
+    { tag: "hope", src: "plan", t: ["The company's plan lists many jobs during building.", "El plan de la empresa indica muchos empleos durante la construcción."] },
+    { tag: "hope", src: "plan", t: ["The company's plan shows outdoor lights pointing down, away from homes.", "El plan de la empresa muestra luces exteriores hacia abajo, sin apuntar a las casas."] },
+    { tag: "hope", src: "board", t: ["The Board notes describe a proposed building far from the old chapel.", "Las notas de la Junta describen un edificio propuesto lejos de la vieja capilla."] },
+    { tag: "hope", src: "board", t: ["The Board notes propose an expert search for old graves before digging.", "Las notas de la Junta proponen que una persona experta busque tumbas antiguas antes de excavar."] },
+    { tag: "worry", src: "plan", t: ["The company's plan lists only a few jobs after opening.", "El plan de la empresa indica solo unos pocos empleos después de abrir."] },
+    { tag: "worry", src: "plan", t: ["The company's plan lists daily water use.", "El plan de la empresa indica un uso diario de agua."] },
+    { tag: "worry", src: "plan", t: ["The company's plan says backup engines would run during power cuts and short tests.", "El plan de la empresa dice que los motores de respaldo se prenderían durante cortes de luz y pruebas cortas."] },
     { tag: "worry", src: "state", t: ["The air permit isn't decided yet.", "El permiso de calidad del aire todavía no se ha decidido."] }
   ];
   /* 4 old facts from the company's first plan (June 2), each with its new fact */
   var OLDS = [
     { tag: "hope", t: ["Electrician classes at the school start this fall.", "Las clases de electricista en la escuela empiezan este otoño."],
-      src: "plan", nt: ["Electrician classes at the school would start next year, if the town says yes.", "Las clases de electricista en la escuela empezarían el próximo año, si el pueblo dice que sí."] },
+      src: "plan", nt: ["The new plan proposes electrician classes next year, if the town says yes.", "El nuevo plan propone clases de electricista el próximo año, si el pueblo dice que sí."] },
     { tag: "hope", t: ["The plan keeps some of the big pecan trees.", "El plan conserva algunos de los nogales grandes."],
       src: "plan", nt: ["The plan keeps all the big pecan trees by the creek.", "El plan conserva todos los nogales grandes junto al arroyo."] },
     { tag: "worry", t: ["It would take water from the town's wells.", "Sacaría agua de los pozos del pueblo."],
-      src: "plan", nt: ["It would take water from Pecan River, not from wells.", "Sacaría agua del río Pecan, no de los pozos."] },
+      src: "plan", nt: ["The new plan proposes water from Pecan River, not from wells.", "El nuevo plan propone tomar agua del río Pecan, no de los pozos."] },
     { tag: "worry", t: ["The sound study will be done in October.", "El estudio de ruido va a estar listo en octubre."],
       src: "board", nt: ["The sound study isn't done yet. It's due in the spring.", "El estudio de ruido todavía no está listo. Va a estar listo en la primavera."] }
   ];

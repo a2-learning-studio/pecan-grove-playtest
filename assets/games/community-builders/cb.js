@@ -20,6 +20,10 @@
       grownText: "Pecan Grove is a made-up town. This game teaches skills, not sides. Building as planned, building with changes, not building, or waiting for more information can all be fair choices. Points reward listening, checking facts and kindness, never picking a side. The game asks for no names or personal information. Scores stay on this device. A personal public-education project by Ali Keyvanfar, Ph.D. Not an official KSU or Fulton County Library product.",
       stop: "Stop", next: "Next", soon: "Coming soon", back: "Back to town map", nextStop: "Next stop",
       moreSoon: "More stops are coming soon!", journey: "Journey score", open: function (n) { return "Stops open: " + n + " of 15"; },
+      allStops: "Choose a stop: names and progress", mapHelp: "Town map. Use the arrow keys to scroll, or choose a stop from the list below.",
+      journeyHelp: "Your journey adds your best score at each stop. Replaying can improve it; a lower score never takes points away.",
+      perfect: "Perfect score saved! Try a new round to practice with different examples.", language: "Español", languageTitle: "Change language?",
+      languageNote: "Your completed scores will stay saved. This unfinished round will not be kept.", languageGo: "Continue in Español",
       last5: "Last 5 tries", best: "Best", library: "Library / Class mode", who: "Who's playing?", scoreboard: "Scoreboard",
       team: "Team challenge", leave: "Leave Library mode", playing: function (a) { return "Playing: " + a; }, you: "You",
       total: "Total", starsWord: "Stars", pbest: "Personal best", improved: "Most improved",
@@ -47,6 +51,10 @@
       grownText: "Pecan Grove es un pueblo inventado. Este juego enseña habilidades, no bandos. Construir como se planeó, construir con cambios, no construir o esperar más información pueden ser decisiones justas. Los puntos premian escuchar, revisar datos y respetar, nunca elegir un lado. El juego no pide nombres ni datos personales. Los puntajes se quedan en este dispositivo. Un proyecto personal de educación pública de Ali Keyvanfar, Ph.D. No es un producto oficial de KSU ni de la Biblioteca del Condado de Fulton.",
       stop: "Parada", next: "Siguiente", soon: "Próximamente", back: "Volver al mapa", nextStop: "Siguiente parada",
       moreSoon: "¡Pronto habrá más paradas!", journey: "Puntaje del camino", open: function (n) { return "Paradas abiertas: " + n + " de 15"; },
+      allStops: "Elige una parada: nombres y avance", mapHelp: "Mapa del pueblo. Usa las flechas para desplazarte o elige una parada de la lista de abajo.",
+      journeyHelp: "El puntaje del camino suma tu mejor puntaje de cada parada. Puedes mejorarlo al volver a jugar; un puntaje menor nunca te quita puntos.",
+      perfect: "¡Puntaje perfecto guardado! Prueba otra ronda para practicar con ejemplos diferentes.", language: "English", languageTitle: "¿Cambiar de idioma?",
+      languageNote: "Tus puntajes completados se conservan. Esta ronda sin terminar no se guardará.", languageGo: "Continuar en English",
       last5: "Últimos 5 intentos", best: "Mejor", library: "Modo biblioteca / clase", who: "¿Quién juega?", scoreboard: "Tabla de puntajes",
       team: "Desafío en equipo", leave: "Salir del modo biblioteca", playing: function (a) { return "Jugando: " + a; }, you: "Tú",
       total: "Total", starsWord: "Estrellas", pbest: "Récord personal", improved: "¡Mayor mejora!",
@@ -183,13 +191,13 @@
       flyerTag: "Flyer", chatTag: "Family chat", whoT: "Who told you?", howT: "How do they know?", whenT: "When?",
       b: { fact: "Checked fact", rumor: "Rumor", dontknow: "We don't know yet" },
       put: function (b) { return "Put in " + b; },
-      ok: { fact: "Yes! It's written down, with a date, where anyone can check it.", rumor: "Yes! Nobody can show how they know. Rumors come from hopeful and worried people.", dontknow: "Yes! It isn't studied or decided yet. 'We don't know yet' is an honest answer." },
+      ok: { fact: "Yes! We checked what the dated proposal says. A proposal is not a promise that it will happen.", rumor: "Yes! Nobody can show how they know. Rumors come from hopeful and worried people.", dontknow: "Yes! It isn't studied or decided yet. 'We don't know yet' is an honest answer." },
       notQuite: function (h) { return "Good try. The source says: " + h; }, nextClaim: "Next claim", sorted: function (n) { return "Claim " + n + " of 5 sorted."; },
       at: function (n) { return n + ", at the counter"; }, flyer: "A flyer on the board", chat: "A message in the family chat",
       can: "I can check who said it and how they know.", your5: "Your 5 claims",
       tipNb: function (n) { return "Next time, peek first, even when " + n + " tells you."; }, tipPeek: "Next time, tap 'Peek at the source' before you sort.",
       tipRumor: "Next time, if nobody can show how they know, choose Rumor.", tipDk: "Next time, look for a study or a decision that isn't done yet.",
-      tipFact: "Next time, read 'How do they know?' to the end. Is it written down, with a date?", tip100: "Great checking! Try a new round with new claims.",
+      tipFact: "Next time, check what the source actually proves. A dated proposal tells us what is proposed, not what will happen.", tip100: "Great checking! Try a new round with new claims.",
       real: "Next time you hear 'Everyone says…', ask a grown-up: 'Who said it? How do they know?'",
       gu: "For grown-ups: this stop",
       guText: "Kids check a claim's source before sorting it as a checked fact, a rumor or 'we don't know yet'. Rumors in the game come from both sides, for example 'the lights will go out' and 'it uses no water at all'. Health effects for a site that isn't built yet go under 'we don't know yet'." },
@@ -199,13 +207,13 @@
       flyerTag: "Volante", chatTag: "Chat de la familia", whoT: "¿Quién te lo dijo?", howT: "¿Cómo lo sabe?", whenT: "¿Cuándo?",
       b: { fact: "Dato revisado", rumor: "Rumor", dontknow: "Todavía no sabemos" },
       put: function (b) { return "Poner en " + b; },
-      ok: { fact: "¡Sí! Está escrito, con fecha, donde cualquiera lo puede revisar.", rumor: "¡Sí! Nadie puede mostrar cómo lo sabe. Los rumores vienen de gente con esperanza y de gente preocupada.", dontknow: "¡Sí! Todavía no se ha estudiado ni decidido. 'Todavía no sabemos' es una respuesta honesta." },
+      ok: { fact: "¡Sí! Revisamos lo que dice la propuesta con fecha. Una propuesta no es una promesa de que eso sucederá.", rumor: "¡Sí! Nadie puede mostrar cómo lo sabe. Los rumores vienen de gente con esperanza y de gente preocupada.", dontknow: "¡Sí! Todavía no se ha estudiado ni decidido. 'Todavía no sabemos' es una respuesta honesta." },
       notQuite: function (h) { return "Buen intento. La fuente dice: " + h; }, nextClaim: "Siguiente frase", sorted: function (n) { return "Frase " + n + " de 5 clasificada."; },
       at: function (n) { return n + ", en el mostrador"; }, flyer: "Un volante en el tablero", chat: "Un mensaje en el chat de la familia",
       can: "Puedo revisar quién lo dijo y cómo lo sabe.", your5: "Tus 5 frases",
       tipNb: function (n) { return "La próxima vez, mira la fuente primero, aunque te lo diga " + n + "."; }, tipPeek: "La próxima vez, toca 'Mira la fuente' antes de clasificar.",
       tipRumor: "La próxima vez, si nadie puede mostrar cómo lo sabe, elige Rumor.", tipDk: "La próxima vez, fíjate si hay un estudio o una decisión que todavía no termina.",
-      tipFact: "La próxima vez, lee '¿Cómo lo sabe?' hasta el final. ¿Está escrito y tiene fecha?", tip100: "¡Revisaste muy bien! Prueba una nueva ronda con frases nuevas.",
+      tipFact: "La próxima vez, revisa qué demuestra la fuente. Una propuesta con fecha dice qué se propone, no qué sucederá.", tip100: "¡Revisaste muy bien! Prueba una nueva ronda con frases nuevas.",
       real: "La próxima vez que oigas 'Todos dicen…', pregúntale a un adulto: '¿Quién lo dijo? ¿Cómo lo sabe?'",
       gu: "Para adultos: esta parada",
       guText: "Los niños revisan la fuente de una afirmación antes de clasificarla como dato revisado, rumor o 'todavía no sabemos'. En el juego, los rumores vienen de los dos lados, por ejemplo 'se va a ir la luz' y 'no usa nada de agua'. Los efectos en la salud de un sitio que aún no existe son 'todavía no sabemos'." }
@@ -223,14 +231,14 @@
   var CLAIMS = [
     ["rumor", "hopeful", null, "It uses no water at all.", "No usa nada de agua."],
     ["rumor", "worried", null, "Every well in town will dry up next year.", "Todos los pozos del pueblo se van a secar el próximo año."],
-    ["fact", null, "plan", "It would use some water every day. The plan says how much.", "Usaría algo de agua todos los días. El plan dice cuánta."],
+    ["fact", null, "plan", "The company's September 3 proposal lists daily water use and says how much it expects to use.", "La propuesta de la empresa del 3 de septiembre indica el uso diario de agua y dice cuánta espera usar."],
     ["rumor", "hopeful", null, "Everyone in Pecan Grove will get a job there.", "Todos en Pecan Grove van a conseguir trabajo ahí."],
     ["rumor", "worried", null, "Not one job will go to people from here.", "Ni un solo trabajo va a ser para gente de aquí."],
-    ["fact", null, "plan", "There would be many jobs while they build, and only a few after it opens.", "Habría muchos trabajos mientras construyen, y solo unos pocos cuando abra."],
+    ["fact", null, "plan", "The company's September 3 proposal lists many building jobs and fewer jobs after opening.", "La propuesta de la empresa del 3 de septiembre indica muchos empleos de construcción y menos después de abrir."],
     ["rumor", "worried", null, "The lights will go out in every house.", "Se va a ir la luz en todas las casas."],
     ["rumor", "hopeful", null, "Everyone's power bill will go down.", "A todos nos va a bajar el recibo de luz."],
     ["rumor", "worried", null, "The backup engines will run all day, every day.", "Los motores de respaldo van a estar prendidos todo el día, todos los días."],
-    ["fact", null, "plan", "The backup engines would run only when the power goes out, and for short tests.", "Los motores de respaldo solo se prenderían cuando se vaya la luz, y en pruebas cortas."],
+    ["fact", null, "plan", "The company's September 3 proposal says the backup engines would run during power cuts and short tests.", "La propuesta de la empresa del 3 de septiembre dice que los motores de respaldo se prenderían durante cortes de luz y pruebas cortas."],
     ["rumor", "hopeful", null, "Every student will get a new laptop next month.", "Todos los estudiantes van a recibir una laptop nueva el próximo mes."],
     ["dontknow", "hopeful", "tax", "The school will get lots of new money.", "La escuela va a recibir mucho dinero nuevo."],
     ["dontknow", "hopeful", "sound", "You won't hear any hum from the farm fence.", "Desde la cerca de la granja no se va a oír ningún zumbido."],
@@ -333,7 +341,11 @@
     shrink: '<path d="M9 4.5V9H4.5M15 4.5V9h4.5M9 19.5V15H4.5M15 19.5V15h4.5"/>',
     ear: '<path d="M7 9.5a5 5 0 0 1 10 0c0 3-2.6 3.8-3.2 6.2-.4 1.9-1.6 3.3-3.5 3.3a3 3 0 0 1-2.8-2"/><path d="M10 10a2 2 0 0 1 4 0c0 1.2-1 1.6-1.5 2.4"/>',
     voice: '<path d="M4.5 9.5h3l4.5-4v13l-4.5-4h-3z"/><path d="M15.5 9.2a4 4 0 0 1 0 5.6M18.2 6.6a7.6 7.6 0 0 1 0 10.8"/>',
-    voiceOff: '<path d="M4.5 9.5h3l4.5-4v13l-4.5-4h-3z"/><path d="m16 9.5 5 5M21 9.5l-5 5"/>'
+    voiceOff: '<path d="M4.5 9.5h3l4.5-4v13l-4.5-4h-3z"/><path d="m16 9.5 5 5M21 9.5l-5 5"/>',
+    sliders: '<path d="M4.5 7.5h8M17.5 7.5h2M4.5 16.5h2M11.5 16.5h8"/><circle cx="15" cy="7.5" r="2.5"/><circle cx="9" cy="16.5" r="2.5"/>',
+    captions: '<rect x="3.5" y="5.5" width="17" height="13" rx="2.5"/><path d="M10.6 10.2a2.3 2.3 0 1 0 0 3.6M16.6 10.2a2.3 2.3 0 1 0 0 3.6"/>',
+    keys: '<rect x="3" y="6.5" width="18" height="11" rx="2.5"/><path d="M7 10.5h.01M10.5 10.5h.01M14 10.5h.01M17.5 10.5h.01M8 14h8"/>',
+    hand: '<path d="M8.5 12.5V6a1.5 1.5 0 0 1 3 0v5.5V4.8a1.5 1.5 0 0 1 3 0v6.7V6.3a1.5 1.5 0 0 1 3 0v8.2a6 6 0 0 1-6 6h-.6a6 6 0 0 1-4.8-2.4l-2.6-3.5a1.5 1.5 0 0 1 2.3-1.9z"/>'
   };
   function ico(name, cls) {
     var s = document.createElementNS(SVGNS, "svg");
@@ -349,9 +361,31 @@
     '<g fill="#E69F00"><circle cx="10.5" cy="31.2" r="1.5"/><circle cx="15.5" cy="32.6" r="1.5"/><circle cx="20.5" cy="33" r="1.5"/><circle cx="25.5" cy="32.4" r="1.5"/><circle cx="30.2" cy="31" r="1.5"/></g></svg>';
   var X = {
     en: { parts3: ["Listen", "Find shared wishes", "Who said this?"], of: function (a, b) { return a + " of " + b; }, fsOn: "Full screen", fsOff: "Exit full screen", restored: "Scores are back.",
-      voice: "Voice", voiceOn: "Voice is on", voiceOff: "Voice is off", replay: "Hear it again" },
+      voice: "Voice", voiceOn: "Voice is on", voiceOff: "Voice is off", replay: "Hear it again",
+      settings: "Settings", setSub: "How the game sounds and looks. This device remembers it.", keepPlaying: "Keep playing", on: "On", off: "Off",
+      secVoice: "Sound", auto: "Read new lines by itself", autoHint: "When this is off, tap the speaker button at the end of a line to hear it.",
+      vol: "Volume", speed: "Speed", speeds: ["Slower", "Normal", "Faster"], sample: "Hear a sample", sampleStop: "Stop the sample",
+      secCap: "Captions", words: "Light up each word as it is read", capBar: "Caption bar", capHint: "Shows who is talking and what they say, at the bottom of the game.",
+      capSize: "Caption size", sizes: ["Small", "Medium", "Large"], capOn: "Captions are on", capOff: "Captions are off",
+      secHelp: "Screen and helpers", circles: "Circle what to tap", circlesHint: "When the voice says what to tap, a marker circle shows where it is.",
+      calm: "Calm motion", calmHint: "Fewer things move and slide.", calmSys: "Your device asks for less motion, so this stays on.",
+      secKeys: "Keys", keysNote: "On a computer, these keys work while you play.",
+      keys: [["Esc", "Open Settings (the voice waits)"], ["M", "Voice on or off"], ["R", "Hear it again"], ["S", "Stop the voice"], ["C", "Caption bar on or off"],
+        ["F", "Full screen"], ["?", "Show these keys"], ["Tab", "Move to the next button"], ["Enter|Space", "Choose"]],
+      reset: "Go back to the usual settings", resetDone: "Settings are back to the usual.", guide: "Lucía", guide2: "Theo" },
     es: { parts3: ["Escucha", "Deseos compartidos", "¿Quién dijo esto?"], of: function (a, b) { return a + " de " + b; }, fsOn: "Pantalla completa", fsOff: "Salir de pantalla completa", restored: "Los puntajes volvieron.",
-      voice: "Voz", voiceOn: "La voz está activada", voiceOff: "La voz está desactivada", replay: "Escuchar otra vez" }
+      voice: "Voz", voiceOn: "La voz está activada", voiceOff: "La voz está desactivada", replay: "Escuchar otra vez",
+      settings: "Ajustes", setSub: "Cómo suena y se ve el juego. Este dispositivo lo recuerda.", keepPlaying: "Seguir jugando", on: "Sí", off: "No",
+      secVoice: "Sonido", auto: "Leer sola cada línea nueva", autoHint: "Si esto está apagado, toca el botón de la bocina al final de una línea para escucharla.",
+      vol: "Volumen", speed: "Velocidad", speeds: ["Más lenta", "Normal", "Más rápida"], sample: "Escuchar un ejemplo", sampleStop: "Detener el ejemplo",
+      secCap: "Subtítulos", words: "Iluminar cada palabra mientras se lee", capBar: "Barra de subtítulos", capHint: "Muestra quién habla y lo que dice, abajo del juego.",
+      capSize: "Tamaño de los subtítulos", sizes: ["Pequeño", "Mediano", "Grande"], capOn: "Los subtítulos están activados", capOff: "Los subtítulos están desactivados",
+      secHelp: "Pantalla y ayudas", circles: "Encerrar en un círculo lo que hay que tocar", circlesHint: "Cuando la voz dice qué tocar, un círculo de marcador muestra dónde está.",
+      calm: "Movimiento tranquilo", calmHint: "Menos cosas se mueven y se deslizan.", calmSys: "Tu dispositivo pide menos movimiento, así que esto queda activado.",
+      secKeys: "Teclas", keysNote: "En una computadora, estas teclas funcionan mientras juegas.",
+      keys: [["Esc", "Abrir Ajustes (la voz espera)"], ["M", "Activar o desactivar la voz"], ["R", "Escuchar otra vez"], ["S", "Detener la voz"], ["C", "Activar o desactivar los subtítulos"],
+        ["F", "Pantalla completa"], ["?", "Mostrar estas teclas"], ["Tab", "Ir al siguiente botón"], ["Enter|Espacio", "Elegir"]],
+      reset: "Volver a los ajustes de siempre", resetDone: "Los ajustes volvieron a los de siempre.", guide: "Lucía", guide2: "Theo" }
   }[L];
 
   /* ── shell ─────────────────────────────────────────────────────────── */
@@ -408,11 +442,26 @@
     })));
     var a = store.current && store.current !== "you" ? animalOf(store.current) : null;
     if (a) { var c = h("button", { type: "button", "class": "cb-chip", onclick: function () { openWho(c); } }, [animalFace(a), h("span", { text: W.playing(a.name) })]); bar.appendChild(c); }
-    bar.appendChild(voiceBtn(false));
+    var lang = languageBtn(); if (lang) bar.appendChild(lang);
+    bar.appendChild(setBtn(false)); bar.appendChild(voiceBtn(false));
     var f = fsBtn(false); if (f) bar.appendChild(f);
+  }
+  function languageBtn() {
+    var other = L === "es" ? "en" : "es", alternate = document.querySelector('a[hreflang="' + other + '"]');
+    var path = root.getAttribute("data-language-url") || (alternate && alternate.getAttribute("href"));
+    if (!path) return null;
+    var url;
+    try { url = new URL(path, location.href); if (url.origin !== location.origin) return null; } catch (e) { return null; }
+    var b = btn(W.language, "cb-btn--onstage cb-language", function () {
+      if (inStop) dialog(W.languageTitle, [h("p", { text: W.languageNote }),
+        btn(W.languageGo, "cb-btn--go", function () { vStop(); location.assign(url.href); })], b);
+      else { vStop(); location.assign(url.href); }
+    });
+    b.setAttribute("lang", other); return b;
   }
   function screen(kids, focusSel) {
     vMark(vEl, false); vEl = null;                            // a new screen: the voice stops unless the same line is shown again
+    vInkClear();
     if (mode !== "stop") vHeard = {};
     main.innerHTML = ""; kids.forEach(function (k) { if (k) main.appendChild(k); });
     root.setAttribute("data-screen", mode); renderBar();
@@ -440,93 +489,427 @@
   function coach(text, icon) { return h("p", { "class": "cb-coach" }, [ico(icon || "bulb"), h("span", { text: text })]); }
   function fb(text, ok) { return text ? h("div", { "class": "cb-feedback" + (ok ? " is-ok" : "") }, [ico(ok ? "check" : "bulb"), h("p", { text: text })]) : null; }
 
-  /* ── voice: when a screen shows one of its key lines (voice/index.js maps the exact on-screen text to a clip),
-     the guide or neighbor reads it once and a small speaker button beside it replays it. Nothing plays before the
-     player's first tap; the Voice switch is remembered on this device. No voice files: the game is simply quiet. ── */
-  var VKEY = "pecan-grove-voice", vOn = true, vIdx = null, vLoading = false, vAudio = null, vEl = null, vQueue = [], vLast = { f: "", t: -1e9 };
+  /* ── voice: when a screen shows one of its key lines (voice/index.js maps the on-screen text to a clip), the guide or
+     neighbor reads it and each word lights up as it is said (read-along). A small speaker button at the end of the line
+     replays it. Nothing plays before the player's first tap; the Voice switch is remembered on this device. Lines inside
+     [data-cb-novoice] are never read (a quiz quote would give the answer away). No voice files: the game is just quiet. ── */
+  var VKEY = "pecan-grove-voice", vOn = true, vIdx = null, vClips = {}, vKeys = null, vLoading = false;
+  var vAudio = null, vEl = null, vQueue = [], vLast = { f: "", t: -1e9 }, vRead = null, vRaf = 0, vLastItem = null, vLastEl = null;
   var vHeard = {};                                            // guide lines already read on this visit to a stop (the town map starts a new visit)
-  try { vOn = localStorage.getItem(VKEY) !== "off"; } catch (e) { /* storage blocked: voice stays on */ }
+
+  /* ── settings: how the game sounds and looks (the Settings button, or Esc). Remembered on this device only. ── */
+  var SKEY = "pecan-grove-settings", SYS_CALM = REDUCED, RATES = [0.85, 1, 1.15], SIZES = ["s", "m", "l"];
+  var CFG_DEF = { voice: true, auto: true, vol: 0.9, rate: 1, words: true, cap: false, capSize: "m", circles: true, calm: false };
+  var CFG = cfgLoad();
+  function cfgLoad() {
+    var c = {}, k, s = null;
+    for (k in CFG_DEF) c[k] = CFG_DEF[k];
+    try {
+      s = JSON.parse(localStorage.getItem(SKEY) || "null");
+      if (!s && localStorage.getItem(VKEY) === "off") s = { voice: false };   // the Voice switch from before Settings existed
+    } catch (e) { /* storage blocked: the usual settings */ }
+    if (s && typeof s === "object") for (k in CFG_DEF) if (typeof s[k] === typeof CFG_DEF[k]) c[k] = s[k];
+    c.vol = Math.min(1, Math.max(0, Math.round(c.vol * 10) / 10));
+    if (RATES.indexOf(c.rate) < 0) c.rate = 1;
+    if (SIZES.indexOf(c.capSize) < 0) c.capSize = "m";
+    return c;
+  }
+  function cfgSave() { try { localStorage.setItem(SKEY, JSON.stringify(CFG)); localStorage.setItem(VKEY, CFG.voice ? "on" : "off"); } catch (e) { /* ignore */ } }
+  function applyCalm() { REDUCED = SYS_CALM || CFG.calm; root.classList.toggle("is-calm", CFG.calm && !SYS_CALM); }
+  vOn = CFG.voice; applyCalm();
+
+  /* the caption bar: who is talking and the words being said, a sentence at a time, at the bottom of the stage.
+     It copies on-screen words, so screen readers skip it (they read the page itself) and the voice never reads it. */
+  var cap = h("div", { "class": "cb-cap", "aria-hidden": "true", "data-cb-novoice": "", "data-size": CFG.capSize }), capBox = h("p", { "class": "cb-cap__box" });
+  cap.appendChild(capBox); cap.hidden = true; root.insertBefore(cap, foot);   // above the footer line when the stage ends on screen
+  function vWho(f) {
+    var id = f.replace(/^..\//, "").replace(/\.mp3$/, ""), m = /^nb-([a-z]+)-/.exec(id), n = m ? nbById(m[1]) : null;
+    return n ? nmCap(n) : /^s15-theo/.test(id) ? X.guide2 : X.guide;
+  }
+  function capChunks(ws) {                                    // a sentence, or about a dozen words, per caption
+    var out = [], s = 0;
+    ws.forEach(function (w, i) {
+      var n = i - s + 1;
+      if (i === ws.length - 1 || (n >= 3 && /[.!?…]["”»)]?$/.test(w)) || (n >= 12 && /[,;:]$/.test(w)) || n >= 16) { out.push([s, i]); s = i + 1; }
+    });
+    return out;
+  }
+  function capPlace() {                                       // sit above the sticky action bar when it is on screen
+    var bar = main.querySelector(".cb-actions"), b = 14;
+    if (bar && getComputedStyle(bar).position === "sticky") {
+      var r = bar.getBoundingClientRect(), vb = fsEl() === root ? root.getBoundingClientRect().bottom : window.innerHeight;
+      if (r.top < vb && r.bottom > 0) b = Math.max(14, Math.round(vb - r.top + 10));
+    }
+    cap.style.setProperty("--cb-cap-b", b + "px");
+  }
+  function capDraw(i) {                                       // i: the spoken word now (-1 before the first one)
+    var R = vRead; if (!R || !R.box || !R.ch.length) return;
+    var k = 0; if (i >= 0) while (k < R.ch.length - 1 && R.ch[k][1] < i) k++;
+    if (k !== R.ck) {
+      R.ck = k; R.box.innerHTML = "";
+      var line = h("span", { "class": "cb-cap__line" });
+      for (var j = R.ch[k][0]; j <= R.ch[k][1]; j++) { if (j > R.ch[k][0]) line.appendChild(document.createTextNode(" ")); line.appendChild(h("span", { "class": "cb-cap__w", text: R.cw[j] })); }
+      R.box.appendChild(h("b", { "class": "cb-cap__who", text: R.who })); R.box.appendChild(line);
+      R.capW = line.children; if (R.box === capBox) capPlace();
+    }
+    for (var q = 0; q < R.capW.length; q++) R.capW[q].classList.toggle("is-now", CFG.words && q === i - R.ch[k][0]);
+  }
   function vNorm(t) { return (t || "").replace(/\s+/g, " ").trim(); }
+  function vTok(w) { return (w || "").toLowerCase().replace(/[^0-9a-záéíóúüñ']/g, ""); }
   function vLoad() {
     if (vIdx || vLoading) return; vLoading = true;
     var s = h("script", { src: BASE + "voice/index.js" });
-    s.onload = function () { vIdx = (window.CB_VOICE || {})[L] || {}; vScan([main].concat([].slice.call(root.querySelectorAll("dialog[open]")))); };
+    s.onload = function () { var V = window.CB_VOICE || {}; vIdx = V[L] || {}; vClips = V.clips || {}; vScan([main].concat([].slice.call(root.querySelectorAll("dialog[open]")))); };
     s.onerror = function () { vIdx = {}; };
     document.head.appendChild(s);
   }
   function vMark(el, on) { if (el) el.classList.toggle("is-speaking", on); }
-  function vStop() { vQueue = []; if (vAudio) { vAudio.pause(); vAudio = null; } vMark(vEl, false); vEl = null; }
+  function vUnread() {                                        // clear the read-along highlight
+    if (vRaf) cancelAnimationFrame(vRaf); vRaf = 0;
+    if (vRead) { if (vRead.on) vRead.on.classList.remove("is-now"); if (vRead.hud) vRead.hud.classList.remove("is-now"); }
+    vRead = null; cap.hidden = true;
+  }
+  function vStop() { vQueue = []; vUnread(); if (vAudio) { vAudio.pause(); vAudio = null; } vMark(vEl, false); vEl = null; }
+  function vAlign(E, S) {                                     // where the line's shown words sit among the spoken words
+    var best = 0, bd = null;
+    for (var d = 1 - E.length; d < S.length; d++) {
+      var m = 0; for (var i = 0; i < E.length; i++) if (E[i] && E[i] === S[i + d]) m++;
+      if (m > best) { best = m; bd = d; }
+    }
+    return best >= Math.min(E.length, S.length) * 0.6 ? bd : null;
+  }
+  /* ── voice cues: when the voice names something to tap, a hand-drawn marker circle draws itself around it, so a
+     young player sees what the words point at. Each cue: the words that trigger it (English, Spanish), what to circle
+     (a CSS selector, or {t: button text}), and how many at most. Keyed by clip id; "s02-coach-" covers every worry. ── */
+  var CUES = {
+    "s01-past": [["tap today", "toca hoy", ".cb-s01-view[data-view=today]", 1]],
+    "s02-coach-": [["one tile in each row", "una ficha en cada fila", ".cb-s02-row", 3], ["tap ask it", "toca pregúntalo", { en: "Ask it", es: "Pregúntalo" }, 1]],
+    "s03-p1": [["tap each neighbor", "toca a cada vecino", ".cb-nbr", 6]],
+    "s03-p2": [["tap one neighbor", "toca a un vecino", ".cb-note", 2]],
+    "s03-p3": [["tap the neighbor", "toca al vecino", ".cb-face-btn", 6]],
+    "s04-how": [["peek at the source", "mira la fuente", { en: "Peek at the source", es: "Mira la fuente" }, 1], ["the box", "la caja", ".cb-basket", 3]],
+    "s05-q1": [["tap a place", "toca un lugar", ".cb-s05-place", 6]],
+    "s05-q2": [["tap a neighbor", "toca a un vecino", ".cb-face-btn", 6]],
+    "s06-who": [["tap the desk", "toca el escritorio", ".cb-s06-desk", 7]],
+    "s07-build": [["one tile in each row", "una ficha en cada fila", ".cb-s07-tile", 3]],
+    "s07-who": [["tap who", "toca para", ".cb-s07-helper", 6]],
+    "s08-c1": [["tap each neighbor", "toca a cada vecino", ".cb-s08-nb", 2]],
+    "s08-c2": [["try it", "pruébalo", { en: "Try it", es: "Pruébalo" }, 3]],
+    "s09-instr": [["empty chair", "silla vacía", ".cb-s09-chair", 5]],
+    "s10-c1": [["tap a problem", "toca un problema", ".cb-s10-prob", 6]],
+    "s10-c2": [["tap a fix", "toca una solución", ".cb-s10-fix__main", 6]],
+    "s11-p1": [["tap each signpost", "toca cada letrero", ".cb-s11-sign", 4]],
+    "s11-q1": [["tap a neighbor", "toca a un vecino", ".cb-s11-nb, .cb-face-btn", 6]],
+    "s11-q2": [["tap a neighbor", "toca a un vecino", ".cb-s11-nb, .cb-face-btn", 6]],
+    "s11-p3": [["tap a change", "toca un cambio", ".cb-s11-chg", 4]],
+    "s12-s1": [["pick 4 promises", "elige 4 promesas", ".cb-s12-card", 8]],
+    "s12-s3": [["tap each fuzzy part", "toca cada parte", ".cb-s12-fuzzy", 6]],
+    "s13-tap": [["tap a card", "toca una tarjeta", ".cb-s13-card", 6]],
+    "s14-s1": [["its clue", "su pista", ".cb-s14-clue", 6], ["no clue found", "no encontré pista", ".cb-s14-none", 1]],
+    "s14-s2": [["a kind follow-up", "un seguimiento", ".cb-s14-fu", 6]],
+    "s15-plan": [["tap a place", "toca un lugar", ".cb-s15-place", 5]],
+    "s15-theo2": [["one yearly check-in", "una revisión", ".cb-s15-check", 3]],
+    "s15-lucia3": [["invite one person", "invita a una persona", ".cb-s15-person", 6]]
+  };
+  var vInkLayer = null, vInkTimers = [];
+  function vCues(f, c) {                                      // the clock time of each cue in this clip
+    var id = f.replace(/^..\//, "").replace(/\.mp3$/, ""), list = CUES[id] || (/^s02-coach-/.test(id) ? CUES["s02-coach-"] : null);
+    if (!list || !c) return [];
+    var S = c.s.split(" ").map(vTok), out = [];
+    list.forEach(function (q) {
+      var P = q[L === "es" ? 1 : 0].split(" ").map(vTok);
+      for (var i = c.h || 0; i + P.length <= S.length; i++) {
+        var ok = true; for (var j = 0; j < P.length; j++) if (S[i + j].indexOf(P[j]) !== 0) { ok = false; break; }
+        if (ok) { out.push({ at: c.t[i], what: q[2], max: q[3], done: false }); break; }
+      }
+    });
+    return out;
+  }
+  function vTargets(what, max) {
+    var all = typeof what === "string" ? [].slice.call(root.querySelectorAll(what))
+      : [].slice.call(root.querySelectorAll("button, [role=tab]")).filter(function (b) { return vNorm(b.textContent).indexOf(what[L]) >= 0; });
+    return all.filter(function (e) { var r = e.getBoundingClientRect(); return r.width > 4 && r.height > 4 && !e.closest("[hidden], .cb-vh"); }).slice(0, max || 1);
+  }
+  function vInkClear() {
+    vInkTimers.forEach(clearTimeout); vInkTimers = [];
+    if (vInkLayer) vInkLayer.innerHTML = "";
+  }
+  function vCircle(el, k) {                                   // one marker loop around el, a little wobbly, overlapping where it closes
+    if (!vInkLayer || !vInkLayer.isConnected) { vInkLayer = h("div", { "class": "cb-ink", "aria-hidden": "true" }); root.appendChild(vInkLayer); }
+    var R = root.getBoundingClientRect(), r = el.getBoundingClientRect(), pad = Math.max(8, Math.min(16, r.height * 0.18));
+    var w = r.width + pad * 2, hh = r.height + pad * 2, x = r.left - R.left + root.scrollLeft - pad, y = r.top - R.top + root.scrollTop - pad;
+    var svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.setAttribute("viewBox", "0 0 " + w.toFixed(1) + " " + hh.toFixed(1)); svg.setAttribute("class", "cb-ink__loop");
+    svg.style.setProperty("left", x.toFixed(1) + "px"); svg.style.setProperty("top", y.toFixed(1) + "px");
+    svg.style.setProperty("width", w.toFixed(1) + "px"); svg.style.setProperty("height", hh.toFixed(1) + "px");
+    var cx = w / 2, cy = hh / 2, rx = w / 2 - 3, ry = hh / 2 - 3, a0 = -2.2 + k * 0.7, d = "";
+    for (var i = 0; i <= 56; i++) {
+      var u = i / 56, a = a0 + u * Math.PI * 2 * 1.1, wob = 1 + 0.03 * Math.sin(3 * a + k) + 0.02 * Math.sin(5 * a + 2 * k), grow = 1 - 0.07 * u;
+      d += (i ? " L" : "M") + (cx + Math.cos(a) * rx * wob * (1.02 - 0.04 * u)).toFixed(1) + " " + (cy + Math.sin(a) * ry * wob * grow).toFixed(1);
+    }
+    var path = document.createElementNS("http://www.w3.org/2000/svg", "path"); path.setAttribute("d", d);
+    svg.appendChild(path); vInkLayer.appendChild(svg);
+    var len = path.getTotalLength(); path.style.setProperty("--len", len.toFixed(0));
+    vInkTimers.push(setTimeout(function () { svg.classList.add("is-out"); }, 3000));
+    vInkTimers.push(setTimeout(function () { svg.remove(); }, 3500));
+  }
+  function vCue(q) { vTargets(q.what, q.max).forEach(function (el, k) { vCircle(el, k); }); }
+  function vFollow(a, item, el) {                             // light each shown word while it is said
+    vUnread();
+    var c = vClips[item.f]; if (!c || !el) return;
+    var S = c.s.split(" ").map(vTok), map = [];                // map[i]: the shown word for spoken word i, across every part of the line
+    ((el._vParts || [el]).filter(function (p) { return p.isConnected; })).forEach(function (p) {
+      var spans = [].slice.call(p.querySelectorAll(".cb-w")), d = vAlign(spans.map(function (s) { return vTok(s.textContent); }), S);
+      if (d !== null) spans.forEach(function (s, j) { if (j + d >= 0 && !map[j + d]) map[j + d] = s; });
+    });
+    vRead = { t: c.t, map: map, cur: -2, on: null, hud: c.h ? root.querySelector(".cb-stophud__h") : null, h: c.h, cues: CFG.circles ? vCues(item.f, c) : [],
+      cw: c.s.split(" "), who: vWho(item.f), ck: -1, capW: [], box: null };
+    vRead.ch = capChunks(vRead.cw);
+    var set = el.closest(".cb-set");                           // the sample in Settings plays into the caption preview there
+    if (set) vRead.box = set.querySelector(".cb-set__cap .cb-cap__box");
+    else if (CFG.cap && !el.closest("dialog")) { vRead.box = capBox; cap.hidden = false; }   // a window's own words are right there in it
+    capDraw(-1);
+    (function tick() {
+      if (!vRead || vAudio !== a) return;
+      var ms = a.currentTime * 1000, t = vRead.t, i = -1;
+      vRead.cues.forEach(function (q) { if (!q.done && a.currentTime > 0 && ms >= q.at) { q.done = true; if (CFG.circles) vCue(q); } });
+      if (a.currentTime > 0 && ms < t[t.length - 1]) { i = 0; while (i + 1 < t.length - 1 && t[i + 1] <= ms) i++; }
+      if (i !== vRead.cur) {
+        if (vRead.on) vRead.on.classList.remove("is-now");
+        vRead.on = CFG.words && i >= 0 ? vRead.map[i] || null : null;
+        if (vRead.on) vRead.on.classList.add("is-now");
+        if (vRead.hud) vRead.hud.classList.toggle("is-now", CFG.words && i >= 0 && i < vRead.h);   // the spoken stop name lights the stop's title
+        capDraw(i);
+        vRead.cur = i;
+      }
+      vRaf = requestAnimationFrame(tick);
+    })();
+  }
   function vPlay(item, el) {
     if (vAudio) vAudio.pause();
-    vMark(vEl, false);
+    vUnread(); vMark(vEl, false);
     var a = new Audio(BASE + "voice/" + item.f); vAudio = a; vEl = el || null; vMark(vEl, true); vLast = { f: item.f, t: performance.now() };
-    if (item.k !== "nb") vHeard[item.f] = 1;                  // neighbors speak on every tap; the guide once a visit
-    function done() { if (vAudio !== a) return; vMark(vEl, false); vAudio = null; vEl = null; var nx = vQueue.shift(); if (nx && nx.el.isConnected) vPlay(nx.item, nx.el); }
+    a.volume = CFG.vol; a.defaultPlaybackRate = a.playbackRate = CFG.rate;   // speed changes keep the pitch; the read-along follows the audio clock
+    if (item.k === "guide") vHeard[item.f] = 1;               // neighbors speak on every tap; the guide once a visit
+    if (item.k !== "sample") { vLastItem = item; vLastEl = vEl; }
+    function done() { if (vAudio !== a) return; vUnread(); vMark(vEl, false); vAudio = null; vEl = null; var nx = vQueue.shift(); if (nx && nx.el.isConnected) vPlay(nx.item, nx.el); }
     a.onended = done; a.onerror = done;
     var p = a.play(); if (p && p.catch) p.catch(done);      // the browser said no (no tap yet): stay quiet
+    vFollow(a, item, el);
+  }
+  function vWords(el) {                                       // each word of the line in its own span, for the read-along
+    if (el.querySelector(".cb-w")) return;
+    var w = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, null), list = [], n;
+    while ((n = w.nextNode())) if (n.nodeValue.trim() && !(n.parentElement && n.parentElement.closest(".cb-vbtn"))) list.push(n);
+    list.forEach(function (tn) {
+      var host = tn.parentElement;
+      if (/flex|grid/.test(getComputedStyle(host).display)) { // bare text in a flex or grid box: give it one inline home first
+        var wrap = h("span", { "class": "cb-vbtn-wrap" }); host.replaceChild(wrap, tn); wrap.appendChild(tn);
+      }
+      var frag = document.createDocumentFragment();
+      tn.nodeValue.split(/(\s+)/).forEach(function (part) {
+        if (!part) return;
+        frag.appendChild(/^\s+$/.test(part) ? document.createTextNode(part) : h("span", { "class": "cb-w", text: part }));
+      });
+      tn.parentNode.replaceChild(frag, tn);
+    });
   }
   function vAttach(el, b) {                                   // the button stays on the line's last word, whatever the layout
-    var w = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, null), tn = null, n;
-    while ((n = w.nextNode())) if (n.nodeValue.trim()) tn = n;
-    if (!tn) { el.appendChild(b); return; }
-    var host = tn.parentElement;
-    if (/flex|grid/.test(getComputedStyle(host).display)) {  // bare text in a flex or grid box: give it one inline home first
-      var wrap = h("span", { "class": "cb-vbtn-wrap" }); host.replaceChild(wrap, tn); wrap.appendChild(tn);
-    }
-    var cut = tn.nodeValue.replace(/\s+$/, "").lastIndexOf(" ") + 1, tail = cut > 0 ? tn.splitText(cut) : tn;
-    var glue = h("span", { "class": "cb-vbtn-glue" }); tail.parentNode.replaceChild(glue, tail); glue.appendChild(tail); glue.appendChild(b);
+    vWords(el);
+    var ws = el.querySelectorAll(".cb-w"), last = ws[ws.length - 1];
+    if (!last) { el.appendChild(b); return; }
+    var glue = h("span", { "class": "cb-vbtn-glue" }); last.parentNode.replaceChild(glue, last); glue.appendChild(last); glue.appendChild(b);
+  }
+  function vDirect(el) { for (var n = el.firstChild; n; n = n.nextSibling) if (n.nodeType === 3 && n.nodeValue.trim()) return true; return false; }
+  function vFind(el) {                                        // the clip for this element: its whole text, or a line it shows among other words
+    var t = vNorm(el.textContent); if (!t || t.length > 700) return null;
+    if (vIdx[t]) return vIdx[t];
+    if (!vDirect(el)) return null;
+    if (!vKeys) vKeys = Object.keys(vIdx).filter(function (k) { return k.length >= 12; }).sort(function (a, b) { return b.length - a.length; });
+    for (var i = 0; i < vKeys.length; i++) if (t.indexOf(vKeys[i]) >= 0) return vIdx[vKeys[i]];
+    return null;
   }
   function vScan(nodes) {
     if (!vIdx) return;
-    var best = {};                                            // per clip, the deepest element that shows its text
+    var hits = {};                                            // per clip, every element that shows its text or a part of it
+    function first(a, b) { return a.compareDocumentPosition(b) & 4 ? -1 : 1; }
     nodes.forEach(function (n) {
       if (!n || !n.querySelectorAll) return;
       [n].concat([].slice.call(n.querySelectorAll("p, h2, h3, span, li, div, strong, blockquote"))).forEach(function (el) {
-        if (el.closest(".cb-vbtn, .cb-live, .cb-vh, [hidden], [aria-hidden=\"true\"]")) return;   // never the hidden announcer or a decorative copy
-        var t = vNorm(el.textContent); if (!t || t.length > 700) return;
-        var item = vIdx[t]; if (!item || el.closest('[data-cb-voiced="' + item.f + '"]')) return;
-        var d = 0; for (var p = el; p && p !== root; p = p.parentNode) d++;
-        if (!best[item.f] || d > best[item.f].d) best[item.f] = { item: item, el: el, d: d };
+        if (el.closest(".cb-vbtn, .cb-w, .cb-vbtn-glue, .cb-live, .cb-vh, [hidden], [aria-hidden=\"true\"], [data-cb-novoice]")) return;
+        var item = vFind(el); if (!item || el.closest('[data-cb-voiced="' + item.f + '"]')) return;
+        (hits[item.f] = hits[item.f] || { item: item, els: [] }).els.push(el);
       });
     });
-    var found = Object.keys(best).map(function (k) { return best[k]; });
+    var found = Object.keys(hits).map(function (k) {          // a line told in two paragraphs reads and lights up as one
+      var all = hits[k].els, els = all.filter(function (e, i) { return all.indexOf(e) === i && !all.some(function (o) { return o !== e && e.contains(o); }); }).sort(first);
+      return { item: hits[k].item, el: els[els.length - 1], els: els };
+    });
     if (!found.length) return;
-    found.sort(function (a, b) { return a.el.compareDocumentPosition(b.el) & 4 ? -1 : 1; });
+    found.sort(function (a, b) { return first(a.els[0], b.els[0]); });
     found.forEach(function (f) {
-      f.el.setAttribute("data-cb-voiced", f.item.f);
-      if (f.el.closest("button")) return;                     // never a button inside a button: the line still plays
+      f.el._vParts = f.els;
+      f.els.forEach(function (e) { e.setAttribute("data-cb-voiced", f.item.f); if (e !== f.el) vWords(e); });
+      if (f.el.closest("button")) { vWords(f.el); return; }  // never a button inside a button: the line still plays and lights up
       vAttach(f.el, h("button", { type: "button", "class": "cb-vbtn", "aria-label": X.replay, title: X.replay,
         onclick: function (e) { e.stopPropagation(); vQueue = []; vPlay(f.item, f.el); } }, [ico("voice")]));
     });
-    if (!vOn || !acted) return;
+    if (!vOn || !acted || !CFG.auto) return;
     var now = performance.now();
     var nbs = found.filter(function (f) { return f.item.k === "nb"; }).length;   // a whole board of neighbors' lines: tap to hear each
     var play = found.filter(function (f) { return f.item.k === "nb" ? nbs <= 2 : !vHeard[f.item.f] || (vAudio && f.item.f === vLast.f); }).slice(0, 3);
     if (!play.length) return;
     if (vAudio && play[0].item.f === vLast.f && now - vLast.t < 30000) {   // the same line was redrawn: keep reading, follow the new copy
-      vEl = play[0].el; vMark(vEl, true); vQueue = play.slice(1); return;
+      vMark(vEl, false); vEl = play[0].el; vMark(vEl, true); vFollow(vAudio, play[0].item, vEl); vQueue = play.slice(1); return;
     }
     vStop(); vQueue = play.slice(1); vPlay(play[0].item, play[0].el);
   }
   function voiceBtn(iconOnly) {
     return h("button", { type: "button", "class": "cb-btn cb-btn--onstage cb-voice" + (iconOnly ? " cb-fs--icon" : ""), "aria-pressed": vOn ? "true" : "false",
-      "aria-label": X.voice, title: vOn ? X.voiceOn : X.voiceOff, onclick: function () {
-        vOn = !vOn; try { localStorage.setItem(VKEY, vOn ? "on" : "off"); } catch (e) { /* ignore */ }
-        if (!vOn) vStop();
-        [].forEach.call(root.querySelectorAll(".cb-voice"), function (b) {
-          b.setAttribute("aria-pressed", vOn ? "true" : "false"); b.title = vOn ? X.voiceOn : X.voiceOff;
-          var i = b.querySelector("svg"); if (i) b.replaceChild(ico(vOn ? "voice" : "voiceOff"), i);
-        });
-        say(vOn ? X.voiceOn : X.voiceOff);
-      } }, [ico(vOn ? "voice" : "voiceOff"), iconOnly ? null : h("span", { text: X.voice })]);
+      "aria-label": X.voice, title: (vOn ? X.voiceOn : X.voiceOff) + " (M)", onclick: function () { setVoice(!vOn, true); } },
+      [ico(vOn ? "voice" : "voiceOff"), iconOnly ? null : h("span", { text: X.voice })]);
   }
+  function setVoice(on, tell) {
+    vOn = CFG.voice = on; cfgSave();
+    if (!vOn) { vStop(); vInkClear(); }
+    [].forEach.call(root.querySelectorAll(".cb-voice"), function (b) {
+      b.setAttribute("aria-pressed", vOn ? "true" : "false"); b.title = (vOn ? X.voiceOn : X.voiceOff) + " (M)";
+      var i = b.querySelector("svg"); if (i) b.replaceChild(ico(vOn ? "voice" : "voiceOff"), i);
+    });
+    if (tell) say(vOn ? X.voiceOn : X.voiceOff);
+  }
+  function setCap(on, tell) {
+    CFG.cap = on; cfgSave();
+    if (vRead && !on && vRead.box === capBox) { vRead.box = null; cap.hidden = true; }
+    if (vRead && on && !vRead.box && vEl && !vEl.closest("dialog")) { vRead.box = capBox; vRead.ck = -1; cap.hidden = false; capDraw(vRead.cur); }
+    if (tell) say(on ? X.capOn : X.capOff);
+  }
+  function setBtn(iconOnly) {
+    return h("button", { type: "button", "class": "cb-btn cb-btn--onstage cb-setbtn" + (iconOnly ? " cb-fs--icon" : ""), "aria-label": X.settings, "aria-haspopup": "dialog",
+      title: X.settings + " (Esc)", onclick: function (e) { openSettings(e.currentTarget); } }, [ico("sliders"), iconOnly ? null : h("span", { text: X.settings })]);
+  }
+  function replayNow() {                                      // R: the line just read, or the first one on screen
+    if (vLastEl && vLastEl.isConnected && vLastItem) { vQueue = []; vPlay(vLastItem, vLastEl); return; }
+    var scope = root.querySelector("dialog[open]") || main;
+    var bs = [].slice.call(scope.querySelectorAll(".cb-vbtn")).filter(function (b) { var r = b.getBoundingClientRect(); return r.width > 0 && r.bottom > 0 && r.top < window.innerHeight; });
+    if (bs[0]) bs[0].click();
+  }
+
+  /* the Settings window: Voice, Captions, Helpers, Keys. Opening it pauses the voice; closing it picks up where it stopped. */
+  var setOpen = false;
+  function openSettings(opener, toKeys) {
+    if (setOpen) return;
+    setOpen = true; vLoad();
+    var held = vAudio && !vAudio.paused ? vAudio : null; if (held) held.pause();
+    var body = h("div", { "class": "cb-dlg__body cb-set" });
+    fillSettings(body);
+    var d = dialog(X.settings, [body], opener && opener.isConnected ? opener : null, function () {
+      setOpen = false;
+      if (held && vAudio === held && vEl && vEl.isConnected && vOn) { var p = held.play(); if (p && p.catch) p.catch(function () {}); }
+    }, { sub: X.setSub, closeLabel: mode === "stop" ? X.keepPlaying : null });
+    if (toKeys) { var k = d.querySelector(".cb-set__keys"); if (k) { k.focus({ preventScroll: true }); k.scrollIntoView({ block: "start", behavior: "auto" }); } }
+  }
+  function fillSettings(body) {
+    body.innerHTML = "";
+    function sec(icon, title, kids, cls) {
+      return h("section", { "class": "cb-set__sec" + (cls ? " " + cls : ""), tabindex: cls ? "-1" : null }, [h("h3", { "class": "cb-set__h" }, [ico(icon), h("span", { text: title })])].concat(kids));
+    }
+    function sw(label, hint, get, set, off) {               // an on/off switch with its label (and a short hint)
+      var id = "cb-set" + (++uid), b = h("button", { type: "button", role: "switch", id: id, "class": "cb-switch", "aria-describedby": hint ? id + "h" : null,
+        onclick: function () { if (!b.disabled) { set(!get()); paint(); } } }, [h("span", { "class": "cb-switch__track", "aria-hidden": "true" }, [h("span", { "class": "cb-switch__thumb" })]),
+        h("span", { "class": "cb-switch__state", "aria-hidden": "true" })]);
+      function paint() { var on = !!get(); b.setAttribute("aria-checked", on ? "true" : "false"); b.lastChild.textContent = on ? X.on : X.off; }
+      paint(); if (off) b.disabled = true;
+      return h("div", { "class": "cb-set__row" }, [h("div", { "class": "cb-set__txt" }, [h("label", { "for": id, text: label }), hint ? h("p", { "class": "cb-set__hint", id: id + "h", text: hint }) : null]), b]);
+    }
+    function seg(legend, vals, names, get, set) {            // one choice of a few, as a row of pills
+      var name = "cb-seg" + (++uid), row = h("div", { "class": "cb-seg__opts" });
+      vals.forEach(function (v, i) {
+        var inp = h("input", { type: "radio", name: name, value: String(v) }); inp.checked = get() === v;
+        inp.addEventListener("change", function () { if (inp.checked) set(v); });
+        row.appendChild(h("label", { "class": "cb-seg__opt" }, [inp, h("span", { text: names[i] })]));
+      });
+      return h("fieldset", { "class": "cb-seg" }, [h("legend", { text: legend }), row]);
+    }
+    var volId = "cb-set" + (++uid), vol = h("input", { type: "range", id: volId, "class": "cb-range", min: "0", max: "100", step: "10" });
+    var out = h("output", { "class": "cb-set__val", "for": volId, "aria-hidden": "true" });
+    function volPaint() { var p = Math.round(CFG.vol * 100); vol.value = String(p); vol.setAttribute("aria-valuetext", p + "%"); out.textContent = p + "%"; vol.style.setProperty("--p", p + "%"); }
+    vol.addEventListener("input", function () { CFG.vol = +vol.value / 100; if (vAudio) vAudio.volume = CFG.vol; volPaint(); cfgSave(); });
+    volPaint();
+    var sample = h("button", { type: "button", "class": "cb-btn cb-set__sample", onclick: function () {
+      if (vAudio && vEl === sample) { vStop(); return; }
+      vStop(); vPlay({ f: L + "/g-intro.mp3", k: "sample" }, sample);
+    } }, [ico("voice"), h("span", { "class": "cb-set__play", text: X.sample }), h("span", { "class": "cb-set__stop", text: X.sampleStop })]);
+    var preview = h("div", { "class": "cb-set__cap", "aria-hidden": "true", "data-cb-novoice": "", "data-size": CFG.capSize }, [h("p", { "class": "cb-cap__box" }, [
+      h("b", { "class": "cb-cap__who", text: X.guide }), h("span", { "class": "cb-cap__line", text: W.intro1.split(". ")[0] + "." })])]);
+    var keys = h("dl", { "class": "cb-keys" });
+    X.keys.forEach(function (k) {
+      keys.appendChild(h("dt", null, k[0].split("|").map(function (c) { return h("kbd", { text: c }); })));
+      keys.appendChild(h("dd", { text: k[1] }));
+    });
+    var reset = btn(X.reset, "cb-btn--quiet cb-set__reset", function () {
+      for (var k in CFG_DEF) CFG[k] = CFG_DEF[k];
+      cfgSave(); applyCalm(); setVoice(CFG.voice, false); setCap(CFG.cap, false); cap.setAttribute("data-size", CFG.capSize);
+      if (vAudio) { vAudio.volume = CFG.vol; vAudio.playbackRate = CFG.rate; }
+      fillSettings(body); say(X.resetDone);
+      var r = body.querySelector(".cb-set__reset"); if (r) r.focus();
+    }, "replay");
+    [sec("voice", X.secVoice, [
+        sw(X.voice, null, function () { return vOn; }, function (v) { setVoice(v, false); }),
+        sw(X.auto, X.autoHint, function () { return CFG.auto; }, function (v) { CFG.auto = v; cfgSave(); }),
+        h("div", { "class": "cb-set__row cb-set__row--vol" }, [h("label", { "class": "cb-set__lbl", "for": volId, text: X.vol }), h("div", { "class": "cb-set__volume" }, [vol, out])]),
+        seg(X.speed, RATES, X.speeds, function () { return CFG.rate; }, function (v) { CFG.rate = v; if (vAudio) vAudio.playbackRate = v; cfgSave(); }),
+        h("div", { "class": "cb-row" }, [sample])]),
+      sec("captions", X.secCap, [
+        sw(X.words, null, function () { return CFG.words; }, function (v) {
+          CFG.words = v; cfgSave();
+          if (!v && vRead) { if (vRead.on) vRead.on.classList.remove("is-now"); vRead.on = null; if (vRead.hud) vRead.hud.classList.remove("is-now"); }
+          if (vRead) vRead.cur = -2;                       // repaint on the next frame
+        }),
+        sw(X.capBar, X.capHint, function () { return CFG.cap; }, function (v) { setCap(v, false); }),
+        seg(X.capSize, SIZES, X.sizes, function () { return CFG.capSize; }, function (v) { CFG.capSize = v; cap.setAttribute("data-size", v); preview.setAttribute("data-size", v); cfgSave(); }),
+        preview]),
+      sec("hand", X.secHelp, [
+        canFS ? h("div", { "class": "cb-row" }, [btn(fsEl() ? X.fsOff : X.fsOn, "", function () {   // close Settings first: a full-screen game would cover it
+          var d = body.closest("dialog"); if (d) d.close(); toggleFS();
+        }, fsEl() ? "shrink" : "expand")]) : null,
+        sw(X.circles, X.circlesHint, function () { return CFG.circles; }, function (v) { CFG.circles = v; if (!v) vInkClear(); cfgSave(); }),
+        sw(X.calm, SYS_CALM ? X.calmSys : X.calmHint, function () { return SYS_CALM || CFG.calm; }, function (v) { CFG.calm = v; applyCalm(); cfgSave(); }, SYS_CALM)]),
+      sec("keys", X.secKeys, [h("p", { "class": "cb-set__hint", text: X.keysNote }), keys], "cb-set__keys"),
+      h("div", { "class": "cb-row cb-set__end" }, [reset])
+    ].forEach(function (s) { body.appendChild(s); });
+  }
+
+  /* standard game keys, only while the player is in the game (a tap or focus inside it), never while typing or in a window */
+  var keysLive = false;
+  document.addEventListener("pointerdown", function (e) { keysLive = root.contains(e.target); }, true);
+  document.addEventListener("focusin", function (e) { keysLive = root.contains(e.target); }, true);
+  document.addEventListener("keydown", function (e) {
+    if (e.defaultPrevented || e.ctrlKey || e.metaKey || e.altKey || e.isComposing) return;
+    if (!(keysLive || root.contains(document.activeElement) || fsEl() === root)) return;
+    var t = e.target, k = e.key && e.key.length === 1 ? e.key.toLowerCase() : e.key, act = null;
+    if (t && t.closest && t.closest("input, textarea, select, [contenteditable=''], [contenteditable='true']")) return;
+    if (root.querySelector("dialog[open]")) return;           // a window is open: Esc closes it, nothing else
+    if (k === "Escape") { if (t && t.classList && t.classList.contains("cb-stop")) return; act = function () { openSettings(root.contains(t) ? t : null); }; }
+    else if (k === "?") act = function () { openSettings(root.contains(t) ? t : null, true); };
+    else if (e.repeat) return;
+    else if (k === "m") act = function () { setVoice(!vOn, true); };
+    else if (k === "r") act = replayNow;
+    else if (k === "s") act = function () { if (vAudio) { vStop(); vInkClear(); } };
+    else if (k === "c") act = function () { setCap(!CFG.cap, true); };
+    else if (k === "f" && canFS) act = toggleFS;
+    if (!act) return;
+    e.preventDefault(); acted = true; act();
+  });
   new MutationObserver(function (recs) {
-    if (vEl && !vEl.isConnected) { vMark(vEl, false); vEl = null; }
+    if (vEl && !vEl.isConnected) { vUnread(); vMark(vEl, false); vEl = null; }
     var nodes = [];
     recs.forEach(function (r) {
+      if (r.target === cap || cap.contains(r.target)) return;   // the caption bar rewrites itself every few words
+      if (r.target.nodeType === 1 && r.target.closest(".cb-medal, [data-cb-novoice], .cb-live, .cb-vh")) return;
       [].forEach.call(r.addedNodes, function (n) {
-        if (n.nodeType === 1 && !n.classList.contains("cb-vbtn")) nodes.push(n);
-        else if (n.nodeType === 3 && n.parentElement) nodes.push(n.parentElement);   // a line rewritten in place
+        if (n.nodeType === 1 && !n.classList.contains("cb-vbtn") && !n.classList.contains("cb-w")) nodes.push(n);
+        else if (n.nodeType === 3 && n.parentElement && !n.parentElement.closest(".cb-w")) nodes.push(n.parentElement);   // a line rewritten in place
       });
     });
     if (nodes.length) { vLoad(); vScan(nodes); }
@@ -544,7 +927,7 @@
       h("div", null, [hd, opt.sub ? h("p", { "class": "cb-dlg__sub", text: opt.sub }) : null])]));
     body.forEach(function (b) { if (b) d.appendChild(b); });
     d.appendChild(h("p", { "class": "cb-live", "aria-live": "polite" }));
-    d.appendChild(h("div", { "class": "cb-dlg__foot" }, [btn(W.close, "cb-btn--primary", function () { d.close(); })]));
+    d.appendChild(h("div", { "class": "cb-dlg__foot" }, [btn(opt.closeLabel || W.close, "cb-btn--primary", function () { d.close(); })]));
     var cleaned = false, nativeClose = d.close.bind(d);
     function cleanup() {                       // synchronous and idempotent: never wait for the async close event
       if (cleaned) return; cleaned = true;
@@ -564,7 +947,7 @@
     grownBody(wrap, changed);
     dialog(W.grownups, [wrap], opener, function () {
       if (changed.on && mode === "map") {       // scores were erased or restored: redraw the town, keep focus on For grown-ups
-        showMap(); var g = main.querySelector(".cb-dock .cb-row .cb-btn:last-child"); if (g) { acted = true; g.focus(); }
+        showMap(); var g = main.querySelector(".cb-dock__grownups"); if (g) { acted = true; g.focus(); }
       }
     });
   }
@@ -641,7 +1024,7 @@
     var pl = player(), sug = nextSuggested(), openN = Object.keys(PLAYABLE).length, stampId = justDone;
     justDone = null;
     var canvas = h("div", { "class": "cb-world__canvas" }, [img("town-map", "", "cb-world__art", true)]);
-    var pan = h("div", { "class": "cb-world__pan" }, [canvas]);
+    var pan = h("div", { "class": "cb-world__pan", role: "region", "aria-label": W.mapHelp }, [canvas]);
     var world = h("div", { "class": "cb-world" }, [pan]);
     var svg = document.createElementNS(SVGNS, "svg");
     svg.setAttribute("viewBox", "0 0 1376 768"); svg.setAttribute("aria-hidden", "true"); svg.setAttribute("class", "cb-path");
@@ -694,7 +1077,7 @@
     canvas.addEventListener("keydown", function (e) { if (e.key === "Escape" && e.target.classList && e.target.classList.contains("cb-stop")) e.target.classList.add("is-quiet"); });
     canvas.addEventListener("focusout", function (e) { if (e.target.classList) e.target.classList.remove("is-quiet"); });
     if (msg) { var toast = h("p", { "class": "cb-toast", text: msg }); world.appendChild(toast); setTimeout(function () { if (toast.isConnected) toast.remove(); }, 5000); }
-    var journey = h("details", { "class": "cb-journey" }, [h("summary", null, [h("span", { text: W.open(openN) }), ico("go")])].concat(W.chapters.map(function (c, ci) {
+    var journey = h("details", { "class": "cb-journey" }, [h("summary", null, [h("span", { text: W.allStops }), ico("go")]), h("p", { "class": "cb-journey__help", text: W.journeyHelp })].concat(W.chapters.map(function (c, ci) {
       var ss = STOPS.filter(function (s) { return s.chap === ci + 1; }), done = ss.filter(function (s) { return rec(s.id, pl); }).length;
       var sec = h("section", { "class": "cb-chap" }, [h("h3", { "class": "cb-chap__h" }, [h("i", { "aria-hidden": "true" }), h("span", { text: (ci + 1) + ". " + c }), h("small", { text: X.of(done, ss.length) })]),
         h("ul", { "class": "cb-stops cb-stops--list" }, ss.map(function (s) { return token(s, false); }))]);
@@ -702,26 +1085,54 @@
       return sec;
     })));
     var lib = btn(W.library, "cb-btn--onstage", function () { openWho(lib); }, "people");
-    var gu = btn(W.grownups, "cb-btn--onstage", function () { openGrownups(gu); }, "family");
+    var gu = btn(W.grownups, "cb-btn--onstage cb-dock__grownups", function () { openGrownups(gu); }, "family");
     screen([h("h2", { "class": "cb-vh", text: W.series }), world, journey,
       h("div", { "class": "cb-dock" }, [h("p", { "class": "cb-dock__open", text: W.open(openN) }), h("div", { "class": "cb-row" }, [lib, gu])])]);
+    function edges() {
+      var m = pan.scrollWidth - pan.clientWidth;
+      if (m > 4) pan.setAttribute("tabindex", "0"); else pan.removeAttribute("tabindex");
+      world.classList.toggle("is-more-l", pan.scrollLeft > 6);
+      world.classList.toggle("is-more-r", pan.scrollLeft < m - 6);
+    }
+    pan.addEventListener("keydown", function (e) {
+      if (e.target !== pan || pan.scrollWidth <= pan.clientWidth + 4 || (e.key !== "ArrowLeft" && e.key !== "ArrowRight")) return;
+      e.preventDefault(); pan.scrollBy({ left: e.key === "ArrowLeft" ? -160 : 160, behavior: REDUCED ? "auto" : "smooth" });
+    });
+    pan.addEventListener("scroll", edges, { passive: true });
+    pan.addEventListener("focusin", function (e) {
+      var d = e.target.closest && e.target.closest(".cb-stop"); d = d && d.querySelector(".cb-stop__disc");
+      if (d) d.scrollIntoView({ inline: "nearest", block: "nearest", behavior: REDUCED ? "auto" : "smooth" });
+    });
     if (pan.scrollWidth > pan.clientWidth + 4) {          // narrow stage: start the pan on the next stop
       var focusStop = STOPS.filter(function (s) { return s.id === (sug || stampId); })[0] || STOPS[0];
       var target = Math.max(0, POS[focusStop.n - 1][0] / 100 * canvas.offsetWidth - pan.clientWidth / 2);
-      var edges = function () { var m = pan.scrollWidth - pan.clientWidth;
-        world.classList.toggle("is-more-l", pan.scrollLeft > 6); world.classList.toggle("is-more-r", pan.scrollLeft < m - 6); };
-      pan.addEventListener("scroll", edges, { passive: true });
-      pan.addEventListener("focusin", function (e) {
-        var d = e.target.closest && e.target.closest(".cb-stop"); d = d && d.querySelector(".cb-stop__disc");
-        if (d) d.scrollIntoView({ inline: "nearest", block: "nearest", behavior: REDUCED ? "auto" : "smooth" });
-      });
       if (!nudged && !REDUCED) {                              // once per visit: the town slides into place, so it reads as draggable
         nudged = true; pan.scrollLeft = Math.max(0, target - 90);
         requestAnimationFrame(function () { pan.scrollTo({ left: target, behavior: "smooth" }); });
       } else pan.scrollLeft = target;
-      edges();
     }
+    edges();
     frame(true);
+    function unblock() {                                      // the next stop's name plate never sits on another stop: if it would, it goes above its disc
+      var nx = canvas.querySelector('.cb-stop[data-state="next"]'), pl = nx && nx.querySelector(".cb-stop__plate");
+      if (!pl || !canvas.isConnected) return;
+      var discs = [].slice.call(canvas.querySelectorAll(".cb-stop__disc")).filter(function (d) { return !nx.contains(d); });
+      function hits() { var a = pl.getBoundingClientRect(); return discs.some(function (d) { var b = d.getBoundingClientRect();
+        return a.left < b.right + 4 && a.right > b.left - 4 && a.top < b.bottom + 4 && a.bottom > b.top - 4; }); }
+      nx.classList.remove("is-plate-up");
+      if (!hits()) return;
+      nx.style.setProperty("--cb-plate-h", pl.offsetHeight + "px"); nx.classList.add("is-plate-up");
+      if (hits()) nx.classList.remove("is-plate-up");          // no better place: keep it under the disc
+    }
+    unblock();
+    if (window.ResizeObserver) {
+      var mapObserver = new ResizeObserver(function () {
+        if (!canvas.isConnected) { mapObserver.disconnect(); return; }
+        edges(); unblock();
+      });
+      mapObserver.observe(canvas); mapObserver.observe(pan);
+    }
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(unblock);
     if (msg) say(msg);
   }
   function starRow(n) { var e = h("span", { "class": "cb-stars", "aria-hidden": "true" }); e.innerHTML = [0, 1, 2].map(function (i) { return i < n ? STAR_ON : STAR_OFF; }).join(""); return e; }
@@ -818,7 +1229,7 @@
           h("span", { "class": labelled ? "cb-step__lbl" : "cb-vh", text: lbl || String(i + 1) })]);
       })), cap ? h("p", { "class": labelled ? "cb-vh" : "cb-steps__cap", text: cap }) : null]);
     }
-    var hud = h("div", { "class": "cb-stophud" }, [h("div", { "class": "cb-stophud__tools" }, [(function () { var b = btn(W.townmap, "cb-btn--onstage cb-stophud__back", function () { showMap(); }, "back"); b.setAttribute("aria-label", W.townmap); return b; })(), voiceBtn(true), fsBtn(true)]), title, stepper]);
+    var hud = h("div", { "class": "cb-stophud" }, [h("div", { "class": "cb-stophud__tools" }, [(function () { var b = btn(W.townmap, "cb-btn--onstage cb-stophud__back", function () { showMap(); }, "back"); b.setAttribute("aria-label", W.townmap); return b; })(), languageBtn(), setBtn(true), voiceBtn(true), fsBtn(true)]), title, stepper]);
     hud.style.setProperty("--cb-chap", CHAP[stop.chap - 1]);
     return hud;
   }
@@ -843,7 +1254,7 @@
         h("p", { "class": "cb-card__meta" }, [h("span", { "class": "cb-card__stars", text: st ? W.stars(st) : W.goodStart }),
           h("span", { "class": "cb-card__best" }, [W.yourBest + " ", h("b", { text: String(info.best) }), " / 100"]),
           info.newBest ? h("span", { "class": "cb-card__new", text: W.newBest }) : null]),
-        info.first ? h("p", { "class": "cb-card__first", text: W.first }) : null,
+        info.first ? h("p", { "class": "cb-card__first", text: score === 100 ? W.perfect : W.first }) : null,
         h("div", { "class": "cb-tipcard" }, [ico("bulb"), h("p", { "class": "cb-card__tip", text: tip })]),
         h("div", { "class": "cb-tipcard cb-tipcard--real cb-card__real" }, [ico("home"), h("div", null, [h("strong", { text: W.tryReal }), h("p", { text: real })])]),
         extra || null])
@@ -1002,7 +1413,7 @@
         }));
         var nextQ = btn(W.next, "cb-btn--go cb-btn--big", function () { qi++; ask(); }, "go", true);
         screen([hud(2), h("div", { "class": "cb-board" }, [coach(S3.p3t + " " + S3.p3, "people"),
-          h("div", { "class": "cb-quoteblock" }, [h("p", { "class": "cb-linecount", text: S3.line(qi + 1) }), h("blockquote", { "class": "cb-bubble" }, [h("p", { text: t2(q[1]) })])]),
+          h("div", { "class": "cb-quoteblock", "data-cb-novoice": "" }, [h("p", { "class": "cb-linecount", text: S3.line(qi + 1) }), h("blockquote", { "class": "cb-bubble" }, [h("p", { text: t2(q[1]) })])]),
           grid,
           feedback ? h("div", { "class": "cb-actions" }, [h("div", { "class": "cb-actions__info" }, [fb(feedback, ok)]), nextQ]) : null])]);
         if (feedback) { say(feedback); nextQ.focus(); } else frame();
@@ -1076,7 +1487,7 @@
       peekBtn.setAttribute("aria-expanded", (c.peeked || done) ? "true" : "false"); peekBtn.setAttribute("aria-controls", "cb-peek");
       var baskets = h("div", { "class": "cb-baskets" }, ["fact", "rumor", "dontknow"].map(function (k) {
         var isR = done && c.right === k, mine = done && c.sorted === k && !isR;
-        var b = h("button", { type: "button", "class": "cb-basket" + (isR ? " is-right" : "") + (mine ? " is-chosen" : ""), "data-k": k, "aria-label": S4.put(S4.b[k]), "aria-disabled": done ? "true" : null,
+        var b = h("button", { type: "button", "class": "cb-basket" + (isR ? " is-right" : "") + (mine ? " is-chosen" : ""), "data-k": k, "aria-label": S4.put(S4.b[k]), disabled: done ? true : null,
           onclick: function () {
             if (c.sorted) return;
             c.sorted = k;
@@ -1127,7 +1538,7 @@
   function crop(rect, cls, kids) {
     var w = Math.max(0.2, Math.min(1, rect[2] - rect[0])), k = 1 / w;
     var ox = w >= 1 ? 0.5 : rect[0] / (1 - w), oy = w >= 1 ? 0.5 : Math.max(0, Math.min(1, rect[1] / (1 - w)));
-    var im = img("town-map", "", "cb-art__map cb-art__map--crop", true);
+    var im = img("town-map@2x", "", "cb-art__map cb-art__map--crop", true);   // the sharpened 2x painting: crops enlarge it
     var pos = (ox * 100).toFixed(2) + "% " + (oy * 100).toFixed(2) + "%";
     im.style.setProperty("object-position", pos); im.style.setProperty("transform-origin", pos); im.style.setProperty("transform", "scale(" + k.toFixed(3) + ")");
     return h("div", { "class": "cb-art" + (cls ? " " + cls : "") }, [im].concat(kids || []));

@@ -28,9 +28,11 @@
 /* ── the scene: a painted crop; "Last month" is the same road, older light and no new things ── */
 /* --s picture size, --bw word-board width, --bf word-board type size. overflow: clip, because a panel that can scroll
    (overflow: hidden) slides the spots off the picture when focus or find-in-page scrolls it */
-.cb-s01-scene { --s: clamp(76px, 7.6cqi, 96px); --bw: calc(var(--s) * 1.62); --bf: max(11px, calc(var(--s) * 0.15)); aspect-ratio: 21 / 10; overflow: clip; box-shadow: var(--cb-shadow-1); }
+.cb-s01-scene { --s: clamp(76px, 7.6cqi, 96px); --bw: calc(var(--s) * 1.62); --bf: max(11px, calc(var(--s) * 0.15)); --ar: 2.1; aspect-ratio: var(--ar); overflow: clip; box-shadow: var(--cb-shadow-1); }
+/* wide screens: the whole scene fits the window above the action bar, so no object hides under it (the scene keeps its shape and centres) */
+@container cb (min-width: 900px) { .cb-s01-scene { width: min(100%, calc((100svh - var(--cb-s01-chrome, 330px)) * var(--ar))); margin-inline: auto; } }
 .cb .cb-s01-scene .cb-art__map--crop { transition: filter 0.5s var(--cb-ease); }
-.cb .cb-s01-scene.is-past .cb-art__map--crop { filter: sepia(0.42) saturate(0.72) brightness(1.04); }
+.cb .cb-s01-scene.is-past .cb-art__map--crop { filter: sepia(0.2) saturate(0.9) contrast(1.02); }   /* a light old-photo tint: last month, still clear */
 .cb-s01-spots { position: absolute; inset: 0; margin: 0; padding: 0; list-style: none; transition: opacity 0.4s var(--cb-ease); }
 .cb-s01-scene.is-past .cb-s01-spots { visibility: hidden; opacity: 0; transition: opacity 0.2s, visibility 0s linear 0.2s; }
 .cb-s01-spots li { position: absolute; left: var(--x); top: var(--y); width: 0; height: 0; }
@@ -142,13 +144,13 @@
 /* ── short laptop screens (1366x768): the site keeps 76px above the stage, so the scene gives a little height back ── */
 @media (max-height: 820px) {
   .cb-s01-board { gap: 16px; }
-  .cb-s01-scene { --s: clamp(62px, 6.2cqi, 80px); aspect-ratio: 24 / 10; }
+  .cb-s01-scene { --s: clamp(62px, 6.2cqi, 80px); --ar: 2.4; }
   .cb-s01-spots li { top: var(--sy, var(--y)); }                 /* the river sits higher in the shorter crop: the bank row moves up with it */
 }
 
 /* ── narrower stages ── */
 @container cb (min-width: 600px) and (max-width: 899.98px) {
-  .cb-s01-scene { aspect-ratio: 4 / 3; }                           /* taller than 3:2, so the bank row and the road row keep apart */
+  .cb-s01-scene { --ar: 1.3333; }                           /* taller than 3:2, so the bank row and the road row keep apart */
   .cb-s01-spots li { top: var(--y); }
   .cb-s01-scene { --bf: calc(var(--s) * 0.135); }                /* the narrower tablet scene keeps compact boards */
   .cb-s01-stk--post { width: var(--bw); }
@@ -162,7 +164,7 @@
   .cb-s01-views { display: flex; width: 100%; }
   .cb-s01-view { flex: 1 1 auto; padding: 0 14px; }
   /* the scene turns tall so twelve 64px spots still fit without overlapping */
-  .cb-s01-scene { --s: 56px; --bw: 96px; --bf: 9.25px; aspect-ratio: 5 / 7.7; }   /* tall enough for three-line Spanish tags */
+  .cb-s01-scene { --s: 56px; --bw: 96px; --bf: 9.25px; --ar: 0.6494; }   /* tall enough for three-line Spanish tags */
   .cb-s01-stk--post { width: var(--bw); }
   /* a compact action bar: it stays on screen while the player scrolls the tall scene, so it should cover as little of it as it can */
   .cb-s01-board .cb-actions { gap: 10px; padding: 10px; }
@@ -180,7 +182,7 @@
 /* the narrowest phones (320-360px): two columns, six rows, a taller scene */
 @container cb (max-width: 419.98px) { .cb-s01-dots { display: none; } }   /* the words carry the count; the dots would add a row */
 @container cb (max-width: 349.98px) {
-  .cb-s01-scene { --bw: 112px; --bf: 9px; aspect-ratio: 1 / 2.55; }
+  .cb-s01-scene { --bw: 112px; --bf: 9px; --ar: 0.3922; }
   .cb-s01-tag { max-width: 124px; }                               /* two columns leave room for one-line tags */
   .cb-s01-spots li { left: var(--qx); top: var(--qy); }
   .cb .cb-s01-scene .cb-art__map--crop { transform: scale(2) !important; }   /* garden, river and road, without the town hall */

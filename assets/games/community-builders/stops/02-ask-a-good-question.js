@@ -1,6 +1,7 @@
 /* Community Builders of Pecan Grove · Stop 2 · Ask a Good Question / Haz una buena pregunta
    Skill: turn a worry into a clear, open, specific question someone can actually answer.
-   Words, worries, tiles, frames, rubric and tips come word for word from "02 - ask-a-good-question.md".
+   The worries come from "02 - ask-a-good-question.md"; open questions are authored for each worry so a clear-looking
+   sentence cannot earn full praise while missing what the neighbor actually wants to learn.
    Points reward the question only (topic +10, open start +8, fitting detail +7, per worry): never a side, never speed.
    After an answer that has tips, "Fix my question" brings the tiles back with the tips and the tile to try marked, so a tip is
    always something the player can act on. Only the first try of each worry counts for points; a fixed question replaces the
@@ -23,15 +24,16 @@
       boardK: function (n) { return "Your questions for the Planning Board: " + n + " of 4"; }, slotNow: "Your question goes here when you tap Ask it.",
       rows: { start: "1. Start: how you ask", topic: "2. Topic: what it's about", detail: "3. Detail: when or where" },
       worryN: function (n) { return "Worry " + n + " of 4"; },
-      ans3: "I can really use that answer. Thank you!", ans12: "That helps! It can be even clearer:", ans0: "Thanks for trying! Here's how to fix it:",
+      ans3: "I can really use that question. Thank you!", ans12: "Good try. Let's make the question fit my worry:", ans0: "Thanks for trying! Here's how to fix it:",
       topicOk: "Topic: yes, that's my worry.", topicNo: function (t) { return "Topic: my worry is about " + t + "."; },
-      startOk: "Start: it's open, so I'll get a real answer.", startWill: "Start: 'Will...' just gets a yes or a no. Try How much, When, Who or What happens if.",
+      startOk: "Start: an open question asks for information, not just yes or no.", startWill: "Start: 'Will...' just gets a yes or a no. Try How, When, Who or What happens if.",
       detOk: "Detail: now it's specific.", detNone: "Detail: add when or where to make it specific.",
+      detTopic: "Detail: choose my worry's topic first, then add a detail that fits.",
       detNo: function (d) { return "Detail: that one doesn't fit my worry. Try '" + d + "'."; },
       next: "Next worry", see: "See my score",
       fix: "Fix my question", fixCoach: "Use the tips to change your question. The tile with the dashed ring is one to try. Then tap Ask it.",
       can: "I can turn a worry into a clear question.",
-      tipTopic: "Next time, read the worry again and pick its topic.", tipWill: "Next time, start with How much, When, Who or What happens if.",
+      tipTopic: "Next time, read the worry again and pick its topic.", tipWill: "Next time, choose a start that asks for information, not just yes or no.",
       tipDetail: "Next time, add a detail that fits: when or where.", tip100: "Great questions! Try a new round.",
       real: "Write one good question about your town on paper. Ask a grown-up to help you find who could answer it.",
       gu: "Ask a grown-up",
@@ -45,15 +47,16 @@
       boardK: function (n) { return "Tus preguntas para la Junta de Planificación: " + n + " de 4"; }, slotNow: "Tu pregunta va aquí cuando tocas Pregúntalo.",
       rows: { start: "1. Inicio: cómo preguntas", topic: "2. Tema: de qué se trata", detail: "3. Detalle: cuándo o dónde" },
       worryN: function (n) { return "Preocupación " + n + " de 4"; },
-      ans3: "Esa respuesta de verdad me sirve. ¡Gracias!", ans12: "¡Eso ayuda! Puede ser todavía más clara:", ans0: "¡Gracias por intentarlo! Así la puedes arreglar:",
+      ans3: "Esa pregunta de verdad me sirve. ¡Gracias!", ans12: "Buen intento. Hagamos que la pregunta vaya con mi preocupación:", ans0: "¡Gracias por intentarlo! Así la puedes arreglar:",
       topicOk: "Tema: sí, eso es lo que me preocupa.", topicNo: function (t) { return "Tema: mi preocupación tiene que ver con " + t + "."; },
-      startOk: "Inicio: es abierta, así que me darán una respuesta de verdad.", startWill: "Inicio: '¿Va a...?' solo recibe un sí o un no. Prueba con ¿Cuánto?, ¿Cuándo?, ¿Quién? o ¿Qué pasa si?",
+      startOk: "Inicio: una pregunta abierta pide información, no solo sí o no.", startWill: "Inicio: '¿Va a...?' solo recibe un sí o un no. Prueba con ¿Cómo?, ¿Cuánto?, ¿Cuándo?, ¿Quién? o ¿Qué pasa si?",
       detOk: "Detalle: ahora es concreta.", detNone: "Detalle: agrega cuándo o dónde para que sea concreta.",
+      detTopic: "Detalle: primero elige el tema de mi preocupación y luego agrega un detalle que vaya con ella.",
       detNo: function (d) { return "Detalle: ese no va con mi preocupación. Prueba con '" + d + "'."; },
       next: "Siguiente preocupación", see: "Ver mi puntaje",
       fix: "Arreglar mi pregunta", fixCoach: "Usa los consejos para cambiar tu pregunta. La ficha con el borde punteado es una para probar. Luego toca Pregúntalo.",
       can: "Puedo convertir una preocupación en una pregunta clara.",
-      tipTopic: "La próxima vez, vuelve a leer la preocupación y elige su tema.", tipWill: "La próxima vez, empieza con ¿Cuánto?, ¿Cuándo?, ¿Quién? o ¿Qué pasa si?",
+      tipTopic: "La próxima vez, vuelve a leer la preocupación y elige su tema.", tipWill: "La próxima vez, elige un inicio que pida información, no solo sí o no.",
       tipDetail: "La próxima vez, agrega un detalle que vaya con la preocupación: cuándo o dónde.", tip100: "¡Muy buenas preguntas! Prueba una nueva ronda.",
       real: "Escribe en papel una buena pregunta sobre tu pueblo. Pídele a un adulto que te ayude a encontrar quién podría responderla.",
       gu: "Pregúntale a un adulto",
@@ -62,19 +65,20 @@
   }[L];
 
   /* tiles: [id, en, es]; topics also carry the fixed "How much" opening [en, es] */
-  var START = [["how", "How much...", "¿Cuánto...?"], ["when", "When...", "¿Cuándo...?"], ["who", "Who...", "¿Quién...?"],
+  var START = [["how", "How...", "¿Cómo...?"], ["when", "When...", "¿Cuándo...?"], ["who", "Who...", "¿Quién...?"],
     ["whatif", "What happens if...", "¿Qué pasa si...?"], ["will", "Will...", "¿Va a...?"]];
   var TOPIC = [
     ["water", "the water", "el agua", "How much water will it use", "¿Cuánta agua va a usar"],
     ["trucks", "the trucks", "los camiones", "How many trucks will there be", "¿Cuántos camiones va a haber"],
     ["noise", "the noise and lights at night", "el ruido y las luces de noche", "How much noise and light will there be at night", "¿Cuánto ruido y luz va a haber de noche"],
     ["jobs", "the jobs", "los empleos", "How many jobs will there be", "¿Cuántos empleos va a haber"],
-    ["bills", "power bills and rent", "el recibo de luz y la renta", "How much will power bills and rent go up", "¿Cuánto van a subir el recibo de luz y la renta"],
+    ["bills", "power bills and rent", "el recibo de luz y la renta", "How could power bills and rent change", "¿Cómo podrían cambiar el recibo de luz y la renta"],
     ["graves", "the old graves", "las tumbas antiguas", "How much land will they check for old graves", "¿Cuánto terreno van a revisar para buscar tumbas antiguas"],
     ["engines", "the backup engines", "los motores de respaldo", "How much smoke will the backup engines make", "¿Cuánto humo van a echar los motores de respaldo"]
   ];
   var DETAIL = [["d1", "on the hottest day", "en el día más caluroso"], ["d2", "after it opens", "después de que abra"], ["d3", "for people who live here", "para la gente de aquí"],
-    ["d4", "near the school", "cerca de la escuela"], ["d5", "before digging", "antes de excavar"], ["d6", "on Main Street", "en la calle principal"]];
+    ["d4", "near the school", "cerca de la escuela"], ["d5", "before digging", "antes de excavar"], ["d6", "on Main Street", "en la calle principal"],
+    ["d7", "during construction", "durante la construcción"]];
   var POOL = { start: START, topic: TOPIC, detail: DETAIL };
   /* the question is built from fixed frames, never by joining tiles; {d} is " detail" or nothing */
   var FRAME = {
@@ -84,19 +88,102 @@
     will: ["Will everything be OK with {t}{d}?", "¿Va a estar todo bien con {t}{d}?"]
   };
 
+  /* Every open start has an authored purpose for the current worry: a measurement, schedule, responsible person,
+     or response to a problem. Generic frames are only a preview for a different topic, and cannot earn full praise.
+     These new, variable questions and feedback are text-only (data-cb-novoice); existing worry and coach clips stay
+     intact. Do not attach an old recording to new words, or offer a replay button for an unavailable recording. */
+  var QUESTIONS = {
+    "A-lee": {
+      how: ["How often will the backup engines be tested{d}?", "¿Cada cuánto van a probar los motores de respaldo{d}?"],
+      when: ["When will the backup engines run for testing, and how often will that happen{d}?", "¿Cuándo van a probar los motores de respaldo y cada cuánto lo van a hacer{d}?"],
+      who: ["Who will share the backup engines' testing schedule{d}?", "¿Quién va a compartir el calendario de pruebas de los motores de respaldo{d}?"],
+      whatif: ["What happens if the backup engines run more often than planned{d}?", "¿Qué pasa si los motores de respaldo funcionan más seguido de lo previsto{d}?"]
+    },
+    "A-johnson": {
+      how: ["How will mud be kept out of the creek and nearby wells{d}?", "¿Cómo van a evitar que el lodo llegue al arroyo y a los pozos cercanos{d}?"],
+      when: ["When will the creek and nearby wells be checked for mud{d}?", "¿Cuándo van a revisar si hay lodo en el arroyo y en los pozos cercanos{d}?"],
+      who: ["Who will check that mud stays out of the creek and nearby wells{d}?", "¿Quién va a revisar que el lodo no llegue al arroyo ni a los pozos cercanos{d}?"],
+      whatif: ["What happens if mud reaches the creek or nearby wells{d}?", "¿Qué pasa si el lodo llega al arroyo o a los pozos cercanos{d}?"]
+    },
+    "A-ana": {
+      how: ["How many jobs will last beyond construction{d}?", "¿Cuántos empleos van a seguir después de la construcción{d}?"],
+      when: ["When will jobs that continue after construction be listed{d}?", "¿Cuándo van a publicar cuáles empleos van a seguir después de la construcción{d}?"],
+      who: ["Who can explain which jobs will continue after construction{d}?", "¿Quién puede explicar cuáles empleos van a seguir después de la construcción{d}?"],
+      whatif: ["What happens if construction jobs end and workers need another job{d}?", "¿Qué pasa si se acaban los empleos de construcción y los trabajadores necesitan otro empleo{d}?"]
+    },
+    "A-ruth": {
+      how: ["How will the land be checked for old graves{d}?", "¿Cómo van a revisar el terreno para buscar tumbas antiguas{d}?"],
+      when: ["When will a search for old graves be completed{d}?", "¿Cuándo van a terminar de buscar tumbas antiguas{d}?"],
+      who: ["Who will search the land for old graves{d}?", "¿Quién va a buscar tumbas antiguas en el terreno{d}?"],
+      whatif: ["What happens if someone finds an old grave{d}?", "¿Qué pasa si alguien encuentra una tumba antigua{d}?"]
+    },
+    "A-patel": {
+      how: ["How many construction trucks will travel{d}?", "¿Cuántos camiones de construcción van a circular{d}?"],
+      when: ["When will construction trucks be allowed to travel{d}?", "¿Cuándo van a poder circular los camiones de construcción{d}?"],
+      who: ["Who will plan safe routes for construction trucks{d}?", "¿Quién va a planear rutas seguras para los camiones de construcción{d}?"],
+      whatif: ["What happens if construction trucks block traffic{d}?", "¿Qué pasa si los camiones de construcción bloquean el tráfico{d}?"]
+    },
+    "A-jayden": {
+      how: ["How will young people get training for jobs that stay in town{d}?", "¿Cómo van a recibir capacitación los jóvenes para empleos que se queden en el pueblo{d}?"],
+      when: ["When can young people apply for training and jobs in town{d}?", "¿Cuándo pueden los jóvenes solicitar capacitación y empleos en el pueblo{d}?"],
+      who: ["Who will help young people find training and jobs in town{d}?", "¿Quién va a ayudar a los jóvenes a encontrar capacitación y empleos en el pueblo{d}?"],
+      whatif: ["What happens if young people cannot get the training they need for local jobs{d}?", "¿Qué pasa si los jóvenes no consiguen la capacitación que necesitan para los empleos locales{d}?"]
+    },
+    "B-lee": {
+      how: ["How will bright outdoor lights be kept out of bedrooms{d}?", "¿Cómo van a evitar que las luces fuertes de afuera alumbren los cuartos{d}?"],
+      when: ["When will outdoor lights be dimmed at night{d}?", "¿Cuándo van a bajar la intensidad de las luces de afuera por la noche{d}?"],
+      who: ["Who will check that outdoor lights stay out of bedrooms{d}?", "¿Quién va a revisar que las luces de afuera no alumbren los cuartos{d}?"],
+      whatif: ["What happens if outdoor lights shine into bedrooms{d}?", "¿Qué pasa si las luces de afuera alumbran los cuartos{d}?"]
+    },
+    "B-johnson": {
+      how: ["How will nearby wells be tested and the results shared{d}?", "¿Cómo van a analizar el agua de los pozos cercanos y compartir los resultados{d}?"],
+      when: ["When will nearby wells be tested{d}?", "¿Cuándo van a analizar el agua de los pozos cercanos{d}?"],
+      who: ["Who will test nearby wells and share the results{d}?", "¿Quién va a analizar el agua de los pozos cercanos y compartir los resultados{d}?"],
+      whatif: ["What happens if a well has not been tested{d}?", "¿Qué pasa si todavía no han analizado el agua de un pozo{d}?"]
+    },
+    "B-ana": {
+      how: ["How will mud be kept out of the creek where families fish{d}?", "¿Cómo van a evitar que el lodo llegue al arroyo donde pescan las familias{d}?"],
+      when: ["When will the creek be checked for mud{d}?", "¿Cuándo van a revisar si hay lodo en el arroyo{d}?"],
+      who: ["Who will check the creek for mud and tell families if it is safe to fish{d}?", "¿Quién va a revisar si hay lodo en el arroyo y decirles a las familias si es seguro pescar{d}?"],
+      whatif: ["What happens if mud reaches the creek where families fish{d}?", "¿Qué pasa si el lodo llega al arroyo donde pescan las familias{d}?"]
+    },
+    "B-ruth": {
+      how: ["How much could the project change household power bills{d}?", "¿Cuánto podría cambiar el proyecto los recibos de luz de las familias{d}?"],
+      when: ["When will households learn whether the project could change their power bills{d}?", "¿Cuándo van a saber las familias si el proyecto podría cambiar sus recibos de luz{d}?"],
+      who: ["Who can explain whether the project could change household power bills{d}?", "¿Quién puede explicar si el proyecto podría cambiar los recibos de luz de las familias{d}?"],
+      whatif: ["What happens if household power bills rise because of the project{d}?", "¿Qué pasa si los recibos de luz de las familias suben por el proyecto{d}?"]
+    },
+    "B-patel": {
+      how: ["How could construction affect shop rents{d}?", "¿Cómo podría afectar la construcción la renta de los locales{d}?"],
+      when: ["When will shop owners learn about possible rent changes{d}?", "¿Cuándo van a saber los dueños de los locales si podría cambiar la renta{d}?"],
+      who: ["Who can help shop owners understand possible rent changes{d}?", "¿Quién puede ayudar a los dueños de los locales a entender los posibles cambios en la renta{d}?"],
+      whatif: ["What happens if shop rents rise{d}?", "¿Qué pasa si sube la renta de los locales{d}?"]
+    },
+    "B-jayden": {
+      how: ["How will nighttime noise be measured and kept low enough for sleep{d}?", "¿Cómo van a medir el ruido nocturno y mantenerlo lo bastante bajo para dormir{d}?"],
+      when: ["When will nighttime noise be measured{d}?", "¿Cuándo van a medir el ruido nocturno{d}?"],
+      who: ["Who will check nighttime noise and respond to neighbors{d}?", "¿Quién va a revisar el ruido nocturno y responderles a los vecinos{d}?"],
+      whatif: ["What happens if a nighttime hum keeps neighbors awake{d}?", "¿Qué pasa si un zumbido nocturno no deja dormir a los vecinos{d}?"]
+    }
+  };
+  var HOW_START = {
+    "A-lee": ["How often...", "¿Cada cuánto...?"], "A-ana": ["How many...", "¿Cuántos...?"],
+    "A-patel": ["How many...", "¿Cuántos...?"], "B-ruth": ["How much...", "¿Cuánto...?"]
+  };
+
   /* the 12 Stop 3 worries, word for word: [id, neighbor, set, topic, details that fit, [en, es]] */
   var WORRIES = [
     ["A-lee", "lee", "A", "engines", ["d2", "d4"], ["I worry the big backup engines could make smoky air. I want to know how often they run.", "Me preocupa que los grandes motores de respaldo echen humo. Quiero saber cada cuánto los prenden."]],
-    ["A-johnson", "johnson", "A", "water", ["d3", "d5"], ["I worry mud could reach the creek and my well.", "Me preocupa que el lodo llegue al arroyo y a mi pozo."]],
+    ["A-johnson", "johnson", "A", "water", ["d5", "d7"], ["I worry mud could reach the creek and my well.", "Me preocupa que el lodo llegue al arroyo y a mi pozo."]],
     ["A-ana", "ana", "A", "jobs", ["d2", "d3"], ["I worry the jobs will end when the building is done.", "Me preocupa que los empleos se acaben cuando terminen de construir."]],
     ["A-ruth", "ruth", "A", "graves", ["d5"], ["I worry old graves could be hidden on the farm. I want someone to look before digging.", "Me preocupa que haya tumbas antiguas escondidas en la granja. Quiero que alguien las busque antes de excavar."]],
-    ["A-patel", "patel", "A", "trucks", ["d4", "d6"], ["I worry big trucks will crowd Main Street for months.", "Me preocupa que los camiones grandes llenen la calle principal por meses."]],
+    ["A-patel", "patel", "A", "trucks", ["d6", "d7"], ["I worry big trucks will crowd Main Street for months.", "Me preocupa que los camiones grandes llenen la calle principal por meses."]],
     ["A-jayden", "jayden", "A", "jobs", ["d2", "d3"], ["I worry young people will move away to find work.", "Me preocupa que los jóvenes se vayan a buscar trabajo a otro lado."]],
     ["B-lee", "lee", "B", "noise", ["d2", "d3"], ["I worry bright lights all night could shine into bedrooms.", "Me preocupa que las luces fuertes toda la noche alumbren los cuartos."]],
     ["B-johnson", "johnson", "B", "water", ["d5"], ["I worry no one will test my well before they dig.", "Me preocupa que nadie revise mi pozo antes de excavar."]],
-    ["B-ana", "ana", "B", "water", ["d3", "d5"], ["I worry the creek could get muddy. I fish there with my kids.", "Me preocupa que el arroyo se llene de lodo. Ahí pesco con mis hijos."]],
+    ["B-ana", "ana", "B", "water", ["d5", "d7"], ["I worry the creek could get muddy. I fish there with my kids.", "Me preocupa que el arroyo se llene de lodo. Ahí pesco con mis hijos."]],
     ["B-ruth", "ruth", "B", "bills", ["d2", "d3"], ["I worry my power bill will go up.", "Me preocupa que suba mi recibo de luz."]],
-    ["B-patel", "patel", "B", "bills", ["d3", "d6"], ["I worry the rent for my shop will go up while they build.", "Me preocupa que suba la renta de mi local mientras construyen."]],
+    ["B-patel", "patel", "B", "bills", ["d7", "d6"], ["I worry the rent for my shop will go up while they build.", "Me preocupa que suba la renta de mi local mientras construyen."]],
     ["B-jayden", "jayden", "B", "noise", ["d2", "d3"], ["I worry a hum at night could keep my little sister awake.", "Me preocupa que un zumbido de noche no deje dormir a mi hermanita."]]
   ].map(function (w) { return { id: w[0], nb: w[1], set: w[2], topic: w[3], d: w[4], text: w[5][I] }; });
 
@@ -107,20 +194,26 @@
   var CROP = { scene: [0.335, 0.2, 0.665, 0.53], centred: [0.335, 0.26, 0.665, 0.59] };   // the clock-tower building and its wide steps
 
   function word(pool, id) { var t = pool.filter(function (x) { return x[0] === id; })[0]; return t ? t[1 + I] : ""; }
-  function question(s, t, d) {
-    if (!s) return "";
-    if (!t) return word(START, s);                                       // only Start picked: show the Start tile words
+  function startWord(w, id) { return id === "how" && HOW_START[w.id] ? HOW_START[w.id][I] : word(START, id); }
+  function question(w, s, t, d) {
+    if (!word(START, s)) return "";
+    if (!t) return startWord(w, s);                                     // only Start picked: show the Start tile words
+    var topic = TOPIC.filter(function (x) { return x[0] === t; })[0];
+    if (!topic) return "";
     var dd = d ? " " + word(DETAIL, d) : "";
-    if (s === "how") return TOPIC.filter(function (x) { return x[0] === t; })[0][3 + I] + dd + "?";
+    var authored = t === w.topic && QUESTIONS[w.id] && QUESTIONS[w.id][s];
+    if (authored) return authored[I].replace("{d}", dd);
+    if (s === "how") return topic[3 + I] + dd + "?";
     return FRAME[s][I].replace("{t}", word(TOPIC, t)).replace("{d}", dd);
   }
   function judge(w, a) {
-    var tOk = a.topic === w.topic, sOk = a.start !== "will", dOk = !!a.detail && w.d.indexOf(a.detail) !== -1, good = tOk + sOk + dOk;
+    var tOk = a.topic === w.topic, sOk = ["how", "when", "who", "whatif"].indexOf(a.start) !== -1,
+      dOk = tOk && !!a.detail && w.d.indexOf(a.detail) !== -1, good = tOk + sOk + dOk;
     return {
       pts: (tOk ? 10 : 0) + (sOk ? 8 : 0) + (dOk ? 7 : 0), tOk: tOk, sOk: sOk, dOk: dOk,
       line: good === 3 ? T.ans3 : good ? T.ans12 : T.ans0,
       notes: [[tOk, tOk ? T.topicOk : T.topicNo(word(TOPIC, w.topic))], [sOk, sOk ? T.startOk : T.startWill],
-        [dOk, dOk ? T.detOk : !a.detail ? T.detNone : T.detNo(word(DETAIL, w.d[0]))]]
+        [dOk, dOk ? T.detOk : !tOk ? T.detTopic : !a.detail ? T.detNone : T.detNo(word(DETAIL, w.d[0]))]]
     };
   }
 
@@ -187,7 +280,7 @@
     /* ── the question board: the four asked questions, each with a Pecan Sticker ── */
     function boardCard(fresh) {
       var bid = "cb-s02-bk" + (++uid);
-      return h("section", { "class": "cb-s02-boardwrap", "aria-labelledby": bid }, [h("p", { "class": "cb-s02-board__k", id: bid, text: T.boardK(answers.length) }),
+      return h("section", { "class": "cb-s02-boardwrap", "aria-labelledby": bid, "data-cb-novoice": "" }, [h("p", { "class": "cb-s02-board__k", id: bid, text: T.boardK(answers.length) }),
         h("ol", { "class": "cb-s02-board" }, [0, 1, 2, 3].map(function (i) {
           var a = answers[i], now = i === wi && !a;
           if (!a) return h("li", { "class": "is-empty" + (now ? " is-now" : ""), "aria-hidden": "true" }, [sticker(true), now ? h("p", { "class": "cb-s02-board__hint", text: T.slotNow }) : h("span"), api.img(speakers[i].img, "", "cb-s02-board__face", true)]);
@@ -220,11 +313,12 @@
       sel = prev ? { start: prev.start, topic: prev.topic, detail: prev.detail } : { start: null, topic: null, detail: null };
       var hint = { start: null, topic: null, detail: null };
       if (lastR) {
+        if (!lastR.sOk) hint.start = "how";
         if (!lastR.tOk) hint.topic = round[wi].topic;
         if (!lastR.dOk) hint.detail = round[wi].d[0];
       }
       var born = Date.now(), fresh = function () { return Date.now() - born < 300; };   // the second half of a double tap on the last screen's button
-      var lineEl = h("p", { "class": "cb-s02-q__line is-empty", id: "cb-s02-q" });
+      var lineEl = h("p", { "class": "cb-s02-q__line is-empty", id: "cb-s02-q", "data-cb-novoice": "" });
       var overBtn = api.btn(T.over, "cb-btn--quiet", function () { if (overBtn.getAttribute("aria-disabled") === "true") return; sel = { start: null, topic: null, detail: null }; refresh(); }, "replay");
       var askBtn = api.btn(T.ask, "cb-btn--go cb-btn--big cb-s02-ask", function () { if (!fresh()) ask(); }, "chat");
       askBtn.setAttribute("aria-describedby", "cb-s02-q");
@@ -233,7 +327,7 @@
         var lid = "cb-s02-r" + (++uid);
         var tiles = h("div", { "class": "cb-s02-tiles" }, orders[wi][row].map(function (id) {
           return h("button", { type: "button", "class": "cb-s02-tile" + (hint[row] === id ? " is-hint" : ""), "aria-pressed": "false", "data-row": row, "data-id": id, onclick: function () { if (!fresh()) pick(row, id); } }, [
-            h("span", { text: word(POOL[row], id) }), h("span", { "class": "cb-s02-tile__ck", "aria-hidden": "true" }, [api.ico("check")])]);
+            h("span", { text: row === "start" ? startWord(round[wi], id) : word(POOL[row], id) }), h("span", { "class": "cb-s02-tile__ck", "aria-hidden": "true" }, [api.ico("check")])]);
         }));
         var fixRow = lastR && (row === "start" ? !lastR.sOk : row === "topic" ? !lastR.tOk : !lastR.dOk);
         return h("div", { "class": "cb-s02-row" + (fixRow ? " is-needed" : ""), role: "group", "aria-labelledby": lid, "data-row": row }, [
@@ -242,7 +336,7 @@
       var tray = h("div", { "class": "cb-s02-tray" }, rows.concat([h("div", { "class": "cb-s02-tray__foot" }, [overBtn])]));
       var coachEl = api.coach(lastR ? T.fixCoach : T.coachFor(api.nm(speakers[wi])), "chat");    // the instruction names whose worry it is
       if (lastR) {                                                      // fixing: the neighbor's tips stay in view above the tiles
-        var tips = h("ul", { "class": "cb-s02-notes cb-s02-tips" }, lastR.notes.filter(function (x) { return !x[0]; }).map(function (x) {
+        var tips = h("ul", { "class": "cb-s02-notes cb-s02-tips", "data-cb-novoice": "" }, lastR.notes.filter(function (x) { return !x[0]; }).map(function (x) {
           return h("li", null, [api.ico("bulb"), h("span", { text: x[1] })]); }));
         coachEl = h("div", { "class": "cb-s02-fixhead" }, [coachEl, tips]);
       }
@@ -262,7 +356,7 @@
         [].forEach.call(tray.querySelectorAll(".cb-s02-tile"), function (b) {
           b.setAttribute("aria-pressed", sel[b.getAttribute("data-row")] === b.getAttribute("data-id") ? "true" : "false");
         });
-        var q = question(sel.start, sel.topic, sel.detail);
+        var q = question(round[wi], sel.start, sel.topic, sel.detail);
         lineEl.textContent = q; lineEl.classList.toggle("is-empty", !q);
         askBtn.setAttribute("aria-disabled", sel.start && sel.topic ? "false" : "true");
         overBtn.setAttribute("aria-disabled", sel.start || sel.topic || sel.detail ? "false" : "true");
@@ -282,12 +376,12 @@
           api.say(T.coachFor(api.nm(speakers[wi]))); return;
         }
         var w = round[wi], n = speakers[wi], a = { w: w.id, start: sel.start, topic: sel.topic, detail: sel.detail };
-        a.q = question(a.start, a.topic, a.detail);
+        a.q = question(w, a.start, a.topic, a.detail);
         var r = judge(w, a), first = answers[wi];
         if (first) {                                                      // a fixed question: new words and a new answer, same points
           first.q = a.q; first.start = a.start; first.topic = a.topic; first.detail = a.detail; first.fixed = r;
         } else { a.pts = r.pts; a.r = r; answers.push(a); }
-        var talk = h("div", { "class": "cb-s02-talk", role: "group", "aria-label": api.nmCap(n), tabindex: "-1", "data-s02": "answer" }, [
+        var talk = h("div", { "class": "cb-s02-talk", role: "group", "aria-label": api.nmCap(n), tabindex: "-1", "data-s02": "answer", "data-cb-novoice": "" }, [
           h("p", { "class": "cb-s02-you", text: a.q }),
           h("div", { "class": "cb-s02-reply" }, [api.img(n.img, "", "cb-s02-reply__face", true), h("p", { "class": "cb-s02-reply__line", text: r.line }),
             h("ul", { "class": "cb-s02-notes" }, r.notes.map(function (x) { return h("li", { "class": x[0] ? "is-ok" : null }, [api.ico(x[0] ? "check" : "bulb"), h("span", { text: x[1] })]); }))])]);
@@ -351,11 +445,11 @@
     function finish() {
       var score = answers.reduce(function (s, a) { return s + a.pts; }, 0);
       var tip = answers.some(function (a) { return !a.r.tOk; }) ? T.tipTopic
-        : answers.some(function (a) { return a.start === "will"; }) ? T.tipWill
+        : answers.some(function (a) { return !a.r.sOk; }) ? T.tipWill
         : answers.some(function (a) { return !a.r.dOk; }) ? T.tipDetail : T.tip100;
       var info = api.saveRound(stop.id, score, { lastRound: round.map(function (w) { return w.id; }), lastOrder: round.map(function (w) { return w.nb; }) });
       api.endPlay();
-      var list = h("div", { "class": "cb-s02-asked" + (score >= 90 ? " is-3" : "") }, [h("ul", null, answers.map(function (a, i) {
+      var list = h("div", { "class": "cb-s02-asked" + (score >= 90 ? " is-3" : ""), "data-cb-novoice": "" }, [h("ul", null, answers.map(function (a, i) {
         return h("li", null, [sticker(false), api.img(speakers[i].img, "", "cb-s02-asked__face"), h("q", { text: a.q })]);
       }))]);
       var gu = api.btn(T.gu, "cb-btn--quiet", function () { api.dialog(T.gu, [h("p", { text: T.guText })], gu); }, "family");
