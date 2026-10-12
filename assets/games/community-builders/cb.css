@@ -586,6 +586,12 @@
 .cb-dlg__sub { margin: 4px 0 0; font-weight: 600; color: var(--cb-ink-3); }
 .cb-dlg__lead { font-size: 1.125rem; font-weight: 620; }
 .cb-dlg__body { display: grid; gap: 14px; }
+.cb-library__groups { padding-top: 16px; border-top: 1px solid var(--cb-line); }
+.cb-library__groups h3 { margin: 0 0 8px; font-size: 1.125rem; color: var(--cb-ink); }
+.cb-library__groups .cb-btn { margin-top: 12px; }
+.cb-library__status:empty { display: none; }
+.cb-library__status { padding: 12px 16px; border-radius: 12px; background: var(--cb-pine-soft); font-weight: 650; }
+.cb-vbtn:disabled, .cb-set__sample:disabled { opacity: .45; cursor: default; }
 .cb-dlg p { margin: 0 0 12px; }
 .cb-dlg__body p, .cb-dlg__head p { margin-bottom: 0; }
 .cb-dlg__foot { display: flex; justify-content: flex-end; gap: 10px; margin-top: 22px; padding-top: 16px; border-top: 1px solid var(--cb-line); }

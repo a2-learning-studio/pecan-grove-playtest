@@ -224,19 +224,24 @@
     function el(id) { return document.getElementById("pt-feedback-" + id); }
     var form = el("form"), stop = el("stop"), rating = el("rating"), category = el("category"), worked = el("worked"), fix = el("fix"), status = el("status"), list = el("entries"), context = el("context"), player = el("player");
     if (!form || !stop || !rating || !category || !worked || !fix || !status || !list) return null;
-    var contextStop = 0, saveTimer = null, syncTimer = null, inflight = false, retry = false, recentScore = null, staleArchived = false;
+    var contextStop = 0, saveTimer = null, syncTimer = null, inflight = false, retry = false, recentScore = null, staleArchived = false, sessionReloading = false;
+    var newDialog = document.getElementById("pt-new-player-dialog"), newTitle = document.getElementById("pt-new-player-title"), newMessage = document.getElementById("pt-new-player-message"), newCancel = document.getElementById("pt-new-player-cancel"), newConfirm = document.getElementById("pt-new-player-confirm"), newOpener = null, newVoiceSuspended = false;
+    var useNewDialog = !!(newDialog && typeof newDialog.showModal === "function" && newTitle && newMessage && newCancel && newConfirm);
     function label(n) { return n ? W.stop + " " + n : W.general; }
     function setStatus() {
       if (model.changedSession()) {
+        closeNewPlayerDialog();
         if (!staleArchived) {
           var fields = { rating: rating.value, category: category.value, worked: worked.value, fix: fix.value, language: lang };
           if (model.find("feedback", contextStop) || fields.rating || fields.category || fields.worked.trim() || fields.fix.trim()) model.stash("feedback", contextStop, fields);
           staleArchived = model.archive();
         }
         if (!staleArchived || model.warning()) { status.textContent = W.storage; return; }
-        status.textContent = W.changed; window.location.reload(); return;
+        status.textContent = W.changed;
+        if (!sessionReloading) { sessionReloading = true; window.location.reload(); }
+        return;
       }
-      if (model.warning()) { status.textContent = W.storage; return; }
+      if (model.warning()) { status.textContent = W.storage; if (useNewDialog && newDialog.open) newMessage.textContent = W.storage; return; }
       var pending = model.pending().some(function (e) { return e.sessionId === model.active(); });
       status.textContent = (model.recovery ? W.recovery : "") + (!endpointAllowed(endpoint) ? W.local : (pending ? (retry ? W.failed : W.queued) : W.synced));
     }
@@ -280,6 +285,7 @@
       finally { window.clearTimeout(timeout); inflight = false; render(); if (model.pending().length) scheduleSync(retry ? 60000 : 300); }
     }
     form.addEventListener("submit", function (e) { e.preventDefault(); flush(); scheduleSync(0); });
+    document.addEventListener("pt:feedback-flush", flush);
     [rating, category, worked, fix].forEach(function (input) { input.addEventListener("input", function () { window.clearTimeout(saveTimer); saveTimer = window.setTimeout(flush, 350); }); input.addEventListener("change", flush); });
     stop.addEventListener("change", function () { var n = Math.max(0, Math.min(15, Number(stop.value) || 0)); flush(); loadContext(n); });
     document.addEventListener("cb:screen", function (event) {
@@ -290,12 +296,45 @@
         if (recentScore !== marker) { model.upsert("progress", n, { score: d.score, phase: "result", language: lang }); recentScore = marker; render(); scheduleSync(); }
       }
     });
-    function newPlayer() {
+    function suspendNewPlayerVoice(suspended) {
+      if (newVoiceSuspended === suspended) return;
+      newVoiceSuspended = suspended;
+      var keepPaused = suspended || (game && game.getAttribute("data-playtest-paused") === "true") || (document.querySelector && document.querySelector("#pt-review-dialog[open]:not(.is-floating)"));
+      if (window.CommunityBuilders && typeof window.CommunityBuilders.suspendVoice === "function") window.CommunityBuilders.suspendVoice(!!keepPaused);
+    }
+    function restoreNewPlayerFocus() {
+      var opener = newOpener; newOpener = null;
+      if (opener && typeof opener.focus === "function" && opener.isConnected !== false) opener.focus();
+    }
+    function closeNewPlayerDialog() {
+      if (!useNewDialog || !newDialog.open) return;
+      newDialog.close(); suspendNewPlayerVoice(false); restoreNewPlayerFocus();
+    }
+    function confirmNewPlayer() {
       flush();
-      if (model.warning() || model.changedSession()) { setStatus(); return; }
-      if (!window.confirm(W.newConfirm)) return;
+      if (model.warning() || model.changedSession()) return;
       if (!model.rotate()) { setStatus(); return; }
+      closeNewPlayerDialog();
       scheduleSync(0); window.location.reload();
+    }
+    function newPlayer(event) {
+      flush();
+      if (model.warning() || model.changedSession()) return;
+      if (!useNewDialog) { if (window.confirm(W.newConfirm)) confirmNewPlayer(); return; }
+      if (newDialog.open) return;
+      newOpener = event && event.currentTarget || document.activeElement;
+      newMessage.textContent = W.newConfirm;
+      newDialog.showModal(); suspendNewPlayerVoice(true); newCancel.focus();
+    }
+    if (useNewDialog) {
+      newTitle.textContent = lang === "es" ? "¿Listo para otro jugador?" : "Ready for another player?";
+      newCancel.textContent = lang === "es" ? "Seguir jugando" : "Keep playing";
+      newConfirm.textContent = lang === "es" ? "Empezar con otro jugador" : "Start new player";
+      newMessage.textContent = W.newConfirm;
+      newCancel.addEventListener("click", closeNewPlayerDialog);
+      newConfirm.addEventListener("click", confirmNewPlayer);
+      newDialog.addEventListener("cancel", function (event) { event.preventDefault(); closeNewPlayerDialog(); });
+      newDialog.addEventListener("close", function () { if (!newDialog.open) { suspendNewPlayerVoice(false); restoreNewPlayerFocus(); } });
     }
     [el("new-player"), el("new-player-top")].forEach(function (button) { if (button) button.addEventListener("click", newPlayer); });
     el("download").addEventListener("click", function () {

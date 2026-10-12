@@ -7,35 +7,57 @@
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="robots" content="noindex, nofollow">
 <meta name="theme-color" content="#163A30">
-<meta name="build-id" content="6d3f82ee2a61">
+<meta name="build-id" content="6e6515230e34">
 <title>Community Builders of Pecan Grove · play-test</title>
 <link rel="icon" href="assets/img/mark.svg" type="image/svg+xml">
 <link rel="stylesheet" href="assets/css/a2-studio.css">
 <link rel="stylesheet" href="assets/games/community-builders/cb.css">
 <link rel="stylesheet" href="playtest.css">
 <link rel="stylesheet" href="assets/playtest/feedback.css">
+<link rel="stylesheet" href="assets/playtest/shell.css">
 <script src="assets/playtest/feedback.js" defer></script>
 <script src="assets/games/community-builders/cb.js" defer></script>
+<script src="assets/playtest/shell.js" defer></script>
 </head>
 <body>
+<a class="pt-skip" href="#pt-h">Skip to main content</a>
 <header class="pt-bar"><div class="pt-in">
   <span class="pt-brand"><img src="assets/img/mark.svg" alt="" width="28" height="28"><b>Community Builders of Pecan Grove</b></span>
   <span class="pt-tag">Play-test version · 2026-10-12</span>
   <a class="pt-lang" href="espanol.html" lang="es" hreflang="es">Español</a>
 </div></header>
 <main class="pt-main">
-  <section class="pt-note" aria-labelledby="pt-h">
-    <h1 id="pt-h">Help us test this game</h1>
+  <section class="pt-intro" id="pt-intro" aria-labelledby="pt-h">
+    <div class="pt-intro__art"><img src="assets/games/community-builders/img/town-map.webp" alt="" width="1376" height="768"><p>A town decision. Fifteen ways to make your voice count.</p></div>
+    <div class="pt-intro__copy">
+    <p class="pt-eyebrow">Meet the project</p>
+    <h1 id="pt-h" tabindex="-1">Help us test this game</h1>
+    <p class="pt-team">Created by Ali Keyvanfar, Ph.D.</p>
+    <p>A personal public-education project, drawing on construction research at Kennesaw State University. Illustrated art and voices were created with the help of AI tools.</p>
     <p class="pt-lead">Community Builders of Pecan Grove is a free, bilingual game for kids 8 to 14, played with a grown-up at public libraries. Kids live in a made-up Georgia town that is deciding about a data center, and practice 15 civic skills: noticing change, asking good questions, listening, checking facts, speaking up kindly and planning together. The game never takes a side.</p>
-    <div class="pt-feedback__actions"><a class="pt-btn" href="#community-builders">Start or continue playing</a><button class="pt-btn pt-btn--secondary" id="pt-feedback-new-player-top" type="button" aria-describedby="pt-feedback-shared">New player</button></div>
+    <p class="pt-goal">Help us make this game clearer, kinder and easier to play. Your feedback shapes what we improve next.</p>
+    <label class="pt-quiet-choice" for="pt-quiet"><input type="checkbox" id="pt-quiet"><span><b>Library / Class mode · no voice</b><small>Written instructions stay available. You can change sound and captions at any time.</small></span></label>
+    <div class="pt-feedback__actions"><button class="pt-btn" id="pt-start" type="button">Start or continue playing</button><button class="pt-btn pt-btn--secondary" id="pt-feedback-new-player-top" type="button">New player</button></div>
+    <p>Leave feedback whenever you like using the Review / Feedback tab.</p>
     <details class="pt-guide"><summary>Playtest instructions</summary>
       <p class="pt-goal">Before it goes to families, we want to find every place where a first-time player gets lost.</p>
-      <ol class="pt-steps"><li>Play at least three stops. Start with Stop 1, then pick any others on the town map.</li><li>If you can, try it on a phone too, and switch to Español if you read Spanish.</li><li>The game reads its main lines aloud, so turn your sound on or use headphones. The speaker button at the top turns the voice off.</li><li>Notice where you hesitated, what you could not tell, and anything that broke.</li><li>Leave a note below the game whenever you notice something. Your draft saves as you type.</li></ol>
+      <ol class="pt-steps"><li>Play at least three stops. Start with Stop 1, then pick any others on the town map.</li><li>If you can, try it on a phone too, and switch to Español if you read Spanish.</li><li>The game reads its main lines aloud, so turn your sound on or use headphones. The speaker button at the top turns the voice off.</li><li>Notice where you hesitated, what you could not tell, and anything that broke.</li><li>Use Review / Feedback in any scene. Your draft saves as you type; you can float the window or show it below the game.</li></ol>
     </details>
     <p class="pt-privacy">Your game progress stays in this browser. No account or name is needed to play.</p>
+    </div>
   </section>
-  <div class="cb" id="community-builders" tabindex="-1" aria-label="Community Builders of Pecan Grove" data-game="community-builders" data-language-url="espanol.html" data-base="assets/games/community-builders/"><noscript><p>This game needs JavaScript. Please turn it on.</p></noscript></div>
-  <section class="pt-note pt-feedback" id="pt-feedback" aria-labelledby="pt-feedback-h" data-lang="en" data-build="6d3f82ee2a61" data-endpoint="https://script.google.com/macros/s/AKfycby-hWTZOntlHtl1D3t7GuzIrG3LWQMz9EvErNbc7CkhDuX-PKENVlhhQ5xRYrtjbvQehw/exec">
+  <section class="pt-stage" id="pt-stage" data-playtest-stage aria-label="Community Builders of Pecan Grove">
+    <nav class="pt-toolbar" aria-label="Community Builders of Pecan Grove">
+      <button class="pt-tool pt-tool--review" id="pt-review-tab" type="button" aria-haspopup="dialog" aria-controls="pt-review-dialog" aria-expanded="false">Review / Feedback</button>
+      <button class="pt-tool" id="pt-library-tab" type="button" aria-haspopup="dialog">Library / Class mode</button>
+      <button class="pt-tool" id="pt-grownups-tab" type="button" aria-haspopup="dialog">For grown-ups</button>
+      <button class="pt-tool" id="pt-exit" type="button">Exit play view</button>
+    </nav>
+    <div class="pt-stage-content">
+      <p class="pt-sr" id="pt-play-status" role="status" aria-live="polite"></p>
+      <div class="cb" id="community-builders" tabindex="-1" aria-label="Community Builders of Pecan Grove" data-playtest-paused="true" data-game="community-builders" data-language-url="espanol.html" data-base="assets/games/community-builders/"><noscript><p>This game needs JavaScript. Please turn it on.</p></noscript></div>
+      <div id="pt-feedback-home">
+  <section class="pt-note pt-feedback" id="pt-feedback" aria-labelledby="pt-feedback-h" data-lang="en" data-build="6e6515230e34" data-endpoint="https://script.google.com/macros/s/AKfycby-hWTZOntlHtl1D3t7GuzIrG3LWQMz9EvErNbc7CkhDuX-PKENVlhhQ5xRYrtjbvQehw/exec">
     <h2 id="pt-feedback-h">Playtest feedback</h2>
     <p>Tell us what you notice while you play. You can leave a separate note for each stop.</p>
     <p class="pt-feedback__player">Anonymous player: <span id="pt-feedback-player">Starting…</span></p>
@@ -57,8 +79,24 @@
     <p class="pt-privacy" id="pt-feedback-shared">Sharing this computer? Choose New player before someone else plays. It starts a separate game and feedback session.</p>
     <details class="pt-feedback__saved"><summary>Saved notes on this device</summary><ul id="pt-feedback-entries"><li>Your saved feedback will appear here.</li></ul></details>
 
-    <p class="pt-privacy">Build: <code>6d3f82ee2a61</code></p>
+    <p class="pt-privacy">Build: <code>6e6515230e34</code></p>
   </section>
+      </div>
+    </div>
+    <dialog class="pt-review-dialog" id="pt-review-dialog" aria-label="Feedback window">
+      <div class="pt-review-tools">
+        <button class="pt-tool" id="pt-review-float" type="button" aria-pressed="false" data-popup-label="Open as pop-up" data-float-label="Float over game">Float over game</button>
+        <button class="pt-tool" id="pt-review-dock" type="button">Show below game</button>
+        <button class="pt-tool" id="pt-review-close" type="button">Close feedback</button>
+      </div>
+      <div id="pt-feedback-window"></div>
+    </dialog>
+    <dialog class="pt-player-dialog" id="pt-new-player-dialog" aria-labelledby="pt-new-player-title">
+      <h2 id="pt-new-player-title">Ready for a new player?</h2><p id="pt-new-player-message"></p>
+      <div class="pt-feedback__actions"><button class="pt-btn pt-btn--secondary" id="pt-new-player-cancel" type="button">Keep this player</button><button class="pt-btn" id="pt-new-player-confirm" type="button">Start new player</button></div>
+    </dialog>
+  </section>
+  <noscript><p>This game needs JavaScript. Please turn it on.</p></noscript>
 </main>
 <footer class="pt-foot"><div class="pt-in"><p>A play-test build for students. Ideas from construction research at Kennesaw State University. Art made with the help of AI tools. Voices made with ElevenLabs AI.</p></div></footer>
 </body>

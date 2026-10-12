@@ -7,35 +7,57 @@
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="robots" content="noindex, nofollow">
 <meta name="theme-color" content="#163A30">
-<meta name="build-id" content="6d3f82ee2a61">
+<meta name="build-id" content="6e6515230e34">
 <title>Constructores de comunidad de Pecan Grove · versión de prueba</title>
 <link rel="icon" href="assets/img/mark.svg" type="image/svg+xml">
 <link rel="stylesheet" href="assets/css/a2-studio.css">
 <link rel="stylesheet" href="assets/games/community-builders/cb.css">
 <link rel="stylesheet" href="playtest.css">
 <link rel="stylesheet" href="assets/playtest/feedback.css">
+<link rel="stylesheet" href="assets/playtest/shell.css">
 <script src="assets/playtest/feedback.js" defer></script>
 <script src="assets/games/community-builders/cb.js" defer></script>
+<script src="assets/playtest/shell.js" defer></script>
 </head>
 <body>
+<a class="pt-skip" href="#pt-h">Ir al contenido principal</a>
 <header class="pt-bar"><div class="pt-in">
   <span class="pt-brand"><img src="assets/img/mark.svg" alt="" width="28" height="28"><b>Constructores de comunidad de Pecan Grove</b></span>
   <span class="pt-tag">Versión de prueba · 2026-10-12</span>
   <a class="pt-lang" href="index.html" lang="en" hreflang="en">English</a>
 </div></header>
 <main class="pt-main">
-  <section class="pt-note" aria-labelledby="pt-h">
-    <h1 id="pt-h">Ayúdanos a probar este juego</h1>
+  <section class="pt-intro" id="pt-intro" aria-labelledby="pt-h">
+    <div class="pt-intro__art"><img src="assets/games/community-builders/img/town-map.webp" alt="" width="1376" height="768"><p>Una decisión del pueblo. Quince maneras de hacer oír tu voz.</p></div>
+    <div class="pt-intro__copy">
+    <p class="pt-eyebrow">Conoce el proyecto</p>
+    <h1 id="pt-h" tabindex="-1">Ayúdanos a probar este juego</h1>
+    <p class="pt-team">Creado por Ali Keyvanfar, Ph.D.</p>
+    <p>Un proyecto personal de educación pública, inspirado en investigación de construcción en Kennesaw State University. Las ilustraciones y las voces se crearon con ayuda de herramientas de IA.</p>
     <p class="pt-lead">Constructores de comunidad de Pecan Grove es un juego gratis y bilingüe para niños de 8 a 14 años, que se juega con un adulto en bibliotecas públicas. Los niños viven en un pueblo inventado de Georgia que está decidiendo sobre un centro de datos, y practican 15 habilidades cívicas: notar cambios, hacer buenas preguntas, escuchar, revisar datos, opinar con respeto y planear juntos. El juego nunca toma partido.</p>
-    <div class="pt-feedback__actions"><a class="pt-btn" href="#community-builders">Empezar o continuar jugando</a><button class="pt-btn pt-btn--secondary" id="pt-feedback-new-player-top" type="button" aria-describedby="pt-feedback-shared">Nuevo jugador</button></div>
+    <p class="pt-goal">Ayúdanos a hacer este juego más claro, amable y fácil de jugar. Tus comentarios guían nuestras próximas mejoras.</p>
+    <label class="pt-quiet-choice" for="pt-quiet"><input type="checkbox" id="pt-quiet"><span><b>Modo biblioteca / clase · sin voz</b><small>Las instrucciones escritas siguen disponibles. Puedes cambiar el sonido y los subtítulos en cualquier momento.</small></span></label>
+    <div class="pt-feedback__actions"><button class="pt-btn" id="pt-start" type="button">Empezar o continuar jugando</button><button class="pt-btn pt-btn--secondary" id="pt-feedback-new-player-top" type="button">Nuevo jugador</button></div>
+    <p>Deja comentarios cuando quieras con la pestaña Reseña / Comentarios.</p>
     <details class="pt-guide"><summary>Instrucciones de la prueba</summary>
       <p class="pt-goal">Antes de llevarlo a las familias, queremos encontrar cada lugar donde alguien que juega por primera vez se pierde.</p>
-      <ol class="pt-steps"><li>Juega por lo menos tres paradas. Empieza con la Parada 1 y luego elige otras en el mapa del pueblo.</li><li>Si puedes, pruébalo también en un teléfono, y cambia a English si lees inglés.</li><li>El juego lee en voz alta sus frases principales: sube el volumen o usa audífonos. El botón de la bocina, arriba, apaga la voz.</li><li>Fíjate dónde dudaste, qué no pudiste entender y cualquier cosa que no funcionó.</li><li>Deja una nota debajo del juego cuando notes algo. Tu borrador se guarda mientras escribes.</li></ol>
+      <ol class="pt-steps"><li>Juega por lo menos tres paradas. Empieza con la Parada 1 y luego elige otras en el mapa del pueblo.</li><li>Si puedes, pruébalo también en un teléfono, y cambia a English si lees inglés.</li><li>El juego lee en voz alta sus frases principales: sube el volumen o usa audífonos. El botón de la bocina, arriba, apaga la voz.</li><li>Fíjate dónde dudaste, qué no pudiste entender y cualquier cosa que no funcionó.</li><li>Usa Reseña / Comentarios en cualquier escena. Tu borrador se guarda mientras escribes; puedes dejar la ventana flotante o mostrarla debajo del juego.</li></ol>
     </details>
     <p class="pt-privacy">Tu avance se queda en este navegador. No necesitas cuenta ni nombre para jugar.</p>
+    </div>
   </section>
-  <div class="cb" id="community-builders" tabindex="-1" aria-label="Constructores de comunidad de Pecan Grove" data-game="community-builders" data-language-url="index.html" data-base="assets/games/community-builders/"><noscript><p>Este juego necesita JavaScript. Por favor, actívalo.</p></noscript></div>
-  <section class="pt-note pt-feedback" id="pt-feedback" aria-labelledby="pt-feedback-h" data-lang="es" data-build="6d3f82ee2a61" data-endpoint="https://script.google.com/macros/s/AKfycby-hWTZOntlHtl1D3t7GuzIrG3LWQMz9EvErNbc7CkhDuX-PKENVlhhQ5xRYrtjbvQehw/exec">
+  <section class="pt-stage" id="pt-stage" data-playtest-stage aria-label="Constructores de comunidad de Pecan Grove">
+    <nav class="pt-toolbar" aria-label="Constructores de comunidad de Pecan Grove">
+      <button class="pt-tool pt-tool--review" id="pt-review-tab" type="button" aria-haspopup="dialog" aria-controls="pt-review-dialog" aria-expanded="false">Reseña / Comentarios</button>
+      <button class="pt-tool" id="pt-library-tab" type="button" aria-haspopup="dialog">Modo biblioteca / clase</button>
+      <button class="pt-tool" id="pt-grownups-tab" type="button" aria-haspopup="dialog">Para adultos</button>
+      <button class="pt-tool" id="pt-exit" type="button">Salir de la vista de juego</button>
+    </nav>
+    <div class="pt-stage-content">
+      <p class="pt-sr" id="pt-play-status" role="status" aria-live="polite"></p>
+      <div class="cb" id="community-builders" tabindex="-1" aria-label="Constructores de comunidad de Pecan Grove" data-playtest-paused="true" data-game="community-builders" data-language-url="index.html" data-base="assets/games/community-builders/"><noscript><p>Este juego necesita JavaScript. Por favor, actívalo.</p></noscript></div>
+      <div id="pt-feedback-home">
+  <section class="pt-note pt-feedback" id="pt-feedback" aria-labelledby="pt-feedback-h" data-lang="es" data-build="6e6515230e34" data-endpoint="https://script.google.com/macros/s/AKfycby-hWTZOntlHtl1D3t7GuzIrG3LWQMz9EvErNbc7CkhDuX-PKENVlhhQ5xRYrtjbvQehw/exec">
     <h2 id="pt-feedback-h">Comentarios de la prueba</h2>
     <p>Cuéntanos lo que notas mientras juegas. Puedes dejar una nota para cada parada.</p>
     <p class="pt-feedback__player">Jugador anónimo: <span id="pt-feedback-player">Iniciando…</span></p>
@@ -57,8 +79,24 @@
     <p class="pt-privacy" id="pt-feedback-shared">¿Comparten esta computadora? Elige Nuevo jugador antes de que juegue otra persona. Así empieza una sesión separada de juego y comentarios.</p>
     <details class="pt-feedback__saved"><summary>Notas guardadas en este dispositivo</summary><ul id="pt-feedback-entries"><li>Tus comentarios guardados aparecerán aquí.</li></ul></details>
 
-    <p class="pt-privacy">Build: <code>6d3f82ee2a61</code></p>
+    <p class="pt-privacy">Build: <code>6e6515230e34</code></p>
   </section>
+      </div>
+    </div>
+    <dialog class="pt-review-dialog" id="pt-review-dialog" aria-label="Ventana de comentarios">
+      <div class="pt-review-tools">
+        <button class="pt-tool" id="pt-review-float" type="button" aria-pressed="false" data-popup-label="Abrir como ventana" data-float-label="Flotar sobre el juego">Flotar sobre el juego</button>
+        <button class="pt-tool" id="pt-review-dock" type="button">Mostrar debajo del juego</button>
+        <button class="pt-tool" id="pt-review-close" type="button">Cerrar comentarios</button>
+      </div>
+      <div id="pt-feedback-window"></div>
+    </dialog>
+    <dialog class="pt-player-dialog" id="pt-new-player-dialog" aria-labelledby="pt-new-player-title">
+      <h2 id="pt-new-player-title">¿Listos para un nuevo jugador?</h2><p id="pt-new-player-message"></p>
+      <div class="pt-feedback__actions"><button class="pt-btn pt-btn--secondary" id="pt-new-player-cancel" type="button">Seguir con este jugador</button><button class="pt-btn" id="pt-new-player-confirm" type="button">Empezar con otro jugador</button></div>
+    </dialog>
+  </section>
+  <noscript><p>Este juego necesita JavaScript. Por favor, actívalo.</p></noscript>
 </main>
 <footer class="pt-foot"><div class="pt-in"><p>Una versión de prueba para estudiantes. Ideas de investigación en construcción de Kennesaw State University. Arte hecho con ayuda de herramientas de IA. Voces hechas con IA de ElevenLabs.</p></div></footer>
 </body>

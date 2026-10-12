@@ -374,7 +374,12 @@
       secKeys: "Keys", keysNote: "On a computer, these keys work while you play.",
       keys: [["Esc", "Open Settings (the voice waits)"], ["M", "Voice on or off"], ["R", "Hear it again"], ["S", "Stop the voice"], ["C", "Caption bar on or off"],
         ["F", "Full screen"], ["?", "Show these keys"], ["Tab", "Move to the next button"], ["Enter|Space", "Choose"]],
-      reset: "Go back to the usual settings", resetDone: "Settings are back to the usual.", guide: "Lucía", guide2: "Theo" },
+      reset: "Go back to the usual settings", resetDone: "Settings are back to the usual.", guide: "Lucía", guide2: "Theo",
+      librarySub: "Set up this device for a classroom or a quiet library.", libraryQuiet: "Use quiet mode · no voice",
+      libraryNote: "Quiet mode turns off narration and speaker buttons. All instructions stay on screen. This device remembers the sound setting.",
+      libraryActive: "Quiet mode is on. You can keep playing without sound.", libraryGroups: "Players, teams and scores",
+      libraryGroupsNote: "Animal profiles and team scores belong to this player session. Use New player for a different person's private feedback.",
+      librarySettings: "Sound and caption settings", libraryReady: "Keep playing quietly" },
     es: { parts3: ["Escucha", "Deseos compartidos", "¿Quién dijo esto?"], of: function (a, b) { return a + " de " + b; }, fsOn: "Pantalla completa", fsOff: "Salir de pantalla completa", restored: "Los puntajes volvieron.",
       voice: "Voz", voiceOn: "La voz está activada", voiceOff: "La voz está desactivada", replay: "Escuchar otra vez",
       settings: "Ajustes", setSub: "Cómo suena y se ve el juego. Este dispositivo lo recuerda.", keepPlaying: "Seguir jugando", on: "Sí", off: "No",
@@ -387,7 +392,12 @@
       secKeys: "Teclas", keysNote: "En una computadora, estas teclas funcionan mientras juegas.",
       keys: [["Esc", "Abrir Ajustes (la voz espera)"], ["M", "Activar o desactivar la voz"], ["R", "Escuchar otra vez"], ["S", "Detener la voz"], ["C", "Activar o desactivar los subtítulos"],
         ["F", "Pantalla completa"], ["?", "Mostrar estas teclas"], ["Tab", "Ir al siguiente botón"], ["Enter|Espacio", "Elegir"]],
-      reset: "Volver a los ajustes de siempre", resetDone: "Los ajustes volvieron a los de siempre.", guide: "Lucía", guide2: "Theo" }
+      reset: "Volver a los ajustes de siempre", resetDone: "Los ajustes volvieron a los de siempre.", guide: "Lucía", guide2: "Theo",
+      librarySub: "Prepara este dispositivo para un aula o una biblioteca tranquila.", libraryQuiet: "Usar modo silencioso · sin voz",
+      libraryNote: "El modo silencioso desactiva la narración y los botones de voz. Todas las instrucciones siguen en pantalla. Este dispositivo recuerda el ajuste de sonido.",
+      libraryActive: "El modo silencioso está activado. Puedes seguir jugando sin sonido.", libraryGroups: "Jugadores, equipos y puntajes",
+      libraryGroupsNote: "Los perfiles de animales y los puntajes de equipos pertenecen a esta sesión. Usa Nuevo jugador para los comentarios privados de otra persona.",
+      librarySettings: "Ajustes de sonido y subtítulos", libraryReady: "Seguir jugando en silencio" }
   }[L];
 
   /* ── shell ─────────────────────────────────────────────────────────── */
@@ -412,12 +422,13 @@
   }
   function animalFace(a) { var s = h("span", { "class": "cb-face", "aria-hidden": "true" }); s.innerHTML = '<svg viewBox="0 0 64 64" focusable="false">' + ICON[a.id] + "</svg>"; s.style.setProperty("--ring", a.ring); return s; }
   /* full screen: the stage becomes the whole screen (the game, not the page) */
-  var canFS = !!(root.requestFullscreen || root.webkitRequestFullscreen) && document.fullscreenEnabled !== false;
+  function fsTarget() { return (root.closest && root.closest("[data-playtest-stage]")) || root; }
+  var canFS = !!(fsTarget().requestFullscreen || fsTarget().webkitRequestFullscreen) && document.fullscreenEnabled !== false;
   function fsEl() { return document.fullscreenElement || document.webkitFullscreenElement || null; }
   function toggleFS() {
     try {
       if (fsEl()) (document.exitFullscreen || document.webkitExitFullscreen).call(document);
-      else { var p = (root.requestFullscreen || root.webkitRequestFullscreen).call(root); if (p && p.catch) p.catch(function () {}); }
+      else { var target = fsTarget(), p = (target.requestFullscreen || target.webkitRequestFullscreen).call(target); if (p && p.catch) p.catch(function () {}); }
     } catch (e) { /* the browser said no: the game keeps working in the page */ }
   }
   function fsBtn(iconOnly) {
@@ -427,7 +438,7 @@
       [ico(on ? "shrink" : "expand"), iconOnly ? null : h("span", { text: on ? X.fsOff : X.fsOn })]);
   }
   function syncFS() {
-    var on = !!fsEl(); root.classList.toggle("is-fs", on);
+    var on = fsEl() === fsTarget(); root.classList.toggle("is-fs", on);
     [].forEach.call(root.querySelectorAll(".cb-fs"), function (b) {
       var icon = b.querySelector("svg"); if (icon) b.replaceChild(ico(on ? "shrink" : "expand"), icon);
       var t = b.querySelector("span"); if (t) t.textContent = on ? X.fsOff : X.fsOn; b.setAttribute("aria-label", on ? X.fsOff : X.fsOn);
@@ -499,7 +510,7 @@
   root.addEventListener("keydown", function () { acted = true; }, true);
   function frame(whole) {                  // keep the stage in view when the screen changes under the player
     if (!acted) return;
-    if (fsEl() === root) { if (root.scrollTop > 4) root.scrollTo({ top: 0, behavior: REDUCED ? "auto" : "smooth" }); return; }
+    if (fsEl() === fsTarget()) { var target = fsTarget(); if (target.scrollTop > 4) target.scrollTo({ top: 0, behavior: REDUCED ? "auto" : "smooth" }); return; }
     var r = root.getBoundingClientRect();
     if (r.top < -4 || (whole && r.bottom > window.innerHeight + 4 && r.top > 4)) root.scrollIntoView({ block: "start", behavior: REDUCED ? "auto" : "smooth" });
   }
@@ -512,6 +523,7 @@
      [data-cb-novoice] are never read (a quiz quote would give the answer away). No voice files: the game is just quiet. ── */
   var VKEY = "pecan-grove-voice", vOn = true, vIdx = null, vClips = {}, vKeys = null, vLoading = false;
   var vAudio = null, vEl = null, vQueue = [], vLast = { f: "", t: -1e9 }, vRead = null, vRaf = 0, vLastItem = null, vLastEl = null;
+  var vSuspended = root.hasAttribute("data-playtest-paused");
   var vHeard = {};                                            // guide lines already read on this visit to a stop (the town map starts a new visit)
 
   /* ── settings: how the game sounds and looks (the Settings button, or Esc). Remembered on this device only. ── */
@@ -533,7 +545,7 @@
   }
   function cfgSave() { try { localStorage.setItem(SKEY, JSON.stringify(CFG)); localStorage.setItem(VKEY, CFG.voice ? "on" : "off"); } catch (e) { /* ignore */ } }
   function applyCalm() { REDUCED = SYS_CALM || CFG.calm; root.classList.toggle("is-calm", CFG.calm && !SYS_CALM); }
-  vOn = CFG.voice; applyCalm();
+  vOn = CFG.voice; applyCalm(); root.classList.toggle("is-quiet", !vOn);
 
   /* the caption bar: who is talking and the words being said, a sentence at a time, at the bottom of the stage.
      It copies on-screen words, so screen readers skip it (they read the page itself) and the voice never reads it. */
@@ -587,6 +599,8 @@
     vRead = null; cap.hidden = true;
   }
   function vStop() { vQueue = []; vUnread(); if (vAudio) { vAudio.pause(); vAudio = null; } vMark(vEl, false); vEl = null; }
+  // Intro and feedback windows pause narration without replacing the player's saved sound preference.
+  function suspendVoice(paused) { vSuspended = !!paused; if (vSuspended) { vStop(); vInkClear(); } }
   function vAlign(E, S) {                                     // where the line's shown words sit among the spoken words
     var best = 0, bd = null;
     for (var d = 1 - E.length; d < S.length; d++) {
@@ -703,6 +717,7 @@
     })();
   }
   function vPlay(item, el) {
+    if (!vOn) return;
     if (vAudio) vAudio.pause();
     vUnread(); vMark(vEl, false);
     var a = new Audio(BASE + "voice/" + item.f); vAudio = a; vEl = el || null; vMark(vEl, true); vLast = { f: item.f, t: performance.now() };
@@ -768,10 +783,10 @@
       f.el._vParts = f.els;
       f.els.forEach(function (e) { e.setAttribute("data-cb-voiced", f.item.f); if (e !== f.el) vWords(e); });
       if (f.el.closest("button")) { vWords(f.el); return; }  // never a button inside a button: the line still plays and lights up
-      vAttach(f.el, h("button", { type: "button", "class": "cb-vbtn", "aria-label": X.replay, title: X.replay,
+      vAttach(f.el, h("button", { type: "button", "class": "cb-vbtn", "aria-label": X.replay, title: vOn ? X.replay : X.voiceOff, disabled: !vOn || null,
         onclick: function (e) { e.stopPropagation(); vQueue = []; vPlay(f.item, f.el); } }, [ico("voice")]));
     });
-    if (!vOn || !acted || !CFG.auto) return;
+    if (vSuspended || root.hasAttribute("data-playtest-paused") || !vOn || !acted || !CFG.auto) return;
     var now = performance.now();
     var nbs = found.filter(function (f) { return f.item.k === "nb"; }).length;   // a whole board of neighbors' lines: tap to hear each
     var play = found.filter(function (f) { return f.item.k === "nb" ? nbs <= 2 : !vHeard[f.item.f] || (vAudio && f.item.f === vLast.f); }).slice(0, 3);
@@ -793,6 +808,8 @@
       b.setAttribute("aria-pressed", vOn ? "true" : "false"); b.title = (vOn ? X.voiceOn : X.voiceOff) + " (M)";
       var i = b.querySelector("svg"); if (i) b.replaceChild(ico(vOn ? "voice" : "voiceOff"), i);
     });
+    root.classList.toggle("is-quiet", !vOn);
+    [].forEach.call(root.querySelectorAll(".cb-vbtn, .cb-set__sample"), function (b) { b.disabled = !vOn; b.title = vOn ? (b.classList.contains("cb-set__sample") ? X.sample : X.replay) : X.voiceOff; });
     if (tell) say(vOn ? X.voiceOn : X.voiceOff);
   }
   function setCap(on, tell) {
@@ -822,7 +839,7 @@
     fillSettings(body);
     var d = dialog(X.settings, [body], opener && opener.isConnected ? opener : null, function () {
       setOpen = false;
-      if (held && vAudio === held && vEl && vEl.isConnected && vOn) { var p = held.play(); if (p && p.catch) p.catch(function () {}); }
+      if (held && vAudio === held && vEl && vEl.isConnected && vOn && !vSuspended) { var p = held.play(); if (p && p.catch) p.catch(function () {}); }
     }, { sub: X.setSub, closeLabel: mode === "stop" ? X.keepPlaying : null });
     if (toKeys) { var k = d.querySelector(".cb-set__keys"); if (k) { k.focus({ preventScroll: true }); k.scrollIntoView({ block: "start", behavior: "auto" }); } }
   }
@@ -853,7 +870,7 @@
     function volPaint() { var p = Math.round(CFG.vol * 100); vol.value = String(p); vol.setAttribute("aria-valuetext", p + "%"); out.textContent = p + "%"; vol.style.setProperty("--p", p + "%"); }
     vol.addEventListener("input", function () { CFG.vol = +vol.value / 100; if (vAudio) vAudio.volume = CFG.vol; volPaint(); cfgSave(); });
     volPaint();
-    var sample = h("button", { type: "button", "class": "cb-btn cb-set__sample", onclick: function () {
+    var sample = h("button", { type: "button", "class": "cb-btn cb-set__sample", disabled: !vOn || null, title: vOn ? X.sample : X.voiceOff, onclick: function () {
       if (vAudio && vEl === sample) { vStop(); return; }
       vStop(); vPlay({ f: L + "/g-intro.mp3", k: "sample" }, sample);
     } }, [ico("voice"), h("span", { "class": "cb-set__play", text: X.sample }), h("span", { "class": "cb-set__stop", text: X.sampleStop })]);
@@ -903,6 +920,7 @@
   document.addEventListener("focusin", function (e) { keysLive = root.contains(e.target); }, true);
   document.addEventListener("keydown", function (e) {
     if (e.defaultPrevented || e.ctrlKey || e.metaKey || e.altKey || e.isComposing) return;
+    if (vSuspended || root.hasAttribute("data-playtest-paused")) return;
     if (!(keysLive || root.contains(document.activeElement) || fsEl() === root)) return;
     var t = e.target, k = e.key && e.key.length === 1 ? e.key.toLowerCase() : e.key, act = null;
     if (t && t.closest && t.closest("input, textarea, select, [contenteditable=''], [contenteditable='true']")) return;
@@ -960,7 +978,8 @@
     return d;
   }
   function openGrownups(opener) {
-    var wrap = h("div", { "class": "cb-dlg__body" }), changed = { on: false };
+    vStop();
+    var wrap = h("div", { "class": "cb-dlg__body", "data-cb-novoice": "" }), changed = { on: false, opener: opener };
     grownBody(wrap, changed);
     dialog(W.grownups, [wrap], opener, function () {
       if (changed.on && mode === "map") {       // scores were erased or restored: redraw the town, keep focus on For grown-ups
@@ -971,8 +990,9 @@
   function grownBody(wrap, changed) {
     wrap.innerHTML = "";
     wrap.appendChild(h("p", { text: W.grownText }));
+    var lib = btn(W.library, "", function () { var d = wrap.closest("dialog"); if (d) d.close(); openLibraryMode(changed.opener && changed.opener.isConnected ? changed.opener : null); }, "people");
     var c = btn(W.clear, "", function () { clearFlow(wrap, changed); });
-    wrap.appendChild(h("div", { "class": "cb-row" }, [c]));
+    wrap.appendChild(h("div", { "class": "cb-row" }, [lib, c]));
     return c;
   }
   function clearFlow(wrap, changed) {
@@ -1101,7 +1121,7 @@
       sec.style.setProperty("--cb-chap", CHAP[ci]);
       return sec;
     })));
-    var lib = btn(W.library, "cb-btn--onstage", function () { openWho(lib); }, "people");
+    var lib = btn(W.library, "cb-btn--onstage", function () { openLibraryMode(lib); }, "people");
     var gu = btn(W.grownups, "cb-btn--onstage cb-dock__grownups", function () { openGrownups(gu); }, "family");
     screen([h("h2", { "class": "cb-vh", text: W.series }), world, journey,
       h("div", { "class": "cb-dock" }, [h("p", { "class": "cb-dock__open", text: W.open(openN) }), h("div", { "class": "cb-row" }, [lib, gu])])]);
@@ -1175,6 +1195,23 @@
   }
 
   /* ── Library / Class mode, scoreboard, team challenge ─────────────── */
+  function openLibraryMode(opener) {
+    vStop();
+    var wrap = h("div", { "class": "cb-dlg__body cb-library", "data-cb-novoice": "" });
+    var note = h("p", { text: X.libraryNote });
+    var status = h("p", { "class": "cb-library__status", role: "status", text: !vOn ? X.libraryActive : "" });
+    var quiet = btn(X.libraryQuiet, "cb-btn--go", function () {
+      setVoice(false, true); status.textContent = X.libraryActive;
+      d.close();
+    }, "voiceOff");
+    quiet.setAttribute("aria-pressed", !vOn ? "true" : "false");
+    var settings = btn(X.librarySettings, "", function () { d.close(); openSettings(opener); }, "sliders");
+    var groups = btn(X.libraryGroups, "", function () { d.close(); openWho(opener); }, "people");
+    [note, status, h("div", { "class": "cb-row" }, [quiet, settings]),
+      h("section", { "class": "cb-library__groups" }, [h("h3", { text: X.libraryGroups }), h("p", { text: X.libraryGroupsNote }), groups])].forEach(function (e) { wrap.appendChild(e); });
+    var d = dialog(W.library, [wrap], opener, null, { sub: X.librarySub, closeLabel: X.keepPlaying });
+    return d;
+  }
   function openWho(opener) {
     var wrap = h("div", { "class": "cb-dlg__body" });
     var grid = h("div", { "class": "cb-animals" });
@@ -1577,6 +1614,15 @@
     endPlay: function () { inStop = false; }, team: function () { return team; }
   };
   window.CommunityBuilders = {
+    enterPlay: function (options) {
+      playRequested = true; acted = true; root.removeAttribute("data-playtest-paused"); suspendVoice(false);
+      if (options && options.quiet) setVoice(false, false);
+      if (!booted) boot(); else if (mode === "title") showMap();
+      vLoad(); vScan([main]);
+      var heading = main.querySelector("h2"); if (heading) { heading.setAttribute("tabindex", "-1"); heading.focus({ preventScroll: true }); }
+    },
+    pauseVoice: function () { vStop(); vInkClear(); }, suspendVoice: suspendVoice,
+    openLibraryMode: openLibraryMode, openGrownups: openGrownups,
     register: function (def) {
       if (!def || !def.id || !stopById(def.id) || typeof def.run !== "function") return;
       REG[def.id] = { steps: def.steps || [null, null, null], run: def.run };
@@ -1585,11 +1631,11 @@
       if (booted && mode === "map" && !inStop) showMap();
     }
   };
-  var booted = false;
+  var booted = false, playRequested = false;
   function boot() {
     if (booted) return; booted = true;
     var played = Object.keys(store.players).some(function (k) { return Object.keys(store.players[k].stops || {}).length; });
-    if (played) showMap(); else showTitle();
+    if (played || playRequested) showMap(); else showTitle();
   }
   function loadModules(list) {
     var left = list.length; if (!left) return boot();
