@@ -1,7 +1,7 @@
-/* Anonymous playtest feedback: local drafts, acknowledged cloud queue, real Excel export. */
+/* Anonymous playtest feedback: local drafts and explicit, acknowledged sending. */
 (function (host) {
   "use strict";
-  var KEY = "pecan-grove-feedback-v1", GAME_KEY = "pecan-grove-journey";
+  var KEY = "pecan-grove-feedback-v1", GAME_KEY = "pecan-grove-journey", CONSENT_KEY = "pecan-grove-consent-v1";
   var ID = /^[A-Za-z0-9_-]{16,80}$/;
   var RATINGS = ["", "unclear", "okay", "good"], CATEGORIES = ["", "clarity", "bug", "voice", "spanish", "art", "other"];
   function uid(crypto) {
@@ -13,12 +13,30 @@
     return "session-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
   }
   function clean(s, max) { return typeof s === "string" ? s.replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/g, "").slice(0, max) : ""; }
+  function scrubPII(text, language) {
+    var removed = language === "es" ? "[quitado]" : "[removed]";
+    return clean(text, 1200)
+      .replace(/(?:https?:\/\/|www\.)[^\s<>]+/gi, removed)
+      .replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi, removed)
+      .replace(/\b\d{1,6}\s+(?:calle|avenida|carrera|camino|paseo|carretera)\s+(?:[A-Za-zÀ-ÿ.'-]+(?:[ \t]+|$)){1,4}/gi, removed)
+      .replace(/\b\d{1,6}\s+(?:[A-Za-zÀ-ÿ.'-]+\s+){0,4}(?:street|st|road|rd|avenue|ave|lane|ln|drive|dr|boulevard|blvd|way|court|ct|calle|avenida|av|carrera|camino|paseo|carretera)\b(?:\s+(?:apt|unit|piso|n[oú]mero)\.?\s*[A-Za-z0-9-]+)?/gi, removed)
+      .replace(/\b(?:calle|avenida|carrera|camino|paseo|carretera)\s+(?:[A-Za-zÀ-ÿ.'-]+\s+){0,4}\d{1,6}\b/gi, removed)
+      .replace(/(?:\+?\d|\(\d)[\d\s().-]{5,}\d/g, function (value) { return value.replace(/\D/g, "").length >= 7 ? removed : value; })
+      .replace(/(^|[^A-Za-z0-9_])@[A-Za-z0-9_.-]{1,50}/g, function (_, prefix) { return prefix + removed; });
+  }
+  function readConsent(storage, sessionId) {
+    try {
+      var value = JSON.parse(storage.getItem(CONSENT_KEY) || "null");
+      if (value && value.sessionId === sessionId && value.scores === true) return { scores: true, autoScores: value.autoScores === true, at: value.at, build: value.build, sessionId: sessionId };
+    } catch (_) { /* A damaged or unavailable preference never grants consent. */ }
+    return { scores: false, autoScores: false, at: "", build: "", sessionId: sessionId };
+  }
   function validEntry(e) {
     return e && ID.test(e.sessionId) && ID.test(e.entryId) && Number.isInteger(e.revision) && e.revision > 0 &&
       Number.isFinite(Date.parse(e.updatedAt)) && typeof e.build === "string" && e.build.length <= 40 && ["feedback", "progress", "session"].indexOf(e.kind) !== -1 &&
       Number.isInteger(e.stop) && e.stop >= 0 && e.stop <= 15 && ["en", "es"].indexOf(e.language) !== -1 &&
       RATINGS.indexOf(e.rating) !== -1 && CATEGORIES.indexOf(e.category) !== -1 &&
-      typeof e.worked === "string" && e.worked.length <= 1200 && typeof e.fix === "string" && e.fix.length <= 1200;
+      typeof e.worked === "string" && e.worked.length <= 1200 && typeof e.fix === "string" && e.fix.length <= 1200 && (e.submitted === undefined || typeof e.submitted === "boolean");
   }
   function readState(storage) {
     try {
@@ -26,6 +44,7 @@
       if (!raw) return { state: null, warning: "" };
       var s = JSON.parse(raw);
       if (!s || s.schemaVersion !== 1 || !ID.test(s.activeSession) || !Array.isArray(s.entries) || !s.entries.every(validEntry)) throw Error("invalid saved feedback");
+      s.entries.forEach(function (e) { e.submitted = e.submitted === true; });
       return { state: s, warning: "" };
     } catch (e) { return { state: null, warning: "storage", recovery: typeof raw === "string" ? raw : null }; }
   }
@@ -45,6 +64,8 @@
     var storage = options.storage, now = options.now || function () { return new Date().toISOString(); }, makeId = options.id || function () { return uid(host.crypto); };
     var loaded = readState(storage), state = loaded.state || { schemaVersion: 1, activeSession: makeId(), entries: [] };
     state.stationId = ID.test(state.stationId || "") ? state.stationId : makeId();
+    // Old queued drafts have no explicit submission and remain local after migration.
+    state.entries.forEach(function (e) { e.submitted = e.submitted === true; });
     var warning = loaded.warning, changedSession = false, fresh = !loaded.state && !loaded.warning, recovery = !!loaded.recovery || !!state.recoveryAvailable, recoveryBlocked = false;
     if (recovery) state.recoveryAvailable = true;
     if (loaded.recovery) {
@@ -89,7 +110,7 @@
       var old = find(kind, stop), stamp = now();
       var e = Object.assign({ sessionId: active(), stationId: state.stationId, entryId: makeId(), revision: 0, createdAt: stamp, updatedAt: stamp,
         language: options.language === "es" ? "es" : "en", build: clean(options.build, 40), kind: kind, stop: stop,
-        rating: "", category: "", worked: "", fix: "", score: null, phase: "", ackRevision: 0 }, old || {});
+        rating: "", category: "", worked: "", fix: "", score: null, phase: "", ackRevision: 0, submitted: false }, old || {});
       fields = fields || {};
       var next = { language: fields.language === "es" ? "es" : (fields.language === "en" ? "en" : e.language),
         rating: RATINGS.indexOf(fields.rating) !== -1 ? fields.rating : e.rating,
@@ -98,9 +119,28 @@
         score: fields.score === undefined ? e.score : (Number.isFinite(fields.score) ? Math.round(Math.max(0, Math.min(100, fields.score))) : null),
         phase: fields.phase === undefined ? e.phase : clean(fields.phase, 40), sessionEnded: fields.sessionEnded === undefined ? !!e.sessionEnded : !!fields.sessionEnded };
       if (old && Object.keys(next).every(function (k) { return next[k] === old[k]; })) return old;
-      Object.assign(e, next, { revision: e.revision + 1, updatedAt: stamp });
+      Object.assign(e, next, { revision: e.revision + 1, updatedAt: stamp, submitted: false });
       state.entries = state.entries.filter(function (x) { return x.entryId !== e.entryId || x.sessionId !== e.sessionId; });
       state.entries.push(e); if (changedSession && allowArchive) archive(); else persist(); return e;
+    }
+    function submit(entryId, includeScores) {
+      var current = entries().find(function (e) { return e.entryId === entryId && e.kind === "feedback"; });
+      if (current) {
+        current = upsert("feedback", current.stop, { worked: scrubPII(current.worked, current.language), fix: scrubPII(current.fix, current.language) });
+        if (!current) return false;
+      }
+      entries().forEach(function (e) {
+        if ((current && e.entryId === current.entryId) || e.kind === "session" || (includeScores && e.kind === "progress")) e.submitted = true;
+      });
+      return persist();
+    }
+    function submitProgress(stop) {
+      var entry = find("progress", stop); if (!entry) return false;
+      entry.submitted = true; return persist();
+    }
+    function withdrawScores() {
+      entries().filter(function (e) { return e.kind === "progress" && e.submitted && (e.ackRevision || 0) < e.revision; }).forEach(function (e) { e.submitted = false; e.revision++; e.updatedAt = now(); });
+      return persist();
     }
     function acknowledge(list, snapshots) {
       var count = 0;
@@ -141,19 +181,19 @@
     }
     return { active: active, entries: entries, find: find, upsert: upsert, persist: persist, archive: archive, acknowledge: acknowledge, rotate: rotate,
       stash: function (kind, stop, fields) { return upsert(kind, stop, fields, true); },
-      resolveConflicts: resolveConflicts,
-      pending: function () { return state.entries.filter(function (e) { return (e.ackRevision || 0) < e.revision; }); },
+      resolveConflicts: resolveConflicts, submit: submit, submitProgress: submitProgress, withdrawScores: withdrawScores,
+      pending: function (all) { return entries(!!all).filter(function (e) { return e.submitted === true && (e.ackRevision || 0) < e.revision; }); },
       warning: function () { return warning; }, changedSession: function () { return changedSession; }, fresh: fresh, recovery: recovery,
       storageFailed: function () { warning = "storage"; } };
   }
   function payload(e) {
     var out = {};
-    ["sessionId", "stationId", "entryId", "revision", "createdAt", "updatedAt", "language", "build", "kind", "stop", "rating", "category", "worked", "fix", "score", "phase", "sessionEnded"].forEach(function (k) { out[k] = e[k]; });
+    ["sessionId", "stationId", "entryId", "revision", "createdAt", "updatedAt", "language", "build", "kind", "stop", "rating", "category", "worked", "fix", "score", "phase", "sessionEnded", "submitted"].forEach(function (k) { out[k] = e[k]; });
     return out;
   }
   function endpointAllowed(url) { return /^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/exec$/.test(url || ""); }
   async function sendBatch(model, endpoint, fetcher, signal) {
-    if (!endpointAllowed(endpoint)) throw Error("No configured backup endpoint");
+    if (!endpointAllowed(endpoint)) throw Error("No configured feedback endpoint");
     var batch = [], sent = [], encoder = new TextEncoder();
     model.pending().some(function (e) {
       var item = payload(e), candidate = sent.concat([item]);
@@ -193,7 +233,7 @@
   }
   function excel(entries) {
     var headers = ["Anonymous session", "Entry ID", "Type", "Stop", "Language", "Build", "Created UTC", "Updated UTC", "Revision", "Rating", "Category", "What worked", "What to improve", "Score", "Phase", "Backup state", "Session ended", "Anonymous station"];
-    var rows = [headers].concat(entries.map(function (e) { return [e.sessionId, e.entryId, e.kind, e.stop, e.language, e.build, e.createdAt, e.updatedAt, e.revision, e.rating, e.category, e.worked, e.fix, e.score, e.phase, (e.ackRevision || 0) >= e.revision ? "confirmed" : "pending", e.sessionEnded ? "yes" : "no", e.stationId || ""]; }));
+    var rows = [headers].concat(entries.map(function (e) { return [e.sessionId, e.entryId, e.kind, e.stop, e.language, e.build, e.createdAt, e.updatedAt, e.revision, e.rating, e.category, e.worked, e.fix, e.score, e.phase, (e.ackRevision || 0) >= e.revision ? "confirmed" : (e.submitted ? "pending" : "local draft"), e.sessionEnded ? "yes" : "no", e.stationId || ""]; }));
     function column(i) { var s = ""; do { s = String.fromCharCode(65 + i % 26) + s; i = Math.floor(i / 26) - 1; } while (i >= 0); return s; }
     var sheet = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetViews><sheetView workbookViewId="0"><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews><cols><col min="1" max="11" width="22" customWidth="1"/><col min="12" max="13" width="55" customWidth="1"/><col min="14" max="18" width="22" customWidth="1"/></cols><sheetData>' + rows.map(function (row, i) { return '<row r="' + (i + 1) + '">' + row.map(function (v, j) { var ref = column(j) + (i + 1); return typeof v === "number" && Number.isFinite(v) ? '<c r="' + ref + '"><v>' + v + '</v></c>' : '<c r="' + ref + '" t="inlineStr"><is><t xml:space="preserve">' + xml(v) + '</t></is></c>'; }).join("") + '</row>'; }).join("") + '</sheetData><autoFilter ref="A1:R' + rows.length + '"/></worksheet>';
     return zip({
@@ -204,13 +244,15 @@
       "xl/worksheets/sheet1.xml": sheet
     });
   }
-  var WORDS = {
-    en: { player: "Player", general: "Whole game", stop: "Stop", local: "Saved on this device. Shared backup is not connected yet.", queued: "Saved on this device. Waiting to back up automatically…", synced: "Saved on this device and confirmed in the shared backup.", failed: "Saved on this device. Shared backup is unavailable; retrying automatically.", storage: "This browser cannot save feedback reliably. Keep this page open and download Excel before leaving. A new player cannot start until saving works.", recovery: "Some earlier feedback could not be reopened. The original is kept for your instructor to recover. ", changed: "A new player started in another tab. Reloading to keep players separate.", empty: "Your comments will appear here as you play.", draft: "Draft", backed: "Backed up", pending: "Waiting for backup", newConfirm: "Start a new anonymous player? This starts fresh game progress for the next person. Your feedback stays queued for backup, but the next player will not see it.", download: "Excel downloaded for this player.", downloadError: "Excel could not be downloaded. Keep this page open and try again.", noText: "Rating/category recorded", good: "Clear", okay: "Okay", unclear: "Confusing" },
-    es: { player: "Jugador", general: "Todo el juego", stop: "Parada", local: "Guardado en este dispositivo. La copia compartida aún no está conectada.", queued: "Guardado en este dispositivo. Esperando la copia automática…", synced: "Guardado en este dispositivo y confirmado en la copia compartida.", failed: "Guardado en este dispositivo. La copia compartida no está disponible; se reintentará automáticamente.", storage: "Este navegador no puede guardar comentarios de forma fiable. Mantén esta página abierta y descarga Excel antes de salir. No puede empezar otro jugador hasta que funcione el guardado.", recovery: "No se pudieron abrir algunos comentarios anteriores. El original se conserva para que tu instructor lo recupere. ", changed: "Otro jugador empezó en otra pestaña. Se recargará para mantener las sesiones separadas.", empty: "Tus comentarios aparecerán aquí mientras juegas.", draft: "Borrador", backed: "Con copia", pending: "Esperando copia", newConfirm: "¿Empezar con un nuevo jugador anónimo? El siguiente jugador comenzará con un progreso nuevo. Tus comentarios seguirán en la cola de copia, pero el siguiente jugador no los verá.", download: "Excel descargado para este jugador.", downloadError: "No se pudo descargar Excel. Mantén esta página abierta e inténtalo de nuevo.", noText: "Valoración/categoría registrada", good: "Claro", okay: "Bien", unclear: "Confuso" }
-  };
+  var WORDS = {};
+  if (typeof module !== "undefined" && module.exports && typeof require === "function") {
+    WORDS.en = require("./locales/feedback-en.json");
+    WORDS.es = require("./locales/feedback-es.json");
+  }
   function mount(document, window) {
     var root = document.getElementById("pt-feedback"); if (!root) return null;
-    var lang = root.dataset.lang === "es" ? "es" : "en", W = WORDS[lang], endpoint = root.dataset.endpoint || "";
+    var documentLanguage = document.documentElement && document.documentElement.lang;
+    var lang = (documentLanguage || root.dataset.lang) === "es" ? "es" : "en", W = WORDS[lang], endpoint = root.dataset.endpoint || "";
     var storage; try { storage = window.localStorage; } catch (e) { storage = { getItem: function () { throw e; }, setItem: function () { throw e; } }; }
     var model = createModel({ storage: storage, language: lang, build: root.dataset.build || "", id: function () { return uid(window.crypto); } });
     var game = document.getElementById("community-builders");
@@ -224,7 +266,32 @@
     function el(id) { return document.getElementById("pt-feedback-" + id); }
     var form = el("form"), stop = el("stop"), rating = el("rating"), category = el("category"), worked = el("worked"), fix = el("fix"), status = el("status"), list = el("entries"), context = el("context"), player = el("player");
     if (!form || !stop || !rating || !category || !worked || !fix || !status || !list) return null;
-    var contextStop = 0, saveTimer = null, syncTimer = null, inflight = false, retry = false, recentScore = null, staleArchived = false, sessionReloading = false;
+    form.setAttribute("data-pg-native", "");
+    var contextStop = 0, saveTimer = null, syncTimer = null, inflight = false, retry = false, attempts = 0, recentScore = null, staleArchived = false, sessionReloading = false, pageOpen = true, holdTimer = null, previewEntry = null, controller = null;
+    var consent = readConsent(storage, model.active());
+    if (!consent.scores) model.withdrawScores();
+    function consentCopy() { return Object.assign({}, consent); }
+    function updateConsentControls() {
+      if (!document.querySelectorAll) return;
+      Array.from(document.querySelectorAll("[data-pg-consent]")).forEach(function (input) {
+        var key = input.getAttribute("data-pg-consent"); input.checked = consent[key] === true;
+        if (key === "autoScores") input.disabled = !consent.scores;
+      });
+    }
+    function setConsent(value) {
+      var next = { scores: value && value.scores === true, autoScores: value && value.scores === true && value.autoScores === true, at: new Date().toISOString(), build: root.dataset.build || "", sessionId: model.active() };
+      try { storage.setItem(CONSENT_KEY, JSON.stringify(next)); consent = next; }
+      catch (_) { model.storageFailed(); setStatus(); return false; }
+      if (!consent.scores) model.withdrawScores();
+      updateConsentControls();
+      if (window.CustomEvent && document.dispatchEvent) document.dispatchEvent(new window.CustomEvent("pt:consent-change", { detail: Object.assign({ source: "feedback" }, consentCopy()) }));
+      return true;
+    }
+    document.addEventListener("change", function (event) {
+      var input = event.target, key = input && input.getAttribute && input.getAttribute("data-pg-consent");
+      if (key === "scores" || key === "autoScores") { var next = consentCopy(); next[key] = input.checked; setConsent(next); }
+    });
+    document.addEventListener("pt:consent-change", function (event) { var detail = event.detail || {}; if (detail.source !== "feedback") setConsent(detail); else updateConsentControls(); });
     var newDialog = document.getElementById("pt-new-player-dialog"), newTitle = document.getElementById("pt-new-player-title"), newMessage = document.getElementById("pt-new-player-message"), newCancel = document.getElementById("pt-new-player-cancel"), newConfirm = document.getElementById("pt-new-player-confirm"), newOpener = null, newVoiceSuspended = false;
     var useNewDialog = !!(newDialog && typeof newDialog.showModal === "function" && newTitle && newMessage && newCancel && newConfirm);
     function label(n) { return n ? W.stop + " " + n : W.general; }
@@ -242,8 +309,8 @@
         return;
       }
       if (model.warning()) { status.textContent = W.storage; if (useNewDialog && newDialog.open) newMessage.textContent = W.storage; return; }
-      var pending = model.pending().some(function (e) { return e.sessionId === model.active(); });
-      status.textContent = (model.recovery ? W.recovery : "") + (!endpointAllowed(endpoint) ? W.local : (pending ? (retry ? W.failed : W.queued) : W.synced));
+      var pending = model.pending().length > 0, acknowledged = model.entries().some(function (e) { return e.submitted && (e.ackRevision || 0) >= e.revision; });
+      status.textContent = (model.recovery ? W.recovery : "") + (!endpointAllowed(endpoint) ? W.local : (pending ? (retry ? (attempts < 3 ? W.retrying : W.failed) : W.queued) : (acknowledged ? W.synced : W.draftSaved)));
     }
     function render() {
       if (player) player.textContent = W.player + " " + model.active().slice(-6).toUpperCase();
@@ -255,45 +322,134 @@
         var item = document.createElement("li"), title = document.createElement("strong"), text = document.createElement("p"), state = document.createElement("span");
         item.className = "pt-feedback__entry"; title.textContent = label(e.stop) + (e.rating ? " · " + W[e.rating] : "");
         text.textContent = [e.worked, e.fix].filter(Boolean).join(" / ") || W.noText;
-        state.className = "pt-feedback__entry-state"; state.textContent = endpointAllowed(endpoint) ? ((e.ackRevision || 0) >= e.revision ? W.backed : W.pending) : W.draft;
+        state.className = "pt-feedback__entry-state"; state.textContent = e.submitted ? ((e.ackRevision || 0) >= e.revision ? W.backed : W.pending) : W.draft;
         item.appendChild(title); item.appendChild(text); item.appendChild(state); list.appendChild(item);
       });
       setStatus();
     }
     function loadContext(n) {
+      invalidatePreview();
       contextStop = n; stop.value = String(n); var e = model.find("feedback", n);
       rating.value = e ? e.rating : ""; category.value = e ? e.category : ""; worked.value = e ? e.worked : ""; fix.value = e ? e.fix : "";
       render();
     }
     function scheduleSync(delay) {
-      if (!endpointAllowed(endpoint)) return;
-      window.clearTimeout(syncTimer); syncTimer = window.setTimeout(sync, delay === undefined ? 1500 : delay);
+      if (!pageOpen || !model.pending().length || !endpointAllowed(endpoint) || attempts >= 3) return;
+      window.clearTimeout(syncTimer); syncTimer = window.setTimeout(sync, delay);
     }
     function flush() {
       window.clearTimeout(saveTimer); saveTimer = null;
       var fields = { rating: rating.value, category: category.value, worked: worked.value, fix: fix.value, language: lang };
       if (model.find("feedback", contextStop) || fields.rating || fields.category || fields.worked.trim() || fields.fix.trim()) model.upsert("feedback", contextStop, fields);
       else model.persist();
-      render(); scheduleSync();
+      render();
     }
     async function sync() {
-      if (inflight || !model.pending().length || !endpointAllowed(endpoint)) return;
-      inflight = true; var controller = window.AbortController ? new window.AbortController() : null;
+      if (!pageOpen || inflight || attempts >= 3 || !model.pending().length || !endpointAllowed(endpoint)) return;
+      inflight = true; attempts++; controller = window.AbortController ? new window.AbortController() : null;
       var timeout = window.setTimeout(function () { if (controller) controller.abort(); }, 15000);
-      try { await sendBatch(model, endpoint, window.fetch.bind(window), controller && controller.signal); retry = false; }
-      catch (e) { retry = true; }
-      finally { window.clearTimeout(timeout); inflight = false; render(); if (model.pending().length) scheduleSync(retry ? 60000 : 300); }
+      try { await sendBatch(model, endpoint, window.fetch.bind(window), controller && controller.signal); retry = model.pending().length > 0; }
+      catch (_) { retry = true; }
+      finally {
+        window.clearTimeout(timeout); inflight = false; controller = null; render();
+        // Maximum three total requests per explicit Send, including the first request.
+        if (pageOpen && retry && model.pending().length && attempts < 3) scheduleSync(attempts === 1 ? 5000 : 30000);
+      }
     }
-    form.addEventListener("submit", function (e) { e.preventDefault(); flush(); scheduleSync(0); });
+    function make(tag, id, text) { var node = document.createElement(tag); node.id = "pt-feedback-" + id; if (text) node.textContent = text; return node; }
+    var saveDraft = el("save-draft");
+    if (!saveDraft) { saveDraft = make("button", "save-draft", W.save); saveDraft.type = "button"; form.appendChild(saveDraft); }
+    var preview = el("preview"), previewText, send, edit, holdStatus;
+    if (!preview) {
+      preview = make("section", "preview"); preview.className = "pt-feedback__preview"; preview.hidden = true; preview.setAttribute("aria-label", W.preview);
+      var previewHeading = make("h3", "preview-heading", W.preview), previewHint = make("p", "preview-hint", W.removed);
+      previewText = make("p", "preview-text"); previewText.className = "pt-feedback__preview-text";
+      send = make("button", "send", W.hold); send.type = "button"; send.setAttribute("aria-describedby", "pt-feedback-hold-status");
+      edit = make("button", "edit", W.edit); edit.type = "button";
+      holdStatus = make("p", "hold-status", W.holdCancel); holdStatus.setAttribute("role", "status"); holdStatus.setAttribute("aria-live", "polite");
+      [previewHeading, previewHint, previewText, send, edit, holdStatus].forEach(function (node) { preview.appendChild(node); }); form.appendChild(preview);
+    } else { previewText = el("preview-text"); send = el("send"); edit = el("edit"); holdStatus = el("hold-status"); }
+    var submit = el("submit"); if (submit) submit.textContent = W.send;
+    function translateForm() {
+      function text(node, value) { if (node) node.textContent = value; }
+      function query(selector) { return root.querySelector ? root.querySelector(selector) : null; }
+      // Labels contain the existing controls. Replace only their text node.
+      function prefix(node, value) {
+        if (!node) return;
+        var first = Array.from(node.childNodes || []).find(function (child) { return child.nodeType === 3; });
+        if (first) first.textContent = value + " ";
+      }
+      function options(select, labels) {
+        Array.from(select.options || []).forEach(function (option) { if (Object.prototype.hasOwnProperty.call(labels, option.value)) option.textContent = labels[option.value]; });
+      }
+      text(el("h"), W.title); text(query("h2 + p"), W.introduction);
+      prefix(player && player.parentNode, W.anonymous); prefix(context && context.parentNode, W.activity);
+      text(el("privacy"), endpointAllowed(endpoint) ? W.privacyCloud : W.privacyLocal);
+      [["stop", "forStop"], ["rating", "ratingLabel"], ["category", "categoryLabel"], ["worked", "workedLabel"], ["fix", "fixLabel"]].forEach(function (pair) { prefix(query('label[for="pt-feedback-' + pair[0] + '"]'), W[pair[1]]); });
+      var stopLabels = { 0: W.generalOption }; for (var n = 1; n <= 15; n++) stopLabels[n] = W.stop + " " + n;
+      options(stop, stopLabels); options(rating, { "": W.choose, unclear: W.unclearOption, okay: W.okayOption, good: W.goodOption });
+      options(category, { "": W.choose, clarity: W.clarityOption, bug: W.bugOption, voice: W.voiceOption, spanish: W.spanishOption, art: W.artOption, other: W.otherOption });
+      text(el("hint"), W.hint); text(el("shared"), W.shared); text(el("download"), W.downloadLabel); text(el("new-player"), W.newPlayer);
+      text(query(".pt-feedback__saved > summary"), W.savedNotes); text(query(".pt-feedback-more > summary"), W.more);
+      var build = query("p > code"); prefix(build && build.parentNode, W.buildLabel);
+      text(submit, W.send); text(saveDraft, W.save); text(el("preview-heading"), W.preview); text(el("preview-hint"), W.removed);
+      if (preview) preview.setAttribute("aria-label", W.preview);
+      text(send, W.hold); text(edit, W.edit); text(holdStatus, W.holdCancel);
+      if (useNewDialog) { text(newTitle, W.newTitle); text(newCancel, W.newCancel); text(newConfirm, W.newConfirmLabel); text(newMessage, W.newConfirm); }
+      root.dataset.lang = lang; root.setAttribute("lang", lang);
+    }
+    function cancelHold() { window.clearTimeout(holdTimer); holdTimer = null; if (holdStatus) holdStatus.textContent = W.holdCancel; }
+    function invalidatePreview() { cancelHold(); previewEntry = null; if (preview) preview.hidden = true; }
+    function showPreview() {
+      flush(); if (model.warning() || model.changedSession()) return;
+      if (!endpointAllowed(endpoint)) { status.textContent = W.unavailable; return; }
+      var entry = model.find("feedback", contextStop);
+      if (!entry) entry = model.upsert("feedback", contextStop, { language: lang });
+      previewEntry = { entryId: entry.entryId, revision: entry.revision, stop: contextStop, worked: scrubPII(entry.worked, lang), fix: scrubPII(entry.fix, lang) };
+      previewText.textContent = W.worked + ":\n" + previewEntry.worked + "\n\n" + W.fix + ":\n" + previewEntry.fix;
+      preview.hidden = false; holdStatus.textContent = W.holdCancel; send.focus();
+    }
+    function finishHold() {
+      holdTimer = null;
+      var entry = previewEntry && model.find("feedback", previewEntry.stop);
+      if (!entry || entry.entryId !== previewEntry.entryId || entry.revision !== previewEntry.revision || contextStop !== previewEntry.stop) { invalidatePreview(); return; }
+      model.upsert("feedback", contextStop, { worked: previewEntry.worked, fix: previewEntry.fix });
+      worked.value = previewEntry.worked; fix.value = previewEntry.fix;
+      if (!model.submit(entry.entryId, consent.scores)) { setStatus(); return; }
+      preview.hidden = true; previewEntry = null; attempts = 0; retry = false; window.clearTimeout(syncTimer); render(); sync(); if (submit) submit.focus();
+    }
+    function beginHold(event) {
+      if (!previewEntry || holdTimer !== null || (event && event.button !== undefined && event.button !== 0) || (event && (event.repeat || event.isPrimary === false))) return;
+      if (event && event.preventDefault) event.preventDefault();
+      holdStatus.textContent = W.holdProgress; holdTimer = window.setTimeout(finishHold, 2000);
+    }
+    if (send) {
+      send.addEventListener("pointerdown", beginHold);
+      ["pointerup", "pointercancel", "pointerleave", "blur"].forEach(function (name) { send.addEventListener(name, cancelHold); });
+      send.addEventListener("keydown", function (event) { if (event.key === " " || event.key === "Enter") { event.preventDefault(); beginHold(event); } });
+      send.addEventListener("keyup", function (event) { if (event.key === " " || event.key === "Enter") { event.preventDefault(); cancelHold(); } });
+      send.addEventListener("click", function (event) { event.preventDefault(); });
+    }
+    if (edit) edit.addEventListener("click", function () { invalidatePreview(); worked.focus(); });
+    saveDraft.addEventListener("click", function () { invalidatePreview(); flush(); });
+    form.addEventListener("submit", function (event) { event.preventDefault(); showPreview(); });
     document.addEventListener("pt:feedback-flush", flush);
-    [rating, category, worked, fix].forEach(function (input) { input.addEventListener("input", function () { window.clearTimeout(saveTimer); saveTimer = window.setTimeout(flush, 350); }); input.addEventListener("change", flush); });
+    document.addEventListener("pg:language-change", function (event) {
+      var next = event.detail && event.detail.language;
+      if ((next !== "en" && next !== "es") || next === lang) return;
+      var wasPreviewing = preview && !preview.hidden;
+      flush(); cancelHold(); lang = next; W = WORDS[lang]; translateForm(); render();
+      // A language change cannot finish an old hold; review the newly translated preview.
+      if (wasPreviewing) showPreview();
+    });
+    [rating, category, worked, fix].forEach(function (input) { input.addEventListener("input", function () { invalidatePreview(); window.clearTimeout(saveTimer); saveTimer = window.setTimeout(flush, 350); }); input.addEventListener("change", function () { invalidatePreview(); flush(); }); });
     stop.addEventListener("change", function () { var n = Math.max(0, Math.min(15, Number(stop.value) || 0)); flush(); loadContext(n); });
     document.addEventListener("cb:screen", function (event) {
       var d = event.detail || {}, n = Math.max(0, Math.min(15, Number(d.stopN) || 0));
       if (n !== contextStop) { flush(); loadContext(n); recentScore = null; }
-      if (d.phase === "result" && Number.isFinite(d.score)) {
+      if (consent.scores && d.phase === "result" && Number.isFinite(d.score)) {
         var marker = n + ":" + d.score;
-        if (recentScore !== marker) { model.upsert("progress", n, { score: d.score, phase: "result", language: lang }); recentScore = marker; render(); scheduleSync(); }
+        if (recentScore !== marker) { model.upsert("progress", n, { score: d.score, phase: "result", language: lang }); recentScore = marker; render(); if (consent.autoScores) { model.submitProgress(n); attempts = 0; retry = false; sync(); } }
       }
     });
     function suspendNewPlayerVoice(suspended) {
@@ -315,7 +471,9 @@
       if (model.warning() || model.changedSession()) return;
       if (!model.rotate()) { setStatus(); return; }
       closeNewPlayerDialog();
-      scheduleSync(0); window.location.reload();
+      window.clearTimeout(syncTimer); cancelHold();
+      try { storage.setItem(CONSENT_KEY, JSON.stringify({ scores: false, autoScores: false, at: new Date().toISOString(), build: root.dataset.build || "", sessionId: model.active() })); } catch (_) { model.storageFailed(); }
+      window.location.reload();
     }
     function newPlayer(event) {
       flush();
@@ -327,10 +485,6 @@
       newDialog.showModal(); suspendNewPlayerVoice(true); newCancel.focus();
     }
     if (useNewDialog) {
-      newTitle.textContent = lang === "es" ? "¿Listo para otro jugador?" : "Ready for another player?";
-      newCancel.textContent = lang === "es" ? "Seguir jugando" : "Keep playing";
-      newConfirm.textContent = lang === "es" ? "Empezar con otro jugador" : "Start new player";
-      newMessage.textContent = W.newConfirm;
       newCancel.addEventListener("click", closeNewPlayerDialog);
       newConfirm.addEventListener("click", confirmNewPlayer);
       newDialog.addEventListener("cancel", function (event) { event.preventDefault(); closeNewPlayerDialog(); });
@@ -345,16 +499,42 @@
         document.body.appendChild(a); a.click(); a.remove(); window.setTimeout(function () { window.URL.revokeObjectURL(url); }, 30000); status.textContent = W.download;
       } catch (e) { status.textContent = W.downloadError; }
     });
-    window.addEventListener("online", function () { scheduleSync(0); });
-    window.addEventListener("pagehide", flush);
-    document.addEventListener("visibilitychange", function () { if (document.visibilityState === "hidden") flush(); else scheduleSync(0); });
-    window.addEventListener("storage", function (e) { if (e.key === KEY) { model.persist(); render(); scheduleSync(0); } });
+    window.addEventListener("pagehide", function () { flush(); pageOpen = false; cancelHold(); window.clearTimeout(syncTimer); if (controller) controller.abort(); });
+    document.addEventListener("visibilitychange", function () { if (document.visibilityState === "hidden") { flush(); cancelHold(); } });
+    window.addEventListener("blur", cancelHold);
+    document.addEventListener("keydown", function (event) { if (event.key === "Escape") cancelHold(); }, true);
+    window.addEventListener("storage", function (event) {
+      if (event.key === KEY) { model.persist(); render(); }
+      if (event.key === CONSENT_KEY) { consent = readConsent(storage, model.active()); if (!consent.scores) model.withdrawScores(); updateConsentControls(); }
+    });
     model.upsert("session", 0, { phase: "start", language: lang });
     var initial = game && Number(game.dataset.currentStop);
-    loadContext(Number.isInteger(initial) && initial >= 0 && initial <= 15 ? initial : 0); scheduleSync(0);
-    return { model: model, flush: flush, sync: sync };
+    translateForm(); loadContext(Number.isInteger(initial) && initial >= 0 && initial <= 15 ? initial : 0); updateConsentControls();
+    var runtime = { model: model, flush: flush, sync: sync, getConsent: consentCopy, setConsent: setConsent, showPreview: showPreview };
+    window.PecanGroveFeedback = Object.assign({}, api, runtime);
+    return runtime;
   }
-  var api = { KEY: KEY, GAME_KEY: GAME_KEY, createModel: createModel, mergeEntries: mergeEntries, sendBatch: sendBatch, endpointAllowed: endpointAllowed, excel: excel, mount: mount };
+  var api = { KEY: KEY, GAME_KEY: GAME_KEY, CONSENT_KEY: CONSENT_KEY, scrubPII: scrubPII, readConsent: readConsent, WORDS: WORDS, createModel: createModel, mergeEntries: mergeEntries, sendBatch: sendBatch, endpointAllowed: endpointAllowed, excel: excel, mount: mount };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
-  if (host.document) mount(host.document, host);
+  host.PecanGroveFeedback = api;
+  if (host.document && host.document.getElementById("pt-feedback")) {
+    // First-party static locales load before the singleton feedback form is mounted.
+    api.ready = Promise.all(["en", "es"].map(function (language) {
+      var path = "assets/playtest/locales/feedback-" + language + ".json";
+      var mapped = host.PG_ASSET_MAP && host.PG_ASSET_MAP[path];
+      return host.fetch(new URL(mapped || path, host.document.baseURI)).then(function (response) {
+        if (!response.ok) throw Error("Feedback locale unavailable");
+        return response.json();
+      }).then(function (messages) { WORDS[language] = messages; });
+    })).then(function () {
+      var runtime = mount(host.document, host);
+      host.document.dispatchEvent(new host.CustomEvent("pg:feedback-ready"));
+      return runtime;
+    }).catch(function () {
+      var root = host.document.getElementById("pt-feedback");
+      if (root) root.dataset.feedbackUnavailable = "true";
+      host.document.dispatchEvent(new host.CustomEvent("pg:feedback-unavailable"));
+      return null;
+    });
+  }
 })(typeof window !== "undefined" ? window : globalThis);
