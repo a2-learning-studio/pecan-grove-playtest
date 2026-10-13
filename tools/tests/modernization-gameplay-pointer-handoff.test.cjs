@@ -2,11 +2,16 @@ const test = require("node:test"),
   assert = require("node:assert/strict");
 const { fullCore } = require("./modernization-gameplay-fixture.cjs");
 
-async function handoff(language) {
+async function boundary(language, renderDelay = 0) {
   let clock = 1000,
     capture;
   const r = await fullCore(language, 42, false, null, {
     reduced: true,
+    transformStopSource(source, filename) {
+      // Advance the real lazy-load boundary, before the authored module renders.
+      if (filename.startsWith("02-")) clock += renderDelay;
+      return source;
+    },
     beforeBoot(w) {
       w.Date.now = () => clock;
       Object.defineProperty(w.performance, "now", {
@@ -52,6 +57,12 @@ async function handoff(language) {
   r.advance = (ms) => {
     clock += ms;
   };
+  r.time = () => clock;
+  return r;
+}
+
+async function handoff(language) {
+  const r = await boundary(language);
   await r.core.startStop("ask-a-good-question");
   r.pointer(r.main().querySelector(".cb-s02-intro .cb-btn--go"), 100, 100);
   assert.ok(r.main().querySelector(".cb-s02-play"));
@@ -59,6 +70,40 @@ async function handoff(language) {
 }
 
 for (const language of ["en", "es"]) {
+  test(`${language}: delayed Stop2 rendering does not restart the triggering pointer's ghost window`, async () => {
+    const r = await boundary(language, 200);
+    try {
+      r.core.showMap();
+      const disc = r.main().querySelector('.cb-stop[data-stop-n="2"]');
+      assert.equal(r.time(), 1000);
+      assert.equal(r.pointer(disc, 97, 304).stopped, false);
+      for (let i = 0; i < 20 && !r.main().querySelector(".cb-s02-intro"); i++)
+        await r.tick();
+      const go = r.main().querySelector(".cb-s02-intro .cb-btn--go");
+      assert.ok(go, "The actual lazy-loaded Stop2 introduction must render");
+      assert.equal(r.time(), 1200);
+      r.advance(200);
+      assert.equal(
+        r.pointer(go, 111, 305).stopped,
+        false,
+        "A new click 400ms after the map click is valid despite a 200ms load",
+      );
+      assert.equal(r.core.snapshot().state.screenKey, "worry");
+      r.advance(50);
+      const tile = r.main().querySelector('.cb-s02-tile[data-row="start"]');
+      assert.equal(r.pointer(tile, 111, 305).stopped, true);
+      assert.equal(r.core.snapshot().state.sel.start, null);
+      r.advance(299);
+      assert.equal(r.pointer(tile, 111, 305).stopped, true);
+      r.advance(1);
+      assert.equal(r.pointer(tile, 111, 305).stopped, false);
+      assert.equal(r.core.snapshot().state.sel.start, tile.dataset.id);
+      assert.equal(r.errors.length, 0, String(r.errors));
+    } finally {
+      r.close();
+    }
+  });
+
   test(`${language}: distinct first Stop2 tiles and Ask accept trusted pointer input immediately`, async () => {
     const r = await handoff(language);
     try {
@@ -73,7 +118,7 @@ for (const language of ["en", "es"]) {
         assert.equal(
           tile.getAttribute("aria-pressed"),
           "true",
-          `${row}: the deliberate initial pointer must be accepted before300ms`,
+          `${row}: the deliberate initial pointer must be accepted before 300ms`,
         );
         assert.equal(r.core.snapshot().state.sel[row], tile.dataset.id);
       }
@@ -91,7 +136,7 @@ for (const language of ["en", "es"]) {
     }
   });
 
-  test(`${language}: the real shared guard blocks same-position ghost clicks, permits keyboard and expires at350ms`, async () => {
+  test(`${language}: the real shared guard blocks same-position ghost clicks, permits keyboard and expires at 350ms`, async () => {
     const r = await handoff(language);
     try {
       const tile = r.main().querySelector('.cb-s02-tile[data-row="start"]');

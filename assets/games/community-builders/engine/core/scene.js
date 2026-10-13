@@ -278,6 +278,7 @@ export default function createScene(ctx) {
     nudged = false;
   var tapX = -99,
     tapY = -99,
+    tapAt = -1e9,
     swapAt = -1e9,
     swapX = -99,
     swapY = -99;
@@ -297,11 +298,13 @@ export default function createScene(ctx) {
       }
       tapX = e.clientX;
       tapY = e.clientY;
+      tapAt = ctx.performance.now();
     },
     true,
   );
   function guard() {
-    swapAt = ctx.performance.now();
+    // A delayed render must not restart the triggering pointer's ghost window.
+    swapAt = tapAt;
     swapX = tapX;
     swapY = tapY;
   }
