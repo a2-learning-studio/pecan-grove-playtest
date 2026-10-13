@@ -1,7 +1,7 @@
 {
   "T": {
     "hall": "Ayuntamiento",
-    "intro": "¡Te damos la bienvenida al Ayuntamiento! La Junta de Planificación ya se reunió. Ahora sigue la audiencia del Concejo del pueblo. Los vecinos tienen preguntas. Ayuda a cada uno a encontrar el escritorio correcto.",
+    "intro": "¡Te damos la bienvenida al Ayuntamiento! Los vecinos tienen preguntas. Ayuda a cada uno a encontrar el escritorio correcto.",
     "start": "Empezar",
     "qn": {
       "$args": [

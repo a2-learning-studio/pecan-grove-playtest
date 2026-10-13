@@ -243,7 +243,7 @@
         var counts = countStamps();
         return h("div", { "class": "cb-actions cb-s10-bench cb-s10-bench--end" }, [
           h("div", { "class": "cb-s10-end" }, [h("p", { "class": "cb-s10-end__look", text: S.look }), countList(counts, "cb-s10-counts"),
-            h("p", { "class": "cb-s10-end__aha", text: S.aha })]),
+            h("p", { "class": "cb-s10-end__aha", text: boardLine(counts) })]),
           api.btn(S.see, "cb-btn--go cb-btn--big cb-s10-big cb-s10-see", finish, "go", true)]);
       }
       var both = selP && selF, kids = [];
@@ -264,6 +264,11 @@
       return h("div", { "class": "cb-actions cb-s10-bench" + (both ? " is-pair" : "") + (selP || selF || fbk ? " is-live" : "") + (fbk ? " has-fb" : "") }, kids);
     }
     function countStamps() { var c = { sun: 0, half: 0, hour: 0, seed: 0 }; R.probs.forEach(function (p) { c[DD[p].st]++; }); return c; }
+    function boardLine(c) {
+      var bits = [];
+      ST_ORDER.forEach(function (st) { if (c[st]) bits.push(c[st] + " " + t2(STAMP[st])); });
+      return bits.length ? bits.join(". ") + "." : (S.boardEmpty || "");
+    }
     function countList(c, cls) {
       return h("ul", { "class": cls }, ST_ORDER.map(function (st) { return h("li", { "data-st": st }, [stDisc(st), h("span", { text: t2(STAMP[st]) + ": " + c[st] })]); }));
     }
@@ -370,7 +375,7 @@
         st.link = f; st.by = "player"; st.note = !!opened[f]; st.n = ++linkNo; fixLink[f] = p;
         selP = selF = null; fbk = { kind: "good", text: S.good, ok: true };
         play(nextFocus(p));
-        api.say(S.good + " " + t2(STAMP[DD[f].st]) + ". " + S.matched(nLinked()) + (nLinked() === 5 ? ". " + S.look + " " + S.aha : ""));
+        api.say(S.good + " " + t2(STAMP[DD[f].st]) + ". " + S.matched(nLinked()) + (nLinked() === 5 ? ". " + S.look + " " + boardLine(countStamps()) : ""));
         return;
       }
       st.misses.push(f);
@@ -455,7 +460,7 @@
       var score = 0, linkedUnchecked = false;
       R.probs.forEach(function (c) {
         var st = state[c]; if (st.by !== "player") return;
-        score += (st.misses.length ? 6 : 12) + (st.note ? 8 : 0);
+        score += (st.misses.length ? 14 : 18) + (st.note ? 2 : 0);
         if (!st.note) linkedUnchecked = true;
       });
       var tip = score === 100 ? (idea !== null ? S.tipIdea : S.tip100) : linkedUnchecked ? S.tipCheck : S.tipRead;
@@ -473,6 +478,7 @@
       var order = R.probs.slice().sort(function (a, b) { return state[a].n - state[b].n; });
       return h("div", { "class": "cb-s10-sum" }, [
         h("strong", { "class": "cb-s10-sum__h", text: S.look }), countList(countStamps(), "cb-s10-counts cb-s10-counts--card"),
+        h("p", { "class": "cb-s10-sum__aha", text: boardLine(countStamps()) }),
         h("ul", { "class": "cb-s10-recap" }, order.map(function (c) {
           var y = sv("svg", { viewBox: "0 0 64 24", "class": "cb-s10-recap__yarn", "aria-hidden": "true", focusable: "false" });
           y.appendChild(sv("path", { d: "M6 12 C 22 22, 42 2, 58 12", "class": "cb-s10-yarn__base" }));

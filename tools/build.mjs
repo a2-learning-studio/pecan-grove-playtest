@@ -10,9 +10,9 @@ import { prepareManifest, linkManifest } from './delivery-manifest.mjs';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const flavorArg = process.argv.find(a => a.startsWith('--flavor='));
 const flavor = flavorArg ? flavorArg.split('=')[1] : process.argv.includes('--flavor') ? process.argv[process.argv.indexOf('--flavor') + 1] : 'playtest';
-if (!['playtest', 'family'].includes(flavor)) throw new Error('Flavor must be playtest or family');
+if (!['playtest', 'family', 'library'].includes(flavor)) throw new Error('Flavor must be playtest, family, or library');
 const output = path.join(root, '_publish', `pecan-grove-${flavor}`);
-const dist = path.join(root, flavor === 'family' ? 'dist-family' : 'dist');
+const dist = path.join(root, flavor === 'playtest' ? 'dist' : `dist-${flavor}`);
 const locales = spawnSync(process.execPath, ['tools/generate-game-locales.cjs'], { cwd: root, stdio: 'inherit' });
 if (locales.status !== 0) process.exit(locales.status || 1);
 const shellLocales = spawnSync(process.execPath, ['tools/generate-shell-locales.cjs'], { cwd: root, stdio: 'inherit' });
@@ -47,7 +47,7 @@ async function readStyle(name, seen = new Set()) {
 const [studio, tokens, game, engine, page, shell, feedback] = await Promise.all([
   'assets/css/a2-studio.css', 'assets/games/community-builders/engine/tokens.css',
   'assets/games/community-builders/cb.css', 'assets/games/community-builders/engine/engine.css',
-  'playtest.css', 'assets/playtest/shell.css', ...(flavor === 'playtest' ? ['assets/playtest/feedback.css'] : [])
+  'playtest.css', 'assets/playtest/shell.css', ...(flavor === 'family' ? [] : ['assets/playtest/feedback.css'])
 ].map(name => readStyle(name)));
 const styles = splitStyles({studio, tokens, game, engine, page, shell, feedback});
 // Fonts retain their original base URL so Vite can resolve and fingerprint them.
@@ -128,6 +128,7 @@ for (const file of files.filter(f => f.endsWith('.html'))) {
   const html = await fs.readFile(path.join(dist, file), 'utf8');
   if (/<script\b(?![^>]*\bsrc=)[^>]*>[\s\S]*?\S[\s\S]*?<\/script>/i.test(html) || /<style\b|\sstyle\s*=/i.test(html)) throw new Error(`Inline code violates CSP: ${file}`);
   if (flavor === 'family' && /script\.google|pt-feedback|pt-review-tab/.test(html)) throw new Error(`Family build contains playtest connection: ${file}`);
+  if (flavor === 'library' && /script\.google/.test(html)) throw new Error(`Library build must not send feedback: ${file}`);
 }
 const jsBytes = await Promise.all(files.filter(f => /\.js$/.test(f) && !f.includes('/stops/') && !f.includes('/voice/')).map(async f => gzipSync(await fs.readFile(path.join(dist, f))).length));
 const cssBytes = await Promise.all(files.filter(f => /\.css$/.test(f) && !f.includes('/stops/')).map(async f => gzipSync(await fs.readFile(path.join(dist, f))).length));

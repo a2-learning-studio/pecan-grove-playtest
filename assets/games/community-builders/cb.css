@@ -351,7 +351,7 @@
 .cb-stophud__title { grid-area: title; display: flex; align-items: center; gap: 12px; min-width: 0; }
 .cb-stophud__badge { display: grid; place-items: center; flex: none; width: 46px; height: 46px; border-radius: 50%; background: var(--cb-chap); border: 3px solid var(--cb-card);
   font-family: var(--a2-font-display); font-size: 1.3125rem; font-weight: 760; color: var(--cb-ink); }
-.cb-stophud__h { margin: 0; font-family: var(--a2-font-display); font-size: clamp(1.25rem, 0.95rem + 1.1cqi, 1.75rem); font-weight: 680; line-height: 1.1; letter-spacing: -0.022em; color: var(--cb-on-stage); text-wrap: balance; }
+.cb-stophud__h { margin: 0; font-family: var(--a2-font-display); font-size: clamp(1.05rem, 0.85rem + 0.7cqi, 1.5rem); font-weight: 680; line-height: 1.15; letter-spacing: -0.022em; color: var(--cb-on-stage); text-wrap: balance; }
 .cb-stophud__h:focus { outline: none; }
 .cb-stophud__title p { margin: 3px 0 0; font-size: 0.875rem; font-weight: 600; color: var(--cb-on-stage-2); }
 .cb-stophud__steps { grid-area: steps; display: grid; justify-items: end; gap: 4px; }
@@ -640,9 +640,10 @@
 .cb-table .cb-num { text-align: right; font-variant-numeric: tabular-nums; }
 .cb-who { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 8px; font-weight: 680; }
 .cb-ribbon { padding: 2px 10px; border-radius: 999px; background: var(--cb-clay-soft); color: var(--cb-clay-ink); font-size: 0.75rem; font-weight: 760; }
-.cb-tries { display: inline-flex; align-items: flex-end; gap: 6px; height: 62px; padding-top: 18px; }
-.cb-tries__bar { position: relative; width: 26px; height: var(--h); min-height: 4px; border-radius: 6px 6px 2px 2px; background: var(--cb-chap); }
-.cb-tries__bar b { position: absolute; bottom: 100%; left: 50%; margin-bottom: 2px; transform: translateX(-50%); font-size: 0.75rem; font-weight: 720; color: var(--cb-ink-2); font-variant-numeric: tabular-nums; }
+.cb-tries { display: inline-flex; align-items: flex-end; gap: 6px; min-height: 62px; }
+.cb-tries__bar { position: static; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; width: 26px; height: auto; min-height: 4px; border-radius: 0; background: transparent; }
+.cb-tries__bar::before { content: ""; display: block; width: 100%; height: var(--h); min-height: 4px; border-radius: 6px 6px 2px 2px; background: var(--cb-chap); }
+.cb-tries__bar b { position: static; order: -1; margin: 0 0 2px; transform: none; font-size: 0.75rem; font-weight: 720; color: var(--cb-ink-2); font-variant-numeric: tabular-nums; }
 
 /* ── storybook objects (DESIGN.md "Things on a scene"): anything a player must recognise on a painted scene is drawn here,
    never as a UI line icon in a white disc. 64-unit grid, one warm outline, flat fills picked from the painted town map,

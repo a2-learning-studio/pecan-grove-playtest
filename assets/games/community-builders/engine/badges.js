@@ -1,3 +1,5 @@
+import { countsForBadges } from "./round-score.js";
+
 export const BADGE_IDS = [
   "first-stop",
   "chapter-1",
@@ -17,7 +19,7 @@ export const BADGE_IDS = [
 ];
 export function evaluateBadges(player, stops, event = {}) {
   const records = player.stops || {},
-    done = Object.keys(records).filter((id) => (records[id].rounds || 0) > 0),
+    done = Object.keys(records).filter((id) => countsForBadges(records[id])),
     earned = new Set();
   if (done.length) earned.add("first-stop");
   if (done.length >= 15) earned.add("journey-15");
@@ -59,8 +61,21 @@ export class Badges {
     return true;
   }
   evaluate(event) {
-    const ids = evaluateBadges(this.slots.current(), this.stops(), event);
-    ids.forEach((id) => this.unlock(id));
-    return ids;
+    const player = this.slots.current();
+    player.badges = player.badges || {};
+    const qualified = Object.values(player.stops || {}).filter(
+      countsForBadges,
+    ).length;
+    const ids = evaluateBadges(player, this.stops(), event);
+    const announce = [];
+    ids.forEach((id) => {
+      if (id === "first-stop" && qualified > 1 && !player.badges[id]) {
+        player.badges[id] = new Date().toISOString();
+        this.slots.save();
+        return;
+      }
+      if (this.unlock(id)) announce.push(id);
+    });
+    return announce;
   }
 }

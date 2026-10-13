@@ -113,7 +113,6 @@
 .cb-s06-step__disc .cb-ico { width: 24px; height: 24px; }
 .cb-s06-step.is-past .cb-s06-step__disc { background: var(--cb-pine-soft); border-color: var(--cb-stage-2); color: var(--cb-stage-2); }
 .cb-s06-step.is-ring .cb-s06-step__disc { border-color: var(--cb-clay); color: var(--cb-clay-ink); }
-.cb-s06-step.is-ring .cb-s06-step__disc::after { content: ""; position: absolute; inset: -9px; border-radius: 50%; border: 4px solid var(--cb-clay); animation: cb-pop 0.5s var(--cb-ease) both; }
 .cb-s06-step__lbl { font-size: 0.9375rem; font-weight: 700; line-height: 1.2; color: var(--cb-ink); text-wrap: balance; }
 .cb-s06-step.is-ring .cb-s06-step__lbl { color: var(--cb-clay-ink); }
 .cb-s06-step__speak { display: block; padding: 3px 8px 4px 6px; border-radius: 10px; background: var(--cb-info-soft); color: var(--cb-info-ink);

@@ -178,8 +178,26 @@ export default function createResume(ctx) {
     ctx.vKeys = null;
     ctx.vHeard = {};
     ctx.vLoading = false;
-    if (url && ctx.window.history && ctx.window.history.replaceState)
-      ctx.window.history.replaceState(null, "", url.href);
+    var file = language === "es" ? "espanol.html" : "index.html";
+    var next = url;
+    try {
+      next = new ctx.URL(file, ctx.location.href);
+      next.search = ctx.location.search;
+      next.hash = ctx.location.hash;
+    } catch (e) {
+      next = url;
+    }
+    if (
+      next &&
+      next.origin === ctx.location.origin &&
+      ctx.window.history &&
+      ctx.window.history.replaceState
+    )
+      ctx.window.history.replaceState(null, "", next.href);
+    ctx.root.setAttribute(
+      "data-language-url",
+      language === "es" ? "index.html" : "espanol.html",
+    );
     ctx.emit("pg:language-change", {
       language: ctx.L,
       previousLanguage: previous,

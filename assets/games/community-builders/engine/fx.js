@@ -30,15 +30,22 @@ export class FX {
     this.canvas.width = rect.width;
     this.canvas.height = rect.height;
     const style = this.win.getComputedStyle(this.root);
-    const color = style
-      .getPropertyValue(
-        kind === "leaves"
-          ? "--pg-chapter-3"
-          : kind === "pecans"
-            ? "--pg-pecan"
-            : "--pg-gold",
-      )
-      .trim();
+    const read = (name, fallback) =>
+      style.getPropertyValue(name).trim() || fallback;
+    const color = read(
+      kind === "leaves"
+        ? "--pg-chapter-3"
+        : kind === "pecans"
+          ? "--pg-pecan"
+          : "--pg-gold",
+      read("--pg-gold", read("--cb-gold", "gold")),
+    );
+    const palette = [
+      color,
+      read("--pg-clay", color),
+      read("--pg-chapter-3", color),
+      read("--pg-chapter-1", color),
+    ];
     const count = Math.max(0, 24 - this.pool.length);
     for (let i = 0; i < count; i++) {
       const angle = (i / 24) * Math.PI * 2;
@@ -46,9 +53,11 @@ export class FX {
         x: x - rect.left,
         y: y - rect.top,
         vx: Math.cos(angle) * (1 + (i % 4)),
-        vy: Math.sin(angle) * 3 - 2,
+        vy: Math.sin(angle) * 3 - 2.4,
         life: 0,
-        color,
+        color: palette[i % palette.length],
+        w: 3 + (i % 3),
+        h: i % 2 ? 6 : 3,
       });
     }
     this.start();
@@ -78,7 +87,7 @@ export class FX {
       p.vy += 0.06;
       ctx.globalAlpha = Math.max(0, 1 - p.life / 900);
       ctx.fillStyle = p.color;
-      ctx.fillRect(p.x, p.y, 4, 4);
+      ctx.fillRect(p.x, p.y, p.w || 4, p.h || 4);
     }
     if (this.pool.length)
       this.frame = this.win.requestAnimationFrame(this.render);

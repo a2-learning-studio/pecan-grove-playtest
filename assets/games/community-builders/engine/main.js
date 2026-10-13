@@ -2,7 +2,6 @@ import { h, button, icon } from "./dom.js";
 import { I18n } from "./i18n.js";
 import { Input } from "./input.js";
 import { Focus } from "./focus.js";
-import { Gamepad } from "./gamepad.js";
 import { Settings } from "./settings.js";
 import { Pause } from "./pause.js";
 import { AudioMixer } from "./audio.js";
@@ -236,10 +235,14 @@ export async function mount(
     }
     if (!newOnly)
       grid.append(
-        button(i18n.t("newGame"), () => {
-          dialog.close();
-          openSlots(opener, true);
-        }),
+        button(
+          i18n.t("newGame"),
+          () => {
+            dialog.close();
+            openSlots(opener, true);
+          },
+          { class: "cb-btn cb-engine-new-game" },
+        ),
       );
     dialog = openDialog(
       i18n.t(newOnly ? "newGame" : "loadGame"),
@@ -265,17 +268,37 @@ export async function mount(
       else core().showTitle?.();
     },
   });
-  const pad = new Gamepad({
-    input,
-    settings: () => settings.get(),
-    onConnect: (p) => {
-      if (p.mapping !== "standard") toast(i18n.t("controllerBasic"));
-    },
-    onDisconnect: () => {
-      if (state().mode === "stop") pause.open();
-      toast(i18n.t("controllerDisconnected"));
-    },
-  });
+  let pad = { pad: null, rumble() {} };
+  function attachGamepad() {
+    if (pad.destroy) return;
+    import("./gamepad.js").then(({ Gamepad }) => {
+      if (pad.destroy) return;
+      pad = new Gamepad({
+        input,
+        settings: () => settings.get(),
+        onConnect: (p) => {
+          if (p.mapping !== "standard") toast(i18n.t("controllerBasic"));
+        },
+        onDisconnect: () => {
+          if (state().mode === "stop") pause.open();
+          toast(i18n.t("controllerDisconnected"));
+        },
+      });
+    });
+  }
+  if (typeof navigator !== "undefined" && navigator.getGamepads) {
+    let connected = false;
+    try {
+      connected = [...navigator.getGamepads()].some(Boolean);
+    } catch (_) {
+      connected = false;
+    }
+    if (connected) attachGamepad();
+    else
+      window.addEventListener("gamepadconnected", attachGamepad, {
+        once: true,
+      });
+  }
   const hints = new Hints({
     root,
     input,
@@ -338,7 +361,16 @@ export async function mount(
       const event = new globalThis.Event("cancel", { cancelable: true });
       if (dialog.dispatchEvent(event)) dialog.close();
       audio.play("ui.back");
-    } else pause.open();
+    } else {
+      const legendBtn = document.querySelector(
+        ".cb-map-legend__btn[aria-expanded='true']",
+      );
+      if (legendBtn) {
+        legendBtn.click();
+        legendBtn.focus();
+        audio.play("ui.back");
+      } else pause.open();
+    }
     return true;
   }
   input.on("back", back);

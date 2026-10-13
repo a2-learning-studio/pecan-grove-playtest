@@ -2,9 +2,9 @@
    The town draws a plan for Pecan Grove in 2035. Six neighbors each share one wish. The player plans five
    places on the painted town (opening each tile's good and hard parts), adds a yearly check-in and invites
    someone who is missing from the planning table. Then the neighbors react and everyone meets for a picnic.
-   Score (process only, never a side, never speed): +10 per neighbor whose wish is in the plan (60), +4 per place
-   whose tile had its trade-off opened before it was placed (20), +10 for a yearly check-in, +10 for inviting a
-   missing voice on the first tap (+5 after a "Look again"). Every old-farm tile can earn 100.
+   Score (process only, never a side, never speed): +14 per neighbor whose wish is in the plan (84), +2 per place
+   whose tile had its trade-off opened before it was placed (10), +3 for a yearly check-in, +3 for inviting a
+   missing voice on the first tap (+2 after a "Look again"). A full plan can earn 100. Five wishes alone earn 70.
    Words are exact from the stop spec (15 - build-the-future-together.md). No network, no inputs, no inline styles. */
 (function () {
   "use strict";
@@ -295,8 +295,8 @@
       return b;
     }
     function nbAv(n) { return h("span", { "class": "cb-s15-av", "aria-hidden": "true" }, [api.img(n.img, "", null, true)]); }
-    /* Lucía and Theo show their initial in a ring, the townspeople a paper silhouette in their colour: never a symbol or an object in a person's place */
-    function guideAv(id) { return h("span", { "class": "cb-s15-av cb-s15-av--mono cb-s15-av--" + id, "aria-hidden": "true" }, [api.mono(GUIDES[id].name)]); }
+    /* Lucía and Theo use authored line-icon faces. Townspeople keep a paper silhouette until they have painted portraits. */
+    function guideAv(id) { return h("span", { "class": "cb-s15-av cb-s15-av--" + id, "aria-hidden": "true" }, [icon(GUIDES[id].ic)]); }
     function personAv(id) { return h("span", { "class": "cb-s15-av cb-s15-av--guest", "aria-hidden": "true" }, [api.story(silhouette(PCOL[id] || "wd"), "cb-s15-sil")]); }
     function tico(tid) {
       var t = TILES[tid];
@@ -576,10 +576,10 @@
     function finish() {
       viewPhase = "result";
       var nW = nAnswered(), nT = PLACES.filter(function (P) { return plan[P.id] && fair[P.id]; }).length;
-      var inv = invited ? (firstTap === "missing" ? 10 : 5) : 0;
-      var score = 10 * nW + 4 * nT + (check ? 10 : 0) + inv;
+      var inv = invited ? (firstTap === "missing" ? 3 : 2) : 0;
+      var score = 14 * nW + 2 * nT + (check ? 3 : 0) + inv;
       var left = NB.filter(function (n) { return !answered(n.id); })[0];
-      var tip = left ? T.tipWish(api.nm(left)) : nT < 5 ? T.tipTrade : !check ? T.tipCheck : inv < 10 ? T.tipInvite : T.tip100;
+      var tip = left ? T.tipWish(api.nm(left)) : nT < 5 ? T.tipTrade : !check ? T.tipCheck : inv < 3 ? T.tipInvite : T.tip100;
       var key = NB.map(function (n) { return deal[n.id]; }).join(",") + "|" + guests.slice().sort().join(",");
       var info = api.saveRound(stop.id, score, { processBadge: nW === 6 && nT === 5 && check && invited ? "process-15" : null, lastRound: key, lastDeal: deal, lastGuests: guests.slice() });
       api.endPlay();
@@ -604,6 +604,8 @@
     function nextStopFrom15(row, card) {
       var old = [].filter.call(row.children, function (b) { return b.textContent.trim() === api.W.nextStop; })[0];
       if (!old) return;                                            // Team challenge rows have no Next stop
+      var todo = api.STOPS.filter(function (x) { return x.id !== stop.id && !api.rec(x.id); });
+      if (!todo.length) { old.remove(); return; }
       row.replaceChild(btn(api.W.nextStop, "cb-btn--big", function () {
         var todo = api.STOPS.filter(function (x) { return x.id !== stop.id && !api.rec(x.id); });
         for (var i = 0; i < todo.length; i++) { api.restart(todo[i].id)(); if (!card.isConnected) return; }

@@ -155,7 +155,7 @@ for (const lang of ['en', 'es']) {
       if (checked) { r.click(r.screen.querySelector('[data-b="check"]')); r.dialog.close(); }
       r.click(r.screen.querySelector('[data-b="link"]'));
     }
-    r.click(r.screen.querySelector('.cb-s10-see')); assert.equal(r.saves.length, 1); assert.equal(r.saves[0].score, checked ? 100 : 60);
+    r.click(r.screen.querySelector('.cb-s10-see')); assert.equal(r.saves.length, 1); assert.equal(r.saves[0].score, checked ? 100 : 90);
   });
   test(`${lang}: Stop 11 weighs allfour paths and completes neighbor/change checks at100`, () => {
     const r = harness(lang, 12); r.open('11-weigh-the-tradeoffs.js', '{order: order, rightNbs: rightNbs, fitIds: fitIds}'); r.click(r.screen.querySelector('.cb-btn--go'));

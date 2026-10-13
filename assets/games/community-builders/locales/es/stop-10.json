@@ -1,8 +1,8 @@
 {
   "S": {
     "title": "Une problema y solución - Constructores de comunidad de Pecan Grove",
-    "intro1": "Antes de decidir, el Concejo del pueblo les pide a los vecinos ideas para resolver problemas.",
-    "intro2": "Otros lugares ya probaron algunas soluciones. Une cada problema con una solución que ayude. Luego revisa: ¿funcionó?",
+    "intro1": "El Concejo del pueblo quiere ideas que resuelvan problemas.",
+    "intro2": "Une cada problema con una solución. Luego revisa: ¿funcionó?",
     "start": "Empezar",
     "problems": "Problemas",
     "fixes": "Soluciones de lugares reales",
@@ -55,6 +55,7 @@
     "openLink": "Ninguna solución de aquí se probó para este problema. Toca la tarjeta para compartir una idea.",
     "look": "Mira tu tablero:",
     "aha": "Algunas soluciones funcionaron, otras solo en parte, de otras es muy pronto para saber, y algunos problemas todavía no tienen una solución probada.",
+    "boardEmpty": "Todavía no hay nada en el tablero.",
     "see": "Ver mi puntaje",
     "chosen": "Elegido",
     "probL": "Problema: ",

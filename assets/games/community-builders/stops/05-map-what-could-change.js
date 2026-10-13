@@ -195,7 +195,7 @@
     /* ── pieces ── */
     function kindChip(k, cls) { return h("p", { "class": "cb-s05-kind" + (cls ? " " + cls : "") }, [icon(k === "help" ? "sprout" : "pebble"), h("span", { text: S.kind[k] })]); }
     function cardIcon(c, cls) { return h("span", { "class": cls || "cb-s05-card__ic", "aria-hidden": "true" }, [icon(c.ic)]); }
-    function picksUpTo(n) { var out = []; for (var j = 0; j < n; j++) if (round[j].st[0].pick) out.push({ id: round[j].st[0].pick, c: round[j].c }); return out; }
+    function picksUpTo(n) { var out = []; for (var j = 0; j < n; j++) { var st = round[j].st[0], landed = st.firstTap || st.pick; if (landed) out.push({ id: landed, c: round[j].c }); } return out; }
 
     /* the painted map with rings, dotted paths and lit trails. mode: play | end | mini */
     function scene(mode) {
@@ -357,6 +357,7 @@
     }
     function tap(id) {
       var cur = round[ci], st = cur.st[step], right = step ? cur.c.next : cur.c.first;
+      if (step === 0 && !st.firstTap) st.firstTap = id;
       if (st.res || st.tried.indexOf(id) >= 0) return;
       var kind;
       if (right.indexOf(id) >= 0) { st.res = st.tried.length ? "second" : "first"; st.pick = id; kind = "ok"; }
@@ -420,11 +421,11 @@
     }
 
     if (api.setController) api.setController({
-      snapshot: function () { return { v: 2, phase: phase, ci: ci, step: step, feedback: feedbackKind, drawn: drawn, dropped: dropped, lineNew: lineNew, round: round.map(function(value) { return { id: value.i, steps: value.st.map(function(st){return {tried:st.tried.slice(),res:st.res,pick:st.pick};}) }; }) }; },
+      snapshot: function () { return { v: 2, phase: phase, ci: ci, step: step, feedback: feedbackKind, drawn: drawn, dropped: dropped, lineNew: lineNew, round: round.map(function(value) { return { id: value.i, steps: value.st.map(function(st){return {tried:st.tried.slice(),res:st.res,pick:st.pick,firstTap:st.firstTap||null};}) }; }) }; },
       restore: function (saved) {
         if (!saved || saved.v !== 2 || !Array.isArray(saved.round) || saved.round.length !== 5) return false;
         ids = saved.round.map(function(value){return value.id;});
-        round = saved.round.map(function(value){return {i:value.id,c:CARDS[value.id],st:value.steps.map(function(st){return {tried:st.tried.slice(),res:st.res,pick:st.pick};})};});
+        round = saved.round.map(function(value){return {i:value.id,c:CARDS[value.id],st:value.steps.map(function(st){return {tried:st.tried.slice(),res:st.res,pick:st.pick,firstTap:st.firstTap||null};})};});
         ci = saved.ci; step = saved.step; drawn = saved.drawn || {}; dropped = saved.dropped; lineNew = saved.lineNew || {}; finished = false;
         if (saved.phase === "result") finish(); else if(saved.phase === "aha") endScreen(); else if(saved.phase === "play") play(saved.feedback ? feedback(round[ci],step,saved.feedback) : null); else intro();
         return true;

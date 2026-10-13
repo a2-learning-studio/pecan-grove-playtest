@@ -13,7 +13,7 @@
         window.CBLocale.pair("stop-03","bank.b0004"), "land"],
       ana: [window.CBLocale.pair("stop-03","bank.b0005"), "jobs",
         window.CBLocale.pair("stop-03","bank.b0006"), "jobs"],
-      ruth: [window.CBLocale.pair("stop-03","bank.b0007"), "jobs",
+      ruth: [window.CBLocale.pair("stop-03","bank.b0007"), ["jobs", "future"],
         window.CBLocale.pair("stop-03","bank.b0008"), "land"],
       patel: [window.CBLocale.pair("stop-03","bank.b0009"), "jobs",
         window.CBLocale.pair("stop-03","bank.b0010"), "roads"],
@@ -101,7 +101,9 @@
     function tap(n) {
       if (!picked) { picked = n.id; return part2(S3.picked, false, n.id); }
       if (picked === n.id) { picked = null; return part2(null, false, n.id); }
-      var A = lines[picked], B = lines[n.id], tagsA = [A[1], A[3]], tagsB = [B[1], B[3]], shared = tagsA.filter(function (t) { return t && tagsB.indexOf(t) !== -1; });
+      function tagList(tag) { return !tag ? [] : Array.isArray(tag) ? tag.slice() : [tag]; }
+      function tagsOf(line) { return tagList(line[1]).concat(tagList(line[3])); }
+      var A = lines[picked], B = lines[n.id], tagsA = tagsOf(A), tagsB = tagsOf(B), shared = tagsA.filter(function (t, i) { return tagsB.indexOf(t) !== -1 && tagsA.indexOf(t) === i; });
       var pair = [picked, n.id]; picked = null;
       if (!shared.length) { unplanned++; return part2(S3.noplan, false, n.id); }
       var fresh = shared.filter(function (t) { return !found[t]; });

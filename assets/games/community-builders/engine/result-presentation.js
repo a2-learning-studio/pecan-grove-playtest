@@ -87,8 +87,14 @@ export function observeFeedback(root, fx, audio) {
       if (seen.has(node)) continue;
       seen.add(node);
       const correct = node.dataset.cbFeedback === "ok";
-      if (correct) fx.pulse(node);
-      else fx.nudge(node);
+      if (correct) {
+        fx.pulse(node);
+        const rect = node.getBoundingClientRect?.();
+        if (rect && fx.burst)
+          fx.burst(rect.left + rect.width / 2, rect.top + rect.height / 2, {
+            kind: "sparkle",
+          });
+      } else fx.nudge(node);
       audio.play(correct ? "ok" : "try");
     }
   };

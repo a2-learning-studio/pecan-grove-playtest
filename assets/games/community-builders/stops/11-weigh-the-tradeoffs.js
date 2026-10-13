@@ -347,8 +347,7 @@
         var n = nWeighedNow();
         if (asking) {
           var bar = h("div", { "class": "cb-actions cb-s11-askbar" }, [h("div", { "class": "cb-actions__info" }, [api.fb(S.ask(n), false)]),
-            h("div", { "class": "cb-row cb-s11-askbtns" }, [api.btn(S.more, "cb-btn--big cb-s11-big cb-s11-more", weighMore),
-              api.btn(S.choose, "cb-btn--go cb-btn--big cb-s11-big cb-s11-choose", function (e) { choose(true, e); }, "go", true)])]);
+            h("div", { "class": "cb-row cb-s11-askbtns" }, [api.btn(S.more, "cb-btn--big cb-s11-big cb-s11-more", weighMore)])]);
           if (api.input && api.input.on) api.input.on("back", function () { if (!bar.isConnected) return false; weighMore(); return true; }, { scope: bar });
           return bar;
         }
@@ -462,7 +461,7 @@
     function choose(sure, e) {
       if (part !== 1 || !showing || busy(e)) return;
       var n = nWeighedNow();
-      if (!sure && n < 4) { asking = true; render(null, ".cb-s11-more"); hush(); api.say(S.ask(n)); return; }
+      if (n < 4) { asking = true; render(null, ".cb-s11-more"); hush(); api.say(S.ask(n)); return; }
       asking = false; chosen = showing; nWeighed = n; part = 2; step = 0;
       render(null, null, viewPart(".cb-s11-nbrs")); hush();
       api.say(S.chose(t2(PATHS[chosen].n)) + " " + S.q[0]);

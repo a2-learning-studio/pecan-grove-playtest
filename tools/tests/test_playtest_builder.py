@@ -229,8 +229,8 @@ class PlaytestBuilderTests(unittest.TestCase):
         self.assertIn("import './frame-guard.js'", boot)
         self.assertIn("document.documentElement.dataset.flavor !== 'family'", boot)
         self.assertLess(boot.index("import './frame-guard.js'"), boot.index("import('./feedback.js')"))
-        self.assertLess(boot.index("import('./feedback.js')"), boot.index("await window.PecanGroveFeedback?.ready"))
-        self.assertLess(boot.index("await window.PecanGroveFeedback?.ready"), boot.index("import('../games/community-builders/cb.js')"), "Core must not load another player's save while locale loading delays feedback initialization")
+        self.assertLess(boot.index("await import('./feedback.js')"), boot.index("import('../games/community-builders/cb.js')"), "The feedback module stamps the anonymous session before the game reads saves")
+        self.assertNotIn("PecanGroveFeedback?.ready", boot.split("import('../games/community-builders/cb.js')", 1)[0])
         self.assertLess(boot.index("import('../games/community-builders/cb.js')"), boot.index("import('./shell.js')"), "Shell must use the initialized core game API")
 
     def test_navigation_build_and_optional_feedback(self):

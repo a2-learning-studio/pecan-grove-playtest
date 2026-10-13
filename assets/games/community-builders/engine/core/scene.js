@@ -170,18 +170,21 @@ export default function createScene(ctx) {
     bar.appendChild(tools);
   }
   function languageBtn() {
-    var other = ctx.L === "es" ? "en" : "es",
-      alternate = ctx.document.querySelector('a[hreflang="' + other + '"]');
-    var path =
-      ctx.root.getAttribute("data-language-url") ||
-      (alternate && alternate.getAttribute("href"));
-    if (!path) return null;
-    var url;
-    try {
-      url = new ctx.URL(path, ctx.location.href);
-      if (url.origin !== ctx.location.origin) return null;
-    } catch (e) {
-      return null;
+    var files = { en: "index.html", es: "espanol.html" };
+    function urlFor(language) {
+      var link = ctx.document.querySelector('a[hreflang="' + language + '"]');
+      var path =
+        (link && link.getAttribute("href")) ||
+        (language !== ctx.L && ctx.root.getAttribute("data-language-url")) ||
+        files[language];
+      if (!path) return null;
+      try {
+        var url = new ctx.URL(path, ctx.location.href);
+        if (url.origin !== ctx.location.origin) return null;
+        return url;
+      } catch (e) {
+        return null;
+      }
     }
     var group = ctx.h("div", {
       class: "cb-language-group",
@@ -189,13 +192,17 @@ export default function createScene(ctx) {
       "aria-label": "English / Español",
       "data-cb-novoice": "",
     });
+    var any = false;
     ["en", "es"].forEach(function (language) {
       var active = language === ctx.L;
+      var url = urlFor(language);
+      if (!active && !url) return;
+      any = true;
       var b = btn(
         language.toUpperCase(),
         "cb-btn cb-btn--onstage cb-language",
         function () {
-          if (!active) ctx.changeLanguage(language, url);
+          if (!active && url) ctx.changeLanguage(language, url);
         },
       );
       b.setAttribute("lang", language);
@@ -203,7 +210,7 @@ export default function createScene(ctx) {
       b.setAttribute("aria-pressed", String(active));
       group.appendChild(b);
     });
-    return group;
+    return any ? group : null;
   }
   function screen(kids, focusSel) {
     sceneLayout.reset();

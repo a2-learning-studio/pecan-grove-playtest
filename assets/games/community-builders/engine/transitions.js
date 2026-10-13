@@ -68,7 +68,8 @@ export function animateScene(ctx, node, kind = "step") {
   const frames = [
     {
       opacity: 0,
-      transform: kind === "stop" ? "scale(.985)" : "translateX(16px)",
+      transform:
+        kind === "stop" ? "translateY(16px) scale(.985)" : "translateY(12px)",
     },
     { opacity: 1, transform: "none" },
   ];

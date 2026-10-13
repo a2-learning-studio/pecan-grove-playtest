@@ -1,6 +1,7 @@
 @import "./map.css";
 @import "./input-hints.css";
 @import "./presentation.css";
+@import "./chrome.css";
 .cb[data-screen="stop"] {
   font-size: calc(var(--pg-type-body) * var(--cb-text-scale));
 }
@@ -343,6 +344,13 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap: 16px;
+}
+.cb-engine-slots > .cb-engine-new-game {
+  justify-self: start;
+  align-self: center;
+  width: auto;
+  min-width: 10rem;
+  max-width: 100%;
 }
 .cb-engine-badge {
   border: 2px dashed var(--cb-line-strong);

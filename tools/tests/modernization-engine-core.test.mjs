@@ -73,6 +73,7 @@ for(const language of ['en','es']) {
     try{
       if(!reduced)r.core.updateSettings({calm:true});animations.length=0;
       r.core.enterPlay({quiet:true});r.main().querySelector('.cb-hero .cb-btn--go').click();await r.tick();await r.tick();await r.tick();
+      assert.equal(r.core.getState().mode,'map','A programmatic Start click opens the map');
       assert.equal(r.core.motionAllowed(),false);assert.equal(r.w.document.activeElement,r.main().querySelector('h2'));
       assert.equal(await r.core.startStop('notice-the-signs'),true);
       assert.equal(r.w.document.activeElement,r.main().querySelector('h2'),'The readable stop heading receives focus immediately');
@@ -128,7 +129,9 @@ for(const language of ['en','es']) {
       r.core.showMap();assert.equal(await r.core.resume(before),true);await r.tick();assert.deepEqual(clone(r.core.snapshot().state),before.state);
       const alternate=language==='en'?'es':'en';assert.equal(await r.core.setLanguage(alternate),true);await r.tick();
       assert.equal(r.w.document.documentElement.lang,alternate);assert.equal(r.core.getAPI().L,alternate);assert.deepEqual(clone(r.core.snapshot().state),before.state);
+      assert.match(r.w.location.pathname, alternate==='es'?/espanol\.html$/:/index\.html$/);
       assert.equal(await r.core.setLanguage(language),true);await r.tick();assert.deepEqual(clone(r.core.snapshot().state),before.state);
+      assert.match(r.w.location.pathname, language==='es'?/espanol\.html$/:/index\.html$/);
       assert.equal(JSON.stringify(r.core.getState().store),store,'Restoring and translating do not write a completion score');assert.equal(r.errors.length,0,String(r.errors));
     }finally{r.close();}
   });
