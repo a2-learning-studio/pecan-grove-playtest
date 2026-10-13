@@ -212,7 +212,7 @@ def page(lang, form, revision="preview", build_date=None, feedback_endpoint="", 
 </div></header>
 <main class="pt-main">
   <section class="pt-intro" id="pt-intro" aria-labelledby="pt-h">
-    <div class="pt-intro__art"><picture><source type="image/avif" srcset="assets/games/community-builders/img/town-map-640.avif 640w, assets/games/community-builders/img/town-map-960.avif 960w, assets/games/community-builders/img/town-map-1376.avif 1376w" sizes="(max-width: 760px) 100vw, 45vw"><img src="assets/games/community-builders/img/town-map-640.webp" srcset="assets/games/community-builders/img/town-map-640.webp 640w, assets/games/community-builders/img/town-map-960.webp 960w, assets/games/community-builders/img/town-map-1376.webp 1376w" sizes="(max-width: 760px) 100vw, 45vw" alt="" width="1376" height="768" fetchpriority="high" decoding="async"></picture><p>{e(w['purpose'])}</p></div>
+    <div class="pt-intro__art"><picture><source type="image/avif" srcset="assets/games/community-builders/img/town-map-640.avif 640w, assets/games/community-builders/img/town-map-960.avif 960w, assets/games/community-builders/img/town-map-1376.avif 1376w" sizes="(max-width: 760px) 100vw, 45vw"><img src="assets/games/community-builders/img/town-map-640.webp" srcset="assets/games/community-builders/img/town-map-640.webp 640w, assets/games/community-builders/img/town-map-960.webp 960w, assets/games/community-builders/img/town-map-1376.webp 1376w" sizes="(max-width: 760px) 100vw, 45vw" alt="" width="1376" height="768" fetchpriority="high" decoding="sync"></picture><p>{e(w['purpose'])}</p></div>
     <div class="pt-intro__copy">
     <p class="pt-eyebrow">{e(w['team_label'])}</p>
     <h1 id="pt-h" tabindex="-1">{e(w["h1"])}</h1>

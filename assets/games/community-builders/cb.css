@@ -40,7 +40,7 @@
 .cb-btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 48px; padding: 0 20px;
   border-radius: 999px; border: 1.5px solid var(--cb-line-strong); background: var(--cb-card); color: var(--cb-ink);
   font-weight: 650; font-size: 1rem; letter-spacing: -0.005em; line-height: 1.15; text-align: left;
-  transition: transform var(--a2-dur-1) var(--cb-ease), background-color var(--a2-dur-2), border-color var(--a2-dur-2), box-shadow var(--a2-dur-2) var(--cb-ease); }
+  transition: background-color var(--a2-dur-2), border-color var(--a2-dur-2), box-shadow var(--a2-dur-2) var(--cb-ease); }
 .cb-btn .cb-ico { width: 20px; height: 20px; }
 .cb-btn:hover { border-color: var(--cb-stage-2); box-shadow: var(--cb-shadow-1); }
 .cb-btn:active { transform: translateY(1px) scale(0.98); box-shadow: none; }
@@ -347,10 +347,11 @@
 /* calm motion (Settings → Helpers): the game holds still, as it does when the device asks for less motion */
 .cb.is-calm *, .cb.is-calm *::before, .cb.is-calm *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; animation-delay: 0s !important;
   transition-duration: 0.01ms !important; transition-delay: 0s !important; scroll-behavior: auto !important; }
-/* full-screen game: the scene scrolls between a fixed bar and footer.
-   The hint strip keeps one height so it cannot shove the footer when it appears. */
-.cb.is-fs { display: flex; flex-direction: column; width: 100%; max-width: none; height: 100%; margin: 0; border-radius: 0; overflow: hidden; box-shadow: none; }
-.cb.is-fs .cb-main { flex: 1 1 auto; display: flex; flex-direction: column; min-height: 0; overflow: auto; }
+/* full-screen game: short screens grow the board down to the footer.
+   The hint strip keeps one height so it cannot shove the footer, and the
+   scene itself scrolls so a control below the fold can still finish its move. */
+.cb.is-fs { display: flex; flex-direction: column; width: 100%; max-width: none; height: 100%; margin: 0; border-radius: 0; overflow-y: auto; box-shadow: none; }
+.cb.is-fs .cb-main { flex: 1 1 auto; display: flex; flex-direction: column; min-height: auto; }
 .cb.is-fs .cb-main > .cb-board { flex: 1 1 auto; align-content: start; }
 .cb.is-fs .cb-bar, .cb.is-fs .cb-foot { flex: 0 0 auto; }
 .cb.is-fs .cb-hints { flex: 0 0 40px; height: 40px; min-height: 40px; }
