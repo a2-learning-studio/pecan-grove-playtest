@@ -4,7 +4,15 @@
    than another, and speed is never scored. Nothing is sent anywhere. Every string is exact from "07 - speak-up-kindly.md". */
 (function () {
   "use strict";
-  var CB = window.CommunityBuilders; if (!CB) return;
+  var host = window.CommunityBuilders; if (!host) return;
+  function factory(lifecycle) {
+    var document = lifecycle.document, window = lifecycle.window, Date = lifecycle.Date;
+    var setTimeout = lifecycle.setTimeout, clearTimeout = lifecycle.clearTimeout;
+    var requestAnimationFrame = lifecycle.requestAnimationFrame, cancelAnimationFrame = lifecycle.cancelAnimationFrame;
+    var definition = null, CB = { register: function (value) { definition = value; } };
+
+  "use strict";
+
   var ES = (document.documentElement.lang || "en").slice(0, 2) === "es";
   function tx(p) { return ES ? p[1] : p[0]; }
   var ID = "speak-up-kindly", ROWS = ["n", "w", "i"], TOPICS = ["water", "trucks", "jobs", "history", "lights"];
@@ -21,121 +29,59 @@
   }, true);
 
   /* ── words ─────────────────────────────────────────────────────────── */
-  var T = ES ? {
-    title: "Habla con respeto - Constructores de comunidad de Pecan Grove",
-    intro: "Pronto será la audiencia del Concejo del pueblo. Antes, un adulto puede enviar un comentario por escrito a los grupos que deciden. Arma una tarjeta corta y respetuosa. No se envía nada. Se la muestras a un adulto.",
-    start: "Empezar", home: "Tu casa",
-    step: function (n) { return "Paso " + n + " de 2"; },
-    lead: "¿Y tú qué quieres decir? Arma tu propia tarjeta sobre un tema, el que tú quieras.",
-    tap: "Toca una ficha en cada fila, todas sobre ese tema. Puedes cambiar de idea.",
-    rows: { n: "Me di cuenta de que…", w: "Me pregunto…", i: "Una idea…" },
-    stem: { n: "Me di cuenta de que", w: "Me pregunto", i: "Una idea:" },
-    topicIs: function (t) { return "Tema: " + t; },
-    hello: "¡Hola!", thanks: "Gracias por escuchar.", from: "De: un niño o una niña de Pecan Grove",
-    ready: "Mi tarjeta está lista",
-    who: "¿Quién decide sobre tu idea? Toca para quién es tu tarjeta.",
-    cardFor: function (n) { return "Tarjeta para: " + n; },
-    right: "¡Sí! Este grupo decide sobre tu idea.", not: "Este no.", another: "Prueba otro.", tried: "Ya lo probaste",
-    here: "Este es el grupo que decide sobre tu idea.", liveRight: "Grupo correcto", liveNot: "Este no",
-    to: function (n) { return "Para: " + n; },
-    parts: function (n) { return "Tu tarjeta tiene " + n + " de 3 partes. Las tres partes ayudan a que te entiendan."; },
-    topics: function (n) { return "Tu tarjeta tiene " + n + " temas. Una tarjeta sobre un solo tema se escucha mejor."; },
-    aha: "Una tarjeta corta sobre un solo tema, para el grupo que lo decide, se escucha mejor que una lista larga.",
-    sent: "No se envió nada. Tu tarjeta se queda en esta pantalla.",
-    print: "Imprimir", show: "Muéstraselo a un adulto", see: "Ver mi puntaje",
-    guTitle: "Para adultos",
-    guText: "Los niños arman un comentario de tres partes (me di cuenta, me pregunto, una idea) y eligen quién decide ese tema. El juego no envía nada. Si usted está de acuerdo con la tarjeta de su hijo o hija, puede enviarla como carta o comentario público por escrito. Para saber cómo se reciben los comentarios por escrito antes de una audiencia pública, pregunte en la secretaría de su ciudad o condado.",
-    can: "Puedo decir lo que noté, preguntar y compartir una idea, con respeto.",
-    tipParts: "La próxima vez, completa las tres partes: me di cuenta, me pregunto y una idea.",
-    tipTopic: "La próxima vez, usa un solo tema en las tres partes. Un solo tema se escucha mejor.",
-    tipWho: "La próxima vez, pregúntate: ¿quién decide sobre mi idea?",
-    tip100: "¡Gran tarjeta! Prueba una nueva ronda con otro tema.",
-    real: "Imprime tu tarjeta y muéstrasela a un adulto. Si está de acuerdo, puede enviar tu idea en una carta o un comentario escrito antes de una reunión.",
-    gu: "Para adultos: sobre esta parada"
-  } : {
-    title: "Speak Up Kindly - Community Builders of Pecan Grove",
-    intro: "The Town Council hearing is soon. Before it, a grown-up can send a written comment to the helpers who decide. Make a short, kind postcard. Nothing gets sent. You show it to a grown-up.",
-    start: "Start", home: "Your home",
-    step: function (n) { return "Step " + n + " of 2"; },
-    lead: "What do you want to say? Make your own postcard about one topic, any one you like.",
-    tap: "Tap one tile in each row, all about that topic. You can change your mind.",
-    rows: { n: "I noticed…", w: "I wonder…", i: "One idea…" },
-    stem: { n: "I noticed", w: "I wonder", i: "One idea:" },
-    topicIs: function (t) { return "Topic: " + t; },
-    hello: "Hello!", thanks: "Thank you for listening.", from: "From: a kid in Pecan Grove",
-    ready: "My card is ready",
-    who: "Who decides your idea? Tap who your card is for.",
-    cardFor: function (n) { return "Card for: " + n; },
-    right: "Yes! This helper decides your idea.", not: "Not this one.", another: "Try another one.", tried: "Tried",
-    here: "Here is who decides your idea.", liveRight: "Right helper", liveNot: "Not this one",
-    to: function (n) { return "To: " + n; },
-    parts: function (n) { return "Your card has " + n + " of 3 parts. All three parts help people understand you."; },
-    topics: function (n) { return "Your card has " + n + " topics. A card about one topic is easier to hear."; },
-    aha: "A short card on one topic, sent to the helper who decides it, is easier to hear than a long list.",
-    sent: "Nothing was sent. Your card stays on this screen.",
-    print: "Print", show: "Show a grown-up", see: "See my score",
-    guTitle: "For grown-ups",
-    guText: "Kids build a three-part comment (I noticed, I wonder, one idea) and pick who decides that topic. The game sends nothing. If you agree with your child's card, you can send it yourself as a letter or written public comment. To learn how written comments are accepted before a public hearing, ask your city or county clerk.",
-    can: "I can say what I noticed, ask, and share one idea, kindly.",
-    tipParts: "Next time, fill all three parts: I noticed, I wonder and one idea.",
-    tipTopic: "Next time, keep all three parts on one topic. One topic is easier to hear.",
-    tipWho: "Next time, ask: who decides my idea?",
-    tip100: "Great card! Try a new round with a different topic.",
-    real: "Print your card and show a grown-up. If they agree, they can send your idea as a letter or written comment before a meeting.",
-    gu: "For grown-ups: about this stop"
-  };
+  var T = window.CBLocale.read("stop-07", (ES ? "es" : "en"), {en:{"T.step":function (n) { return window.CBLocale.part("stop-07", "en", "T.step", 0) + n + window.CBLocale.part("stop-07", "en", "T.step", 1); },"T.topicIs":function (t) { return window.CBLocale.part("stop-07", "en", "T.topicIs", 0) + t; },"T.cardFor":function (n) { return window.CBLocale.part("stop-07", "en", "T.cardFor", 0) + n; },"T.to":function (n) { return window.CBLocale.part("stop-07", "en", "T.to", 0) + n; },"T.parts":function (n) { return window.CBLocale.part("stop-07", "en", "T.parts", 0) + n + window.CBLocale.part("stop-07", "en", "T.parts", 1); },"T.topics":function (n) { return window.CBLocale.part("stop-07", "en", "T.topics", 0) + n + window.CBLocale.part("stop-07", "en", "T.topics", 1); }},es:{"T.step":function (n) { return window.CBLocale.part("stop-07", "es", "T.step", 0) + n + window.CBLocale.part("stop-07", "es", "T.step", 1); },"T.topicIs":function (t) { return window.CBLocale.part("stop-07", "es", "T.topicIs", 0) + t; },"T.cardFor":function (n) { return window.CBLocale.part("stop-07", "es", "T.cardFor", 0) + n; },"T.to":function (n) { return window.CBLocale.part("stop-07", "es", "T.to", 0) + n; },"T.parts":function (n) { return window.CBLocale.part("stop-07", "es", "T.parts", 0) + n + window.CBLocale.part("stop-07", "es", "T.parts", 1); },"T.topics":function (n) { return window.CBLocale.part("stop-07", "es", "T.topics", 0) + n + window.CBLocale.part("stop-07", "es", "T.topics", 1); }}}).T;
 
-  var TOPIC_NAME = { water: ["Water", "Agua"], trucks: ["Trucks", "Camiones"], jobs: ["Jobs", "Empleos"], history: ["History", "Historia"], lights: ["Lights at night", "Luces de noche"] };
+  var TOPIC_NAME = { water: window.CBLocale.pair("stop-07","bank.b0001"), trucks: window.CBLocale.pair("stop-07","bank.b0002"), jobs: window.CBLocale.pair("stop-07","bank.b0003"), history: window.CBLocale.pair("stop-07","bank.b0004"), lights: window.CBLocale.pair("stop-07","bank.b0005") };
 
   /* one spark per neighbor; the [topic] is for code only */
   var SPARKS = [
-    { nb: "johnson", topic: "water", line: ["I worry the data center could take lots of water from Pecan River. My cows need it too.", "Me preocupa que el centro de datos saque mucha agua del río Pecan. Mis vacas también la necesitan."] },
-    { nb: "patel", topic: "trucks", line: ["I worry big trucks will crowd Main Street for months.", "Me preocupa que los camiones grandes llenen la calle principal por meses."] },
-    { nb: "ana", topic: "jobs", line: ["I worry the jobs will end when the building is done.", "Me preocupa que los empleos se acaben cuando terminen de construir."] },
-    { nb: "jayden", topic: "jobs", line: ["I worry young people will move away to find work.", "Me preocupa que los jóvenes se vayan a buscar trabajo a otro lado."] },
-    { nb: "ruth", topic: "history", line: ["I worry old graves could be hidden on the farm. I want someone to look before digging.", "Me preocupa que haya tumbas antiguas escondidas en la granja. Quiero que alguien las busque antes de excavar."] },
-    { nb: "lee", topic: "lights", line: ["I worry bright lights all night could shine into bedrooms.", "Me preocupa que las luces fuertes toda la noche alumbren los cuartos."] }
+    { nb: "johnson", topic: "water", line: window.CBLocale.pair("stop-07","bank.b0006") },
+    { nb: "patel", topic: "trucks", line: window.CBLocale.pair("stop-07","bank.b0007") },
+    { nb: "ana", topic: "jobs", line: window.CBLocale.pair("stop-07","bank.b0008") },
+    { nb: "jayden", topic: "jobs", line: window.CBLocale.pair("stop-07","bank.b0009") },
+    { nb: "ruth", topic: "history", line: window.CBLocale.pair("stop-07","bank.b0010") },
+    { nb: "lee", topic: "lights", line: window.CBLocale.pair("stop-07","bank.b0011") }
   ];
 
   /* 45 tiles: row (n = I noticed, w = I wonder, i = One idea) → topic → 3 wordings [en, es] */
   var TILES = {
     n: {
-      water: [["Pecan River gets low on hot summer days.", "el río Pecan baja mucho en los días de calor."], ["many farms here use water from Pecan River.", "muchas granjas de aquí usan agua del río Pecan."], ["we all share the water in Pecan River.", "todos compartimos el agua del río Pecan."]],
-      trucks: [["Main Street gets busy in the morning before school.", "la calle principal se llena en la mañana antes de la escuela."], ["school buses use the farm road every day.", "los autobuses escolares usan el camino de la granja todos los días."], ["kids walk to school on Main Street.", "los niños caminan a la escuela por la calle principal."]],
-      jobs: [["many people here drive far to get to work.", "mucha gente de aquí maneja lejos para ir a trabajar."], ["young people move away to find work.", "los jóvenes se van a buscar trabajo a otro lado."], ["people in Pecan Grove are good at building and fixing things.", "la gente de Pecan Grove sabe construir y arreglar cosas."]],
-      history: [["the old chapel is older than anyone in town.", "la vieja capilla es más antigua que cualquier persona del pueblo."], ["Grandma Ruth knows lots of stories about the old farm.", "la abuela Ruth sabe muchas historias de la vieja granja."], ["there are old family graves near the chapel.", "hay tumbas antiguas de familias cerca de la capilla."]],
-      lights: [["we can see lots of stars at night here.", "aquí se ven muchas estrellas de noche."], ["our street is dark and quiet at night.", "nuestra calle es oscura y tranquila de noche."], ["fireflies come out on dark summer nights.", "las luciérnagas salen en las noches oscuras de verano."]]
+      water: [window.CBLocale.pair("stop-07","bank.b0012"), window.CBLocale.pair("stop-07","bank.b0013"), window.CBLocale.pair("stop-07","bank.b0014")],
+      trucks: [window.CBLocale.pair("stop-07","bank.b0015"), window.CBLocale.pair("stop-07","bank.b0016"), window.CBLocale.pair("stop-07","bank.b0017")],
+      jobs: [window.CBLocale.pair("stop-07","bank.b0018"), window.CBLocale.pair("stop-07","bank.b0019"), window.CBLocale.pair("stop-07","bank.b0020")],
+      history: [window.CBLocale.pair("stop-07","bank.b0021"), window.CBLocale.pair("stop-07","bank.b0022"), window.CBLocale.pair("stop-07","bank.b0023")],
+      lights: [window.CBLocale.pair("stop-07","bank.b0024"), window.CBLocale.pair("stop-07","bank.b0025"), window.CBLocale.pair("stop-07","bank.b0026")]
     },
     w: {
-      water: [["how much water the data center would take from Pecan River.", "cuánta agua sacaría el centro de datos del río Pecan."], ["how much water the building would need on the hottest days.", "cuánta agua necesitaría el edificio en los días más calurosos."], ["if there would be enough water for the farms too.", "si alcanzaría el agua también para las granjas."]],
-      trucks: [["how many trucks would come each day.", "cuántos camiones pasarían cada día."], ["which roads the trucks would use.", "por qué calles pasarían los camiones."], ["if trucks would come when kids walk to school.", "si pasarían camiones a la hora en que los niños caminan a la escuela."]],
-      jobs: [["how many jobs would go to people who live here.", "cuántos empleos serían para la gente de aquí."], ["if the jobs would last after the building is done.", "si los empleos durarían después de terminar la obra."], ["what training people here would need for those jobs.", "qué capacitación necesitaría la gente de aquí para esos empleos."]],
-      history: [["if someone will look for old graves before digging.", "si alguien va a buscar tumbas antiguas antes de excavar."], ["how the farm's old stories will be kept.", "cómo se van a guardar las historias antiguas de la granja."], ["how close the building would be to the old chapel.", "qué tan cerca de la vieja capilla quedaría el edificio."]],
-      lights: [["which lights would stay on all night.", "qué luces quedarían prendidas toda la noche."], ["if we could still see the stars.", "si todavía podríamos ver las estrellas."], ["how bright the lights would be near homes.", "qué tan fuertes serían las luces cerca de las casas."]]
+      water: [window.CBLocale.pair("stop-07","bank.b0027"), window.CBLocale.pair("stop-07","bank.b0028"), window.CBLocale.pair("stop-07","bank.b0029")],
+      trucks: [window.CBLocale.pair("stop-07","bank.b0030"), window.CBLocale.pair("stop-07","bank.b0031"), window.CBLocale.pair("stop-07","bank.b0032")],
+      jobs: [window.CBLocale.pair("stop-07","bank.b0033"), window.CBLocale.pair("stop-07","bank.b0034"), window.CBLocale.pair("stop-07","bank.b0035")],
+      history: [window.CBLocale.pair("stop-07","bank.b0036"), window.CBLocale.pair("stop-07","bank.b0037"), window.CBLocale.pair("stop-07","bank.b0038")],
+      lights: [window.CBLocale.pair("stop-07","bank.b0039"), window.CBLocale.pair("stop-07","bank.b0040"), window.CBLocale.pair("stop-07","bank.b0041")]
     },
     i: {
-      water: [["the company could take less water from Pecan River on hot days.", "la empresa podría sacar menos agua del río Pecan en los días de calor."], ["the company could share how much river water it uses each month.", "la empresa podría decir cuánta agua del río usa cada mes."], ["the company could reuse its water instead of taking more from the river.", "la empresa podría volver a usar su agua en vez de sacar más del río."]],
-      trucks: [["trucks could use a road away from the school.", "los camiones podrían usar un camino lejos de la escuela."], ["trucks could wait until the school buses are done.", "los camiones podrían esperar a que pasen los autobuses escolares."], ["the town could ask for a truck plan before it decides.", "el pueblo podría pedir un plan para los camiones antes de decidir."]],
-      jobs: [["the company could hire people who live here first.", "la empresa podría contratar primero a gente de aquí."], ["the company could train people from Pecan Grove for the jobs.", "la empresa podría capacitar a gente de Pecan Grove para esos empleos."], ["if the company pays less tax, it could promise jobs for people here.", "si la empresa paga menos impuestos, podría prometer empleos para la gente de aquí."]],
-      history: [["an expert could look for old graves before any digging.", "una persona experta podría buscar tumbas antiguas antes de excavar."], ["the town could keep a wide space of trees around old graves.", "el pueblo podría dejar un espacio amplio con árboles alrededor de las tumbas antiguas."], ["the building could stay far from the old chapel.", "el edificio podría quedar lejos de la vieja capilla."]],
-      lights: [["lights could point down, not into homes.", "las luces podrían apuntar hacia abajo, no hacia las casas."], ["the town could ask to see a lights plan before it decides.", "el pueblo podría pedir ver un plan de luces antes de decidir."], ["lights that are not needed could turn off at night.", "las luces que no se necesiten podrían apagarse de noche."]]
+      water: [window.CBLocale.pair("stop-07","bank.b0042"), window.CBLocale.pair("stop-07","bank.b0043"), window.CBLocale.pair("stop-07","bank.b0044")],
+      trucks: [window.CBLocale.pair("stop-07","bank.b0045"), window.CBLocale.pair("stop-07","bank.b0046"), window.CBLocale.pair("stop-07","bank.b0047")],
+      jobs: [window.CBLocale.pair("stop-07","bank.b0048"), window.CBLocale.pair("stop-07","bank.b0049"), window.CBLocale.pair("stop-07","bank.b0050")],
+      history: [window.CBLocale.pair("stop-07","bank.b0051"), window.CBLocale.pair("stop-07","bank.b0052"), window.CBLocale.pair("stop-07","bank.b0053")],
+      lights: [window.CBLocale.pair("stop-07","bank.b0054"), window.CBLocale.pair("stop-07","bank.b0055"), window.CBLocale.pair("stop-07","bank.b0056")]
     }
   };
 
   /* the six helpers who decide (Stop 6); the [id] is for code only */
   var HELPERS = {
-    council: { name: ["Town Council", "Concejo del pueblo"], line: ["Decides what can be built, after a public hearing. It can set rules for trucks, lights and old graves.", "Decide qué se puede construir, después de una audiencia pública. Puede poner reglas para los camiones, las luces y las tumbas antiguas."] },
-    planning: { name: ["Planning Board", "Junta de Planificación"], line: ["Studied the plan first and gave the Town Council advice. Its meeting is over.", "Estudió el plan primero y le dio consejos al Concejo del pueblo. Su reunión ya pasó."] },
-    development: { name: ["Development Board", "Junta de Desarrollo"], line: ["Decides if the company can pay less tax for some years. It can ask for jobs for people here in return.", "Decide si la empresa puede pagar menos impuestos por unos años. A cambio, puede pedir empleos para la gente de aquí."] },
-    regional: { name: ["Regional Review", "Revisión Regional"], line: ["Looks at how a big project could affect nearby towns, and shares comments. It does not decide.", "Revisa cómo un proyecto grande podría afectar a los pueblos cercanos y da su opinión. No decide."] },
-    power: { name: ["State Power Board", "Junta Estatal de Electricidad"], line: ["Sets the price of power. It does not pick where buildings go.", "Fija el precio de la luz. No elige dónde se construye."] },
-    environment: { name: ["State Environment Office", "Oficina Estatal del Medio Ambiente"], line: ["Gives permits for smoke from engines and for taking lots of water from Pecan River.", "Da permisos para el humo de los motores y para sacar mucha agua del río Pecan."] }
+    council: { name: window.CBLocale.pair("stop-07","bank.b0057"), line: window.CBLocale.pair("stop-07","bank.b0058") },
+    planning: { name: window.CBLocale.pair("stop-07","bank.b0059"), line: window.CBLocale.pair("stop-07","bank.b0060") },
+    development: { name: window.CBLocale.pair("stop-07","bank.b0061"), line: window.CBLocale.pair("stop-07","bank.b0062") },
+    regional: { name: window.CBLocale.pair("stop-07","bank.b0063"), line: window.CBLocale.pair("stop-07","bank.b0064") },
+    power: { name: window.CBLocale.pair("stop-07","bank.b0065"), line: window.CBLocale.pair("stop-07","bank.b0066") },
+    environment: { name: window.CBLocale.pair("stop-07","bank.b0067"), line: window.CBLocale.pair("stop-07","bank.b0068") }
   };
   var HELPER_IDS = ["council", "planning", "development", "regional", "power", "environment"];
   var HJOB = {
-    council: ["Decides what can be built", "Decide qué se puede construir"], planning: ["Gave advice; its meeting is over", "Dio consejos; su reunión ya pasó"],
-    development: ["Decides on tax breaks", "Decide si pagan menos impuestos"], regional: ["Comments for nearby towns", "Opina por los pueblos cercanos"],
-    power: ["Sets power prices", "Fija el precio de la luz"], environment: ["Gives smoke and water permits", "Da permisos de humo y de agua"]
+    council: window.CBLocale.pair("stop-07","bank.b0069"), planning: window.CBLocale.pair("stop-07","bank.b0070"),
+    development: window.CBLocale.pair("stop-07","bank.b0071"), regional: window.CBLocale.pair("stop-07","bank.b0072"),
+    power: window.CBLocale.pair("stop-07","bank.b0073"), environment: window.CBLocale.pair("stop-07","bank.b0074")
   };
   var DECIDES = { water: "environment", jobs: "development", trucks: "council", history: "council", lights: "council" };
 
@@ -159,7 +105,7 @@
     var s = document.createElementNS(SVGNS, "svg");
     s.setAttribute("viewBox", "0 0 24 24"); s.setAttribute("aria-hidden", "true"); s.setAttribute("focusable", "false");
     s.setAttribute("class", "cb-ico" + (cls ? " " + cls : ""));
-    s.innerHTML = ICONS[name];                                   // constant, authored markup only
+    host.setAuthoredMarkup(s, ICONS[name]);                                   // constant, authored markup only
     return s;
   }
 
@@ -171,7 +117,7 @@
     document.title = T.title;
     var round = newRound(api, stop);
     var pick = { n: null, w: null, i: null };            // the tile chosen in each row
-    var partsAtReady = 0, taps = 0, tried = {}, helperPts = 0, firstRight = false, done = false;
+    var partsAtReady = 0, taps = 0, tried = {}, helperPts = 0, firstRight = false, done = false, phase = "intro", helperFeedback = null, resolved = null, renderUID = 0;
 
     function helperName(id) { return tx(HELPERS[id].name); }
     function helperLine(id) { return tx(HELPERS[id].line); }
@@ -213,6 +159,7 @@
 
     /* ── intro: the kitchen table at your home ─────────────────────── */
     function intro() {
+      phase = "intro";
       var scene = api.crop(HOME, "cb-s07-scene", [h("span", { "class": "cb-s07-plate", "aria-hidden": "true" }, [api.ico("home"), h("span", { text: T.home })])]);
       var parts = h("ul", { "class": "cb-s07-legend" }, ROWS.map(function (r) {
         return h("li", { "data-s07row": r }, [h("i", { "aria-hidden": "true" }), h("span", { text: T.rows[r] })]);
@@ -226,6 +173,8 @@
 
     /* ── step 1: build the card ─────────────────────────────────────── */
     function build() {
+      phase = "build";
+      renderUID = uid;
       var nb = api.nbById(round.spark.nb), buttons = {}, card = postcard();
       var scene = api.crop(HOME, "cb-s07-scene", [h("span", { "class": "cb-s07-plate", "aria-hidden": "true" }, [api.ico("home"), h("span", { text: T.home })])]);
       var spark = h("div", { "class": "cb-s07-spark", "data-nb": nb.id }, [scene, h("div", { "class": "cb-s07-talk" }, [
@@ -288,6 +237,8 @@
       return h("li", null, [b]);
     }
     function step2(feedback, focusId, resolving, ok) {
+      phase = resolving ? "resolving" : "who";
+      helperFeedback = feedback && !resolving ? focusId : null;
       var card = postcard();
       var grid = h("ul", { "class": "cb-s07-helpers" }, round.helpers.map(function (id) { return helperBtn(id, resolving, onHelper); }));
       var b = board([h("div", { "class": "cb-s07-desk" }, [
@@ -321,6 +272,7 @@
       }
     }
     function resolve(ok, text, tappedId) {          // the right helper lights up in place with its answer, then the card turns over
+      resolved = { ok:!!ok, tapped:tappedId };
       done = true;
       var right = decider();
       var b = step2(text, tappedId, { right: right }, ok);
@@ -329,6 +281,8 @@
 
     /* ── the finished card ──────────────────────────────────────────── */
     function finished(ok, text, right) {
+      phase = "finished";
+      renderUID = uid;
       var card = finishedCard(right, true, false);
       function acts(where) {                        // Print and Show a grown-up: in the bar on wide screens, under the card on a phone
         var pb = api.btn(T.print, "cb-s07-printbtn", function () { printCard(card); });
@@ -366,6 +320,8 @@
 
     /* ── score: process only ────────────────────────────────────────── */
     function score() {
+      phase = "result";
+      renderUID = uid;
       var nTopics = topicsUsed().length, right = decider();
       var oneTopic = partsAtReady === 3 && nTopics === 1;
       var total = 15 * partsAtReady + (oneTopic ? 25 : 0) + helperPts;
@@ -393,6 +349,23 @@
       api.say(api.W.score + " " + total + " / 100");
     }
 
+    if (api.setController) api.setController({
+      snapshot: function () {
+        var selections = {}, rows = {};
+        ROWS.forEach(function(row){selections[row]=pick[row] && pick[row].key;rows[row]=round.rows[row].map(function(tile){return tile.key;});});
+        return { v:2,phase:phase,spark:round.spark.nb,topics:round.topics.slice(),rows:rows,helpers:round.helpers.slice(),pick:selections,partsAtReady:partsAtReady,taps:taps,tried:Object.keys(tried),helperPts:helperPts,firstRight:firstRight,done:done,helperFeedback:helperFeedback,resolved:resolved,uid:uid,renderUID:renderUID };
+      },
+      restore: function (saved) {
+        if(!saved || saved.v !== 2 || !saved.rows) return false;
+        round.spark = SPARKS.filter(function(item){return item.nb === saved.spark;})[0]; round.topics=saved.topics.slice();round.helpers=saved.helpers.slice();
+        ROWS.forEach(function(row){round.rows[row]=saved.rows[row].map(function(key){var parts=key.split("-");return {key:key,row:row,topic:parts[1],text:tx(TILES[row][parts[1]][+parts[2]])};});pick[row]=round.rows[row].filter(function(tile){return tile.key === saved.pick[row];})[0] || null;});
+        partsAtReady=saved.partsAtReady;taps=saved.taps;tried={};saved.tried.forEach(function(id){tried[id]=1;});helperPts=saved.helperPts;firstRight=!!saved.firstRight;done=!!saved.done;resolved=saved.resolved;
+        renderUID=saved.renderUID || 0;uid=["build","finished","result"].indexOf(saved.phase)!==-1 ? renderUID : saved.uid || 0;
+        var right=decider(), text=resolved ? (resolved.ok ? T.right : T.here)+" "+helperLine(right) : null;
+        if(saved.phase === "result") score(); else if(saved.phase === "finished") finished(resolved.ok,text,right); else if(saved.phase === "resolving") resolve(resolved.ok,text,resolved.tapped); else if(saved.phase === "who") step2(saved.helperFeedback ? T.not+" "+helperLine(saved.helperFeedback)+" "+T.another : null,saved.helperFeedback); else if(saved.phase === "build") build(); else intro();
+        return true;
+      }
+    });
     intro();
   }
 
@@ -419,4 +392,9 @@
     ROWS.forEach(function (row) { rows[row].forEach(function (t) { SEEN.tiles.push(t.key); }); });
     return { spark: spark, topics: topics, rows: rows, helpers: api.shuffle(HELPER_IDS) };
   }
+
+    return definition;
+  }
+  if (host.defineStop) host.defineStop(factory);
+  else host.register(factory({ document: document, window: window, Date: Date, setTimeout: setTimeout, clearTimeout: clearTimeout, requestAnimationFrame: requestAnimationFrame, cancelAnimationFrame: typeof cancelAnimationFrame === "function" ? cancelAnimationFrame : function () {} }));
 })();

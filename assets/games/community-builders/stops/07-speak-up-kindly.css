@@ -242,17 +242,17 @@
 @media print {
   body:has(.cb-s07-print) *:not(:has(.cb-s07-print)):not(.cb-s07-print):not(.cb-s07-print *) { display: none !important; }
   body:has(.cb-s07-print) :has(.cb-s07-print) { display: block !important; position: static !important; width: auto !important; max-width: none !important; min-width: 0 !important; height: auto !important; min-height: 0 !important;
-    margin: 0 !important; padding: 0 !important; border: 0 !important; border-radius: 0 !important; background: #fff !important; box-shadow: none !important; overflow: visible !important; transform: none !important; container-type: normal !important; }
+    margin: 0 !important; padding: 0 !important; border: 0 !important; border-radius: 0 !important; background: var(--pg-color-fff) !important; box-shadow: none !important; overflow: visible !important; transform: none !important; container-type: normal !important; }
   .cb-s07-print { display: block !important; position: static !important; max-width: 15cm !important; margin: 0 !important; perspective: none !important; }
-  .cb-s07-print *, .cb-s07-print *::before, .cb-s07-print *::after { animation: none !important; transition: none !important; box-shadow: none !important; color: #000 !important; }
+  .cb-s07-print *, .cb-s07-print *::before, .cb-s07-print *::after { animation: none !important; transition: none !important; box-shadow: none !important; color: var(--pg-color-000) !important; }
   .cb-s07-print .cb-s07-flip { display: block !important; transform: none !important; }
   .cb-s07-print .cb-s07-face--build { display: none !important; }
-  .cb-s07-print .cb-s07-face { transform: none !important; background: #fff !important; border: 1.5pt solid #000 !important; border-radius: 10pt !important; }
-  .cb-s07-print .cb-s07-line, .cb-s07-print .cb-s07-line.is-empty { border-bottom: 1pt dashed #000 !important; }
-  .cb-s07-print .cb-s07-to { border-bottom: 1.5pt solid #000 !important; }
-  .cb-s07-print .cb-s07-line__ic, .cb-s07-print .cb-s07-to__ic, .cb-s07-print .cb-s07-stamp { background: #fff !important; border: 1pt solid #000 !important; }
-  .cb-s07-print .cb-s07-stamp.is-on { border: 2pt solid #000 !important; transform: rotate(-12deg) !important; }
-  .cb-s07-print .cb-s07-line.is-empty::before { border-color: #000 !important; }
+  .cb-s07-print .cb-s07-face { transform: none !important; background: var(--pg-color-fff) !important; border: 1.5pt solid var(--pg-color-000) !important; border-radius: 10pt !important; }
+  .cb-s07-print .cb-s07-line, .cb-s07-print .cb-s07-line.is-empty { border-bottom: 1pt dashed var(--pg-color-000) !important; }
+  .cb-s07-print .cb-s07-to { border-bottom: 1.5pt solid var(--pg-color-000) !important; }
+  .cb-s07-print .cb-s07-line__ic, .cb-s07-print .cb-s07-to__ic, .cb-s07-print .cb-s07-stamp { background: var(--pg-color-fff) !important; border: 1pt solid var(--pg-color-000) !important; }
+  .cb-s07-print .cb-s07-stamp.is-on { border: 2pt solid var(--pg-color-000) !important; transform: rotate(-12deg) !important; }
+  .cb-s07-print .cb-s07-line.is-empty::before { border-color: var(--pg-color-000) !important; }
 }
 
 /* each tile names its topic in a small chip, one colour per topic (the words carry it; the colour only helps match across rows) */
@@ -262,7 +262,7 @@
 .cb-s07-tile__topic[data-topic="trucks"] { background: var(--cb-warn-soft); color: var(--cb-warn-ink); }
 .cb-s07-tile__topic[data-topic="jobs"] { background: var(--cb-pine-soft); color: var(--cb-stage-2); }
 .cb-s07-tile__topic[data-topic="history"] { background: var(--cb-clay-soft); color: var(--cb-clay-ink); }
-.cb-s07-tile__topic[data-topic="lights"] { background: #ECE6F4; color: #4B3A6B; }
+.cb-s07-tile__topic[data-topic="lights"] { background: var(--pg-color-ece6f4); color: var(--pg-color-4b3a6b); }
 /* a helper's job, under its name */
 .cb-s07-helper__job { font-family: var(--a2-font-body); font-size: 0.8125rem; font-weight: 600; letter-spacing: 0; line-height: 1.3; color: var(--cb-ink-2); text-wrap: balance; }
 /* the bar's three parts, in words */
