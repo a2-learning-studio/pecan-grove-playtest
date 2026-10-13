@@ -10,10 +10,10 @@
 .cb-s15-av { --av: 56px; position: relative; display: grid; place-items: center; flex: none; width: var(--av); height: var(--av); border-radius: 50%; overflow: hidden;
   background: var(--cb-card); border: 3px solid var(--cb-card); box-shadow: var(--cb-shadow-1); }
 .cb-s15-av img { display: block; width: 100%; height: 100%; object-fit: cover; }
-.cb-s15-av--mono { background: none; border-color: #B07A43; }
+.cb-s15-av--mono { background: none; border-color: var(--pg-color-b07a43); }
 .cb-s15-av--mono .cb-mono { width: 100%; height: 100%; border-width: 0; }
-.cb-s15-av--theo { border-color: #4F8FB6; }
-.cb-s15-av--guest { place-items: end center; background: radial-gradient(circle at 35% 30%, #FFFDF6, #F3E4C6 72%); border-color: #FFF8EA; }
+.cb-s15-av--theo { border-color: var(--pg-color-4f8fb6); }
+.cb-s15-av--guest { place-items: end center; background: radial-gradient(circle at 35% 30%, var(--pg-color-fffdf6), var(--pg-color-f3e4c6) 72%); border-color: var(--pg-color-fff8ea); }
 .cb-s15-av--guest .cb-s15-sil { width: 92%; height: 92%; }
 .cb-s15-av--empty { background: transparent; border: 2px dashed var(--cb-line-strong); box-shadow: none; color: var(--cb-ink-3); }
 
@@ -306,5 +306,5 @@
 /* the town picture in 'view': each place and what the plan put there, on a paper tag */
 .cb-s15-vtag { position: absolute; left: 0; top: 0; width: max-content; max-width: 150px; transform: translate(-50%, -50%); }
 .cb-s15-vtag b { display: block; font-weight: 760; }
-.cb-s15-vtag small { display: block; font-size: 0.6875rem; font-weight: 620; line-height: 1.15; color: #5A4632; }
+.cb-s15-vtag small { display: block; font-size: 0.6875rem; font-weight: 620; line-height: 1.15; color: var(--pg-color-5a4632); }
 @container cb (max-width: 599.98px) { .cb-s15-vtag { max-width: 104px; padding: 1px 6px 2px; font-size: 0.6875rem; } .cb-s15-vtag small { font-size: 0.625rem; } }
