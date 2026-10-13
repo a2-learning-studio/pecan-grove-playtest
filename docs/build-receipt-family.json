@@ -1,10 +1,10 @@
 {
-  "build": "6f774d0a8afe",
+  "build": "d6130c0c3e0d",
   "flavor": "family",
-  "files": 292,
-  "jsGzipBytes": 79186,
-  "cssGzipBytes": 27007,
-  "criticalCssGzipBytes": 10023,
+  "files": 298,
+  "jsGzipBytes": 79588,
+  "cssGzipBytes": 27064,
+  "criticalCssGzipBytes": 10022,
   "fonts": {
     "fonts": [
       {
@@ -28,5 +28,5 @@
     ],
     "totalBytes": 74240
   },
-  "assetMapEntries": 111
+  "assetMapEntries": 117
 }

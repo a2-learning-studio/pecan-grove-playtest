@@ -280,12 +280,17 @@
     }
 
     /* ── cards: one button, "Keep looking"; Esc closes; focus goes back to the spot ── */
+    function inlineFindings() {
+      return api.callout && !(api.prefersFindCards && api.prefersFindCards());
+    }
     function card(s, onClose) {
       var it = s.item;
-      if (api.callout && !(api.prefersFindCards && api.prefersFindCards())) {
+      if (inlineFindings()) {
         var content = [h("p", { text: it.sign ? t2(it.line) : T.everyRest })];
         if (it.sign) content.push(h("p", { text: T.askLine }));
-        return api.callout(s.btn, content, { title: it.sign ? T.signT : T.every(t2(it.name)), closeLabel: T.keep, onClose: onClose });
+        // An inline finding leaves the scene in place. Closing it on the next
+        // pointerdown must not suppress that object's following click.
+        return api.callout(s.btn, content, { title: it.sign ? T.signT : T.every(t2(it.name)), closeLabel: T.keep });
       }
       var badge = h("span", { "class": "cb-s01-dlgbadge" + (it.sign ? " is-sign" : ""), "aria-hidden": "true" }, [icon(it.id)]), d;
       if (it.sign) {
@@ -311,7 +316,7 @@
       }
       if (fresh) { paint(s, true); if (it.sign) progress(true); }
       card(s, function () { quiet(); });
-      quiet();
+      if (!inlineFindings()) quiet();
     }
 
     /* ── progress, in words (never points) ── */

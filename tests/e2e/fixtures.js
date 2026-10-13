@@ -1,7 +1,7 @@
 const { test: base, expect } = require('@playwright/test');
 const { classifyRequest } = require('./network-policy.cjs');
 
-/** Every test gets a clean context from Playwright. No real feedback reaches Drive. */
+/** Every test gets a clean context; explicit transport supplies its own isolated mock. */
 const test = base.extend({
   allowFeedback: [false, { option: true }],
   noNetwork: [async ({ page, allowFeedback, baseURL }, use) => {

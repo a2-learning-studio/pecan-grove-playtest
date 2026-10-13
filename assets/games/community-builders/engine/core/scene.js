@@ -1,5 +1,7 @@
 import { animateScene } from "../transitions.js";
+import { createSceneLayout } from "../scene-layout.js";
 export default function createScene(ctx) {
+  var sceneLayout = createSceneLayout(ctx);
   var live = ctx.h("p", { class: "cb-live", "aria-live": "polite" });
   var bar = ctx.h("div", { class: "cb-bar" });
   var main = ctx.h("div", { class: "cb-main" });
@@ -203,6 +205,7 @@ export default function createScene(ctx) {
     return group;
   }
   function screen(kids, focusSel) {
+    sceneLayout.reset();
     ctx.vMark(ctx.vEl, false);
     ctx.vEl = null; // a new screen: the voice stops unless the same line is shown again
     ctx.vInkClear();
@@ -228,7 +231,10 @@ export default function createScene(ctx) {
       f = main.querySelector("h2");
       if (f) f.setAttribute("tabindex", "-1");
     }
-    if (f && acted) f.focus({ preventScroll: true });
+    if (f && acted) {
+      if (mode === "map") sceneLayout.focus(f);
+      else f.focus({ preventScroll: true });
+    }
     animateScene(
       ctx,
       main,
@@ -359,23 +365,7 @@ export default function createScene(ctx) {
     ctx.root.addEventListener(type, recordAction, true);
   });
   function frame(whole) {
-    // keep the stage in view when the screen changes under the player
-    if (!acted) return;
-    if (fsEl() === fsTarget()) {
-      var target = fsTarget();
-      if (target.scrollTop > 4)
-        target.scrollTo({ top: 0, behavior: ctx.REDUCED ? "auto" : "smooth" });
-      return;
-    }
-    var r = ctx.root.getBoundingClientRect();
-    if (
-      r.top < -4 ||
-      (whole && r.bottom > ctx.window.innerHeight + 4 && r.top > 4)
-    )
-      ctx.root.scrollIntoView({
-        block: "start",
-        behavior: ctx.REDUCED ? "auto" : "smooth",
-      });
+    sceneLayout.frame(whole, mode === "map");
   }
   function coach(text, icon) {
     return ctx.h("p", { class: "cb-coach" }, [

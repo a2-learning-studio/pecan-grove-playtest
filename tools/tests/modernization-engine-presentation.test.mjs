@@ -363,7 +363,7 @@ test("visible tooltips appear after 400ms on keyboard focus and dismiss without 
   }
 });
 
-test("scene swaps expose controls before animations finish; Calm never passes transforms to animation", async () => {
+test("scene swaps expose controls before animations finish; Calm keeps readable text with an instant swap", async () => {
   const r = fixture(),
     calls = [];
   try {
@@ -398,13 +398,39 @@ test("scene swaps expose controls before animations finish; Calm never passes tr
     };
     ctx.motionAllowed = () => false;
     animateScene(ctx, r.root);
-    assert.equal(options.duration, 120);
-    assert.equal(
-      frames.some((frame) => "transform" in frame),
-      false,
-    );
+    assert.equal(options, undefined, "Calm does not create a WAAPI fade");
+    assert.equal(frames, undefined);
     await transitionScene(ctx, () => calls.push("calm"));
     assert.deepEqual(calls, ["start", "render", "calm"]);
+  } finally {
+    r.close();
+  }
+});
+
+test("normal scene transitions retain their authored animation and owned lifecycle", () => {
+  const r = fixture(),
+    owned = [],
+    calls = [];
+  try {
+    const animation = { cancel() {}, pause() {}, play() {} };
+    r.root.animate = (frames, options) => {
+      calls.push({ frames, options });
+      return animation;
+    };
+    const ctx = {
+      motionAllowed: () => true,
+      activeLifecycle: { animation: (value) => owned.push(value) },
+    };
+    animateScene(ctx, r.root, "stop");
+    animateScene(ctx, r.root, "step");
+    assert.deepEqual(owned, [animation, animation]);
+    assert.equal(calls[0].options.duration, 320);
+    assert.equal(calls[1].options.duration, 200);
+    assert.equal(calls[0].frames[0].transform, "scale(.985)");
+    assert.equal(calls[1].frames[0].transform, "translateX(16px)");
+    ctx.restoring = true;
+    animateScene(ctx, r.root);
+    assert.equal(calls.length, 2, "Restoring does not start a new fade");
   } finally {
     r.close();
   }
@@ -424,10 +450,10 @@ test("feedback effects observe actual new successes and tries once", async () =>
       node.dataset.cbFeedback = kind;
       r.root.append(node);
     }
-    await new Promise((resolve) => queueMicrotask(resolve));
+    await new Promise((resolve) => r.w.queueMicrotask(resolve));
     assert.deepEqual(calls, ["pulse", "ok", "nudge", "try"]);
     r.root.firstChild.append(document.createElement("span"));
-    await new Promise((resolve) => queueMicrotask(resolve));
+    await new Promise((resolve) => r.w.queueMicrotask(resolve));
     assert.equal(calls.length, 4);
   } finally {
     disconnect();

@@ -2,9 +2,16 @@ const { test, expect } = require('./fixtures');
 const AxeBuilder = require('@axe-core/playwright').default;
 const {renderedLabelContrast}=require('./contrast-probe.cjs');
 const {settleFiniteAnimations,accessibilityDiagnostics}=require('./settle-animations.cjs');
+const readiness=import('../../tools/performance-checks.mjs');
 
 const languages = [{lang:'en',file:'index.html'},{lang:'es',file:'espanol.html'}];
+async function waitStageReady(page,mode) {
+  const {stageReady}=await readiness;
+  await expect.poll(()=>page.evaluate(stageReady,{mode}),`The ${mode} scene must finish its real loading and layout work`).toBe(true);
+}
 async function audit(page) {
+  const mode=await page.evaluate(()=>window.CommunityBuilders.getState().mode);
+  await waitStageReady(page,mode);
   await settleFiniteAnimations(page,expect);
   const result = await new AxeBuilder({page}).analyze();
   const diagnostics = result.violations.length ? await accessibilityDiagnostics(page,result.violations) : [];
@@ -19,6 +26,7 @@ async function startStage(page,file='index.html',seed=42) {
   await page.locator('#pt-quiet').check();
   await page.locator('#pt-start').click();
   await expect(page.locator('.cb-hero')).toBeVisible();
+  await waitStageReady(page,'title');
   // Start still exercises native fullscreen. Return the browser to its normal
   // window before viewport sweeps: Chromium cannot resize a fullscreen window.
   // The game's expanded view must remain open after that native exit.
@@ -39,13 +47,23 @@ async function newGame(page) {
   await page.locator('.cb-engine-title-actions').getByRole('button',{name:words.newGame,exact:true}).click();
   await page.locator('dialog[open] .cb-engine-slot-pick').first().click();
   await expect(page.locator('.cb-world__pan')).toBeVisible();
+  await waitStageReady(page,'map');
 }
-async function stop(page,n) { await page.locator(`.cb-stop[data-stop-n="${n}"]:visible`).first().click(); await expect(page.locator('.cb-board')).toBeVisible(); }
+async function stop(page,n) { await page.locator(`.cb-stop[data-stop-n="${n}"]:visible`).first().click(); await expect(page.locator('.cb-board')).toBeVisible(); await waitStageReady(page,'stop'); }
 async function primary(page) { return page.locator('.cb-main .cb-btn--go.cb-btn--big').last().click(); }
+async function startStop1Today(page) {
+  await page.locator('.cb-s01-intro .cb-btn--go').click();
+  // The introductory transition deliberately guards rapid pointer taps for
+  // 350 ms. Start the next deliberate action after that guard has elapsed.
+  await page.waitForTimeout(400);
+  const today=page.locator('.cb-s01-view[data-view="today"]');
+  await today.click();
+  await expect(today).toHaveAttribute('aria-pressed','true');
+  await expect(page.locator('.cb-s01-scene')).not.toHaveClass(/is-past/);
+}
 async function completeStop1(page,check=async()=>{}) {
   await stop(page,1); await check();
-  await page.locator('.cb-s01-intro .cb-btn--go').click();
-  await page.locator('.cb-s01-view[data-view="today"]').click(); await check();
+  await startStop1Today(page); await check();
   for(let i=0;i<12;i++) {
     // Pointer actions have a 350 ms double-tap guard. Let each deliberate tap
     // finish, then prove this particular object was actually processed.
@@ -164,10 +182,12 @@ for(const {lang,file} of languages) for(let n=1;n<=15;n++) {
   });
 }
 
-for(const {lang,file} of languages) test(`${lang}: Stop2 intro speaker matches first play speaker across twenty seeds`,async({page})=>{
+// All twenty seeds remain covered. Five-seed groups keep finite repeated
+// navigation work inside the unchanged per-case budget on slow CI WebKit.
+for(const {lang,file} of languages) for(const firstSeed of [0,5,10,15]) test(`${lang}: Stop2 intro speaker matches first play speaker, seeds ${firstSeed}-${firstSeed+4}`,async({page})=>{
   test.setTimeout(180000);
   await page.addInitScript(()=>{for(const key of Object.keys(localStorage))if(key.startsWith('pecan-grove-journey'))localStorage.removeItem(key);});
-  for(let seed=0;seed<20;seed++) {await start(page,file,seed);await stop(page,2);const first=(await page.locator('.cb-s02-first').innerText()).replace(/^[^:]+:\s*/,'');await page.locator('.cb-s02-intro .cb-btn--go').click();await expect(page.locator('.cb-s02-nb[data-i="0"] .cb-s02-nb__name'),`speaker for seed ${seed}`).toHaveText(first);}
+  for(let seed=firstSeed;seed<firstSeed+5;seed++) {await start(page,file,seed);await stop(page,2);const first=(await page.locator('.cb-s02-first').innerText()).replace(/^[^:]+:\s*/,'');await page.locator('.cb-s02-intro .cb-btn--go').click();await expect(page.locator('.cb-s02-nb[data-i="0"] .cb-s02-nb__name'),`speaker for seed ${seed}`).toHaveText(first);}
 });
 
 for(const {lang,file} of languages) {
@@ -208,7 +228,10 @@ test('seed 42 repeats Stop2 speaker and tile order after a clean reload',async({
 test('language switch mid-stop retains the current step and selected tiles',async({page})=>{
   await start(page);await stop(page,2);await page.locator('.cb-s02-intro .cb-btn--go').click();await page.locator('.cb-s02-row[data-row="topic"] .cb-s02-tile').first().click();
   const selected=await page.locator('.cb-s02-tile[aria-pressed="true"]').getAttribute('data-id');
-  await page.locator('.cb-stophud .cb-language[lang="es"]').click();await expect(page.locator('html')).toHaveAttribute('lang','es');await expect(page.locator('.cb-s02-play')).toBeVisible();await expect(page.locator('.cb-s02-tile[aria-pressed="true"]')).toHaveAttribute('data-id',selected);
+  const language=page.locator('.cb-stophud .cb-language[lang="es"]');
+  if(await language.isVisible())await language.click();
+  else{await page.locator('.cb-hud-more').click();await page.locator('.cb-hud-more-dialog').getByRole('button',{name:'Español',exact:true}).click();}
+  await expect(page.locator('html')).toHaveAttribute('lang','es');await expect(page.locator('.cb-s02-play')).toBeVisible();await expect(page.locator('.cb-s02-tile[aria-pressed="true"]')).toHaveAttribute('data-id',selected);
   await page.locator('#pt-review-tab').click();await expect(page.locator('#pt-feedback-h')).toHaveText('Comentarios de la prueba');await expect(page.locator('#pt-feedback-save-draft')).toHaveText('Guardar borrador en este dispositivo');await expect(page.locator('#pt-feedback-category option[value="art"]')).toHaveText('Imágenes o diseño');
 });
 test('pause/resume preserves selected choices and native Tab access',async({page})=>{
@@ -234,19 +257,31 @@ test('frame guard replaces an embedded game with a safe open link',async({page})
 });
 
 test.describe('explicitly approved feedback transport',()=>{
-  test.use({allowFeedback:true});
-  test('preview and grown-up hold are required, and only scrubbed submitted entries are sent',async({page,noNetwork})=>{
-    await page.route('https://script.google.com/macros/**',async route=>{
+  // Receiver mocking exercises the supported offline-disabled configuration:
+  // a controlling service worker can bypass page/context network interception.
+  test.use({allowFeedback:true,serviceWorkers:'block'});
+  test('preview and grown-up hold are required, and only scrubbed submitted entries are sent',async({page,context,noNetwork})=>{
+    await page.addInitScript(()=>{
+      const disableOffline=()=>{const meta=document.querySelector('meta[name="pg-offline"]');if(!meta)return false;meta.content='disabled';return true;};
+      if(disableOffline())return;
+      const observer=new MutationObserver(()=>{if(disableOffline())observer.disconnect();});
+      observer.observe(document,{childList:true,subtree:true});
+      document.addEventListener('DOMContentLoaded',()=>observer.disconnect(),{once:true});
+    });
+    const mocked=[];
+    await context.route(/^https:\/\/script\.google(?:usercontent)?\.com\//,async route=>{
       const request=route.request(),headers={'Access-Control-Allow-Origin':'*','Access-Control-Allow-Methods':'POST, OPTIONS','Access-Control-Allow-Headers':'content-type'};
+      mocked.push(request);
       // Native browsers may send a CORS preflight before the actual submitted
       // payload. Both are mocked; a preflight must never be mistaken for a POST.
       if(request.method()==='OPTIONS'){expect(request.postData()).toBeNull();await route.fulfill({status:204,headers,body:''});return;}
       expect(request.method()).toBe('POST');const body=JSON.parse(request.postData());
       await route.fulfill({status:200,headers,contentType:'application/json',body:JSON.stringify({ok:true,schemaVersion:1,acknowledged:body.entries.map(e=>({sessionId:e.sessionId,entryId:e.entryId,revision:e.revision}))})});
     });
-    await start(page);await page.locator('#pt-review-tab').click();await page.locator('#pt-feedback-fix').fill('Email ana@x.com or call 555-123-4567');await page.locator('#pt-feedback-submit').click();await expect(page.locator('#pt-feedback-preview')).toBeVisible();await expect(page.locator('#pt-feedback-preview-text')).not.toContainText('ana@x.com');expect(noNetwork.receiverRequests).toHaveLength(0);
+    await start(page);await expect(page.locator('meta[name="pg-offline"]')).toHaveAttribute('content','disabled');expect(await page.evaluate(()=>navigator.serviceWorker.controller)).toBeNull();
+    await page.locator('#pt-review-tab').click();await page.locator('#pt-feedback-fix').fill('Email ana@x.com or call 555-123-4567');await page.locator('#pt-feedback-submit').click();await expect(page.locator('#pt-feedback-preview')).toBeVisible();await expect(page.locator('#pt-feedback-preview-text')).not.toContainText('ana@x.com');expect(noNetwork.receiverRequests).toHaveLength(0);expect(mocked).toHaveLength(0);
     await page.locator('#pt-feedback-send').focus();const sent=page.waitForRequest(request=>request.url().includes('/macros/')&&request.method()==='POST');await page.keyboard.down('Enter');const request=await sent;await page.keyboard.up('Enter');
-    const body=JSON.parse(request.postData());expect(JSON.stringify(body)).not.toMatch(/ana@x\.com|555-123-4567/);expect(body.entries.every(e=>e.submitted===true)).toBe(true);await expect(page.locator('#pt-feedback-status')).toContainText('received');expect(noNetwork.receiverRequests.filter(request=>request.method()==='POST')).toHaveLength(1);expect(noNetwork.receiverRequests.every(request=>['POST','OPTIONS'].includes(request.method()))).toBe(true);
+    const body=JSON.parse(request.postData());expect(JSON.stringify(body)).not.toMatch(/ana@x\.com|555-123-4567/);expect(body.entries.every(e=>e.submitted===true)).toBe(true);await expect(page.locator('#pt-feedback-status')).toContainText('received');const posts=noNetwork.receiverRequests.filter(request=>request.method()==='POST');expect(posts).toHaveLength(1);expect(mocked.filter(request=>request.method()==='POST')).toHaveLength(posts.length);expect(noNetwork.receiverRequests.every(request=>['POST','OPTIONS'].includes(request.method()))).toBe(true);expect(mocked.every(request=>['POST','OPTIONS'].includes(request.method()))).toBe(true);
   });
 });
 
@@ -276,12 +311,22 @@ for(const {lang,file} of languages) for(const completed of [1,2,15]) {
  });
 }
 
-for(const {lang,file}of languages)test(`${lang}: rendered map and Stop1/2 label contrast`,async({page})=>{
- test.setTimeout(120000);await start(page,file);await page.evaluate(()=>window.PecanGroveEngine.settings.update({calm:true}));
- async function probe(selector){await settleFiniteAnimations(page,expect);const labels=await renderedLabelContrast(page,selector);expect(labels.length,`Visible labels for ${selector}`).toBeGreaterThan(0);for(const label of labels)expect(label.ratio,`${label.text}: rendered contrast`).toBeGreaterThanOrEqual(4.5);}
- await page.locator('.cb-stop[data-stop-n="1"]').first().focus();await probe('.cb-stop__plate');
- await stop(page,1);await page.locator('.cb-s01-intro .cb-btn--go').click();await page.locator('.cb-s01-view[data-view="today"]').click();await probe('.cb-s01-tag');
- for(const index of [0,5,10]){await page.locator(`.cb-s01-spot[data-spot="${index}"]`).click();await page.locator('.cb-callout .cb-btn').click();await probe('.cb-s01-tag');}
- await page.evaluate(()=>window.CommunityBuilders.showMap());await stop(page,2);await probe('.cb-s02-nb__name');await page.locator('.cb-s02-intro .cb-btn--go').click();await probe('.cb-s02-nb__name');
- for(const viewport of [{width:360,height:640},{width:600,height:500}]){await page.setViewportSize(viewport);await probe('.cb-s02-nb__name');}
-});
+async function probeLabels(page,selector){await settleFiniteAnimations(page,expect);const labels=await renderedLabelContrast(page,selector);expect(labels.length,`Visible labels for ${selector}`).toBeGreaterThan(0);for(const label of labels)expect(label.ratio,`${label.text}: rendered contrast`).toBeGreaterThanOrEqual(4.5);}
+// Keep every rendered label, sample point, state and viewport. Separate scene
+// cases avoid treating screenshot throughput as an app-response timeout.
+for(const {lang,file}of languages){
+ test(`${lang}: rendered map label contrast`,async({page})=>{
+  test.setTimeout(120000);await start(page,file);await page.evaluate(()=>window.PecanGroveEngine.settings.update({calm:true}));
+  await page.locator('.cb-stop[data-stop-n="1"]').first().focus();await probeLabels(page,'.cb-stop__plate');
+ });
+ test(`${lang}: rendered Stop1 label contrast in every selected finding state`,async({page})=>{
+  test.setTimeout(120000);await start(page,file);await page.evaluate(()=>window.PecanGroveEngine.settings.update({calm:true}));
+  await stop(page,1);await startStop1Today(page);await probeLabels(page,'.cb-s01-tag');
+  for(const index of [0,5,10]){await page.locator(`.cb-s01-spot[data-spot="${index}"]`).click();await page.locator('.cb-callout .cb-btn').click();await probeLabels(page,'.cb-s01-tag');}
+ });
+ test(`${lang}: rendered Stop2 intro, play and narrow label contrast`,async({page})=>{
+  test.setTimeout(120000);await start(page,file);await page.evaluate(()=>window.PecanGroveEngine.settings.update({calm:true}));
+  await stop(page,2);await probeLabels(page,'.cb-s02-nb__name');await page.locator('.cb-s02-intro .cb-btn--go').click();await probeLabels(page,'.cb-s02-nb__name');
+  for(const viewport of [{width:360,height:640},{width:600,height:500}]){await page.setViewportSize(viewport);await probeLabels(page,'.cb-s02-nb__name');}
+ });
+}

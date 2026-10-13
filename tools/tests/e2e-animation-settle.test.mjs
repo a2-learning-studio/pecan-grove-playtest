@@ -43,3 +43,25 @@ test('axe failure diagnostics include actual ancestor opacity and running fade f
   assert.equal(result[0].animations[0].keyframes[0].opacity, 0);
   dom.window.close();
 });
+
+test('finite animation readiness includes pending playback before it becomes running',()=>{
+  const dom=new JSDOM('<main></main>');
+  try{
+    dom.window.document.getAnimations=()=>[{playState:'idle',pending:true,currentTime:null,effect:{target:dom.window.document.querySelector('main'),getComputedTiming:()=>({endTime:200})}}];
+    const result=helper(dom.window).runningFiniteAnimations();
+    assert.equal(result.length,1);assert.equal(result[0].playState,'idle');assert.equal(result[0].pending,true);
+  }finally{dom.window.close();}
+});
+
+test('fade diagnostics expose paused and pending states instead of reporting an empty animation list',async()=>{
+  const dom=new JSDOM('<main style="opacity:.624714"><p>Text</p></main>');
+  try{
+    const target=dom.window.document.querySelector('main');
+    dom.window.document.getAnimations=()=>['paused','idle','finished'].map((playState,index)=>({playState,pending:index===1,startTime:null,currentTime:43,effect:{target,getComputedTiming:()=>({endTime:120}),getKeyframes:()=>[{opacity:0},{opacity:1}]}}));
+    const page={evaluate:(fn,value)=>vm.runInContext(`(${fn.toString()})(value)`,vm.createContext({document:dom.window.document,getComputedStyle:dom.window.getComputedStyle.bind(dom.window),value}))};
+    const result=await helper(dom.window).accessibilityDiagnostics(page,[{nodes:[{target:['p']}]}]);
+    assert.equal(result[0].ancestors[1].opacity,'0.624714');
+    assert.deepEqual([...result[0].animations.map(animation=>animation.playState)],['paused','idle','finished']);
+    assert.equal(result[0].animations[1].pending,true);
+  }finally{dom.window.close();}
+});

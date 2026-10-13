@@ -154,10 +154,21 @@ export function installMapPresentation(ctx, world, canvas, pan) {
   if (hud) toolbar.append(hud);
   toolbar.append(listButton, legend);
   world.insertBefore(toolbar, pan);
+  // Reserve this readout before attachment: a crowded map must still name the
+  // focused stop without covering another disc or shifting the map on focus.
+  const caption = ctx.h("div", {
+    class: "cb-map-caption",
+    "aria-hidden": "true",
+    "data-plate-visible": "true",
+    "data-plate-hidden": "false",
+    "data-cb-novoice": "",
+  });
+  world.insertBefore(caption, pan);
   let observer,
     stopped = false,
     frame = null,
-    geometry = "";
+    geometry = "",
+    captionControl = null;
   canvas.dataset.mapLayout = "pending";
   const requestFrame = ctx.window.requestAnimationFrame
     ? (callback) => ctx.window.requestAnimationFrame(callback)
@@ -167,6 +178,33 @@ export function installMapPresentation(ctx, world, canvas, pan) {
     : (id) => ctx.window.clearTimeout(id);
   const controls = [...canvas.querySelectorAll(".cb-stop")],
     svg = canvas.querySelector(".cb-path");
+  // Keep the Next badge in ordinary caption flow. WebKit native buttons can
+  // paint absolute child badges at a different origin from the measured box.
+  controls.forEach((button) => {
+    const tag = button.querySelector(".cb-tag");
+    if (tag) tag.hidden = true;
+  });
+  function showCaption(button) {
+    if (captionControl === button) return;
+    captionControl = button;
+    const plate = button?.querySelector(".cb-stop__plate"),
+      tag =
+        button?.dataset.state === "next"
+          ? button.querySelector(".cb-tag")
+          : null,
+      children = plate ? [plate.cloneNode(true)] : [];
+    if (tag) {
+      const badge = tag.cloneNode(true);
+      badge.hidden = false;
+      children.push(badge);
+    }
+    caption.replaceChildren(...children);
+    caption.dataset.stopId = button?.dataset.stopId || "";
+    caption.dataset.stopN = button?.dataset.stopN || "";
+  }
+  showCaption(
+    controls.find((button) => button.dataset.state === "next") || controls[0],
+  );
   function layout() {
     if (stopped || !canvas.isConnected) return;
     const rect = canvas.getBoundingClientRect(),
@@ -249,9 +287,7 @@ export function installMapPresentation(ctx, world, canvas, pan) {
       scale = rect.width / (width || 1),
       active = ctx.document.activeElement;
     const next = controls.find((b) => b.dataset.state === "next"),
-      tag = next?.querySelector(".cb-tag");
-    // Hidden tags use display:none. Reveal once before the batched measurements.
-    if (tag?.hidden) tag.hidden = false;
+      priority = controls.includes(active) ? active : next || controls[0];
     const discs = controls.map((b) =>
         b.querySelector(".cb-stop__disc").getBoundingClientRect(),
       ),
@@ -279,30 +315,29 @@ export function installMapPresentation(ctx, world, canvas, pan) {
           Number(b.button.dataset.state === "next") -
             Number(a.button.dataset.state === "next"),
       );
-    const tagSize = tag?.getBoundingClientRect(),
-      tagOrigin = tag ? next.getBoundingClientRect() : null;
     for (const item of order) {
       if (!item.shown) continue;
       item.box = platePlacement(discs[item.index], item.size, bounds, [
         ...discs.filter((_, i) => i !== item.index),
         ...placed,
       ]);
+      item.docked =
+        !item.box &&
+        item.button === priority &&
+        (item.button === active || overlap(discs[item.index], bounds, 0));
       if (item.box) placed.push(item.box);
     }
-    const tagBox = tag
-      ? platePlacement(discs[controls.indexOf(next)], tagSize, bounds, [
-          ...discs.filter((_, i) => i !== controls.indexOf(next)),
-          ...placed,
-        ])
-      : null;
     // No geometry reads after this point: all attributes/positions commit together.
-    for (const { button, plate, shown, box, origin } of order) {
+    showCaption(priority);
+    for (const { button, plate, shown, box, docked, origin } of order) {
       const visibility = String(shown),
-        hidden = String(shown && !box);
+        hidden = String(shown && !box && !docked);
       if (button.dataset.plateVisible !== visibility)
         button.dataset.plateVisible = visibility;
       if (button.dataset.plateHidden !== hidden)
         button.dataset.plateHidden = hidden;
+      if (button.dataset.plateDocked !== String(!!docked))
+        button.dataset.plateDocked = String(!!docked);
       if (!box) continue;
       const left = (box.left - origin.left) / scale + "px",
         top = (box.top - origin.top) / scale + "px";
@@ -310,15 +345,6 @@ export function installMapPresentation(ctx, world, canvas, pan) {
       if (plate.style.top !== top) plate.style.top = top;
       if (plate.dataset.placement !== box.side)
         plate.dataset.placement = box.side;
-    }
-    if (tag) {
-      if (!tagBox) tag.hidden = true;
-      else {
-        const left = (tagBox.left - tagOrigin.left) / scale + "px",
-          top = (tagBox.top - tagOrigin.top) / scale + "px";
-        if (tag.style.left !== left) tag.style.left = left;
-        if (tag.style.top !== top) tag.style.top = top;
-      }
     }
   }
   const close = () => {

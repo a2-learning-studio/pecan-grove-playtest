@@ -2,10 +2,12 @@
 // decorative loops and paused animations are checked separately by motion tests.
 function runningFiniteAnimations() {
   return document.getAnimations().filter(animation =>
-    animation.playState === 'running' &&
+    (animation.playState === 'running' || animation.pending) &&
     Number.isFinite(animation.effect?.getComputedTiming().endTime)
   ).map(animation => ({
     target: animation.effect?.target?.className || animation.effect?.target?.nodeName,
+    playState: animation.playState,
+    pending: !!animation.pending,
     currentTime: animation.currentTime,
     endTime: animation.effect.getComputedTiming().endTime
   }));
@@ -30,10 +32,9 @@ async function accessibilityDiagnostics(page, violations) {
         opacity: style.opacity, color: style.color, background: style.backgroundColor,
         fontWeight: style.fontWeight});
     }
-    return {selector, ancestors, animations: document.getAnimations().filter(animation =>
-      animation.playState === 'running'
-    ).map(animation => ({target: animation.effect?.target?.className,
-      currentTime: animation.currentTime, timing: animation.effect?.getComputedTiming(),
+    return {selector, ancestors, animations: document.getAnimations().map(animation => ({target: animation.effect?.target?.className,
+      playState: animation.playState, pending: !!animation.pending,
+      startTime: animation.startTime, currentTime: animation.currentTime, timing: animation.effect?.getComputedTiming(),
       keyframes: animation.effect?.getKeyframes()}))};
   }), selectors);
 }

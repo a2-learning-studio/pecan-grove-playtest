@@ -37,6 +37,14 @@ test("performance stage readiness waits for the actual screen and completed defe
     );
     canvas.dataset.mapLayout = "ready";
     assert.equal(stageReady({ mode: "map" }), true);
+    root.dataset.sceneLayout = "pending";
+    assert.equal(
+      stageReady({ mode: "map" }),
+      false,
+      "final scene focus and framing remain inside the measured interaction",
+    );
+    root.dataset.sceneLayout = "ready";
+    assert.equal(stageReady({ mode: "map" }), true);
     state = { mode: "stop", stopId: "notice-the-signs" };
     assert.equal(
       stageReady({ mode: "stop", stopId: "ask-a-good-question" }),
