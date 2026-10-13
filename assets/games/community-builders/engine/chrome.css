@@ -28,10 +28,6 @@
     0 3px 0 color-mix(in srgb, var(--pg-color-000) 42%, transparent);
 }
 .cb[data-motion="full"]
-  .cb-btn:not(.cb-btn--quiet):not(.cb-language):hover:not(:disabled) {
-  transform: translateY(-2px);
-}
-.cb[data-motion="full"]
   .cb-btn:not(.cb-btn--quiet):not(.cb-language):active:not(:disabled) {
   transform: translateY(2px);
   box-shadow: inset 0 2px 0 color-mix(in srgb, var(--cb-ink) 24%, transparent);
