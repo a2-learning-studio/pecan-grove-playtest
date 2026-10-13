@@ -9,11 +9,7 @@ self.addEventListener('activate', event => event.waitUntil((async () => {
 })()));
 self.addEventListener('message', event => {
   if (event.data?.type === 'SKIP_WAITING') self.skipWaiting();
-  if (event.data?.type === 'GET_VERSION') {
-    const reply = { type: 'VERSION', build: BUILD };
-    if (event.ports && event.ports[0]) event.ports[0].postMessage(reply);
-    else if (event.source) event.source.postMessage(reply);
-  }
+  if (event.data?.type === 'GET_VERSION' && event.source) event.source.postMessage({ type: 'VERSION', build: BUILD });
 });
 self.addEventListener('fetch', event => {
   const request = event.request, url = new URL(request.url);

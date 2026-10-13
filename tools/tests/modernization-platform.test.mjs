@@ -91,7 +91,7 @@ test('offline worker caches first-party files and preserves explicit voice packs
 test('a waiting worker can name its build without activating', () => {
   const w = worker();
   let reply;
-  w.handlers.message({ data: { type: 'GET_VERSION' }, ports: [{ postMessage(value) { reply = value; } }] });
+  w.handlers.message({ data: { type: 'GET_VERSION' }, source: { postMessage(value) { reply = value; } } });
   assert.equal(reply.type, 'VERSION'); assert.equal(reply.build, 'test');
   assert.equal(w.self.skipped, undefined);
 });
