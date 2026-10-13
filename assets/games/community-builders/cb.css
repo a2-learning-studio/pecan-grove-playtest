@@ -347,11 +347,13 @@
 /* calm motion (Settings → Helpers): the game holds still, as it does when the device asks for less motion */
 .cb.is-calm *, .cb.is-calm *::before, .cb.is-calm *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; animation-delay: 0s !important;
   transition-duration: 0.01ms !important; transition-delay: 0s !important; scroll-behavior: auto !important; }
-/* full-screen game */
-.cb.is-fs { display: flex; flex-direction: column; width: 100%; max-width: none; height: 100%; margin: 0; border-radius: 0; overflow-y: auto; box-shadow: none; }
-.cb.is-fs .cb-main { flex: 1 1 auto; display: flex; flex-direction: column; min-height: 0; }
+/* full-screen game: the scene scrolls between a fixed bar and footer.
+   The hint strip keeps one height so it cannot shove the footer when it appears. */
+.cb.is-fs { display: flex; flex-direction: column; width: 100%; max-width: none; height: 100%; margin: 0; border-radius: 0; overflow: hidden; box-shadow: none; }
+.cb.is-fs .cb-main { flex: 1 1 auto; display: flex; flex-direction: column; min-height: 0; overflow: auto; }
 .cb.is-fs .cb-main > .cb-board { flex: 1 1 auto; align-content: start; }
-.cb.is-fs .cb-foot { flex: 0 0 auto; }
+.cb.is-fs .cb-bar, .cb.is-fs .cb-foot { flex: 0 0 auto; }
+.cb.is-fs .cb-hints { flex: 0 0 40px; height: 40px; min-height: 40px; }
 .cb.is-fs .cb-world { width: min(100%, calc((100vh - 190px) * 1.79)); margin-inline: auto; }
 .cb:fullscreen::backdrop { background: var(--pg-ink); }
 .cb-stophud__title { grid-area: title; display: flex; align-items: center; gap: 12px; min-width: 0; }
