@@ -4,7 +4,15 @@
    second, 0 after that. Never a side, an outcome or speed. Words are the spec's, word for word. */
 (function () {
   "use strict";
-  var CB = window.CommunityBuilders; if (!CB) return;
+  var host = window.CommunityBuilders; if (!host) return;
+  function factory(lifecycle) {
+    var document = lifecycle.document, window = lifecycle.window, Date = lifecycle.Date;
+    var setTimeout = lifecycle.setTimeout, clearTimeout = lifecycle.clearTimeout;
+    var requestAnimationFrame = lifecycle.requestAnimationFrame, cancelAnimationFrame = lifecycle.cancelAnimationFrame;
+    var definition = null, CB = { register: function (value) { definition = value; } };
+
+  "use strict";
+
   var DOTS = [null, null, null, null, null];
 
   /* authored line icons: 24-unit grid, one 2px round stroke, the same family as the shell's api.IC */
@@ -28,116 +36,59 @@
   /* each desk's job in a few words, shown on the desk before any tap, so the first choice is a reading, not a guess.
      The full line still comes in the answer card. */
   var JOB = {
-    council: ["Decides what can be built", "Decide qué se puede construir"],
-    planning: ["Studies plans and gives advice", "Estudia los planes y da consejos"],
-    development: ["Decides on tax breaks", "Decide si pagan menos impuestos"],
-    regional: ["Comments for nearby towns", "Opina por los pueblos cercanos"],
-    power: ["Sets power prices", "Fija el precio de la luz"],
-    environment: ["Gives smoke and water permits", "Da permisos de humo y de agua"],
-    family: ["Decides together at home", "Deciden juntos en casa"]
+    council: window.CBLocale.pair("stop-06","bank.b0001"),
+    planning: window.CBLocale.pair("stop-06","bank.b0002"),
+    development: window.CBLocale.pair("stop-06","bank.b0003"),
+    regional: window.CBLocale.pair("stop-06","bank.b0004"),
+    power: window.CBLocale.pair("stop-06","bank.b0005"),
+    environment: window.CBLocale.pair("stop-06","bank.b0006"),
+    family: window.CBLocale.pair("stop-06","bank.b0007")
   };
   /* the seven desks: [id, name, line, place (null = a written comment), timeline step it rings] */
   var DESKS = [
-    ["council", ["Town Council", "Concejo del pueblo"],
-      ["Decides what can be built on land in town, after a public hearing. Neighbors' voices count most here.", "Decide qué se puede construir en cada terreno del pueblo, después de una audiencia pública. Aquí es donde más cuenta la voz de los vecinos."],
-      ["the Town Council hearing", "la audiencia del Concejo del pueblo"], "hearing"],
-    ["planning", ["Planning Board", "Junta de Planificación"],
-      ["Studies the plan first and gives the Town Council advice.", "Estudia el plan primero y le da consejos al Concejo del pueblo."],
-      ["the Planning Board meeting", "la reunión de la Junta de Planificación"], "board"],
-    ["development", ["Development Board", "Junta de Desarrollo"],
-      ["Decides if a new business can pay less tax for some years.", "Decide si un negocio nuevo puede pagar menos impuestos por unos años."], null, null],
-    ["regional", ["Regional Review", "Revisión Regional"],
-      ["Looks at how a big project could affect nearby towns, and shares comments. It does not decide.", "Revisa cómo un proyecto grande podría afectar a los pueblos cercanos y da su opinión. No decide."], null, null],
-    ["power", ["State Power Board", "Junta Estatal de Electricidad"],
-      ["Sets the price of power. It does not pick where buildings go.", "Fija el precio de la luz. No elige dónde se construye."], null, null],
-    ["environment", ["State Environment Office", "Oficina Estatal del Medio Ambiente"],
-      ["Gives permits for smoke from engines and for using lots of water.", "Da permisos para el humo de los motores y para usar mucha agua."], null, "permits"],
-    ["family", ["Your family", "Tu familia"],
-      ["You decide together at home what you think and what you do.", "En casa deciden juntos qué piensan y qué hacen."],
-      ["a family talk at home", "una conversación en familia, en casa"], null]
+    ["council", window.CBLocale.pair("stop-06","bank.b0008"),
+      window.CBLocale.pair("stop-06","bank.b0009"),
+      window.CBLocale.pair("stop-06","bank.b0010"), "hearing"],
+    ["planning", window.CBLocale.pair("stop-06","bank.b0011"),
+      window.CBLocale.pair("stop-06","bank.b0012"),
+      window.CBLocale.pair("stop-06","bank.b0013"), "board"],
+    ["development", window.CBLocale.pair("stop-06","bank.b0014"),
+      window.CBLocale.pair("stop-06","bank.b0015"), null, null],
+    ["regional", window.CBLocale.pair("stop-06","bank.b0016"),
+      window.CBLocale.pair("stop-06","bank.b0017"), null, null],
+    ["power", window.CBLocale.pair("stop-06","bank.b0018"),
+      window.CBLocale.pair("stop-06","bank.b0019"), null, null],
+    ["environment", window.CBLocale.pair("stop-06","bank.b0020"),
+      window.CBLocale.pair("stop-06","bank.b0021"), null, "permits"],
+    ["family", window.CBLocale.pair("stop-06","bank.b0022"),
+      window.CBLocale.pair("stop-06","bank.b0023"),
+      window.CBLocale.pair("stop-06","bank.b0024"), null]
   ].map(function (d) { return { id: d[0], name: d[1], line: d[2], place: d[3], ring: d[4], job: JOB[d[0]] }; });
   var DESK_IDS = DESKS.map(function (d) { return d.id; });
 
   /* fourteen questions, two per desk; the right desk is the one with the same id */
   var QS = {
-    council: [["Can the old Miller farm be used for a data center?", "¿Se puede usar la vieja granja Miller para un centro de datos?"],
-      ["Can the town ask for rules, like quiet nights and a row of trees?", "¿El pueblo puede pedir reglas, como noches tranquilas y una fila de árboles?"]],
-    planning: [["Who studies the plan first and gives advice?", "¿Quién estudia el plan primero y da consejos?"],
-      ["Who checks if the plan fits our town's land map?", "¿Quién revisa si el plan encaja con el mapa de terrenos del pueblo?"]],
-    development: [["Will the company get a tax break?", "¿La empresa va a pagar menos impuestos?"],
-      ["Could the company pay less tax if it brings jobs?", "¿La empresa podría pagar menos impuestos si trae empleos?"]],
-    regional: [["Will more trucks on the road affect the next town too?", "¿Más camiones en la carretera afectarán también al pueblo vecino?"],
-      ["Who looks at how this could change the towns around us?", "¿Quién revisa cómo esto podría cambiar a los pueblos de alrededor?"]],
-    power: [["Who sets the price of my power bill?", "¿Quién fija el precio de mi recibo de luz?"],
-      ["Who decides what big new buildings pay for power?", "¿Quién decide cuánto pagan por la luz los edificios grandes y nuevos?"]],
-    environment: [["Who checks the smoke from the backup engines?", "¿Quién revisa el humo de los motores de respaldo?"],
-      ["Who says if they can take lots of water from Pecan River?", "¿Quién dice si pueden sacar mucha agua del río Pecan?"]],
-    family: [["Should our family save water this summer?", "¿Nuestra familia debería ahorrar agua este verano?"],
-      ["What does our family think about the plan?", "¿Qué piensa nuestra familia sobre el plan?"]]
+    council: [window.CBLocale.pair("stop-06","bank.b0025"),
+      window.CBLocale.pair("stop-06","bank.b0026")],
+    planning: [window.CBLocale.pair("stop-06","bank.b0027"),
+      window.CBLocale.pair("stop-06","bank.b0028")],
+    development: [window.CBLocale.pair("stop-06","bank.b0029"),
+      window.CBLocale.pair("stop-06","bank.b0030")],
+    regional: [window.CBLocale.pair("stop-06","bank.b0031"),
+      window.CBLocale.pair("stop-06","bank.b0032")],
+    power: [window.CBLocale.pair("stop-06","bank.b0033"),
+      window.CBLocale.pair("stop-06","bank.b0034")],
+    environment: [window.CBLocale.pair("stop-06","bank.b0035"),
+      window.CBLocale.pair("stop-06","bank.b0036")],
+    family: [window.CBLocale.pair("stop-06","bank.b0037"),
+      window.CBLocale.pair("stop-06","bank.b0038")]
   };
 
   /* the timeline on the wall: [id, en, es, people can speak here] */
-  var STEPS = [["sign", "Sign", "Letrero", false], ["board", "Board meeting", "Reunión de la junta", true], ["hearing", "Hearing", "Audiencia", true],
-    ["permits", "Permits", "Permisos", true], ["decision", "Decision", "Decisión", false], ["promises", "Promises", "Promesas", false]];
+  var STEPS = [[].concat(["sign"],window.CBLocale.pair("stop-06","bank.b0039"),[false]), [].concat(["board"],window.CBLocale.pair("stop-06","bank.b0040"),[true]), [].concat(["hearing"],window.CBLocale.pair("stop-06","bank.b0041"),[true]),
+    [].concat(["permits"],window.CBLocale.pair("stop-06","bank.b0042"),[true]), [].concat(["decision"],window.CBLocale.pair("stop-06","bank.b0043"),[false]), [].concat(["promises"],window.CBLocale.pair("stop-06","bank.b0044"),[false])];
 
-  var T = {
-    en: {
-      hall: "Town Hall",
-      intro: "Welcome to Town Hall! The Planning Board met last week. The Town Council hearing is next. Neighbors have questions. Help each one find the right desk.",
-      start: "Start",
-      qn: function (n) { return "Question " + n + " of 5"; },
-      who: "Who can help? Tap the desk that decides this.",
-      desk: function (n) { return "Desk: " + n; },
-      speakAt: "People can speak at:",
-      howK: "How the farm plan gets decided", ringAt: function (st) { return "This desk's step is circled below: " + st + "."; },
-      boardPast: "People could speak at the Planning Board meeting. It already happened, so the Town Council hearing is next.",
-      written: "a written comment (with a grown-up)",
-      yes: "Yes! This desk can help.",
-      wrong: "Not this desk. Try another one.",
-      tried: "Tried",
-      hereIs: "Here is the desk for this question.",
-      nextQ: "Next question", finish: "Finish",
-      rightDesk: "Right desk", notThis: "Not this desk",
-      canSpeak: "People can speak", here: "We are here",
-      aha: "Different helpers decide different parts. The Town Council decides what can be built on the farm, after a public hearing. That is where neighbors' voices count most.",
-      see: "See my score",
-      can: "I can find out who decides, and when people can speak.",
-      tipCouncil: "Next time, remember: the Town Council decides what can be built, after a hearing.",
-      tipDesk: "Next time, remember this desk:",
-      tip100: "Great job finding who decides! Try a new round.",
-      real: "Ask a grown-up: 'Who decides big building plans where we live?' Find out together at the library or on your city or county website.",
-      gu: "For grown-ups: how it works in Georgia",
-      guText: "In Fulton County, each city decides zoning inside its limits after a public hearing, and the county decides in the few unincorporated areas left. If land is already zoned for a use, there may be no hearing. Development authorities decide local tax breaks. Large projects also get a regional review that only gives advice. State bodies handle other parts. The Georgia Public Service Commission sets power rates but does not pick sites. Georgia EPD issues air permits for backup generators and permits for large water use. The game uses made-up boards so it stays clear of elections."
-    },
-    es: {
-      hall: "Ayuntamiento",
-      intro: "¡Te damos la bienvenida al Ayuntamiento! La Junta de Planificación ya se reunió. Ahora sigue la audiencia del Concejo del pueblo. Los vecinos tienen preguntas. Ayuda a cada uno a encontrar el escritorio correcto.",
-      start: "Empezar",
-      qn: function (n) { return "Pregunta " + n + " de 5"; },
-      who: "¿Quién puede ayudar? Toca el escritorio que decide esto.",
-      desk: function (n) { return "Escritorio: " + n; },
-      speakAt: "La gente puede opinar en:",
-      howK: "Cómo se decide el plan de la granja", ringAt: function (st) { return "El paso de este escritorio está marcado abajo: " + st + "."; },
-      boardPast: "La gente podía opinar en la reunión de la Junta de Planificación. Ya pasó, así que lo que sigue es la audiencia del Concejo del pueblo.",
-      written: "un comentario por escrito (con un adulto)",
-      yes: "¡Sí! Este escritorio puede ayudar.",
-      wrong: "Este escritorio no. Prueba otro.",
-      tried: "Ya lo probaste",
-      hereIs: "Este es el escritorio para esta pregunta.",
-      nextQ: "Siguiente pregunta", finish: "Terminar",
-      rightDesk: "Escritorio correcto", notThis: "Este escritorio no",
-      canSpeak: "Se puede opinar", here: "Estamos aquí",
-      aha: "Cada grupo decide una parte distinta. El Concejo del pueblo decide qué se puede construir en la granja, después de una audiencia pública. Ahí es donde más cuenta la voz de los vecinos.",
-      see: "Ver mi puntaje",
-      can: "Puedo averiguar quién decide y cuándo se puede opinar.",
-      tipCouncil: "La próxima vez, recuerda: el Concejo del pueblo decide qué se puede construir, después de una audiencia.",
-      tipDesk: "La próxima vez, recuerda este escritorio:",
-      tip100: "¡Muy bien! Encontraste quién decide. Prueba una nueva ronda.",
-      real: "Pregúntale a un adulto: '¿Quién decide los grandes proyectos de construcción donde vivimos?' Averigüen juntos en la biblioteca o en el sitio web de su ciudad o condado.",
-      gu: "Para adultos: cómo funciona en Georgia",
-      guText: "En el condado de Fulton, cada ciudad decide la zonificación dentro de sus límites después de una audiencia pública, y el condado decide en las pocas zonas no incorporadas que quedan. Si el terreno ya tiene la zonificación para ese uso, puede que no haya audiencia. Las autoridades de desarrollo deciden las reducciones de impuestos locales. Los proyectos grandes también pasan por una revisión regional que solo da recomendaciones. Otras partes las manejan agencias estatales: la Comisión de Servicio Público de Georgia fija las tarifas de electricidad pero no elige los sitios, y la EPD de Georgia otorga permisos de aire para los generadores de respaldo y permisos para usar mucha agua. El juego usa juntas inventadas para mantenerse lejos de las elecciones."
-    }
-  };
+  var T = {en:window.CBLocale.read("stop-06", "en", {en:{"T.qn":function (n) { return window.CBLocale.part("stop-06", "en", "T.qn", 0) + n + window.CBLocale.part("stop-06", "en", "T.qn", 1); },"T.desk":function (n) { return window.CBLocale.part("stop-06", "en", "T.desk", 0) + n; },"T.ringAt":function (st) { return window.CBLocale.part("stop-06", "en", "T.ringAt", 0) + st + window.CBLocale.part("stop-06", "en", "T.ringAt", 1); }},es:{"T.qn":function (n) { return window.CBLocale.part("stop-06", "es", "T.qn", 0) + n + window.CBLocale.part("stop-06", "es", "T.qn", 1); },"T.desk":function (n) { return window.CBLocale.part("stop-06", "es", "T.desk", 0) + n; },"T.ringAt":function (st) { return window.CBLocale.part("stop-06", "es", "T.ringAt", 0) + st + window.CBLocale.part("stop-06", "es", "T.ringAt", 1); }}}).T,es:window.CBLocale.read("stop-06", "es", {en:{"T.qn":function (n) { return window.CBLocale.part("stop-06", "en", "T.qn", 0) + n + window.CBLocale.part("stop-06", "en", "T.qn", 1); },"T.desk":function (n) { return window.CBLocale.part("stop-06", "en", "T.desk", 0) + n; },"T.ringAt":function (st) { return window.CBLocale.part("stop-06", "en", "T.ringAt", 0) + st + window.CBLocale.part("stop-06", "en", "T.ringAt", 1); }},es:{"T.qn":function (n) { return window.CBLocale.part("stop-06", "es", "T.qn", 0) + n + window.CBLocale.part("stop-06", "es", "T.qn", 1); },"T.desk":function (n) { return window.CBLocale.part("stop-06", "es", "T.desk", 0) + n; },"T.ringAt":function (st) { return window.CBLocale.part("stop-06", "es", "T.ringAt", 0) + st + window.CBLocale.part("stop-06", "es", "T.ringAt", 1); }}}).T};
 
   /* painted crop of the clock-tower building on the town map, used as Town Hall */
   var HALL = [0.05, 0.17, 0.385, 0.51];                     // Town Hall: the blue-roofed hall left of the chapel (the clock tower is the school, with the town library)
@@ -152,7 +103,7 @@
       var s = document.createElementNS(SVGNS, "svg");
       s.setAttribute("viewBox", "0 0 24 24"); s.setAttribute("aria-hidden", "true"); s.setAttribute("focusable", "false");
       s.setAttribute("class", "cb-ico" + (cls ? " " + cls : ""));
-      s.innerHTML = ICON[name];                                   // constant, authored markup only
+      host.setAuthoredMarkup(s, ICON[name]);                                   // constant, authored markup only
       return s;
     }
     function deskById(id) { return DESKS.filter(function (d) { return d.id === id; })[0]; }
@@ -178,7 +129,7 @@
       var p = q.split("-");
       return { q: q, desk: p[0], text: tx(QS[p[0]][+p[1]]), nb: askers[i], tried: [], done: null };
     });
-    var qi = 0;
+    var qi = 0, phase = "intro", presentation = {};
     /* A double tap must count once. When a screen changes under the finger (Start, Next, a wrong tap that
        scrolls its card into view), the second half of the tap would land on whatever moved there, often a desk. */
     var calm = 0;
@@ -205,23 +156,18 @@
     function chip(d) {
       return h("span", { "class": "cb-s06-chip" }, [h("span", { "class": "cb-s06-chip__ic", "aria-hidden": "true" }, [icon(d.id)]), h("b", { text: tx(d.name) })]);
     }
-    /* Esc on the answer card moves on, as the spec's keyboard check asks. It listens on the document, so it
-       still works after a tap on blank space left focus on the page body; it ignores Esc while a dialog is
-       open or while focus is outside the game, and lets go once its board is gone. */
+    /* The shared Back action advances the current answer card; lifecycle disposal removes the subscription. */
     function onBoard(board, fn) {
-      var stage = document.querySelector('[data-game="community-builders"]');
-      function key(e) {
-        if (!board.isConnected) { document.removeEventListener("keydown", key); return; }
-        if (e.key !== "Escape" && e.key !== "Esc") return;
-        var a = document.activeElement;
-        if (document.querySelector("dialog[open]") || (a && a !== document.body && stage && !stage.contains(a))) return;
-        e.preventDefault(); document.removeEventListener("keydown", key); fn();
-      }
-      document.addEventListener("keydown", key);
+      if (!api.input || !api.input.on) return;
+      var off = api.input.on("back", function () {
+        if (!board.isConnected || document.querySelector("dialog[open]")) return false;
+        off(); fn(); return true;
+      }, { scope: board });
     }
 
     /* ── 1. intro ── */
     function intro() {
+      phase = "intro";
       var faces = h("ul", { "class": "cb-faces cb-s06-faces", "aria-hidden": "true" }, askers.map(function (n) { return h("li", { "class": "is-on" }, [api.img(n.img, "", null, true)]); }));
       api.screen([api.stopHud(stop, null), h("div", { "class": "cb-board cb-s06-board" }, [
         h("div", { "class": "cb-s06-top cb-s06-top--wide" }, [scene(), h("div", { "class": "cb-s06-intro" }, [
@@ -234,7 +180,9 @@
 
     /* ── 2. the five questions ── */
     function play(st) {
+      phase = "play";
       st = st || {};
+      presentation = { wrong:st.wrong || null, fresh:st.fresh || null, triedNew:st.triedNew || null };
       var Q = round[qi], d = deskById(Q.desk), answered = !!Q.done;
       var ask = h("div", { "class": "cb-s06-ask", tabindex: "-1", "data-s06-q": "" }, [
         h("p", { "class": "cb-vh", text: api.nmCap(Q.nb) + ", " + Q.nb.plain[L] + ":" }),
@@ -315,6 +263,8 @@
 
     /* ── 3. the aha card, Hearing ringed on the timeline ── */
     function aha() {
+      phase = "aha";
+      presentation = {};
       var see = api.btn(t.see, "cb-btn--go cb-btn--big", function (e) { if (settled(e)) finish(); }, "go", true);
       see.setAttribute("data-s06-see", "");
       var board = h("div", { "class": "cb-board cb-s06-board" }, [
@@ -329,6 +279,7 @@
     /* ── 4. score: process only, 20 / 10 / 0 per question ── */
     var finished = false;
     function finish() {
+      phase = "result";
       if (finished) return; finished = true;          // one save per round, whatever is pressed twice
       var score = round.reduce(function (s, Q) { return s + (Q.done === "first" ? 20 : Q.done === "second" ? 10 : 0); }, 0);
       var councilMiss = round.some(function (Q) { return Q.desk === "council" && Q.done !== "first"; });
@@ -361,6 +312,22 @@
       setTimeout(function () { document.removeEventListener("click", eat, true); }, 450);
     }
 
+    if (api.setController) api.setController({
+      snapshot: function () { return { v:2,phase:phase,qi:qi,order:order.slice(),presentation:presentation,round:round.map(function(Q){return {q:Q.q,nb:Q.nb.id,tried:Q.tried.slice(),done:Q.done};}) }; },
+      restore: function (saved) {
+        if (!saved || saved.v !== 2 || !Array.isArray(saved.round) || saved.round.length !== 5) return false;
+        ids = saved.round.map(function(value){return value.q;}); order = saved.order.slice();
+        round = saved.round.map(function(value){var parts=value.q.split("-");return {q:value.q,desk:parts[0],text:tx(QS[parts[0]][+parts[1]]),nb:api.nbById(value.nb),tried:value.tried.slice(),done:value.done};});
+        askers = round.map(function(Q){return Q.nb;}); qi = saved.qi; finished = false;
+        if(saved.phase === "result") finish(); else if(saved.phase === "aha") aha(); else if(saved.phase === "play") play(saved.presentation); else intro();
+        return true;
+      }
+    });
     intro();
   }
+
+    return definition;
+  }
+  if (host.defineStop) host.defineStop(factory);
+  else host.register(factory({ document: document, window: window, Date: Date, setTimeout: setTimeout, clearTimeout: clearTimeout, requestAnimationFrame: requestAnimationFrame, cancelAnimationFrame: typeof cancelAnimationFrame === "function" ? cancelAnimationFrame : function () {} }));
 })();
