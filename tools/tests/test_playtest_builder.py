@@ -49,6 +49,7 @@ class PlaytestBuilderTests(unittest.TestCase):
         self.assertEqual(directives['style-src'], ["'self'"])
         self.assertEqual(directives['style-src-attr'], ["'unsafe-hashes'", "'sha256-" + digest + "'"])
         self.assertEqual(directives['script-src'], ["'self'"])
+        self.assertEqual(directives['media-src'], ["'self'", "blob:"])
         self.assertNotIn("'unsafe-inline'", builder.CSP)
 
     def test_family_boot_removes_the_feedback_module_and_retains_game_and_frame_guard(self):

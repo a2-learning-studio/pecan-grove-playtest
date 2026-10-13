@@ -530,7 +530,26 @@
     forced-color-adjust: none;
   }
   .cb-engine-toast,
-  .cb-engine-badge.is-earned {
+  .cb-engine-badge.is-earned,
+  .cb-sound-lock .cb-btn {
     border: 3px solid Highlight;
   }
+}
+.cb-sound-lock {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: max(16px, env(safe-area-inset-bottom));
+  z-index: 2100;
+  display: flex;
+  justify-content: center;
+  padding: 0 16px;
+  pointer-events: none;
+}
+.cb-sound-lock[hidden] {
+  display: none !important;
+}
+.cb-sound-lock .cb-btn {
+  pointer-events: auto;
+  box-shadow: var(--cb-shadow-2);
 }

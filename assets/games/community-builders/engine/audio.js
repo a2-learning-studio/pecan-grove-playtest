@@ -30,6 +30,7 @@ export class AudioMixer {
     this.voicing = false;
     this.elements = new Map();
     this.lastSfx = 0;
+    this.primed = false;
   }
   unlock() {
     const Context = this.win.AudioContext || this.win.webkitAudioContext;
@@ -44,11 +45,43 @@ export class AudioMixer {
           this.buses[name].connect(this.buses.master);
         this.apply();
       }
-      if (this.context.state === "suspended")
-        this.context.resume()?.catch?.(() => {});
+      const running = this.context.state === "running";
+      // Android Chrome drops a context that only called resume() and never
+      // started a node during the tap. A silent buffer keeps it running.
+      if (!running && this.context.resume)
+        this.context
+          .resume()
+          ?.then?.(() => this.flushRoutes())
+          ?.catch?.(() => {});
+      else this.flushRoutes();
+      if (!running || !this.primed) this.prime();
+      this.primed = true;
       return true;
     } catch {
       return false;
+    }
+  }
+  prime() {
+    const context = this.context;
+    if (
+      !context?.createBuffer ||
+      !context.createBufferSource ||
+      !context.createGain
+    )
+      return;
+    try {
+      const buffer = context.createBuffer(1, 8, context.sampleRate || 44100);
+      const source = context.createBufferSource();
+      source.buffer = buffer;
+      const level = context.createGain();
+      if (level.gain.setValueAtTime)
+        level.gain.setValueAtTime(0.0001, context.currentTime || 0);
+      else level.gain.value = 0.0001;
+      source.connect(level);
+      level.connect(context.destination);
+      source.start(0);
+    } catch {
+      /* The next tap can prime again. resume() still ran. */
     }
   }
   gain(name) {
@@ -76,22 +109,38 @@ export class AudioMixer {
   }
   attachVoice(element) {
     if (!element || this.elements.has(element)) return;
-    let source = null;
-    if (this.context)
-      try {
-        source = this.context.createMediaElementSource(element);
-        source.connect(this.buses.voice);
-        element.volume = 1;
-      } catch {
-        /* Older browsers use the element volume. */
-      }
-    this.elements.set(element, source);
+    this.elements.set(element, null);
     const on = () => this.voice(true),
       off = () => this.voice(false);
     element.addEventListener("playing", on);
     element.addEventListener("pause", off);
     element.addEventListener("ended", off);
+    this.route(element);
     this.apply();
+  }
+  route(element) {
+    if (!this.elements.has(element) || this.elements.get(element)) return;
+    // A media element piped into a suspended context is silent on Android,
+    // even when play() succeeds. Leave it on the speakers until we can hear.
+    if (
+      !this.context ||
+      this.context.state !== "running" ||
+      element.paused === false
+    ) {
+      element.volume = this.gain("master") * this.gain("voice");
+      return;
+    }
+    try {
+      const source = this.context.createMediaElementSource(element);
+      source.connect(this.buses.voice);
+      element.volume = 1;
+      this.elements.set(element, source);
+    } catch {
+      element.volume = this.gain("master") * this.gain("voice");
+    }
+  }
+  flushRoutes() {
+    for (const element of this.elements.keys()) this.route(element);
   }
   voice(playing) {
     this.voicing = playing;

@@ -92,11 +92,15 @@ export default function createVoicePlay(ctx) {
     if (ctx.vAudio) ctx.vAudio.pause();
     ctx.vUnread();
     ctx.vMark(ctx.vEl, false);
-    var a = new ctx.Audio(
+    var src =
       typeof ctx.resolveAsset === "function"
         ? ctx.resolveAsset(ctx.BASE + "voice/" + item.f)
-        : ctx.BASE + "voice/" + item.f,
-    );
+        : ctx.BASE + "voice/" + item.f;
+    // Android Chrome asks the service worker for a byte range and then refuses
+    // to play the answer. Fetch the whole clip and hand the element a blob URL.
+    var nav = ctx.window && ctx.window.navigator;
+    var android = !!(nav && /Android/i.test(nav.userAgent || ""));
+    var a = android ? new ctx.Audio() : new ctx.Audio(src);
     ctx.vAudio = a;
     ctx.vEl = el || null;
     ctx.vMark(ctx.vEl, true);
@@ -116,8 +120,17 @@ export default function createVoicePlay(ctx) {
       ctx.vLastItem = item;
       ctx.vLastEl = ctx.vEl;
     }
+    function release(node) {
+      var url = node && node._blobUrl,
+        URLRef = ctx.window && ctx.window.URL;
+      if (url && URLRef && URLRef.revokeObjectURL) {
+        URLRef.revokeObjectURL(url);
+        node._blobUrl = "";
+      }
+    }
     function done() {
       if (ctx.vAudio !== a) return;
+      release(a);
       ctx.vUnread();
       ctx.vMark(ctx.vEl, false);
       ctx.vAudio = null;
@@ -125,20 +138,115 @@ export default function createVoicePlay(ctx) {
       var nx = ctx.vQueue.shift();
       if (nx && nx.el.isConnected) vPlay(nx.item, nx.el);
     }
+    function locked() {
+      if (typeof ctx.emit === "function")
+        ctx.emit("cb:voice-locked", { audio: a });
+    }
+    function useBlob(from) {
+      var fetchFn = ctx.window && ctx.window.fetch,
+        URLRef = ctx.window && ctx.window.URL;
+      if (!fetchFn || !URLRef || !URLRef.createObjectURL)
+        return Promise.reject(new Error("audio"));
+      return fetchFn(from)
+        .then(function (response) {
+          if (!response || !response.ok || !response.blob)
+            throw new Error("audio");
+          return response.blob();
+        })
+        .then(function (blob) {
+          if (ctx.vAudio !== a) return false;
+          if (a._blobUrl && URLRef.revokeObjectURL)
+            URLRef.revokeObjectURL(a._blobUrl);
+          a._blobUrl = URLRef.createObjectURL(blob);
+          a.src = a._blobUrl;
+          return true;
+        });
+    }
+    function begin() {
+      var p = a.play();
+      if (p && p.catch) p.catch(fail);
+    }
+    function fail(error) {
+      if (ctx.vAudio !== a) return;
+      if (error && error.name === "NotAllowedError") {
+        locked();
+        return; // keep the clip so the next tap can start it inside the gesture
+      }
+      var current = a.currentSrc || a.src,
+        fetchFn = ctx.window && ctx.window.fetch,
+        URLRef = ctx.window && ctx.window.URL;
+      if (
+        !a._blobTried &&
+        current &&
+        String(current).indexOf("blob:") !== 0 &&
+        fetchFn &&
+        URLRef &&
+        URLRef.createObjectURL
+      ) {
+        a._blobTried = true;
+        useBlob(current).then(
+          function (ok) {
+            if (ctx.vAudio !== a) return;
+            if (ok) begin();
+            else done();
+          },
+          function () {
+            done();
+          },
+        );
+        return;
+      }
+      done();
+    }
     a.onended = done;
-    a.onerror = done;
+    a.onerror = function () {
+      fail();
+    };
     if (Number.isFinite(startAt) && startAt > 0) {
       function seek() {
         try {
           a.currentTime = startAt;
         } catch (_) {}
       }
-      seek();
       a.addEventListener("loadedmetadata", seek, { once: true });
+      if (!android) seek();
     }
-    var p = a.play();
-    if (p && p.catch) p.catch(done); // the browser said no (no tap yet): stay quiet
+    if (android) {
+      a._blobTried = true;
+      useBlob(src).then(
+        function (ok) {
+          if (ctx.vAudio !== a) return;
+          if (!ok) a.src = src;
+          begin();
+        },
+        function () {
+          if (ctx.vAudio !== a) return;
+          a.src = src;
+          begin();
+        },
+      );
+    } else begin();
     vFollow(a, item, el);
+  }
+  function resumeLockedVoice() {
+    var a = ctx.vAudio;
+    if (a && a.paused && typeof a.play === "function") {
+      var p = a.play();
+      if (p && p.catch)
+        p.catch(function (error) {
+          if (
+            error &&
+            error.name === "NotAllowedError" &&
+            typeof ctx.emit === "function"
+          )
+            ctx.emit("cb:voice-locked", { audio: a });
+        });
+      return;
+    }
+    if (ctx.vLastItem && ctx.vLastEl && ctx.vLastEl.isConnected) {
+      ctx.vQueue = [];
+      vPlay(ctx.vLastItem, ctx.vLastEl);
+    }
   }
   function voiceSnapshot() {
     if (!ctx.vAudio || !ctx.vLastItem || ctx.vLastItem.k === "sample")
@@ -187,5 +295,11 @@ export default function createVoicePlay(ctx) {
     ctx.vPlay(match.item, match.el, at);
     return true;
   }
-  ctx.publish({ vFollow, vPlay, voiceSnapshot, restoreVoice });
+  ctx.publish({
+    vFollow,
+    vPlay,
+    voiceSnapshot,
+    restoreVoice,
+    resumeLockedVoice,
+  });
 }

@@ -24,7 +24,7 @@ IGNORED_FILES = {"desktop.ini", "thumbs.db", ".ds_store"}
 # The CI WebKit probe checks both the native control and unrelated-style rejection.
 CSP = ("default-src 'self'; script-src 'self'; style-src 'self'; "
        "style-src-attr 'unsafe-hashes' 'sha256-3oFxofzq3N//6J8H86e9ul4WT2OkJrtonB66gn/TLJw='; "
-       "img-src 'self' data:; font-src 'self'; "
+       "img-src 'self' data:; font-src 'self'; media-src 'self' blob:; "
        "connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'; worker-src 'self'; manifest-src 'self'; "
        "require-trusted-types-for 'script'; trusted-types pg-svg")
 

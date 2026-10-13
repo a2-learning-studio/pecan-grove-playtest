@@ -465,8 +465,35 @@ export async function mount(
     if (e.detail?.score >= 40) pad.rumble();
     audio.play(e.detail?.newBest ? "star" : "ok");
   });
+  const soundLock = h(
+    "div",
+    { class: "cb-sound-lock", hidden: true, "data-cb-novoice": "" },
+    [
+      button(
+        i18n.t("soundUnlock"),
+        () => {
+          audio.unlock();
+          core()?.resumeLockedVoice?.();
+        },
+        { class: "cb-btn cb-btn--go" },
+      ),
+    ],
+  );
+  root.append(soundLock);
+  document.addEventListener("cb:voice-locked", () => {
+    soundLock.hidden = false;
+  });
   document.addEventListener("cb:voice", (e) => {
-    if (e.detail?.audio) audio.attachVoice(e.detail.audio);
+    if (e.detail?.audio) {
+      audio.attachVoice(e.detail.audio);
+      e.detail.audio.addEventListener(
+        "playing",
+        () => {
+          soundLock.hidden = true;
+        },
+        { once: true },
+      );
+    }
     audio.voice(!!e.detail?.playing);
   });
   document.addEventListener("cb:storage-error", () => {
@@ -480,8 +507,10 @@ export async function mount(
     );
   });
   const unlock = () => audio.unlock();
-  document.addEventListener("pointerdown", unlock, { once: true });
-  document.addEventListener("keydown", unlock, { once: true });
+  // Keep listening. Android suspends the context again after the first tap,
+  // and a one-shot unlock never gets another chance to resume it.
+  document.addEventListener("pointerdown", unlock);
+  document.addEventListener("keydown", unlock);
   document.addEventListener("visibilitychange", () => {
     audio.mute(document.hidden || !!pause.dialog);
     if (document.hidden && state().mode === "stop" && !pause.dialog)
@@ -496,6 +525,8 @@ export async function mount(
   document.addEventListener("pg:language-change", async (event) => {
     await i18n.load(event.detail?.language);
     root.querySelector(".cb-engine-title-actions")?.remove();
+    const soundLabel = soundLock.querySelector("button");
+    if (soundLabel) soundLabel.textContent = i18n.t("soundUnlock");
     refresh();
   });
   root.addEventListener("click", () => {
