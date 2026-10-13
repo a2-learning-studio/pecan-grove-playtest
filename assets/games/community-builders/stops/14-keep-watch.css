@@ -126,18 +126,18 @@
   background: none; color: var(--cb-ink); transform: translate(-50%, -50%); pointer-events: auto; }
 /* each clue is the storybook thing itself, standing on the painting, named on a paper tag */
 .cb-s14-clue__disc { position: relative; width: 68px; height: 68px; transition: transform var(--a2-dur-2) var(--cb-ease), opacity var(--a2-dur-2), filter var(--a2-dur-2); }
-.cb-s14-clue__lbl { position: relative; z-index: 1; margin-top: -4px; padding: 2px 9px 3px; border-radius: 9px; border: 1.5px solid rgba(71, 50, 31, 0.24); background: #FFF8EA; color: #3A2A1C;
+.cb-s14-clue__lbl { position: relative; z-index: 1; margin-top: -4px; padding: 2px 9px 3px; border-radius: 9px; border: 1.5px solid rgba(71, 50, 31, 0.24); background: var(--pg-color-fff8ea); color: var(--pg-color-3a2a1c);
   box-shadow: 0 1px 2px rgba(48, 30, 14, 0.22), 0 4px 10px -4px rgba(48, 30, 14, 0.42); font-size: 0.8125rem; font-weight: 720;
   line-height: 1.12; text-align: center; text-wrap: balance; transition: background-color var(--a2-dur-2), color var(--a2-dur-2); }
 .cb-s14-clue:not([aria-disabled="true"]):hover .cb-s14-clue__disc { transform: translateY(-4px) scale(1.04); }
 .cb-s14-clue:not([aria-disabled="true"]):active .cb-s14-clue__disc { transform: scale(0.95); }
 .cb-s14-clue { border-radius: 14px; }
-.cb-s14-clue:focus-visible { outline: 3px solid var(--cb-focus); outline-offset: 3px; box-shadow: 0 0 0 3px #FFF8EA; }
+.cb-s14-clue:focus-visible { outline: 3px solid var(--cb-focus); outline-offset: 3px; box-shadow: 0 0 0 3px var(--pg-color-fff8ea); }
 .cb-s14-clue[aria-disabled="true"] { cursor: default; }
 /* the clues that are not this promise's step back, but their plates stay solid so the words never sit on bare paint */
 .cb-s14-play:not([data-phase="clue"]) .cb-s14-clue:not(.is-this):not(.is-tapped) .cb-s14-clue__disc { opacity: 0.6; filter: saturate(0.45) drop-shadow(0 2px 2px rgba(48, 30, 14, 0.25)); }
 .cb-s14-play:not([data-phase="clue"]) .cb-s14-clue:not(.is-this):not(.is-tapped) .cb-s14-clue__lbl { color: var(--cb-ink-3); }
-.cb-s14-clue.is-this .cb-s14-clue__disc { filter: drop-shadow(0 0 0.8px #FFF8EA) drop-shadow(0 0 7px rgba(169, 73, 42, 0.75)) drop-shadow(0 4px 4px rgba(48, 30, 14, 0.34)); }
+.cb-s14-clue.is-this .cb-s14-clue__disc { filter: drop-shadow(0 0 0.8px var(--pg-color-fff8ea)) drop-shadow(0 0 7px rgba(169, 73, 42, 0.75)) drop-shadow(0 4px 4px rgba(48, 30, 14, 0.34)); }
 .cb-s14-clue.is-this .cb-s14-clue__lbl { background: var(--cb-clay); color: var(--cb-on-accent); }
 .cb-s14-clue.is-tapped .cb-s14-clue__lbl { border: 1.5px dashed var(--cb-ink-3); }
 /* phone: the picture on top, the clue buttons in one column under it */
@@ -184,7 +184,7 @@
 .cb-s14-box:focus { outline: none; }
 .cb-s14-box:focus-visible { outline: 3px solid var(--cb-focus); outline-offset: 2px; }
 .cb-s14-see { display: grid; grid-template-columns: 56px minmax(0, 1fr); gap: 14px; align-items: start; }
-.cb-s14-see__ic { display: grid; place-items: center; flex: none; width: 72px; height: 72px; border-radius: 50%; background: #FFF8EA; border: 3px solid var(--cb-sunken); }
+.cb-s14-see__ic { display: grid; place-items: center; flex: none; width: 72px; height: 72px; border-radius: 50%; background: var(--pg-color-fff8ea); border: 3px solid var(--cb-sunken); }
 .cb-s14-see__ic .cb-story-obj { width: 80%; height: 80%; }
 .cb-s14-see__k { margin: 0; font-size: 0.875rem; font-weight: 760; color: var(--cb-ink-3); }
 .cb-s14-see__line { margin: 2px 0 0; font-family: var(--a2-font-display); font-size: clamp(1.125rem, 0.95rem + 0.6cqi, 1.375rem); font-weight: 630; line-height: 1.32;
