@@ -5,160 +5,113 @@
    Words are exact from the stop spec (08 - disagree-kindly.md). No network, no inputs, no inline styles. */
 (function () {
   "use strict";
-  var CB = window.CommunityBuilders; if (!CB) return;
+  var host = window.CommunityBuilders; if (!host) return;
+  function factory(lifecycle) {
+    var document = lifecycle.document, window = lifecycle.window, Date = lifecycle.Date;
+    var setTimeout = lifecycle.setTimeout, clearTimeout = lifecycle.clearTimeout;
+    var requestAnimationFrame = lifecycle.requestAnimationFrame, cancelAnimationFrame = lifecycle.cancelAnimationFrame;
+    var definition = null, CB = { register: function (value) { definition = value; } };
+
+  "use strict";
+
   var LANG = (document.documentElement.lang || "en").slice(0, 2) === "es" ? "es" : "en";
   var ID = "disagree-kindly";
 
   /* ── words (exact) ─────────────────────────────────────────────────── */
-  var WORDS = {
-    en: {
-      intro: "The Planning Board met last night. Now two neighbors don't agree about one part of the plan. The town has not decided yet. Can you help them find a way that works for both?",
-      go: "Let's go", park: "Park",
-      step1: "Step 1 of 2: Listen", step2: "Step 2 of 2: Find a way for both",
-      coach1: "Tap each neighbor to hear what they want. Then ask why.",
-      coach2: "Find a way both can live with. Tap 'Try it' on a card.",
-      want: "What I want", ask: "Ask why", whyK: "Why it matters to me", heard: "Heard why",
-      tryIt: "Try it", can: "I can live with that.",
-      hard: function (why) { return "That's hard for me because " + why + "."; },
-      works: "Works for both!", foundOne: "You found one! Can you find one more?",
-      tried: "Tried", hardFor: function (n) { return "Hard for " + n; },
-      tray: function (n) { return "Ways that work for both: " + n + " of 2"; },
-      end: "Both neighbors can live with these two ideas!", see: "See my score",
-      aha: "When you hear the 'why', you can often find an option both people can live with.",
-      takeaway: "I can disagree kindly and look for a way that works for both.",
-      tipNone: "Next time, ask both neighbors why before you try a card.",
-      tipOne: function (aName) { return "Next time, ask " + aName + " why too, before you try a card."; },
-      tipCareful: "Next time, read both whys again before you try another card.",
-      tip100: "Great listening and great ideas! Try a new round.",
-      real: "When you disagree at home or at school, try: 'I hear you. Can we find a way that works for both of us?'",
-      askGrown: "Ask a grown-up", askGrownText: "'Tell me about a time you found a way that worked for both of you.'",
-      gu: "For grown-ups",
-      guText: "Kids hear each neighbor's reason before looking for options both can accept, like the 'Is there a plan we can all live with?' step in deliberation games. Disagreeing is normal. The skill is staying respectful and curious. Each round is about one small part of a plan, so both neighbors can come out okay. The cards echo options real towns have used or discussed: truck hours and routes, lights that point down, tree buffers, measuring noise before building, testing wells and looking for old graves before digging, and training local workers. Pecan Grove is made up, and the game does not say whether a data center should be built.",
-      nbLabel: function (n) { return n + ", what I want"; },
-      askLabel: function (aName) { return "Ask " + aName + " why"; },
-      tryLabel: function (c) { return "Try it: " + c; }
-    },
-    es: {
-      intro: "La Junta de Planificación se reunió anoche. Ahora dos vecinos no están de acuerdo sobre una parte del plan. El pueblo todavía no ha decidido. ¿Puedes ayudarlos a encontrar algo que les sirva a los dos?",
-      go: "¡Vamos!", park: "Parque",
-      step1: "Paso 1 de 2: Escucha", step2: "Paso 2 de 2: Busca algo para los dos",
-      coach1: "Toca a cada vecino para escuchar lo que quiere. Luego pregúntale por qué.",
-      coach2: "Busca algo que les sirva a los dos. Toca 'Pruébalo' en una tarjeta.",
-      want: "Lo que quiero", ask: "Pregunta por qué", whyK: "Por qué me importa", heard: "Ya sé por qué",
-      tryIt: "Pruébalo", can: "Eso me parece bien.",
-      hard: function (why) { return "Eso se me hace difícil porque " + why + "."; },
-      works: "¡Les sirve a los dos!", foundOne: "¡Encontraste una! ¿Puedes encontrar otra?",
-      tried: "Ya la probaste", hardFor: function (n) { return "Difícil para " + n; },
-      tray: function (n) { return "Opciones que les sirven a los dos: " + n + " de 2"; },
-      end: "¡Los dos vecinos están bien con estas dos ideas!", see: "Ver mi puntaje",
-      aha: "Cuando escuchas el porqué, muchas veces puedes encontrar una opción que les sirva a los dos.",
-      takeaway: "Puedo no estar de acuerdo con respeto y buscar algo que sirva a los dos.",
-      tipNone: "La próxima vez, pregúntales a los dos vecinos por qué antes de probar una tarjeta.",
-      tipOne: function (aName) { return "La próxima vez, pregúntale también " + aName + " por qué, antes de probar una tarjeta."; },
-      tipCareful: "La próxima vez, vuelve a leer los dos porqués antes de probar otra tarjeta.",
-      tip100: "¡Escuchaste muy bien y tuviste buenas ideas! Prueba una nueva ronda.",
-      real: "Cuando no estés de acuerdo en casa o en la escuela, prueba: 'Te escucho. ¿Buscamos algo que nos sirva a los dos?'",
-      askGrown: "Pregúntale a un adulto", askGrownText: "'Cuéntame de una vez que encontraste algo que les sirvió a los dos.'",
-      gu: "Para adultos",
-      guText: "Los niños escuchan la razón de cada vecino antes de buscar opciones que los dos acepten, como el paso de '¿hay un plan con el que todos podamos vivir?' de los juegos de deliberación. Estar en desacuerdo es normal; la habilidad es seguir con respeto y curiosidad. Cada ronda trata de una parte pequeña de un plan, para que a los dos vecinos les pueda ir bien. Las tarjetas se parecen a opciones que pueblos reales han usado o discutido: horarios y rutas para camiones, luces que apuntan hacia abajo, franjas de árboles, medir el ruido antes de construir, revisar pozos y buscar tumbas antiguas antes de excavar, y capacitar a trabajadores locales. Pecan Grove es inventado, y el juego no dice si se debe construir un centro de datos.",
-      nbLabel: function (n) { return n + ", lo que quiero"; },
-      askLabel: function (aName) { return "Pregúntale " + aName + " por qué"; },
-      tryLabel: function (c) { return "Pruébalo: " + c; }
-    }
-  };
+  var WORDS = {en:window.CBLocale.read("stop-08", "en", {en:{"WORDS.hard":function (why) { return window.CBLocale.part("stop-08", "en", "WORDS.hard", 0) + why + window.CBLocale.part("stop-08", "en", "WORDS.hard", 1); },"WORDS.hardFor":function (n) { return window.CBLocale.part("stop-08", "en", "WORDS.hardFor", 0) + n; },"WORDS.tray":function (n) { return window.CBLocale.part("stop-08", "en", "WORDS.tray", 0) + n + window.CBLocale.part("stop-08", "en", "WORDS.tray", 1); },"WORDS.tipOne":function (aName) { return window.CBLocale.part("stop-08", "en", "WORDS.tipOne", 0) + aName + window.CBLocale.part("stop-08", "en", "WORDS.tipOne", 1); },"WORDS.nbLabel":function (n) { return n + window.CBLocale.part("stop-08", "en", "WORDS.nbLabel", 0); },"WORDS.askLabel":function (aName) { return window.CBLocale.part("stop-08", "en", "WORDS.askLabel", 0) + aName + window.CBLocale.part("stop-08", "en", "WORDS.askLabel", 1); },"WORDS.tryLabel":function (c) { return window.CBLocale.part("stop-08", "en", "WORDS.tryLabel", 0) + c; }},es:{"WORDS.hard":function (why) { return window.CBLocale.part("stop-08", "es", "WORDS.hard", 0) + why + window.CBLocale.part("stop-08", "es", "WORDS.hard", 1); },"WORDS.hardFor":function (n) { return window.CBLocale.part("stop-08", "es", "WORDS.hardFor", 0) + n; },"WORDS.tray":function (n) { return window.CBLocale.part("stop-08", "es", "WORDS.tray", 0) + n + window.CBLocale.part("stop-08", "es", "WORDS.tray", 1); },"WORDS.tipOne":function (aName) { return window.CBLocale.part("stop-08", "es", "WORDS.tipOne", 0) + aName + window.CBLocale.part("stop-08", "es", "WORDS.tipOne", 1); },"WORDS.nbLabel":function (n) { return n + window.CBLocale.part("stop-08", "es", "WORDS.nbLabel", 0); },"WORDS.askLabel":function (aName) { return window.CBLocale.part("stop-08", "es", "WORDS.askLabel", 0) + aName + window.CBLocale.part("stop-08", "es", "WORDS.askLabel", 1); },"WORDS.tryLabel":function (c) { return window.CBLocale.part("stop-08", "es", "WORDS.tryLabel", 0) + c; }}}).WORDS,es:window.CBLocale.read("stop-08", "es", {en:{"WORDS.hard":function (why) { return window.CBLocale.part("stop-08", "en", "WORDS.hard", 0) + why + window.CBLocale.part("stop-08", "en", "WORDS.hard", 1); },"WORDS.hardFor":function (n) { return window.CBLocale.part("stop-08", "en", "WORDS.hardFor", 0) + n; },"WORDS.tray":function (n) { return window.CBLocale.part("stop-08", "en", "WORDS.tray", 0) + n + window.CBLocale.part("stop-08", "en", "WORDS.tray", 1); },"WORDS.tipOne":function (aName) { return window.CBLocale.part("stop-08", "en", "WORDS.tipOne", 0) + aName + window.CBLocale.part("stop-08", "en", "WORDS.tipOne", 1); },"WORDS.nbLabel":function (n) { return n + window.CBLocale.part("stop-08", "en", "WORDS.nbLabel", 0); },"WORDS.askLabel":function (aName) { return window.CBLocale.part("stop-08", "en", "WORDS.askLabel", 0) + aName + window.CBLocale.part("stop-08", "en", "WORDS.askLabel", 1); },"WORDS.tryLabel":function (c) { return window.CBLocale.part("stop-08", "en", "WORDS.tryLabel", 0) + c; }},es:{"WORDS.hard":function (why) { return window.CBLocale.part("stop-08", "es", "WORDS.hard", 0) + why + window.CBLocale.part("stop-08", "es", "WORDS.hard", 1); },"WORDS.hardFor":function (n) { return window.CBLocale.part("stop-08", "es", "WORDS.hardFor", 0) + n; },"WORDS.tray":function (n) { return window.CBLocale.part("stop-08", "es", "WORDS.tray", 0) + n + window.CBLocale.part("stop-08", "es", "WORDS.tray", 1); },"WORDS.tipOne":function (aName) { return window.CBLocale.part("stop-08", "es", "WORDS.tipOne", 0) + aName + window.CBLocale.part("stop-08", "es", "WORDS.tipOne", 1); },"WORDS.nbLabel":function (n) { return n + window.CBLocale.part("stop-08", "es", "WORDS.nbLabel", 0); },"WORDS.askLabel":function (aName) { return window.CBLocale.part("stop-08", "es", "WORDS.askLabel", 0) + aName + window.CBLocale.part("stop-08", "es", "WORDS.askLabel", 1); },"WORDS.tryLabel":function (c) { return window.CBLocale.part("stop-08", "es", "WORDS.tryLabel", 0) + c; }}}).WORDS};
 
   /* ── the six disagreements (exact). Each card lists the whys it works for. ── */
   var D = [
-    { id: "trucks", ic: "truck", topic: ["Truck hours", "Horario de los camiones"],
-      want: { A: ["I want trucks to come all day, so the work ends sooner.", "Quiero que los camiones vengan todo el día, para que la obra termine antes."],
-              B: ["I want fewer trucks on Main Street.", "Quiero menos camiones en la calle principal."] },
-      why: { A1: ["the sooner the work ends, the sooner our town is calm again", "cuanto antes termine la obra, antes vuelve la calma al pueblo"],
-             A2: ["someone in my family drives a truck and gets paid for each trip", "alguien de mi familia maneja un camión y le pagan por viaje"],
-             B1: ["kids walk to school on Main Street", "los niños caminan a la escuela por la calle principal"],
-             B2: ["my home is on Main Street and big trucks shake my windows", "mi casa está en la calle principal y los camiones grandes hacen temblar mis ventanas"] },
+    { id: "trucks", ic: "truck", topic: window.CBLocale.pair("stop-08","bank.b0001"),
+      want: { A: window.CBLocale.pair("stop-08","bank.b0002"),
+              B: window.CBLocale.pair("stop-08","bank.b0003") },
+      why: { A1: window.CBLocale.pair("stop-08","bank.b0004"),
+             A2: window.CBLocale.pair("stop-08","bank.b0005"),
+             B1: window.CBLocale.pair("stop-08","bank.b0006"),
+             B2: window.CBLocale.pair("stop-08","bank.b0007") },
       cards: [
-        [["A1", "A2"], "Trucks come any time, day or night.", "Los camiones vienen a cualquier hora, de día o de noche."],
-        [["B1", "B2"], "Only a few trucks come each day.", "Solo vienen unos pocos camiones al día."],
-        [["A1", "A2", "B1"], "Trucks come all day, but stop while kids walk to and from school.", "Los camiones vienen todo el día, pero paran mientras los niños van y vuelven de la escuela."],
-        [["A1", "A2", "B1"], "Crossing guards help kids, and trucks go slowly near the school.", "Hay guardias de cruce para los niños, y los camiones van despacio cerca de la escuela."],
-        [["A2", "B1", "B2"], "Trucks take the long farm road around town. The work takes a few more weeks.", "Los camiones toman el camino largo de la granja, alrededor del pueblo. La obra tarda unas semanas más."],
-        [["A2", "B2"], "Trucks go slowly on Main Street, so windows don't shake. The work takes a bit longer.", "Los camiones van despacio por la calle principal, para que no tiemblen las ventanas. La obra tarda un poco más."]
+        [].concat([["A1", "A2"]],window.CBLocale.pair("stop-08","bank.b0008")),
+        [].concat([["B1", "B2"]],window.CBLocale.pair("stop-08","bank.b0009")),
+        [].concat([["A1", "A2", "B1"]],window.CBLocale.pair("stop-08","bank.b0010")),
+        [].concat([["A1", "A2", "B1"]],window.CBLocale.pair("stop-08","bank.b0011")),
+        [].concat([["A2", "B1", "B2"]],window.CBLocale.pair("stop-08","bank.b0012")),
+        [].concat([["A2", "B2"]],window.CBLocale.pair("stop-08","bank.b0013"))
       ] },
-    { id: "lights", ic: "moon", topic: ["Night lights", "Luces de noche"],
-      want: { A: ["I want bright lights around the building all night.", "Quiero luces fuertes alrededor del edificio toda la noche."],
-              B: ["I want dark nights at my house.", "Quiero noches oscuras en mi casa."] },
-      why: { A1: ["night guards need to see the whole site to keep it safe", "los guardias de noche necesitan ver todo el lugar para cuidarlo"],
-             A2: ["I walk home past the farm after dark, and I like a lit road", "camino a casa junto a la granja cuando ya está oscuro, y me gusta que el camino tenga luz"],
-             B1: ["light shines into my bedroom and I can't sleep", "la luz entra a mi cuarto y no puedo dormir"],
-             B2: ["owls and fireflies on the farm need dark nights", "los búhos y las luciérnagas de la granja necesitan noches oscuras"] },
+    { id: "lights", ic: "moon", topic: window.CBLocale.pair("stop-08","bank.b0014"),
+      want: { A: window.CBLocale.pair("stop-08","bank.b0015"),
+              B: window.CBLocale.pair("stop-08","bank.b0016") },
+      why: { A1: window.CBLocale.pair("stop-08","bank.b0017"),
+             A2: window.CBLocale.pair("stop-08","bank.b0018"),
+             B1: window.CBLocale.pair("stop-08","bank.b0019"),
+             B2: window.CBLocale.pair("stop-08","bank.b0020") },
       cards: [
-        [["A1", "A2"], "Bright lights stay on all night, everywhere.", "Las luces fuertes se quedan prendidas toda la noche, por todos lados."],
-        [["B1", "B2"], "No lights at all at night.", "Nada de luces en la noche."],
-        [["A1", "B1"], "Lights point down, with covers, so they don't shine into homes.", "Las luces apuntan hacia abajo, con tapas, para que no alumbren las casas."],
-        [["A1", "B1"], "A thick row of trees blocks the light from homes.", "Una fila tupida de árboles tapa la luz hacia las casas."],
-        [["A2", "B1", "B2"], "Lights turn on only when someone walks by.", "Las luces se prenden solo cuando alguien pasa."],
-        [["A2", "B1", "B2"], "Soft, warm lights only along the road. The rest stays dark.", "Luces suaves y cálidas solo junto al camino. Lo demás queda oscuro."]
+        [].concat([["A1", "A2"]],window.CBLocale.pair("stop-08","bank.b0021")),
+        [].concat([["B1", "B2"]],window.CBLocale.pair("stop-08","bank.b0022")),
+        [].concat([["A1", "B1"]],window.CBLocale.pair("stop-08","bank.b0023")),
+        [].concat([["A1", "B1"]],window.CBLocale.pair("stop-08","bank.b0024")),
+        [].concat([["A2", "B1", "B2"]],window.CBLocale.pair("stop-08","bank.b0025")),
+        [].concat([["A2", "B1", "B2"]],window.CBLocale.pair("stop-08","bank.b0026"))
       ] },
-    { id: "workers", ic: "hardhat", topic: ["Local workers or a faster build", "Gente de aquí o una obra más rápida"],
-      want: { A: ["I want jobs for people from Pecan Grove, even if they need training first.", "Quiero trabajos para gente de Pecan Grove, aunque primero necesiten capacitación."],
-              B: ["I want expert crews, even from far away, so the work goes fast.", "Quiero equipos expertos, aunque vengan de lejos, para que la obra avance rápido."] },
-      why: { A1: ["young people here need to learn a trade so they can stay", "los jóvenes de aquí necesitan aprender un oficio para poder quedarse"],
-             A2: ["families here need paychecks now", "las familias de aquí necesitan sueldos ya"],
-             B1: ["a long build means more months of trucks and noise", "una obra larga significa más meses de camiones y ruido"],
-             B2: ["power work must be safe, so it needs experts", "el trabajo eléctrico tiene que ser seguro, por eso necesita expertos"] },
+    { id: "workers", ic: "hardhat", topic: window.CBLocale.pair("stop-08","bank.b0027"),
+      want: { A: window.CBLocale.pair("stop-08","bank.b0028"),
+              B: window.CBLocale.pair("stop-08","bank.b0029") },
+      why: { A1: window.CBLocale.pair("stop-08","bank.b0030"),
+             A2: window.CBLocale.pair("stop-08","bank.b0031"),
+             B1: window.CBLocale.pair("stop-08","bank.b0032"),
+             B2: window.CBLocale.pair("stop-08","bank.b0033") },
       cards: [
-        [["A1", "A2"], "Hire only people from here, and train everyone first.", "Contratar solo a gente de aquí y capacitar a todos primero."],
-        [["B1", "B2"], "Hire only expert crews from other places.", "Contratar solo equipos expertos de otros lugares."],
-        [["A1", "B1", "B2"], "Expert crews build fast. The school starts a class to learn the trade.", "Los equipos expertos construyen rápido. La escuela abre una clase para aprender el oficio."],
-        [["A1", "B1", "B2"], "Expert crews build fast. Then local people train for the jobs that stay.", "Los equipos expertos construyen rápido. Después, gente de aquí se capacita para los trabajos que se quedan."],
-        [["A1", "A2", "B2"], "Local people work now as paid helpers next to experts. It takes a few more months.", "Gente de aquí trabaja ya como ayudante con sueldo, junto a los expertos. Tarda unos meses más."],
-        [["A2", "B2"], "Local people get paid now for simple jobs. Experts do the power work. It takes a bit longer.", "Gente de aquí cobra ya por trabajos sencillos. Los expertos hacen lo eléctrico. Tarda un poco más."]
+        [].concat([["A1", "A2"]],window.CBLocale.pair("stop-08","bank.b0034")),
+        [].concat([["B1", "B2"]],window.CBLocale.pair("stop-08","bank.b0035")),
+        [].concat([["A1", "B1", "B2"]],window.CBLocale.pair("stop-08","bank.b0036")),
+        [].concat([["A1", "B1", "B2"]],window.CBLocale.pair("stop-08","bank.b0037")),
+        [].concat([["A1", "A2", "B2"]],window.CBLocale.pair("stop-08","bank.b0038")),
+        [].concat([["A2", "B2"]],window.CBLocale.pair("stop-08","bank.b0039"))
       ] },
-    { id: "trees", ic: "tree", topic: ["Trees or parking", "Árboles o estacionamiento"],
-      want: { A: ["I want a big parking lot by the gate for the workers.", "Quiero un estacionamiento grande junto a la entrada para los trabajadores."],
-              B: ["I want to keep the row of big pecan trees by the road.", "Quiero que se queden los nogales grandes junto al camino."] },
-      why: { A1: ["workers' cars are parked all along Main Street", "los carros de los trabajadores ocupan toda la calle principal"],
-             A2: ["the night crew needs to park close to the gate", "el equipo de noche necesita estacionarse cerca de la entrada"],
-             B1: ["the trees hide the building from our homes", "los árboles tapan el edificio para que no se vea desde las casas"],
-             B2: ["kids climb and play in those old trees", "los niños juegan y trepan en esos árboles viejos"] },
+    { id: "trees", ic: "tree", topic: window.CBLocale.pair("stop-08","bank.b0040"),
+      want: { A: window.CBLocale.pair("stop-08","bank.b0041"),
+              B: window.CBLocale.pair("stop-08","bank.b0042") },
+      why: { A1: window.CBLocale.pair("stop-08","bank.b0043"),
+             A2: window.CBLocale.pair("stop-08","bank.b0044"),
+             B1: window.CBLocale.pair("stop-08","bank.b0045"),
+             B2: window.CBLocale.pair("stop-08","bank.b0046") },
       cards: [
-        [["A1", "A2"], "Cut the trees and build a big lot by the gate.", "Cortar los árboles y hacer un estacionamiento grande junto a la entrada."],
-        [["B1", "B2"], "Keep every tree and build no lot.", "Dejar todos los árboles y no hacer estacionamiento."],
-        [["A1", "B1", "B2"], "Workers park at the edge of town and ride a small bus in.", "Los trabajadores se estacionan en la orilla del pueblo y llegan en un autobús pequeño."],
-        [["A1", "B1", "B2"], "Build the lot far back on the farm, behind the trees.", "Hacer el estacionamiento al fondo de la granja, detrás de los árboles."],
-        [["A2", "B1", "B2"], "A small lot by the gate, in an open spot. Every tree stays.", "Un estacionamiento pequeño junto a la entrada, en un lugar sin árboles. Todos los árboles se quedan."],
-        [["A1", "A2", "B2"], "Cut a few young trees for a lot by the gate. The old pecans stay.", "Cortar unos árboles jóvenes para hacer un estacionamiento junto a la entrada. Los nogales viejos se quedan."]
+        [].concat([["A1", "A2"]],window.CBLocale.pair("stop-08","bank.b0047")),
+        [].concat([["B1", "B2"]],window.CBLocale.pair("stop-08","bank.b0048")),
+        [].concat([["A1", "B1", "B2"]],window.CBLocale.pair("stop-08","bank.b0049")),
+        [].concat([["A1", "B1", "B2"]],window.CBLocale.pair("stop-08","bank.b0050")),
+        [].concat([["A2", "B1", "B2"]],window.CBLocale.pair("stop-08","bank.b0051")),
+        [].concat([["A1", "A2", "B2"]],window.CBLocale.pair("stop-08","bank.b0052"))
       ] },
-    { id: "engines", ic: "sound", topic: ["Engine tests", "Pruebas de los motores"],
-      sub: ["The big backup engines need a short test run now and then.", "Los grandes motores de respaldo necesitan una prueba corta de vez en cuando."],
-      want: { A: ["I want the engine tests done at night.", "Quiero que las pruebas de los motores sean de noche."],
-              B: ["I want no engine tests at night.", "Quiero que no haya pruebas de motores de noche."] },
-      why: { A1: ["kids play outside after school, and the engines are loud", "los niños juegan afuera después de la escuela, y los motores hacen mucho ruido"],
-             A2: ["the clinic is busy all day, and patients need quiet", "la clínica tiene mucho trabajo todo el día, y los pacientes necesitan silencio"],
-             B1: ["people need to sleep at night", "la gente necesita dormir de noche"],
-             B2: ["farm animals get scared by loud sounds at night", "a los animales de las granjas los asustan los ruidos fuertes de noche"] },
+    { id: "engines", ic: "sound", topic: window.CBLocale.pair("stop-08","bank.b0053"),
+      sub: window.CBLocale.pair("stop-08","bank.b0054"),
+      want: { A: window.CBLocale.pair("stop-08","bank.b0055"),
+              B: window.CBLocale.pair("stop-08","bank.b0056") },
+      why: { A1: window.CBLocale.pair("stop-08","bank.b0057"),
+             A2: window.CBLocale.pair("stop-08","bank.b0058"),
+             B1: window.CBLocale.pair("stop-08","bank.b0059"),
+             B2: window.CBLocale.pair("stop-08","bank.b0060") },
       cards: [
-        [["A1", "A2"], "Always test the engines late at night.", "Probar los motores siempre tarde en la noche."],
-        [["B1", "B2"], "Always test the engines in the afternoon.", "Probar los motores siempre en la tarde."],
-        [["A1", "B1", "B2"], "Test the engines on school mornings, while kids are inside.", "Probar los motores en las mañanas de escuela, cuando los niños están adentro."],
-        [["A1", "B1", "B2"], "Measure the noise at homes first. Then test briefly on school mornings.", "Primero medir el ruido cerca de las casas. Luego probar un ratito en las mañanas de escuela."],
-        [["A2", "B1", "B2"], "Test on Sunday afternoons, when the clinic is closed.", "Probar los domingos en la tarde, cuando la clínica está cerrada."],
-        [["A2", "B1", "B2"], "Test right after the clinic closes, before bedtime.", "Probar justo cuando cierra la clínica, antes de la hora de dormir."]
+        [].concat([["A1", "A2"]],window.CBLocale.pair("stop-08","bank.b0061")),
+        [].concat([["B1", "B2"]],window.CBLocale.pair("stop-08","bank.b0062")),
+        [].concat([["A1", "B1", "B2"]],window.CBLocale.pair("stop-08","bank.b0063")),
+        [].concat([["A1", "B1", "B2"]],window.CBLocale.pair("stop-08","bank.b0064")),
+        [].concat([["A2", "B1", "B2"]],window.CBLocale.pair("stop-08","bank.b0065")),
+        [].concat([["A2", "B1", "B2"]],window.CBLocale.pair("stop-08","bank.b0066"))
       ] },
-    { id: "digging", ic: "shovel", topic: ["Dig now or look first", "Excavar ya o revisar primero"],
-      want: { A: ["I want the digging to start this month.", "Quiero que la excavación empiece este mes."],
-              B: ["I want someone to check the land before anyone digs.", "Quiero que alguien revise el terreno antes de que empiecen a excavar."] },
-      why: { A1: ["the dry weather ends soon, and rain turns the farm to mud", "el tiempo seco se acaba pronto, y con la lluvia la granja se vuelve puro lodo"],
-             A2: ["the crew is ready, and every week of waiting costs money", "el equipo ya está listo, y cada semana de espera cuesta dinero"],
-             B1: ["there may be old graves on the farm", "puede haber tumbas antiguas en la granja"],
-             B2: ["our well is near the farm, and no one has tested it yet", "nuestro pozo está cerca de la granja, y nadie lo ha revisado todavía"] },
+    { id: "digging", ic: "shovel", topic: window.CBLocale.pair("stop-08","bank.b0067"),
+      want: { A: window.CBLocale.pair("stop-08","bank.b0068"),
+              B: window.CBLocale.pair("stop-08","bank.b0069") },
+      why: { A1: window.CBLocale.pair("stop-08","bank.b0070"),
+             A2: window.CBLocale.pair("stop-08","bank.b0071"),
+             B1: window.CBLocale.pair("stop-08","bank.b0072"),
+             B2: window.CBLocale.pair("stop-08","bank.b0073") },
       cards: [
-        [["A1", "A2"], "Start digging everywhere this month.", "Empezar a excavar en todo el terreno este mes."],
-        [["B1", "B2"], "Wait a whole year and check everything.", "Esperar un año entero y revisar todo."],
-        [["A1", "A2", "B1"], "A history team walks the land this week. Digging starts where they find nothing.", "Un equipo de historia recorre el terreno esta semana. Se excava donde no encuentren nada."],
-        [["A1", "A2", "B1"], "The history team checks the land one part at a time. Digging follows right behind.", "El equipo de historia revisa el terreno por partes. La excavación va justo detrás."],
-        [["A1", "A2", "B2"], "Test the nearby wells this week. Meanwhile, the crew builds fences and roads.", "Revisar los pozos cercanos esta semana. Mientras, el equipo hace cercas y caminos."],
-        [["A1", "A2", "B2"], "Test the wells and put up mud fences first. Then dig.", "Revisar los pozos y poner cercas contra el lodo primero. Luego excavar."]
+        [].concat([["A1", "A2"]],window.CBLocale.pair("stop-08","bank.b0074")),
+        [].concat([["B1", "B2"]],window.CBLocale.pair("stop-08","bank.b0075")),
+        [].concat([["A1", "A2", "B1"]],window.CBLocale.pair("stop-08","bank.b0076")),
+        [].concat([["A1", "A2", "B1"]],window.CBLocale.pair("stop-08","bank.b0077")),
+        [].concat([["A1", "A2", "B2"]],window.CBLocale.pair("stop-08","bank.b0078")),
+        [].concat([["A1", "A2", "B2"]],window.CBLocale.pair("stop-08","bank.b0079"))
       ] }
   ];
   /* the spec's own check: exactly two cards work for both in every version */
@@ -187,7 +140,7 @@
     var s = document.createElementNS(SVGNS, "svg");
     s.setAttribute("viewBox", "0 0 24 24"); s.setAttribute("aria-hidden", "true"); s.setAttribute("focusable", "false");
     s.setAttribute("class", "cb-ico" + (cls ? " " + cls : ""));
-    s.innerHTML = IC8[name];                                 // constant, authored markup only
+    host.setAuthoredMarkup(s, IC8[name]);                                 // constant, authored markup only
     return s;
   }
 
@@ -202,7 +155,7 @@
   function guard() {
     var root = document.querySelector('[data-game="community-builders"]');
     if (guarded || !root) return; guarded = true;
-    root.addEventListener("click", function (e) { if (e.detail > 0 && Date.now() < calmUntil) { e.stopPropagation(); e.preventDefault(); } }, true);
+    document.addEventListener("click", function (e) { if (root.contains(e.target) && e.detail > 0 && Date.now() < calmUntil) { e.stopPropagation(); e.preventDefault(); } }, true);
   }
 
   function run(api, stop) {
@@ -218,7 +171,7 @@
     var round = (function () {
       var avoid = [r.lastTopic, team && team.phase === "B" ? team.s08Topic : null];
       var pool = D.filter(function (d) { return avoid.indexOf(d.id) === -1; });
-      var d = api.pick(pool.length ? pool : D), v = Math.random() < 0.5 ? 1 : 2;
+      var d = api.pick(pool.length ? pool : D), v = (api.rng ? api.rng() : Math.random()) < 0.5 ? 1 : 2;
       var ids = api.NB.map(function (n) { return n.id; }), pairs = [], lastPair = r.lastPair || [], sides = r.sides || {};
       for (var i = 0; i < ids.length; i++) for (var j = i + 1; j < ids.length; j++) pairs.push([ids[i], ids[j]]);
       pairs = api.shuffle(pairs).filter(function (p) { return !(lastPair.indexOf(p[0]) !== -1 && lastPair.indexOf(p[1]) !== -1); });
@@ -228,11 +181,11 @@
         if (n0 && n1) return n0 === n1 ? null : n0 === "A" ? p : [p[1], p[0]];
         if (n0) return n0 === "A" ? p : [p[1], p[0]];
         if (n1) return n1 === "A" ? [p[1], p[0]] : p;
-        return Math.random() < 0.5 ? p : [p[1], p[0]];
+        return (api.rng ? api.rng() : Math.random()) < 0.5 ? p : [p[1], p[0]];
       }
       var ab = null;
       for (var k = 0; k < pairs.length && !ab; k++) ab = seat(pairs[k]);
-      if (!ab) ab = Math.random() < 0.5 ? pairs[0] : [pairs[0][1], pairs[0][0]];
+      if (!ab) ab = (api.rng ? api.rng() : Math.random()) < 0.5 ? pairs[0] : [pairs[0][1], pairs[0][0]];
       if (team && team.phase === "A") team.s08Topic = d.id;
       return { d: d, v: v, nb: { A: api.nbById(ab[0]), B: api.nbById(ab[1]) },
         cards: api.shuffle(d.cards.map(function (c, i) { return { i: i, tags: c[0], text: L === "es" ? c[2] : c[1] }; })) };
@@ -245,7 +198,7 @@
 
     /* ── play state ──────────────────────────────────────────────────── */
     var S = { step: 1, open: { A: false, B: false }, why: { A: false, B: false }, firstTry: null, tries: [], found: [], tried: {}, last: null, msg: null };
-    var board, hudEl, coachEl, ideasEl, trayEl, actionsEl, seats = {};
+    var board, hudEl, coachEl, ideasEl, trayEl, actionsEl, seats = {}, phase = "intro";
 
     function face(n, cls) { return h("span", { "class": cls, "aria-hidden": "true" }, [api.img(n.img, "")]); }
     function scene(cls, kids) {
@@ -255,6 +208,7 @@
 
     /* ── 1 · intro over the picture ──────────────────────────────────── */
     function intro() {
+      phase = "intro";
       var duo = ["A", "B"].map(function (side) {
         var n = NBS[side];
         return h("span", { "class": "cb-s08-guest", "data-side": side, "aria-hidden": "true" }, [face(n, "cb-s08-guest__face"), h("b", { text: api.nmCap(n) })]);
@@ -268,6 +222,7 @@
 
     /* ── 2 · the table: two neighbors, their bubbles, six ideas, the tray ── */
     function play() {
+      phase = "play";
       hudEl = api.stopHud(stop, STEPS, 0, T.step1);
       var topic = h("header", { "class": "cb-s08-topic" }, [h("span", { "class": "cb-s08-topic__ic", "aria-hidden": "true" }, [icon(d.ic)]),
         h("div", null, [h("h3", { tabindex: "-1", "data-s08": "topic", text: t2(d.topic) }), d.sub ? h("p", { text: t2(d.sub) }) : null])]);
@@ -288,7 +243,7 @@
     function whoEl(side) {
       var n = NBS[side], st = seats[side] = {};
       st.face = h("span", { "class": "cb-s08-nb__face" }, [api.img(n.img, "")]);
-      st.btn = h("button", { type: "button", "class": "cb-s08-nb", "data-s08": "nb-" + side, "aria-label": T.nbLabel(api.nmCap(n)), onclick: function () { tapNeighbor(side); } },
+      st.btn = h("button", { type: "button", "class": "cb-s08-nb", "data-s08": "nb-" + side, "data-cb-id": "nb-" + side, "aria-label": T.nbLabel(api.nmCap(n)), onclick: function () { tapNeighbor(side); } },
         [st.face, h("span", { "class": "cb-s08-nb__plate" }, [h("b", { text: api.nmCap(n) })])]);
       st.who = h("div", { "class": "cb-s08-who", "data-side": side }, [st.btn]);
       return st.who;
@@ -314,10 +269,10 @@
         h("div", { "class": "cb-s08-line" + (fresh === "want" ? " is-new" : "") }, [h("span", { "class": "cb-s08-k", text: T.want }), h("p", { "class": "cb-s08-said", text: wantOf(side) })])];
       if (S.why[side]) {
         kids.push(h("div", { "class": "cb-s08-line cb-s08-line--why" + (fresh === "why" ? " is-new" : "") }, [h("span", { "class": "cb-s08-k", text: T.whyK }),
-          h("p", { "class": "cb-s08-said", tabindex: "-1", "data-s08": "why-" + side, text: cap(whyOf(side)) })]));   // the spec's why, capital first letter, nothing added
+          h("p", { "class": "cb-s08-said", tabindex: "-1", "data-s08": "why-" + side, "data-cb-id": "why-" + side, text: cap(whyOf(side)) })]));   // the spec's why, capital first letter, nothing added
       } else {
         var ask = api.btn(T.ask, "cb-btn--primary cb-s08-ask", function () { askWhy(side); }, "chat");
-        ask.setAttribute("aria-label", T.askLabel(aNm(n))); ask.setAttribute("data-s08", "ask-" + side);
+        ask.setAttribute("aria-label", T.askLabel(aNm(n))); ask.setAttribute("data-s08", "ask-" + side); ask.setAttribute("data-cb-id", "ask-" + side);
         kids.push(ask);
       }
       if (S.last) {
@@ -440,11 +395,11 @@
       var rect = board.getBoundingClientRect(), top = atTop !== null && atTop !== undefined ? atTop : Math.max(0, -rect.top), layer = h("div", { "class": "cb-s08-leaves", "aria-hidden": "true" });
       for (var i = 0; i < 8; i++) {
         var lf = h("span", { "class": "cb-s08-leaf" }, [icon("leaf")]);
-        lf.style.setProperty("--s", (30 + Math.random() * 18).toFixed(0) + "px");
-        lf.style.setProperty("--x", (4 + i * 11.5 + Math.random() * 6).toFixed(1) + "%");
-        lf.style.setProperty("--y", (top + Math.random() * 60).toFixed(0) + "px");
-        lf.style.setProperty("--dx", ((Math.random() - 0.5) * 120).toFixed(0) + "px");
-        lf.style.setProperty("--rot", ((Math.random() - 0.5) * 540).toFixed(0) + "deg");
+        lf.style.setProperty("--s", (30 + (api.rng ? api.rng() : Math.random()) * 18).toFixed(0) + "px");
+        lf.style.setProperty("--x", (4 + i * 11.5 + (api.rng ? api.rng() : Math.random()) * 6).toFixed(1) + "%");
+        lf.style.setProperty("--y", (top + (api.rng ? api.rng() : Math.random()) * 60).toFixed(0) + "px");
+        lf.style.setProperty("--dx", (((api.rng ? api.rng() : Math.random()) - 0.5) * 120).toFixed(0) + "px");
+        lf.style.setProperty("--rot", (((api.rng ? api.rng() : Math.random()) - 0.5) * 540).toFixed(0) + "deg");
         lf.style.setProperty("--delay", (i * 0.12).toFixed(2) + "s");
         lf.style.setProperty("--c", ["var(--cb-c3)", "var(--cb-c2)", "var(--cb-stage-2)"][i % 3]);
         layer.appendChild(lf);
@@ -455,6 +410,7 @@
 
     /* ── 3 · the aha card, then the score card ───────────────────────── */
     function aha() {
+      phase = "aha";
       var duo = ["A", "B"].map(function (side) {
         var n = NBS[side];
         return h("span", { "class": "cb-s08-guest", "data-side": side, "aria-hidden": "true" }, [h("span", { "class": "cb-s08-guest__face" }, [api.img(n.img, ""),
@@ -469,6 +425,7 @@
       api.say(T.aha);
     }
     function finish() {
+      phase = "result";
       var heard = S.firstTry || { A: false, B: false };
       var careful = 15;
       S.tries.forEach(function (t, k) { if (k >= 3 && !t.works) careful -= 5; });     // the first 3 tries are free
@@ -487,8 +444,35 @@
       api.say(W.score + " " + score + " / 100");
     }
 
+    if (api.setController) api.setController({
+      snapshot: function () { return {v:2,phase:phase,topic:d.id,variant:round.v,neighbors:{A:NBS.A.id,B:NBS.B.id},cards:round.cards.map(function(card){return card.i;}),step:S.step,open:{A:S.open.A,B:S.open.B},why:{A:S.why.A,B:S.why.B},firstTry:S.firstTry,tries:S.tries.map(function(item){return {i:item.i,works:item.works};}),found:S.found.slice(),tried:S.tried}; },
+      restore: function (saved) {
+        if(!saved || saved.v !== 2 || !Array.isArray(saved.cards)) return false;
+        d=D.filter(function(item){return item.id === saved.topic;})[0];round.d=d;round.v=saved.variant;
+        NBS={A:api.nbById(saved.neighbors.A),B:api.nbById(saved.neighbors.B)};round.nb=NBS;
+        round.cards=saved.cards.map(function(i){var c=d.cards[i];return {i:i,tags:c[0],text:L === "es" ? c[2] : c[1]};});
+        S={step:saved.step,open:saved.open,why:saved.why,firstTry:saved.firstTry,tries:saved.tries,found:saved.found.slice(),tried:saved.tried,last:null,msg:saved.found.length === 1 ? T.foundOne : null};
+        var last=S.tries.length ? round.cards.filter(function(c){return c.i === S.tries[S.tries.length-1].i;})[0] : null;
+        if(last) S.last={A:fits(last,"A"),B:fits(last,"B"),text:{A:answer(last,"A"),B:answer(last,"B")}};
+        if(saved.phase === "result") finish(); else if(saved.phase === "aha") aha(); else if(saved.phase === "play") {
+          play();
+          ["A","B"].forEach(function(side){seats[side].btn.classList.toggle("is-open",S.open[side]);if(S.why[side])heardWhy(side);if(S.last)react(side,S.last[side]);});
+          if(saved.step === 2) {
+            toStep2();
+            round.cards.forEach(function(c){if(S.tried[c.i])markTried(c,S.tried[c.i]);if(S.found.indexOf(c.i)!==-1)cardEls[c.i].li.remove();});
+            if(S.found.length>=2){round.cards.forEach(function(c){if(!S.tried[c.i] && S.found.indexOf(c.i)===-1){settle(cardEls[c.i].btn);cardEls[c.i].btn.classList.add("is-rest");}});coachEl.remove();}
+          }
+        } else intro();
+        return true;
+      }
+    });
     intro();
   }
 
   CB.register({ id: ID, steps: [null, null], css: "08-disagree-kindly.css", run: run });
+
+    return definition;
+  }
+  if (host.defineStop) host.defineStop(factory);
+  else host.register(factory({ document: document, window: window, Date: Date, setTimeout: setTimeout, clearTimeout: clearTimeout, requestAnimationFrame: requestAnimationFrame, cancelAnimationFrame: typeof cancelAnimationFrame === "function" ? cancelAnimationFrame : function () {} }));
 })();
