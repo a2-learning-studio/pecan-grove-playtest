@@ -10,7 +10,8 @@ export default function createLoadingView(ctx) {
       timer = 0,
       tips = 0,
       closed = false,
-      announced = 0;
+      announced = 0,
+      cancelArt = [];
     var labels = ctx.window.CBLocale.read("core", ctx.L).loading;
     function percent() {
       var sum = 0,
@@ -72,6 +73,9 @@ export default function createLoadingView(ctx) {
       });
       paint();
       closed = true;
+      cancelArt.splice(0).forEach(function (cancel) {
+        cancel();
+      });
       ctx.clearTimeout(gate);
       ctx.clearTimeout(timer);
       if (panel) panel.remove();
@@ -88,24 +92,100 @@ export default function createLoadingView(ctx) {
       },
       art: function (scope) {
         var images = [].slice.call(scope.querySelectorAll("img"));
-        function decoded(image) {
-          return (image.decode ? image.decode() : Promise.resolve()).catch(
-            function (error) {
-              // Rerendering the title can abort a decode for an image already replaced.
-              if (!image.isConnected) return;
-              if (image.complete && image.naturalWidth > 0) return;
-              throw error;
-            },
-          );
+        function sourceSelection(image) {
+          var picture = image.parentElement;
+          return JSON.stringify([
+            image.currentSrc,
+            image.getAttribute("src"),
+            image.getAttribute("srcset"),
+            image.getAttribute("sizes"),
+            picture && picture.tagName === "PICTURE"
+              ? [].map.call(
+                  picture.querySelectorAll("source"),
+                  function (source) {
+                    return ["srcset", "sizes", "media", "type"].map(
+                      function (key) {
+                        return source.getAttribute(key);
+                      },
+                    );
+                  },
+                )
+              : [],
+          ]);
         }
-        return Promise.all(images.map(decoded))
+        function decoded(image, retries) {
+          if (closed || !image.isConnected) return Promise.resolve();
+          var source = sourceSelection(image),
+            decoding;
+          try {
+            decoding = image.decode ? image.decode() : Promise.resolve();
+          } catch (error) {
+            decoding = Promise.reject(error);
+          }
+          return decoding.catch(function (error) {
+            // Rerendering the title can abort a decode for an image already replaced.
+            if (!image.isConnected) return;
+            if (image.complete && image.naturalWidth > 0) return;
+            // A responsive crop can select a new request while decode is pending.
+            // currentSrc may still lag behind the changed sizes/srcset attributes.
+            // Only a source-selection change may recover; an unchanged image fails.
+            if (
+              closed ||
+              image.complete ||
+              sourceSelection(image) === source ||
+              retries >= 3
+            )
+              throw error;
+            return new Promise(function (resolve, reject) {
+              var waiting = true,
+                timeout;
+              function settle(failure, loaded) {
+                if (!waiting) return;
+                waiting = false;
+                ctx.clearTimeout(timeout);
+                image.removeEventListener("load", loadedImage);
+                image.removeEventListener("error", failedImage);
+                var index = cancelArt.indexOf(cancel);
+                if (index >= 0) cancelArt.splice(index, 1);
+                if (failure) reject(failure);
+                else resolve(loaded);
+              }
+              function loadedImage() {
+                settle(image.naturalWidth > 0 ? null : error, true);
+              }
+              function failedImage() {
+                settle(error);
+              }
+              function cancel() {
+                settle(null, false);
+              }
+              image.addEventListener("load", loadedImage);
+              image.addEventListener("error", failedImage);
+              cancelArt.push(cancel);
+              timeout = ctx.setTimeout(failedImage, 15000);
+              if (closed || !image.isConnected) cancel();
+              else if (image.complete) loadedImage();
+            }).then(function (loaded) {
+              return loaded ? decoded(image, retries + 1) : undefined;
+            });
+          });
+        }
+        return Promise.all(
+          images.map(function (image) {
+            return decoded(image, 0);
+          }),
+        )
           .then(function () {
             var replacements = [].slice
               .call(scope.querySelectorAll("img"))
               .filter(function (image) {
                 return images.indexOf(image) === -1;
               });
-            return Promise.all(replacements.map(decoded));
+            return Promise.all(
+              replacements.map(function (image) {
+                return decoded(image, 0);
+              }),
+            );
           })
           .then(function () {
             done.art = 1;

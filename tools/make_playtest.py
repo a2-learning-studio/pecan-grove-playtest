@@ -235,7 +235,7 @@ def page(lang, form, revision="preview", build_date=None, feedback_endpoint="", 
     </details>
     </div>
   </section>
-  <section class="pt-stage" id="pt-stage" data-playtest-stage aria-label="{e(w['brand'])}">
+  <section class="pt-stage" id="pt-stage" data-playtest-stage aria-label="{e(w['play_area'])}">
     <nav class="pt-toolbar" aria-label="{e(w['game_tools'])}">
       <button class="pt-tool pt-tool--review" id="pt-review-tab" type="button" aria-haspopup="dialog" aria-controls="pt-review-dialog" aria-expanded="false">{e(w['review_tab'])}</button>
       <button class="pt-tool" id="pt-library-tab" type="button" aria-haspopup="dialog">{e(w['library_tab'])}</button>

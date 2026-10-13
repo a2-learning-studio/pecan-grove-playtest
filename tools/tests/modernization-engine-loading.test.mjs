@@ -294,3 +294,156 @@ test("an already loaded image remains usable when decode rejects, but real art f
     r.close();
   }
 });
+
+test("a changed responsive source waits for its load and decode before contributing art progress", async () => {
+  const r = fixture();
+  try {
+    const image = r.ctx.h("img");
+    let source = "/map-960.avif",
+      complete = false,
+      width = 0,
+      attempts = 0,
+      abort,
+      finishDecode;
+    Object.defineProperties(image, {
+      currentSrc: { get: () => source },
+      complete: { get: () => complete },
+      naturalWidth: { get: () => width },
+    });
+    image.decode = () => {
+      attempts++;
+      return new Promise((resolve, reject) => {
+        if (attempts === 1) abort = reject;
+        else finishDecode = resolve;
+      });
+    };
+    r.root.append(image);
+    const load = r.ctx.loadingTask(() => {});
+    r.advance(300);
+    const ready = load.art(r.root);
+    source = "/map-2048.avif";
+    abort(new Error("The source changed during decoding"));
+    await Promise.resolve();
+    assert.equal(attempts, 1, "the pending replacement is not decoded early");
+    assert.equal(r.root.querySelector("progress").value, 0);
+    complete = true;
+    width = 2048;
+    image.dispatchEvent(new r.ctx.window.Event("load"));
+    await Promise.resolve();
+    assert.equal(attempts, 2);
+    assert.equal(r.root.querySelector("progress").value, 0);
+    finishDecode();
+    await ready;
+    assert.equal(r.root.querySelector("progress").value, 35);
+    load.finish();
+  } finally {
+    r.close();
+  }
+});
+
+test("an unchanged pending image still rejects rather than masking a genuine decode failure", async () => {
+  const r = fixture();
+  try {
+    const image = r.ctx.h("img");
+    Object.defineProperties(image, {
+      currentSrc: { value: "/broken.avif" },
+      complete: { value: false },
+    });
+    image.decode = () => Promise.reject(new Error("Invalid image data"));
+    r.root.append(image);
+    const load = r.ctx.loadingTask(() => {});
+    await assert.rejects(load.art(r.root), /Invalid image data/);
+    load.fail();
+    assert.match(r.root.textContent, /Something didn't load/);
+    assert.ok(r.root.querySelector("button"));
+    load.finish();
+  } finally {
+    r.close();
+  }
+});
+
+for (const changedElement of ["img", "source"])
+  test(`${changedElement} sizes changes can recover while currentSrc still reports the old selection`, async () => {
+    const r = fixture();
+    try {
+      const image = r.ctx.h("img"),
+        picture = r.ctx.h("picture"),
+        source = r.ctx.h("source");
+      source.setAttribute("type", "image/avif");
+      source.setAttribute("srcset", "/map-960.avif 960w, /map-2048.avif 2048w");
+      const changed = changedElement === "img" ? image : source;
+      changed.setAttribute("sizes", "900px");
+      let width = 0,
+        abort,
+        attempts = 0;
+      Object.defineProperties(image, {
+        currentSrc: { value: "/map-960.avif" },
+        complete: { get: () => width > 0 },
+        naturalWidth: { get: () => width },
+      });
+      image.decode = () => {
+        attempts++;
+        return attempts === 1
+          ? new Promise((resolve, reject) => (abort = reject))
+          : Promise.resolve();
+      };
+      picture.append(source, image);
+      r.root.append(picture);
+      const load = r.ctx.loadingTask(() => {});
+      r.advance(300);
+      const ready = load.art(r.root);
+      changed.setAttribute("sizes", "1849px");
+      abort(
+        new Error("Responsive selection changed before currentSrc updated"),
+      );
+      await Promise.resolve();
+      assert.equal(image.currentSrc, "/map-960.avif");
+      assert.equal(r.root.querySelector("progress").value, 0);
+      width = 2048;
+      image.dispatchEvent(new r.ctx.window.Event("load"));
+      await ready;
+      assert.equal(attempts, 2);
+      assert.equal(r.root.querySelector("progress").value, 35);
+      load.finish();
+    } finally {
+      r.close();
+    }
+  });
+
+test("responsive recovery remains bounded and is cancelled when its loading task is replaced", async () => {
+  const r = fixture();
+  try {
+    const image = r.ctx.h("img");
+    let source = "/map-960.avif";
+    Object.defineProperties(image, {
+      currentSrc: { get: () => source },
+      complete: { value: false },
+      naturalWidth: { value: 0 },
+    });
+    image.decode = () => {
+      source = source === "/map-960.avif" ? "/map-2048.avif" : "/map-960.avif";
+      return Promise.reject(new Error("Responsive decode interrupted"));
+    };
+    r.root.append(image);
+    const first = r.ctx.loadingTask(() => {});
+    const failed = assert.rejects(
+      first.art(r.root),
+      /Responsive decode interrupted/,
+    );
+    await Promise.resolve();
+    r.advance(15000);
+    await failed;
+    first.finish();
+    const previous = r.ctx.loadingTask(() => {});
+    const cancelled = previous.art(r.root);
+    await Promise.resolve();
+    const current = r.ctx.loadingTask(() => {});
+    await cancelled;
+    image.dispatchEvent(new r.ctx.window.Event("error"));
+    r.advance(15000);
+    assert.equal(r.root.querySelectorAll("progress").length, 1);
+    current.finish();
+  } finally {
+    r.close();
+  }
+});

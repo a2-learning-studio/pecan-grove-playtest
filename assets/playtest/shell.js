@@ -18,7 +18,8 @@
         var href = window.PG_ASSET_MAP[name];
         if (!href) return;
         var link = document.createElement('link');
-        link.rel = 'preload'; link.as = 'image'; link.type = 'image/avif'; link.href = href; link.setAttribute('fetchpriority', 'low');
+        // This is optional future art; prefetch lets the browser defer unused candidates.
+        link.rel = 'prefetch'; link.as = 'image'; link.type = 'image/avif'; link.href = href; link.setAttribute('fetchpriority', 'low');
         document.head.appendChild(link);
       }, { timeout: 3000 });
     }
@@ -119,6 +120,8 @@
     }
     var review = el('review-dialog'), tab = el('review-tab'), float = el('review-float');
     var move = el('review-move'), collapse = el('review-collapse'), tools = el('review-tools');
+    // This handle owns its arrow keys; shared game navigation must leave them alone.
+    if (move) move.setAttribute('data-pg-native', '');
     var dockHeader = el('feedback-dock-header'), dockCollapse = el('feedback-dock-collapse'), dockFloat = el('feedback-dock-float');
     var playing = false, reviewActive = false, opener = tab;
     function narrow() { return window.matchMedia ? window.matchMedia('(max-width: 760px)').matches : window.innerWidth <= 760; }
