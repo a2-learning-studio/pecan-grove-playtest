@@ -9,15 +9,22 @@ import {bootGame} from '../../assets/games/community-builders/engine/boot.js';
 const base=fileURLToPath(new URL('../../assets/games/community-builders/',import.meta.url));
 const clone=value=>JSON.parse(JSON.stringify(value));
 
-async function nativeCore(language='en',{failOnce=null,paused=false}={}) {
+async function nativeCore(language='en',{failOnce=null,paused=false,reduced=false,animations=null}={}) {
   const dom=new JSDOM(`<!doctype html><html lang="${language}"><head><title>Native core test</title></head><body><a hreflang="en" href="index.html"></a><a hreflang="es" href="espanol.html"></a><section data-playtest-stage><div id="community-builders" data-game="community-builders" data-base="assets/games/community-builders/" data-feedback-session="native_test_player_123456"${paused?' data-playtest-paused="true"':''}></div></section></body></html>`,{url:'https://game.test/pecan/index.html?seed=42',runScripts:'outside-only',pretendToBeVisual:true});
   const w=dom.window,requests=[],errors=[];
-  w.matchMedia=()=>({matches:false,addEventListener(){},removeEventListener(){}});
+  w.matchMedia=query=>({matches:!!reduced&&query.includes('prefers-reduced-motion'),addEventListener(){},removeEventListener(){}});
   w.scrollTo=()=>{};w.scrollBy=()=>{};w.HTMLElement.prototype.scrollIntoView=()=>{};
   w.Range.prototype.getClientRects=()=>[];w.Range.prototype.getBoundingClientRect=()=>({width:0,height:0});
   w.HTMLDialogElement.prototype.showModal=function(){this.setAttribute('open','');};
   w.HTMLDialogElement.prototype.close=function(){this.removeAttribute('open');this.dispatchEvent(new w.Event('close'));};
   w.HTMLImageElement.prototype.decode=()=>Promise.resolve();
+  if(animations)w.HTMLElement.prototype.animate=function(frames,options){animations.push({node:this,frames,options});return{finished:Promise.resolve(),cancel(){},pause(){},play(){}};};
+  // This native-module fixture models successful requests without a network
+  // resource loader; the loading suite separately exercises pending/error cases.
+  Object.defineProperties(w.HTMLImageElement.prototype, {
+    complete: { configurable: true, get: () => true },
+    naturalWidth: { configurable: true, get: () => 960 },
+  });
   w.Audio=class {constructor(src){this.src=src;this.paused=true;this.currentTime=0;}pause(){this.paused=true;}play(){this.paused=false;return Promise.resolve();}addEventListener(){}removeEventListener(){}};
   // The only fetch is the actual first-party lazy-stop descriptor, read locally.
   // No resource loader or socket is enabled; any other fetch fails explicitly.
@@ -37,13 +44,13 @@ async function nativeCore(language='en',{failOnce=null,paused=false}={}) {
     const result=append(node);
     if(node.tagName==='SCRIPT'&&node.src.includes('/stops/')) {
       const filename=new URL(node.src).pathname.split('/').pop();requests.push(filename);
-      queueMicrotask(()=>{
+      w.queueMicrotask(()=>{
         if(!failed&&filename===failOnce){failed=true;node.onerror?.();return;}
         try{w.eval(fs.readFileSync(path.join(base,'stops',filename),'utf8'));node.onload?.();}
         catch(error){errors.push(error);node.onerror?.();}
       });
-    }else if(node.tagName==='LINK')queueMicrotask(()=>node.onload?.());
-    else if(node.tagName==='SCRIPT'&&node.src.includes('/voice/'))queueMicrotask(()=>node.onerror?.());
+    }else if(node.tagName==='LINK')w.queueMicrotask(()=>node.onload?.());
+    else if(node.tagName==='SCRIPT'&&node.src.includes('/voice/'))w.queueMicrotask(()=>node.onerror?.());
     return result;
   };
   w.eval(fs.readFileSync(path.join(base,'locales/catalog.js'),'utf8'));
@@ -61,6 +68,37 @@ test('native boot returns null on a page without the game host',()=>{
 });
 
 for(const language of ['en','es']) {
+  for(const reduced of [false,true])test(`${language}: ${reduced?'system reduced motion':'Calm setting'} swaps real scenes without a partial-text fade`,async()=>{
+    const animations=[],r=await nativeCore(language,{reduced,animations});
+    try{
+      if(!reduced)r.core.updateSettings({calm:true});animations.length=0;
+      r.core.enterPlay({quiet:true});r.main().querySelector('.cb-hero .cb-btn--go').click();await r.tick();await r.tick();await r.tick();
+      assert.equal(r.core.motionAllowed(),false);assert.equal(r.w.document.activeElement,r.main().querySelector('h2'));
+      assert.equal(await r.core.startStop('notice-the-signs'),true);
+      assert.equal(r.w.document.activeElement,r.main().querySelector('h2'),'The readable stop heading receives focus immediately');
+      assert.equal(r.main().querySelector('.cb-s01-intro .cb-btn--go').disabled,false,'Input is available without waiting for a fade');
+      assert.equal(animations.length,0,'No scene, map disc or transition creates a WAAPI fade under the motion gate');assert.equal(r.errors.length,0,String(r.errors));
+    }finally{r.close();}
+  });
+  test(`${language}: native map focus settles without stealing feedback focus or overriding the next stop`,async()=>{
+    const r=await nativeCore(language);
+    try{
+      r.core.enterPlay({quiet:true});r.main().querySelector('.cb-hero .cb-btn--go').click();
+      assert.equal(r.root.dataset.sceneLayout,'pending');
+      await r.tick();await r.tick();await r.tick();
+      assert.equal(r.root.dataset.sceneLayout,'ready');
+      assert.equal(r.w.document.activeElement,r.main().querySelector('h2'));
+      const feedback=r.w.document.createElement('textarea');r.w.document.body.append(feedback);feedback.value='My playtest note';feedback.focus();
+      r.core.showMap();await r.tick();await r.tick();await r.tick();
+      assert.equal(r.w.document.activeElement,feedback,'A map refresh preserves focus in the external feedback form');assert.equal(feedback.value,'My playtest note');
+      r.main().querySelector('.cb-stop').focus();r.core.showMap();
+      assert.equal(r.root.dataset.sceneLayout,'pending');
+      assert.equal(await r.core.startStop('notice-the-signs'),true);
+      const heading=r.main().querySelector('h2');assert.equal(r.w.document.activeElement,heading,'Stop headings retain immediate focus');
+      await r.tick();await r.tick();await r.tick();
+      assert.equal(r.w.document.activeElement,heading,'Cancelled map focus cannot steal focus from the next stop');assert.equal(r.root.dataset.sceneLayout,'ready');assert.equal(r.errors.length,0,String(r.errors));
+    }finally{r.close();}
+  });
   test(`${language}: native ES module boot exposes the actual core API and opens all fifteen map stops`,async()=>{
     const r=await nativeCore(language,{paused:true});
     try{
@@ -80,6 +118,7 @@ for(const language of ['en','es']) {
     const r=await nativeCore(language);
     try{
       r.core.enterPlay({quiet:true});assert.equal(await r.core.startStop('notice-the-signs'),true);await r.tick();
+      assert.equal(r.root.querySelector('.cb-loading-overlay'),null,'Successful critical artwork leaves the real scene usable');
       assert.ok(r.requests.includes('01-notice-the-signs.js'));assert.ok(r.main().querySelector('.cb-s01-intro'));
       r.main().querySelector('.cb-s01-intro .cb-btn--go').click();r.main().querySelector('[data-view="today"]').click();r.main().querySelector('[data-spot="0"]').click();await r.tick();
       assert.equal(r.root.querySelectorAll('dialog[open]').length,0);assert.ok(r.root.querySelector('.cb-callout'));
@@ -97,6 +136,7 @@ for(const language of ['en','es']) {
     const r=await nativeCore(language);
     try{
       r.core.enterPlay({quiet:true});assert.equal(await r.core.startStop('ask-a-good-question'),true);await r.tick();
+      assert.equal(r.root.querySelector('.cb-loading-overlay'),null,'Successful critical artwork leaves the real scene usable');
       const first=r.main().querySelector('.cb-s02-first').textContent.replace(/^[^:]+:\s*/,'');r.main().querySelector('.cb-s02-intro .cb-btn--go').click();
       assert.equal(r.main().querySelector('.cb-s02-nb[data-i="0"] .cb-s02-nb__name').textContent,first);
       for(const row of ['start','topic','detail'])r.main().querySelector(`.cb-s02-row[data-row="${row}"] .cb-s02-tile`).click();

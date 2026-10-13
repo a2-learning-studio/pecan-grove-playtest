@@ -1,0 +1,48 @@
+{
+  "generatedAt": "2026-10-12T23:57:24.059Z",
+  "baselineCommit": "a2feba56cd91af16461032b95b8a3fbbb1e3fda0",
+  "baselineSourceSha256": "38616fb82d9bf2a6f8e32d0d96b6026c5561a6abe367cec0cd9a859a394d0577",
+  "baselineHtmlSha256": "7d763b90702688b66c8491518efcfe45a7024063d075d7398303fbbf1fd05bf3",
+  "currentSourceSha256": "b6359ce26a66cd1f4a470f24ecf0f9791cadbf8cdef40f3d702279dff98ad36a",
+  "method": "Actual committed legacy mount and current exported mount, same committed HTML, clean JSDOM/localStorage per case, fake timers, stub fetch only; shared browser-fixture request classifier.",
+  "realNetworkRequests": 0,
+  "baseline": {
+    "mountRequests": 1,
+    "typedRequests": 1,
+    "passiveRequests": 0,
+    "requests": [
+      {
+        "method": "POST",
+        "recorded": true,
+        "receiver": true,
+        "unexpected": true,
+        "entries": [
+          {
+            "kind": "session",
+            "stop": 0,
+            "submitted": false
+          }
+        ]
+      },
+      {
+        "method": "POST",
+        "recorded": true,
+        "receiver": true,
+        "unexpected": true,
+        "entries": [
+          {
+            "kind": "feedback",
+            "stop": 0,
+            "submitted": false
+          }
+        ]
+      }
+    ]
+  },
+  "current": {
+    "mountRequests": 0,
+    "typedRequests": 0,
+    "passiveRequests": 0,
+    "requests": []
+  }
+}

@@ -1,0 +1,11 @@
+#!/bin/sh
+set -eu
+if command -v node >/dev/null 2>&1; then
+  pg_node=node
+elif [ -x '/c/Program Files/nodejs/node.exe' ]; then
+  pg_node='/c/Program Files/nodejs/node.exe'
+else
+  echo 'Install Node.js or put it on PATH before committing.' >&2
+  exit 1
+fi
+exec "$pg_node" tools/check-commit-message.mjs "$1"

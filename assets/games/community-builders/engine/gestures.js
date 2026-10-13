@@ -151,11 +151,15 @@ export class Gestures {
   }
   paint() {
     if (!this.canvas) return;
-    const rect = this.map.getBoundingClientRect();
+    // At fit zoom both pan limits are zero; measuring here would flush the new map.
+    const rect =
+      this.zoom > 1
+        ? this.map.getBoundingClientRect()
+        : { width: 0, height: 0 };
     const maxX = (rect.width * (this.zoom - 1)) / 2,
       maxY = (rect.height * (this.zoom - 1)) / 2;
-    this.pan.x = Math.max(-maxX, Math.min(maxX, this.pan.x));
-    this.pan.y = Math.max(-maxY, Math.min(maxY, this.pan.y));
+    this.pan.x = maxX ? Math.max(-maxX, Math.min(maxX, this.pan.x)) : 0;
+    this.pan.y = maxY ? Math.max(-maxY, Math.min(maxY, this.pan.y)) : 0;
     this.canvas.style.setProperty(
       "transform",
       `translate(${this.pan.x}px, ${this.pan.y}px) scale(${this.zoom})`,

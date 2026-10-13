@@ -170,7 +170,7 @@
   .cb-s02-porch { gap: 4px; margin: 0; }
   .cb-s02-nb__face { width: 50px; height: 50px; box-shadow: var(--cb-shadow-1); }
   .cb-s02-nb[data-s="now"] .cb-s02-nb__face { width: 60px; height: 60px; transform: none; }
-  .cb-s02-nb__name, .cb-s02-play .cb-s02-nb__name { padding: 0; background: none; box-shadow: none; font-size: 0.8125rem; }
+  .cb-s02-nb__name, .cb-s02-play .cb-s02-nb__name { padding: 2px 6px 3px; border-radius: 8px; background: var(--cb-card); box-shadow: none; font-size: 0.8125rem; }
   .cb-s02-nb[data-s="now"] .cb-s02-nb__name { padding: 2px 8px 3px; border-radius: 8px; }
   .cb-s02-say { margin: 2px 0 0; padding: 14px 18px 15px 48px; font-size: 1.1875rem; }
   .cb-s02-say::before { left: 12px; top: 5px; font-size: 2.75rem; }

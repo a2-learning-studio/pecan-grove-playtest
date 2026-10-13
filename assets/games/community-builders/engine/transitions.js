@@ -62,19 +62,18 @@ export function transitionScene(ctx, render, kind = "step") {
   }
 }
 export function animateScene(ctx, node, kind = "step") {
-  if (!node?.animate || ctx.restoring) return;
-  const allowed = ctx.motionAllowed();
-  const frames = allowed
-    ? [
-        {
-          opacity: 0,
-          transform: kind === "stop" ? "scale(.985)" : "translateX(16px)",
-        },
-        { opacity: 1, transform: "none" },
-      ]
-    : [{ opacity: 0 }, { opacity: 1 }];
+  // Calm/reduced motion permits an instant swap. Keep the whole text layer
+  // opaque rather than freezing a partially faded scene on a slow renderer.
+  if (!node?.animate || ctx.restoring || !ctx.motionAllowed()) return;
+  const frames = [
+    {
+      opacity: 0,
+      transform: kind === "stop" ? "scale(.985)" : "translateX(16px)",
+    },
+    { opacity: 1, transform: "none" },
+  ];
   const animation = node.animate(frames, {
-    duration: allowed ? (kind === "stop" ? 320 : 200) : 120,
+    duration: kind === "stop" ? 320 : 200,
     easing: "cubic-bezier(0.16,1,0.3,1)",
   });
   if (ctx.activeLifecycle?.animation) ctx.activeLifecycle.animation(animation);

@@ -157,13 +157,14 @@
 
   /* a double tap must count once. Without this, the second tap of "Keep looking" lands on the spot under it (and scores it),
      and the second tap of "I'm done looking" lands on "See my score" (skipping the review) or on a score-card button.
-     Only pointer taps are held back (a key press gives detail 0), and only this stop sets quietUntil, so the guard is idle elsewhere. */
+     Only pointer taps in replaced scene content are held back (a key press gives detail 0).
+     Persistent navigation stays usable even when Calm makes the replacement instant. */
   var quietUntil = 0;
   function quiet() { quietUntil = Date.now() + 350; }
   document.addEventListener("click", function (e) {
     if (!e.detail || Date.now() >= quietUntil) return;
     var t = e.target;
-    if (t && t.closest && t.closest('[data-game="community-builders"]')) { e.stopPropagation(); e.preventDefault(); }
+    if (t && t.closest && t.closest('.cb-s01-board, .cb-s01-dlg, .cb-board--result') && t.closest('[data-game="community-builders"]')) { e.stopPropagation(); e.preventDefault(); }
   }, true);
 
   CB.register({
@@ -280,12 +281,17 @@
     }
 
     /* ── cards: one button, "Keep looking"; Esc closes; focus goes back to the spot ── */
+    function inlineFindings() {
+      return api.callout && !(api.prefersFindCards && api.prefersFindCards());
+    }
     function card(s, onClose) {
       var it = s.item;
-      if (api.callout && !(api.prefersFindCards && api.prefersFindCards())) {
+      if (inlineFindings()) {
         var content = [h("p", { text: it.sign ? t2(it.line) : T.everyRest })];
         if (it.sign) content.push(h("p", { text: T.askLine }));
-        return api.callout(s.btn, content, { title: it.sign ? T.signT : T.every(t2(it.name)), closeLabel: T.keep, onClose: onClose });
+        // An inline finding leaves the scene in place. Closing it on the next
+        // pointerdown must not suppress that object's following click.
+        return api.callout(s.btn, content, { title: it.sign ? T.signT : T.every(t2(it.name)), closeLabel: T.keep });
       }
       var badge = h("span", { "class": "cb-s01-dlgbadge" + (it.sign ? " is-sign" : ""), "aria-hidden": "true" }, [icon(it.id)]), d;
       if (it.sign) {
@@ -311,7 +317,7 @@
       }
       if (fresh) { paint(s, true); if (it.sign) progress(true); }
       card(s, function () { quiet(); });
-      quiet();
+      if (!inlineFindings()) quiet();
     }
 
     /* ── progress, in words (never points) ── */

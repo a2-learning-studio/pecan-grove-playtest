@@ -1,6 +1,9 @@
 import { installMapPresentation } from "../map-layout.js";
+import { createMapCommit } from "../map-commit.js";
 export default function createMap(ctx) {
-  function showMap(msg) {
+  var mapCommit = createMapCommit(ctx);
+  function showMap(msg, options) {
+    mapCommit.cancel();
     if (typeof ctx.activeLifecycle !== "undefined" && ctx.activeLifecycle) {
       ctx.activeLifecycle.dispose();
       ctx.activeLifecycle = null;
@@ -41,7 +44,10 @@ export default function createMap(ctx) {
       var stones = ctx.document.createElementNS(ctx.SVGNS, "path");
       stones.setAttribute("d", d);
       stones.setAttribute("class", "cb-stones");
-      stones.setAttribute("data-upcoming", String(!ctx.rec(ctx.STOPS[i].id, pl)));
+      stones.setAttribute(
+        "data-upcoming",
+        String(!ctx.rec(ctx.STOPS[i].id, pl)),
+      );
       svg.appendChild(stones);
       if (ctx.rec(ctx.STOPS[i].id, pl)) {
         var trail = ctx.document.createElementNS(ctx.SVGNS, "path");
@@ -272,7 +278,7 @@ export default function createMap(ctx) {
       },
       "family",
     );
-    ctx.screen([
+    var kids = [
       ctx.h("h2", { class: "cb-vh", text: ctx.W.series }),
       world,
       journey,
@@ -280,26 +286,34 @@ export default function createMap(ctx) {
         ctx.h("p", { class: "cb-dock__open", text: ctx.W.open(openN) }),
         ctx.h("div", { class: "cb-row" }, [lib, gu]),
       ]),
-    ]);
-    ctx.frame(true);
-    installMapPresentation(ctx, world, canvas, pan);
-    if (ctx.window.requestIdleCallback && sug && ctx.moduleManifest[sug])
-      ctx.window.requestIdleCallback(
-        function () {
-          if (!canvas.isConnected || ctx.mode !== "map") return;
-          var descriptor = ctx.moduleManifest[sug];
-          [descriptor.file, descriptor.css].forEach(function (file) {
-            ctx.document.head.appendChild(
-              ctx.h("link", {
-                rel: "prefetch",
-                href: ctx.resolveAsset(ctx.BASE + "stops/" + file),
-              }),
-            );
-          });
-        },
-        { timeout: 2000 },
-      );
-    if (msg) ctx.say(msg);
+    ];
+    function commit() {
+      // Build the final toolbar/classes before attachment and first measurement.
+      installMapPresentation(ctx, world, canvas, pan);
+      ctx.screen(kids);
+      ctx.frame(true);
+      if (ctx.window.requestIdleCallback && sug && ctx.moduleManifest[sug])
+        ctx.window.requestIdleCallback(
+          function () {
+            if (!canvas.isConnected || ctx.mode !== "map") return;
+            var descriptor = ctx.moduleManifest[sug];
+            [descriptor.file, descriptor.css].forEach(function (file) {
+              ctx.document.head.appendChild(
+                ctx.h("link", {
+                  rel: "prefetch",
+                  href: ctx.resolveAsset(ctx.BASE + "stops/" + file),
+                }),
+              );
+            });
+          },
+          { timeout: 2000 },
+        );
+      if (msg) ctx.say(msg);
+    }
+    // Slot navigation has already closed its modal. Yield detached construction
+    // before attaching the scene so its first native layout gets a separate task.
+    if (options && options.defer) return mapCommit.run(commit);
+    commit();
   }
 
   ctx.publish({ showMap });

@@ -202,6 +202,8 @@ export default function createApi(ctx) {
         storageKey: ctx.KEY,
         resumePending: !!ctx.resumeRecord,
         paused: ctx.gamePaused,
+        restoring: !!ctx.restoring,
+        visit: ctx.stopVisit || 0,
       };
     },
     snapshot: ctx.snapshot,

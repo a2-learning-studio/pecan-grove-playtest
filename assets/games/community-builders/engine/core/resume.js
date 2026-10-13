@@ -151,18 +151,6 @@ export default function createResume(ctx) {
         ctx.progressEvent();
       });
   }
-  function navigateLanguage(url) {
-    var record = snapshot();
-    try {
-      ctx.sessionStorage.setItem("pecan-grove-resume", JSON.stringify(record));
-      url.searchParams.set("resume", "1");
-    } catch (_) {
-      ctx.storageError("resume");
-    }
-    ctx.document.dispatchEvent(new ctx.window.CustomEvent("pt:feedback-flush"));
-    ctx.vStop();
-    ctx.location.assign(url.href);
-  }
   function changeLanguage(language, url) {
     if ((language !== "en" && language !== "es") || language === ctx.L)
       return Promise.resolve(false);
@@ -240,7 +228,6 @@ export default function createResume(ctx) {
     snapshot,
     replayActions,
     resume,
-    navigateLanguage,
     changeLanguage,
     pausePlay,
     resumePlay,

@@ -183,5 +183,6 @@
   "hintPickCount": "Elige del 1 al {count}",
   "tipPrevious": "Consejo anterior",
   "tipNext": "Siguiente consejo",
-  "tipPageCount": "Consejo {current} de {count}"
+  "tipPageCount": "Consejo {current} de {count}",
+  "openGameFailed": "No se pudo abrir el juego. Tu progreso guardado sigue aquí. Intenta abrirlo de nuevo."
 }

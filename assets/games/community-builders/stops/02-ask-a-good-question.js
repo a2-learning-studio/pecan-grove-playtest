@@ -298,16 +298,17 @@
         if (!lastR.tOk) hint.topic = round[wi].topic;
         if (!lastR.dOk) hint.detail = round[wi].d[0];
       }
-      var born = Date.now(), fresh = function (event) { return !(event && event.detail === 0) && Date.now() - born < 300; };   // the second half of a double tap on the last screen's button
+      // The shared scene guard protects the previous pointer position. A new
+      // choice elsewhere is deliberate and must work as soon as it is visible.
       var lineEl = h("p", { "class": "cb-s02-q__line is-empty", id: "cb-s02-q", "data-cb-novoice": "" });
       var overBtn = api.btn(T.over, "cb-btn--quiet", function () { if (overBtn.getAttribute("aria-disabled") === "true") return; sel = { start: null, topic: null, detail: null }; refresh(); }, "replay");
-      var askBtn = api.btn(T.ask, "cb-btn--go cb-btn--big cb-s02-ask", function (event) { if (!fresh(event)) ask(); }, "chat");
+      var askBtn = api.btn(T.ask, "cb-btn--go cb-btn--big cb-s02-ask", function () { ask(); }, "chat");
       askBtn.setAttribute("aria-describedby", "cb-s02-q");
       var strip = h("div", { "class": "cb-actions cb-s02-strip" }, [h("span", { "class": "cb-s02-q__k", text: T.yourQ }), lineEl, askBtn]);
       var rows = ["start", "topic", "detail"].map(function (row) {
         var lid = "cb-s02-r" + (++uid);
         var tiles = h("div", { "class": "cb-s02-tiles" }, orders[wi][row].map(function (id) {
-          return h("button", { type: "button", "class": "cb-s02-tile" + (hint[row] === id ? " is-hint" : ""), "aria-pressed": "false", "data-row": row, "data-id": id, onclick: function (event) { if (!fresh(event)) pick(row, id); } }, [
+          return h("button", { type: "button", "class": "cb-s02-tile" + (hint[row] === id ? " is-hint" : ""), "aria-pressed": "false", "data-row": row, "data-id": id, onclick: function () { pick(row, id); } }, [
             h("span", { text: row === "start" ? startWord(round[wi], id) : word(POOL[row], id) }), h("span", { "class": "cb-s02-tile__ck", "aria-hidden": "true" }, [api.ico("check")])]);
         }));
         var fixRow = lastR && (row === "start" ? !lastR.sOk : row === "topic" ? !lastR.tOk : !lastR.dOk);
@@ -326,7 +327,7 @@
       /* the worry and the board stay in view while the tiles scroll: a sticky side column on a wide stage,
          a sticky speech bubble on a narrow one (CSS) */
       var side = h("div", { "class": "cb-s02-side" }, [sceneEl, board]);
-      var compactAsk = api.btn(T.ask, "cb-btn--go cb-s02-ask-float", function (event) { if (!fresh(event)) ask(); }, "chat");
+      var compactAsk = api.btn(T.ask, "cb-btn--go cb-s02-ask-float", function () { ask(); }, "chat");
       compactAsk.setAttribute("aria-describedby", "cb-s02-q");
       compactAsk.setAttribute("aria-label", T.ask);
       compactAsk.hidden = true;

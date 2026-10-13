@@ -2,6 +2,8 @@
   overflow: hidden;
 }
 .cb-map-ready .cb-world__canvas {
+  /* Hidden label plates must not enlarge the fitted pan's scrollable bounds. */
+  overflow: hidden;
   width: 100%;
   min-width: 0;
   padding: 0;
@@ -80,9 +82,63 @@
 .cb-map-ready
   .cb-stops--onmap
   .cb-stop[data-plate-hidden="true"]
+  .cb-stop__plate,
+.cb-map-ready
+  .cb-stops--onmap
+  .cb-stop[data-plate-docked="true"]
   .cb-stop__plate {
   opacity: 0 !important;
   visibility: hidden !important;
+}
+.cb-map-caption {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  box-sizing: border-box;
+  block-size: 5rem;
+  min-block-size: 5rem;
+  padding: 6px 12px;
+  overflow: auto;
+  background: var(--cb-stage);
+  color: var(--cb-ink);
+}
+.cb-map-caption .cb-stop__plate {
+  position: static;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  justify-items: start;
+  gap: 2px 10px;
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  max-width: none;
+  color: var(--cb-ink);
+  text-align: left;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.cb-map-caption .cb-stop__n {
+  display: block;
+  font-size: 0.8125rem;
+}
+.cb-map-caption .cb-stop__plate b {
+  white-space: normal;
+}
+.cb-map-caption .cb-state {
+  grid-column: 2;
+}
+.cb-map-caption .cb-stars {
+  grid-column: 3;
+  grid-row: 1;
+}
+.cb-map-caption > .cb-tag {
+  position: static;
+  transform: none;
+}
+.cb-map-caption > .cb-tag::after {
+  display: none;
 }
 .cb-map-ready .cb-tag {
   display: block;
@@ -214,6 +270,39 @@
   }
 }
 @container cb (max-width: 599.98px) {
+  .cb-map-caption {
+    grid-template-rows: auto auto;
+    gap: 2px 10px;
+    block-size: 6rem;
+    min-block-size: 6rem;
+  }
+  .cb-map-caption .cb-stop__plate {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    grid-template-columns: minmax(0, 1fr) auto;
+    padding-block: 4px;
+  }
+  .cb-map-caption .cb-stop__n {
+    grid-column: 1;
+    grid-row: 1;
+  }
+  .cb-map-caption .cb-stop__plate b {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+  .cb-map-caption .cb-stars {
+    grid-column: 2;
+  }
+  .cb-map-caption .cb-state {
+    grid-column: 1 / -1;
+    grid-row: 3;
+  }
+  .cb-map-caption > .cb-tag {
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: end;
+    padding-block: 2px;
+  }
   .cb-map-controls {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;

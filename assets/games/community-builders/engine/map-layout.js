@@ -154,10 +154,57 @@ export function installMapPresentation(ctx, world, canvas, pan) {
   if (hud) toolbar.append(hud);
   toolbar.append(listButton, legend);
   world.insertBefore(toolbar, pan);
+  // Reserve this readout before attachment: a crowded map must still name the
+  // focused stop without covering another disc or shifting the map on focus.
+  const caption = ctx.h("div", {
+    class: "cb-map-caption",
+    "aria-hidden": "true",
+    "data-plate-visible": "true",
+    "data-plate-hidden": "false",
+    "data-cb-novoice": "",
+  });
+  world.insertBefore(caption, pan);
   let observer,
-    stopped = false;
+    stopped = false,
+    frame = null,
+    geometry = "",
+    captionControl = null;
+  canvas.dataset.mapLayout = "pending";
+  const requestFrame = ctx.window.requestAnimationFrame
+    ? (callback) => ctx.window.requestAnimationFrame(callback)
+    : (callback) => ctx.window.setTimeout(callback, 0);
+  const cancelFrame = ctx.window.cancelAnimationFrame
+    ? (id) => ctx.window.cancelAnimationFrame(id)
+    : (id) => ctx.window.clearTimeout(id);
   const controls = [...canvas.querySelectorAll(".cb-stop")],
     svg = canvas.querySelector(".cb-path");
+  // Keep the Next badge in ordinary caption flow. WebKit native buttons can
+  // paint absolute child badges at a different origin from the measured box.
+  controls.forEach((button) => {
+    const tag = button.querySelector(".cb-tag");
+    if (tag) tag.hidden = true;
+  });
+  function showCaption(button) {
+    if (captionControl === button) return;
+    captionControl = button;
+    const plate = button?.querySelector(".cb-stop__plate"),
+      tag =
+        button?.dataset.state === "next"
+          ? button.querySelector(".cb-tag")
+          : null,
+      children = plate ? [plate.cloneNode(true)] : [];
+    if (tag) {
+      const badge = tag.cloneNode(true);
+      badge.hidden = false;
+      children.push(badge);
+    }
+    caption.replaceChildren(...children);
+    caption.dataset.stopId = button?.dataset.stopId || "";
+    caption.dataset.stopN = button?.dataset.stopN || "";
+  }
+  showCaption(
+    controls.find((button) => button.dataset.state === "next") || controls[0],
+  );
   function layout() {
     if (stopped || !canvas.isConnected) return;
     const rect = canvas.getBoundingClientRect(),
@@ -166,6 +213,12 @@ export function installMapPresentation(ctx, world, canvas, pan) {
         height: canvas.clientHeight || rect.height,
       };
     if (!bounds.width || !bounds.height) return;
+    const signature = bounds.width + ":" + bounds.height;
+    if (geometry === signature) {
+      placeLabels();
+      return;
+    }
+    geometry = signature;
     const diameter = Math.min(68, Math.max(44, bounds.width * 0.052)),
       pts = fitStopPoints(ctx.POS, bounds.width, bounds.height, diameter);
     controls.forEach((button, i) => {
@@ -211,8 +264,17 @@ export function installMapPresentation(ctx, world, canvas, pan) {
       }
     }
     placeLabels();
+    canvas.dataset.mapLayout = "ready";
+  }
+  function scheduleLayout() {
+    if (stopped || frame !== null) return;
+    frame = requestFrame(() => {
+      frame = null;
+      layout();
+    });
   }
   function placeLabels() {
+    if (stopped || !canvas.isConnected || !geometry) return;
     const rect = canvas.getBoundingClientRect(),
       viewport = pan.getBoundingClientRect(),
       bounds = {
@@ -221,66 +283,74 @@ export function installMapPresentation(ctx, world, canvas, pan) {
         top: Math.max(rect.top, viewport.top),
         bottom: Math.min(rect.bottom, viewport.bottom),
       },
-      scale = rect.width / (canvas.clientWidth || rect.width || 1),
+      width = canvas.clientWidth || rect.width,
+      scale = rect.width / (width || 1),
       active = ctx.document.activeElement;
+    const next = controls.find((b) => b.dataset.state === "next"),
+      priority = controls.includes(active) ? active : next || controls[0];
     const discs = controls.map((b) =>
         b.querySelector(".cb-stop__disc").getBoundingClientRect(),
       ),
       placed = [];
     const order = controls
-      .map((button, index) => ({ button, index }))
+      .map((button, index) => {
+        const shown =
+          width >= 1100 ||
+          button === active ||
+          button.matches(":hover") ||
+          button.dataset.state === "next";
+        const plate = button.querySelector(".cb-stop__plate");
+        return {
+          button,
+          index,
+          plate,
+          shown,
+          size: shown ? plate.getBoundingClientRect() : null,
+          origin: shown ? button.getBoundingClientRect() : null,
+        };
+      })
       .sort(
         (a, b) =>
           Number(b.button === active) - Number(a.button === active) ||
           Number(b.button.dataset.state === "next") -
             Number(a.button.dataset.state === "next"),
       );
-    for (const { button, index } of order) {
-      const plate = button.querySelector(".cb-stop__plate"),
-        shown =
-          (canvas.clientWidth || rect.width) >= 1100 ||
-          button === active ||
-          button.matches(":hover") ||
-          button.dataset.state === "next";
-      button.dataset.plateVisible = String(shown);
-      button.dataset.plateHidden = "false";
-      if (!shown) continue;
-      const size = plate.getBoundingClientRect(),
-        box = platePlacement(discs[index], size, bounds, [
-          ...discs.filter((_, i) => i !== index),
-          ...placed,
-        ]);
-      if (!box) {
-        button.dataset.plateHidden = "true";
-        continue;
-      }
-      const origin = button.getBoundingClientRect();
-      plate.style.left = (box.left - origin.left) / scale + "px";
-      plate.style.top = (box.top - origin.top) / scale + "px";
-      plate.dataset.placement = box.side;
-      placed.push(box);
+    for (const item of order) {
+      if (!item.shown) continue;
+      item.box = platePlacement(discs[item.index], item.size, bounds, [
+        ...discs.filter((_, i) => i !== item.index),
+        ...placed,
+      ]);
+      item.docked =
+        !item.box &&
+        item.button === priority &&
+        (item.button === active || overlap(discs[item.index], bounds, 0));
+      if (item.box) placed.push(item.box);
     }
-    const next = controls.find((b) => b.dataset.state === "next"),
-      tag = next?.querySelector(".cb-tag");
-    if (tag) {
-      const index = controls.indexOf(next);
-      tag.hidden = false;
-      const size = tag.getBoundingClientRect(),
-        box = platePlacement(discs[index], size, bounds, [
-          ...discs.filter((_, i) => i !== index),
-          ...placed,
-        ]);
-      if (!box) tag.hidden = true;
-      else {
-        const origin = next.getBoundingClientRect();
-        tag.style.left = (box.left - origin.left) / scale + "px";
-        tag.style.top = (box.top - origin.top) / scale + "px";
-      }
+    // No geometry reads after this point: all attributes/positions commit together.
+    showCaption(priority);
+    for (const { button, plate, shown, box, docked, origin } of order) {
+      const visibility = String(shown),
+        hidden = String(shown && !box && !docked);
+      if (button.dataset.plateVisible !== visibility)
+        button.dataset.plateVisible = visibility;
+      if (button.dataset.plateHidden !== hidden)
+        button.dataset.plateHidden = hidden;
+      if (button.dataset.plateDocked !== String(!!docked))
+        button.dataset.plateDocked = String(!!docked);
+      if (!box) continue;
+      const left = (box.left - origin.left) / scale + "px",
+        top = (box.top - origin.top) / scale + "px";
+      if (plate.style.left !== left) plate.style.left = left;
+      if (plate.style.top !== top) plate.style.top = top;
+      if (plate.dataset.placement !== box.side)
+        plate.dataset.placement = box.side;
     }
   }
   const close = () => {
     if (stopped) return;
     stopped = true;
+    if (frame !== null) cancelFrame(frame);
     observer?.disconnect();
     canvas.removeEventListener("focusin", placeLabels);
     canvas.removeEventListener("focusout", placeLabels);
@@ -300,12 +370,12 @@ export function installMapPresentation(ctx, world, canvas, pan) {
   canvas.addEventListener("cb:map-transform", placeLabels);
   ctx.document.addEventListener("cb:screen", screen);
   if (ctx.window.ResizeObserver) {
-    observer = new ctx.window.ResizeObserver(layout);
+    observer = new ctx.window.ResizeObserver(scheduleLayout);
     observer.observe(canvas);
   }
   ctx.document.fonts?.ready.then(() => {
-    if (!stopped) layout();
+    if (!stopped) scheduleLayout();
   });
-  layout();
+  scheduleLayout();
   return { layout, placeLabels, close };
 }

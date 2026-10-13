@@ -10,7 +10,8 @@ export default function createLoadingView(ctx) {
       timer = 0,
       tips = 0,
       closed = false,
-      announced = 0;
+      announced = 0,
+      cancelArt = [];
     var labels = ctx.window.CBLocale.read("core", ctx.L).loading;
     function percent() {
       var sum = 0,
@@ -72,6 +73,9 @@ export default function createLoadingView(ctx) {
       });
       paint();
       closed = true;
+      cancelArt.splice(0).forEach(function (cancel) {
+        cancel();
+      });
       ctx.clearTimeout(gate);
       ctx.clearTimeout(timer);
       if (panel) panel.remove();
@@ -87,25 +91,123 @@ export default function createLoadingView(ctx) {
         paint();
       },
       art: function (scope) {
-        var images = [].slice.call(scope.querySelectorAll("img"));
-        function decoded(image) {
-          return (image.decode ? image.decode() : Promise.resolve()).catch(
-            function (error) {
-              // Rerendering the title can abort a decode for an image already replaced.
-              if (!image.isConnected) return;
-              if (image.complete && image.naturalWidth > 0) return;
-              throw error;
+        function criticalImages() {
+          // Deferred portraits keep their normal browser loading lifecycle and must
+          // not block the playable scene while they are outside the viewport.
+          return [].filter.call(
+            scope.querySelectorAll("img"),
+            function (image) {
+              return image.getAttribute("loading") !== "lazy";
             },
           );
         }
-        return Promise.all(images.map(decoded))
+        var images = criticalImages();
+        function sourceSelection(image) {
+          var picture = image.parentElement;
+          return JSON.stringify([
+            image.currentSrc,
+            image.getAttribute("src"),
+            image.getAttribute("srcset"),
+            image.getAttribute("sizes"),
+            picture && picture.tagName === "PICTURE"
+              ? [].map.call(
+                  picture.querySelectorAll("source"),
+                  function (source) {
+                    return ["srcset", "sizes", "media", "type"].map(
+                      function (key) {
+                        return source.getAttribute(key);
+                      },
+                    );
+                  },
+                )
+              : [],
+          ]);
+        }
+        function loaded(image) {
+          return new Promise(function (resolve, reject) {
+            var waiting = true,
+              timeout;
+            function settle(failure, ready) {
+              if (!waiting) return;
+              waiting = false;
+              ctx.clearTimeout(timeout);
+              image.removeEventListener("load", loadedImage);
+              image.removeEventListener("error", failedImage);
+              var index = cancelArt.indexOf(cancel);
+              if (index >= 0) cancelArt.splice(index, 1);
+              if (failure) reject(failure);
+              else resolve(ready);
+            }
+            function loadedImage() {
+              settle(
+                image.naturalWidth > 0
+                  ? null
+                  : new Error("Image failed to load"),
+                true,
+              );
+            }
+            function failedImage() {
+              settle(new Error("Image failed to load"));
+            }
+            function cancel() {
+              settle(null, false);
+            }
+            image.addEventListener("load", loadedImage);
+            image.addEventListener("error", failedImage);
+            cancelArt.push(cancel);
+            timeout = ctx.setTimeout(failedImage, 15000);
+            if (closed || !image.isConnected) cancel();
+            else if (image.complete) loadedImage();
+          });
+        }
+        function decoded(image, retries) {
+          if (closed || !image.isConnected) return Promise.resolve();
+          // Firefox can reject decode() before an eager request has completed.
+          // Wait for the request's actual load/error result before decoding it.
+          if (image.complete === false)
+            return loaded(image).then(function (ready) {
+              return ready ? decoded(image, retries) : undefined;
+            });
+          var source = sourceSelection(image),
+            decoding;
+          try {
+            decoding = image.decode ? image.decode() : Promise.resolve();
+          } catch (error) {
+            decoding = Promise.reject(error);
+          }
+          return decoding.catch(function (error) {
+            // Rerendering the title can abort a decode for an image already replaced.
+            if (!image.isConnected) return;
+            if (image.complete && image.naturalWidth > 0) return;
+            // A responsive crop can select a new request while decode is pending.
+            // currentSrc may still lag behind the changed sizes/srcset attributes.
+            // Only a source-selection change may recover; an unchanged image fails.
+            if (
+              closed ||
+              image.complete ||
+              sourceSelection(image) === source ||
+              retries >= 3
+            )
+              throw error;
+            return loaded(image).then(function (ready) {
+              return ready ? decoded(image, retries + 1) : undefined;
+            });
+          });
+        }
+        return Promise.all(
+          images.map(function (image) {
+            return decoded(image, 0);
+          }),
+        )
           .then(function () {
-            var replacements = [].slice
-              .call(scope.querySelectorAll("img"))
-              .filter(function (image) {
-                return images.indexOf(image) === -1;
-              });
-            return Promise.all(replacements.map(decoded));
+            var replacements = criticalImages().filter(function (image) {
+              return images.indexOf(image) === -1;
+            });
+            return Promise.all(
+              replacements.map(function (image) {
+                return decoded(image, 0);
+              }),
+            );
           })
           .then(function () {
             done.art = 1;

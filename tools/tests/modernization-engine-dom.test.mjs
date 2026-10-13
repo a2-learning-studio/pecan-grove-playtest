@@ -7,7 +7,10 @@ import { Gestures } from "../../assets/games/community-builders/engine/gestures.
 import { FX } from "../../assets/games/community-builders/engine/fx.js";
 import { configureMotion } from "../../assets/games/community-builders/engine/motion.js";
 import { controllerGlyph } from "../../assets/games/community-builders/engine/hints.js";
-import { trustedScriptURL, trustedWorkerURL } from "../../assets/games/community-builders/engine/assets.js";
+import {
+  trustedScriptURL,
+  trustedWorkerURL,
+} from "../../assets/games/community-builders/engine/assets.js";
 import createLegacyInput from "../../assets/games/community-builders/engine/core/legacy-input.js";
 import {
   clear,
@@ -41,9 +44,17 @@ test("script URL policy admits only authored local game modules and caches the s
   assert.deepEqual(trustedScriptURL(window, stop), { trusted: stop });
   const voice = "/play/assets/games/community-builders/voice/index.abc12.js";
   assert.deepEqual(trustedScriptURL(window, voice), { trusted: voice });
-  assert.deepEqual(trustedWorkerURL(window, '/play/sw.js'), {trusted:'/play/sw.js'});
-  assert.throws(() => trustedScriptURL(window, '/play/sw.js'), TypeError);
-  for (const candidate of [voice, '/sw.js', '/play/sw.js?different=1', 'https://external.test/play/sw.js']) assert.throws(()=>trustedWorkerURL(window,candidate),TypeError);
+  assert.deepEqual(trustedWorkerURL(window, "/play/sw.js"), {
+    trusted: "/play/sw.js",
+  });
+  assert.throws(() => trustedScriptURL(window, "/play/sw.js"), TypeError);
+  for (const candidate of [
+    voice,
+    "/sw.js",
+    "/play/sw.js?different=1",
+    "https://external.test/play/sw.js",
+  ])
+    assert.throws(() => trustedWorkerURL(window, candidate), TypeError);
   assert.equal(creations, 1);
   for (const url of [
     "https://untrusted.org/assets/games/community-builders/stops/03.js",
@@ -154,8 +165,14 @@ async function harness() {
   const win = dom.window;
   win.matchMedia = () => ({ matches: false, addEventListener() {} });
   win.navigator.getGamepads = () => [];
-  win.requestAnimationFrame = () => 1;
-  win.cancelAnimationFrame = () => {};
+  const frames = new Map();
+  let frameId = 0;
+  win.requestAnimationFrame = (run) => {
+    const id = ++frameId;
+    frames.set(id, run);
+    return id;
+  };
+  win.cancelAnimationFrame = (id) => frames.delete(id);
   win.HTMLElement.prototype.scrollIntoView = function () {};
   win.HTMLElement.prototype.getBoundingClientRect = function () {
     return {
@@ -259,7 +276,13 @@ async function harness() {
     engine,
     calls,
     saved,
+    paint() {
+      const runs = [...frames.values()];
+      frames.clear();
+      runs.forEach((run) => run());
+    },
     cleanup() {
+      engine.slotTransition.destroy();
       engine.pause.close();
       engine.settings.dialog?.close();
       clearTimeout(engine.input.hold?.timer);
@@ -456,6 +479,13 @@ test("save slot screen has eight animal choices and no text input", async () => 
     d.querySelector(".cb-engine-slot-pick").click();
     assert.ok(h.state.store.players.fox);
     assert.equal(h.state.store.current, "fox");
+    assert.equal(h.root.dataset.slotTransition, "pending");
+    assert.equal(
+      h.calls.some((call) => call[0] === "map"),
+      false,
+    );
+    h.paint();
+    h.paint();
     assert.equal(h.calls.at(-1)[0], "map");
   } finally {
     h.cleanup();
@@ -467,6 +497,7 @@ test("a saved core record keeps its version, session and controller state when c
   try {
     const record = {
       v: 1,
+      slot: "you",
       session: "test-session",
       mode: "stop",
       stopId: "one",
@@ -474,6 +505,13 @@ test("a saved core record keeps its version, session and controller state when c
       rng: 14,
       roundSeed: 9,
     };
+    Object.assign(h.state, {
+      mode: "stop",
+      stopId: "one",
+      inStop: true,
+      session: "test-session",
+    });
+    h.root.dataset.feedbackPhase = "playing";
     h.dom.window.document.dispatchEvent(
       new h.dom.window.CustomEvent("cb:step", { detail: { snapshot: record } }),
     );
@@ -481,6 +519,8 @@ test("a saved core record keeps its version, session and controller state when c
     assert.deepEqual(h.engine.store.current().resume.state, { step: 3 });
     const d = h.engine.openSlots(h.root.querySelector("button"));
     d.querySelector(".cb-engine-slot-pick").click();
+    h.paint();
+    h.paint();
     const restored = h.calls.find((call) => call[0] === "restore")?.[1];
     assert.equal(restored.v, 1);
     assert.equal(restored.session, "test-session");
@@ -575,9 +615,12 @@ test("HUD progress and device hints update without duplicating controls", async 
     assert.equal(h.root.querySelector(".cb-hints kbd").textContent, "Enter");
     h.engine.input.setDevice("touch");
     h.root.dispatchEvent(new h.dom.window.Event("click"));
-    assert.equal(h.root.querySelector(".cb-hints").classList.contains("is-hidden"), false, "background taps do not count as successful choices");
-    for (let n = 0; n < 3; n++)
-      h.root.querySelector("#choice-a").click();
+    assert.equal(
+      h.root.querySelector(".cb-hints").classList.contains("is-hidden"),
+      false,
+      "background taps do not count as successful choices",
+    );
+    for (let n = 0; n < 3; n++) h.root.querySelector("#choice-a").click();
     assert.equal(
       h.root.querySelector(".cb-hints").classList.contains("is-hidden"),
       true,
@@ -707,14 +750,27 @@ test("FX uses bounded particles, stops idle frames, freezes on pause and obeys C
     fx.pause(false);
     assert.equal(frames.size, 1);
     let stamps = 0;
-    let paused = 0, played = 0, cancelled = 0;
-    const target = { animate: () => { stamps++; return { pause: () => paused++, play: () => played++, cancel: () => cancelled++ }; } };
+    let paused = 0,
+      played = 0,
+      cancelled = 0;
+    const target = {
+      animate: () => {
+        stamps++;
+        return {
+          pause: () => paused++,
+          play: () => played++,
+          cancel: () => cancelled++,
+        };
+      },
+    };
     fx.stamp(target);
     fx.pulse(target);
     fx.nudge(target);
     assert.equal(stamps, 3);
-    fx.pause(true); assert.equal(paused, 3);
-    fx.pause(false); assert.equal(played, 3);
+    fx.pause(true);
+    assert.equal(paused, 3);
+    fx.pause(false);
+    assert.equal(played, 3);
     for (let i = 0; i < 70 && frames.size; i++) {
       const [id, callback] = frames.entries().next().value;
       frames.delete(id);

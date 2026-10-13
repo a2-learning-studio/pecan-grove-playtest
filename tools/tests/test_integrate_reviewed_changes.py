@@ -45,6 +45,15 @@ class SourceIntegrationTests(unittest.TestCase):
             integration.apply()
 
     def test_plan_mirrors_game_and_excludes_private_and_release_files(self):
+        self.write(self.work, "tools/requirements-build.txt", "fonttools==4.62.1\n")
+        self.write(self.work, "tools/delivery-manifest.mjs", "export const prepareManifest = () => {};\n")
+        self.write(self.work, "tools/performance-checks.mjs", "export const checks = [];\n")
+        self.write(self.work, "tools/webkit-csp-probe.mjs", "export const probes = [];\n")
+        self.write(self.work, "docs/engine-art-review/animals-modern.css", ".animal { color: currentColor; }\n")
+        self.write(self.work, "assets/icons/icon-192.png", "authored app icon")
+        self.write(self.work, "assets/img/mark.svg", "<svg/>")
+        self.write(self.work, "docs/engine-coverage.json", '{"passed":true}\n')
+        self.write(self.work, "docs/engine-coverage.txt", "public aggregate coverage receipt\n")
         for relative in ["_publish/pecan-grove-playtest/index.html", "dist/index.html",
                          "backend/feedback/deployment.json", "assets/playtest/live-verification.json",
                          "assets/games/community-builders/metadata/private.json", "backups/private.js",
@@ -52,9 +61,9 @@ class SourceIntegrationTests(unittest.TestCase):
             self.write(self.work, relative, "excluded")
         before = (self.original / "assets/games/community-builders/cb.js").read_bytes()
         plan = self.prepare()
-        self.assertEqual(plan["stats"]["changed_files"], 3)
+        self.assertEqual(plan["stats"]["changed_files"], 12)
         self.assertEqual({item["destination"] for item in plan["files"]},
-                         {"package.json", "assets/games/community-builders/cb.js", "docs/assets/games/community-builders/cb.js"})
+                         {"package.json", "tools/requirements-build.txt", "tools/delivery-manifest.mjs", "tools/performance-checks.mjs", "tools/webkit-csp-probe.mjs", "docs/engine-art-review/animals-modern.css", "assets/icons/icon-192.png", "assets/img/mark.svg", "docs/engine-coverage.json", "docs/engine-coverage.txt", "assets/games/community-builders/cb.js", "docs/assets/games/community-builders/cb.js"})
         self.assertEqual((self.original / "assets/games/community-builders/cb.js").read_bytes(), before)
         self.assertEqual([path.name for path in (self.work / "backups").iterdir()], ["private.js"])
 

@@ -1,0 +1,32 @@
+{
+  "build": "e8afcccbe92a",
+  "flavor": "playtest",
+  "files": 299,
+  "jsGzipBytes": 95935,
+  "cssGzipBytes": 27884,
+  "criticalCssGzipBytes": 10668,
+  "fonts": {
+    "fonts": [
+      {
+        "name": "Inter-var.woff2",
+        "sourceBytes": 48256,
+        "subsetBytes": 38844,
+        "spanishGlyphs": true,
+        "variableAxes": [
+          "wght"
+        ]
+      },
+      {
+        "name": "Geist-var.woff2",
+        "sourceBytes": 69652,
+        "subsetBytes": 35396,
+        "spanishGlyphs": true,
+        "variableAxes": [
+          "wght"
+        ]
+      }
+    ],
+    "totalBytes": 74240
+  },
+  "assetMapEntries": 117
+}

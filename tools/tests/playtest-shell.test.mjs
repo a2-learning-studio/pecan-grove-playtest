@@ -113,9 +113,9 @@ function harness({ lang = 'en', fullscreen = 'success', liveFeedback = false, vi
     run(ms) { for (const [id, task] of [...timers]) if (task.ms === ms) { timers.delete(id); task.fn(); } } };
 }
 
-test('Start opens expanded play and requests fullscreen on the common stage; quiet choice reaches the engine', () => {
+test('Start opens expanded play and requests fullscreen on the common stage; quiet choice reaches the engine', async () => {
   const h = harness(); assert.deepEqual(h.calls[0], ['suspend', true]);
-  h.field('quiet').checked = true; h.field('start').click();
+  h.field('quiet').checked = true; await h.app.start();
   assert.equal(h.field('intro').hidden, true); assert.equal(h.stage.classList.contains('is-expanded'), true);
   assert.equal(h.doc.body.classList.contains('pt-playing'), true); assert.equal(h.doc.fullscreenElement, h.stage);
   assert.equal(h.calls.findIndex(c => c[0] === 'requestFullscreen') < h.calls.findIndex(c => c[0] === 'enter'), true);
@@ -151,7 +151,7 @@ test('a stylesheet failure returns to an accessible introduction with a localize
 
 test('Denied, throwing or unavailable fullscreen leaves a usable expanded play view', async () => {
   for (const fullscreen of ['reject', 'throw', 'missing']) {
-    const h = harness({ fullscreen }); assert.doesNotThrow(() => h.field('start').click()); await Promise.resolve();
+    const h = harness({ fullscreen }); await h.app.start();
     assert.equal(h.stage.classList.contains('is-playing'), true); assert.equal(h.field('intro').hidden, true); assert.equal(h.doc.activeElement, h.game);
   }
 });
@@ -199,8 +199,8 @@ test('Fullscreen Escape preserves the current scene and the persistent review to
   h.emit('cb:screen', { stopN: 15, phase: 'result', score: 100 }); h.field('review-tab').click(); assert.equal(h.field('review-dialog').open, true);
 });
 
-test('Library and grown-up tools use the current engine and Spanish status is localized', () => {
-  const h = harness({ lang: 'es' }); h.field('start').click(); h.field('library-tab').click(); h.field('grownups-tab').click();
+test('Library and grown-up tools use the current engine and Spanish status is localized', async () => {
+  const h = harness({ lang: 'es' }); await h.app.start(); h.field('library-tab').click(); h.field('grownups-tab').click();
   assert.equal(h.calls.find(c => c[0] === 'library')[1], h.field('library-tab')); assert.equal(h.calls.find(c => c[0] === 'grownups')[1], h.field('grownups-tab'));
   assert.match(h.field('play-status').textContent, /Vista de juego abierta/); assert.doesNotMatch(h.field('play-status').textContent, /Play view/);
 });
@@ -440,4 +440,77 @@ test('Spanish dock controls stay localized and collapsed feedback follows scene 
   assert.equal(h.panel.hidden, true); assert.equal(h.field('feedback-fix').value, '');
   toggle.click(); assert.equal(toggle.textContent, 'Contraer comentarios'); assert.equal(h.panel.hidden, false);
   h.emit('cb:screen', { stopN: 2, phase: 'playing' }); assert.equal(h.field('feedback-fix').value, 'Una sugerencia');
+});
+
+
+test('title entry waits for an asynchronous native fullscreen transition before it becomes usable', async () => {
+  const h = harness(); let enter;
+  h.stage.requestFullscreen = () => new Promise(resolve => { enter = () => { h.doc.fullscreenElement = h.stage; resolve(); }; });
+  const pending = h.app.start();
+  assert.equal(h.doc.fullscreenElement, undefined);
+  assert.equal(h.game.hidden, true, 'the already mounted title cannot race a later native enter');
+  assert.equal(h.calls.some(call => call[0] === 'enter'), false);
+  enter(); await pending;
+  assert.equal(h.doc.fullscreenElement, h.stage);
+  assert.equal(h.game.hidden, false);
+  assert.equal(h.calls.some(call => call[0] === 'enter'), true);
+  await h.doc.exitFullscreen();
+  assert.equal(h.doc.fullscreenElement, null, 'a normal exit after title readiness cannot be followed by a late enter');
+});
+
+test('Exit before native fullscreen settles returns to intro and releases a late fullscreen enter', async () => {
+  for (const prefixed of [false, true]) {
+    const h = harness(); let enter;
+    const request = () => new Promise(resolve => { enter = () => { h.doc.fullscreenElement = h.stage; resolve(); }; });
+    if (prefixed) { delete h.stage.requestFullscreen; h.stage.webkitRequestFullscreen = request; }
+    else h.stage.requestFullscreen = request;
+    const starting = h.app.start(); h.app.exit();
+    assert.equal(h.field('intro').hidden, false);
+    enter(); await starting;
+    assert.equal(h.doc.fullscreenElement, null, 'the late request is cancelled after it actually enters');
+    assert.equal(h.stage.classList.contains('is-expanded'), false);
+    assert.equal(h.game.hidden, false);
+    assert.equal(h.game.getAttribute('aria-busy'), null);
+    assert.equal(h.calls.some(call => call[0] === 'enter'), false);
+    assert.equal(h.doc.activeElement, h.field('h'));
+  }
+});
+
+
+test('an early fullscreenElement does not reveal the title before the native request promise finishes', async () => {
+  const h = harness(); let complete;
+  h.stage.requestFullscreen = () => {
+    h.doc.fullscreenElement = h.stage;
+    return new Promise(resolve => { complete = resolve; });
+  };
+  const starting = h.app.start();
+  assert.equal(h.doc.fullscreenElement, h.stage);
+  assert.equal(h.game.hidden, true);
+  assert.equal(h.calls.some(call => call[0] === 'enter'), false);
+  complete(); await starting;
+  assert.equal(h.game.hidden, false);
+  assert.equal(h.calls.some(call => call[0] === 'enter'), true);
+});
+
+
+test('an unresolved native fullscreen promise falls back after a bounded wait and a later enter is released', async () => {
+  const h = harness(); let late;
+  h.stage.requestFullscreen = () => new Promise(resolve => { late = () => { h.doc.fullscreenElement = h.stage; resolve(); }; });
+  const starting = h.app.start();
+  assert.equal(h.game.hidden, true);
+  h.run(3000); await starting;
+  assert.equal(h.game.hidden, false);
+  assert.equal(h.stage.classList.contains('is-expanded'), true);
+  assert.equal(h.calls.some(call => call[0] === 'enter'), true);
+  late(); await new Promise(resolve => setImmediate(resolve));
+  assert.equal(h.doc.fullscreenElement === null, true, 'the obsolete native transition cannot take over after expanded fallback');
+});
+
+test('a late native event after Exit is released even when the request promise never completes', () => {
+  const h = harness();
+  h.stage.requestFullscreen = () => new Promise(() => {});
+  h.app.start(); h.app.exit();
+  h.doc.fullscreenElement = h.stage; h.emit('fullscreenchange');
+  assert.equal(h.doc.fullscreenElement, null);
+  assert.equal(h.field('intro').hidden, false);
 });

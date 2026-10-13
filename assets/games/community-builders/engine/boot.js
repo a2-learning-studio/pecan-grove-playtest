@@ -91,13 +91,8 @@ export function bootGame(window) {
     )
       ? window.getComputedStyle.bind(window)
       : window.getComputedStyle;
-  ctx.NodeFilter =
-    typeof window.NodeFilter === "function" &&
-    !["Audio", "MutationObserver", "Event", "URL", "URLSearchParams"].includes(
-      "NodeFilter",
-    )
-      ? window.NodeFilter.bind(window)
-      : window.NodeFilter;
+  // Preserve constructor constants such as SHOW_TEXT; binding discards them.
+  ctx.NodeFilter = window.NodeFilter;
   ctx.performance =
     typeof window.performance === "function" &&
     !["Audio", "MutationObserver", "Event", "URL", "URLSearchParams"].includes(

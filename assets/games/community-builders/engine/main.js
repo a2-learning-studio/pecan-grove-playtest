@@ -18,6 +18,8 @@ import { badgeIcon, badgeHint } from "./badge-art.js";
 import { annotateChoices, syncShortcutLabels } from "./choice-hints.js";
 import { Tooltips } from "./tooltips.js";
 import { showResultBadges, observeFeedback } from "./result-presentation.js";
+import { createSlotTransition } from "./slot-transition.js";
+import { createProgressAutosave } from "./action-autosave.js";
 
 export async function mount(
   root = document.getElementById("community-builders"),
@@ -87,7 +89,18 @@ export async function mount(
       showToast();
     }, 4000);
   }
+  const slotTransition = createSlotTransition({
+    root,
+    valid: (selection) => slots.store().current === selection.id,
+    onError: (_error, dialog) => {
+      focus.pop(dialog);
+      dialog.remove();
+      core().showTitle?.();
+      toast(i18n.t("openGameFailed"));
+    },
+  });
   function openDialog(title, children, opener = document.activeElement) {
+    slotTransition.cancel();
     const d = h("dialog", {
       class: "cb-engine-dialog",
       "aria-label": title,
@@ -102,7 +115,7 @@ export async function mount(
     );
     root.append(d);
     d.addEventListener("close", () => {
-      focus.pop(d);
+      focus.pop(d, d.dataset.slotNavigation !== "true");
       d.remove();
     });
     d.showModal();
@@ -129,11 +142,11 @@ export async function mount(
   function resumeCurrent() {
     const record = slots.current().resume;
     if (resumable(record))
-      core().resume?.({
+      return core().resume?.({
         ...record,
         slot: slots.store().current,
       });
-    else core().showMap?.();
+    else return core().showMap?.();
   }
   function deleteSlot(id, dialog) {
     const row = h("div", { class: "cb-engine-slots" });
@@ -188,10 +201,18 @@ export async function mount(
       const b = button(
         name,
         () => {
-          if (player) slots.select(id);
-          else slots.create(id);
-          dialog.close();
-          resumeCurrent();
+          slotTransition.begin(
+            dialog,
+            () => {
+              if (player) slots.select(id);
+              else slots.create(id);
+              return { id, record: structuredClone(slots.current().resume) };
+            },
+            ({ id, record }) =>
+              resumable(record)
+                ? core().resume?.({ ...record, slot: id })
+                : core().showMap?.(null, { defer: true }),
+          );
         },
         { class: "cb-btn cb-engine-slot-pick" },
       );
@@ -238,6 +259,7 @@ export async function mount(
     onBadges: openBadges,
     onSlots: openSlots,
     onQuit: () => {
+      slotTransition.cancel();
       const exit = document.getElementById("pt-exit");
       if (exit) exit.click();
       else core().showTitle?.();
@@ -293,6 +315,7 @@ export async function mount(
     i18n,
     openSlots,
     openBadges,
+    slotTransition,
     syncControls: () => syncShortcutLabels(root, input.bindings),
   };
   globalThis.PecanGroveEngine = engine;
@@ -366,9 +389,10 @@ export async function mount(
       settings,
     });
   }
-  let saveTimer;
+  const autosave = createProgressAutosave({ root, core, slots });
   let roundBadges = [];
   function refresh(event) {
+    autosave.cancel();
     if (settings.dialog?.open) return;
     if (state().quiet && settings.get().voice !== false)
       settings.update({ voice: false, musicOn: false, sfx: 30 });
@@ -381,14 +405,9 @@ export async function mount(
     engine.syncControls();
     hints.refresh();
     if (event?.detail?.phase === "playing") {
-      clearTimeout(saveTimer);
-      saveTimer = setTimeout(() => {
-        const record = core().snapshot?.();
-        if (record?.stopId) slots.resume(record);
-      }, 50);
+      autosave.schedule();
     }
     if (event?.detail?.phase === "result") {
-      clearTimeout(saveTimer);
       slots.finished(event.detail.stopId);
       badge.evaluate({
         stopId: event.detail.stopId,
@@ -398,14 +417,14 @@ export async function mount(
   }
   document.addEventListener("cb:screen", refresh);
   document.addEventListener("cb:step", (event) => {
-    clearTimeout(saveTimer);
-    saveTimer = setTimeout(() => {
-      const record = event.detail?.snapshot || core().snapshot?.();
-      if (record?.stopId) slots.resume(record);
-    }, 50);
+    autosave.schedule(event.detail?.snapshot);
+  });
+  document.addEventListener("cb:pause", (event) => {
+    autosave.cancel();
+    if (!event.detail?.paused) autosave.schedule();
   });
   document.addEventListener("cb:result", (e) => {
-    clearTimeout(saveTimer);
+    autosave.cancel();
     roundBadges = badge.evaluate({
       ...e.detail,
       quiet: root.classList.contains("is-quiet"),

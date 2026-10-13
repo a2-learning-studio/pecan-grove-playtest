@@ -1,6 +1,7 @@
 import { transitionScene } from "../transitions.js";
 export default function createRuntime(ctx) {
   function startStop(id) {
+    ctx.stopVisit = (ctx.stopVisit || 0) + 1;
     var fromMap = ctx.mode === "map" && !ctx.restoring;
     if (ctx.activeLifecycle) {
       ctx.activeLifecycle.dispose();
