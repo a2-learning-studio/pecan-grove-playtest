@@ -9,167 +9,78 @@
    Every round: 1 promise with no clue, 1 unclear, 3 kept or late (at least one of each); paths alternate. */
 (function () {
   "use strict";
-  var CB = window.CommunityBuilders; if (!CB) return;
+  var host = window.CommunityBuilders; if (!host) return;
+  function factory(lifecycle) {
+    var document = lifecycle.document, window = lifecycle.window, Date = lifecycle.Date;
+    var setTimeout = lifecycle.setTimeout, clearTimeout = lifecycle.clearTimeout;
+    var requestAnimationFrame = lifecycle.requestAnimationFrame, cancelAnimationFrame = lifecycle.cancelAnimationFrame;
+    var definition = null, CB = { register: function (value) { definition = value; } };
+
+  "use strict";
+
   var LANG = (document.documentElement.lang || "en").slice(0, 2) === "es" ? "es" : "en";
   var I = LANG === "es" ? 1 : 0;
 
   /* ── words, exact from the spec (14 - keep-watch.md, pastes 14B to 14H) ── */
-  var T = {
-    en: {
-      pageTitle: "Keep Watch - Community Builders of Pecan Grove",
-      introBuilt: "It's spring, one year later. The town said yes to the data center, with changes.",
-      introStudying: "It's spring, one year later. The town said not now. It's still studying and writing rules.",
-      fair: "Saying yes with changes and saying not now, to study more, are both fair choices. Either way, people made promises. Let's check them, kindly.",
-      start: "Start",
-      step: function (n) { return "Step " + n + " of 2"; },
-      noClue: "No clue found", notebook: "Promise notebook", siteTag: "Data center",
-      clueAria: function (l) { return "Clue: " + l; },
-      notChecked: "Not checked yet",
-      promiseN: function (n) { return "Promise " + n + " of 5"; },
-      s1: "Read the promise. Tap its clue in town, or tap 'No clue found'.",
-      see: "What you see:",
-      rightNone: "Right. There's no clue for this one in town.",
-      other: "That clue goes with another promise.", hereIs: "Here is this one's clue.", noneHere: "There's no clue for this one in town.",
-      lookClue: "Look again: there is a clue for this one. Here it is.",
-      how: "How is this promise doing?",
-      st: { kept: "Kept", notyet: "Not yet", ask: "Need to ask" },
-      stAria: function (l) { return l + ", status"; },
-      ok: { kept: "Yes! This promise was kept.", notyet: "Yes. It's started, but it's not done yet.", ask: "Yes. We can't tell yet, so we'll ask." },
-      wrong: { kept: "Look again: the clue shows it's done. This promise was kept.",
-        notyet: "Look again: it's started, but not done yet. It's late, not broken.",
-        ask: "Look again: we can't tell from this. No clue doesn't mean a broken promise. We just need to ask." },
-      nextPromise: "Next promise", followUp: "Follow up",
-      s2: "Pick a kind follow-up for each late or unclear promise. It goes in your notebook, to ask with a grown-up.",
-      fu: { thanks: "Say thank you", why: "Ask why", when: "Ask when" },
-      fuLine: {
-        notyet: { thanks: "Thank you for starting. We'll check again soon.", why: "What's making it take longer?", when: "When do you think it will be done?" },
-        ask: { thanks: "Thank you for this promise. Where can we see how it's going?", why: "Why is it hard to tell if it's done?", when: "When can we see how it's going?" }
-      },
-      reply: "Thanks for asking kindly. You'll get an answer at the next town meeting.",
-      fuN: function (n, t) { return "Follow-ups: " + n + " of " + t; },
-      closeNb: "Close the notebook",
-      still: function (n) { return n === 1 ? "1 promise still needs a follow-up." : n + " promises still need a follow-up."; },
-      goBack: "Go back", closeAnyway: "Close anyway",
-      closing: "Some promises are kept, some are late, and some just need a question. Checking kindly works better than blaming.",
-      seeScore: "See my score",
-      can: "I can check, kindly, if promises were kept.",
-      tipFollow: "Next time, give every late or unclear promise a kind follow-up.",
-      tipAsk: "Next time, remember: no clue doesn't mean a broken promise. Ask first.",
-      tipStatus: "Next time, read each clue slowly. Is it done, started or not clear?",
-      tipClue: "Next time, look all over town for each promise's clue.",
-      tip100: "Great watching! Try a new round. The town may take the other path.",
-      real: "With a grown-up, keep a 'listen and look' notebook at home. Write down changes in sounds, lights or water you notice. Never go near a building site.",
-      askH: "Ask a grown-up", ask: "What promise in our town would you like to check on, and who could we ask?",
-      gu: "For grown-ups: about this stop",
-      guText: "Promises come from the town, the builders and the neighbors. Kids match each promise to a clue a year later and choose a kind follow-up. Real checking is an adult job: ask for yearly reports and meeting minutes, and find out who enforces each promise. Each round, the town has taken one of two fair paths: building with changes, or not building while it studies."
-    },
-    es: {
-      pageTitle: "Vigila las promesas - Constructores de comunidad de Pecan Grove",
-      introBuilt: "Es primavera, un año después. El pueblo dijo que sí al centro de datos, con cambios.",
-      introStudying: "Es primavera, un año después. El pueblo dijo que por ahora no. Todavía está estudiando y escribiendo reglas.",
-      fair: "Decir que sí con cambios y decir que por ahora no, para estudiar más, son decisiones justas. De cualquier forma, la gente hizo promesas. Vamos a revisarlas, con respeto.",
-      start: "Empezar",
-      step: function (n) { return "Paso " + n + " de 2"; },
-      noClue: "No encontré pista", notebook: "Cuaderno de promesas", siteTag: "Centro de datos",
-      clueAria: function (l) { return "Pista: " + l; },
-      notChecked: "Sin revisar",
-      promiseN: function (n) { return "Promesa " + n + " de 5"; },
-      s1: "Lee la promesa. Toca su pista en el pueblo, o toca 'No encontré pista'.",
-      see: "Lo que ves:",
-      rightNone: "Así es. De esta no hay ninguna pista en el pueblo.",
-      other: "Esa pista es de otra promesa.", hereIs: "Aquí está la pista de esta.", noneHere: "De esta no hay ninguna pista en el pueblo.",
-      lookClue: "Mira otra vez: sí hay una pista para esta. Aquí está.",
-      how: "¿Cómo va esta promesa?",
-      st: { kept: "Cumplida", notyet: "Todavía no", ask: "Hay que preguntar" },
-      stAria: function (l) { return l + ", estado"; },
-      ok: { kept: "¡Sí! Esta promesa se cumplió.", notyet: "Sí. Ya empezó, pero todavía no termina.", ask: "Sí. Todavía no se sabe, así que vamos a preguntar." },
-      wrong: { kept: "Mira otra vez: la pista muestra que ya está hecho. Esta promesa se cumplió.",
-        notyet: "Mira otra vez: ya empezó, pero todavía no termina. Va atrasada, pero no se rompió.",
-        ask: "Mira otra vez: con esto no se puede saber. Que no haya pista no quiere decir que se rompió la promesa. Solo hay que preguntar." },
-      nextPromise: "Siguiente promesa", followUp: "Hacer seguimiento",
-      s2: "Elige un seguimiento amable para cada promesa atrasada o que no está clara. Se anota en tu cuaderno, para preguntarlo con un adulto.",
-      fu: { thanks: "Dar las gracias", why: "Preguntar por qué", when: "Preguntar cuándo" },
-      fuLine: {
-        notyet: { thanks: "Gracias por empezar. Volveremos a revisar pronto.", why: "¿Qué lo está atrasando?", when: "¿Cuándo crees que estará terminado?" },
-        ask: { thanks: "Gracias por esta promesa. ¿Dónde podemos ver cómo va?", why: "¿Por qué cuesta saber si ya está hecho?", when: "¿Cuándo podremos ver cómo va?" }
-      },
-      reply: "Gracias por preguntar con respeto. Tendrás una respuesta en la próxima reunión del pueblo.",
-      fuN: function (n, t) { return "Seguimientos: " + n + " de " + t; },
-      closeNb: "Cerrar el cuaderno",
-      still: function (n) { return n === 1 ? "Todavía falta el seguimiento de 1 promesa." : "Todavía faltan seguimientos para " + n + " promesas."; },
-      goBack: "Regresar", closeAnyway: "Cerrar de todos modos",
-      closing: "Algunas promesas se cumplen, otras van atrasadas y otras solo necesitan una pregunta. Revisar con respeto funciona mejor que culpar.",
-      seeScore: "Ver mi puntaje",
-      can: "Puedo revisar, con respeto, si se cumplieron las promesas.",
-      tipFollow: "La próxima vez, haz un seguimiento amable para cada promesa atrasada o que no está clara.",
-      tipAsk: "La próxima vez, recuerda: si no hay pista, no quiere decir que se rompió la promesa. Primero pregunta.",
-      tipStatus: "La próxima vez, lee despacio cada pista. ¿Ya está hecho, apenas empezó o no está claro?",
-      tipClue: "La próxima vez, busca por todo el pueblo la pista de cada promesa.",
-      tip100: "¡Muy buena vigilancia! Prueba una nueva ronda. El pueblo puede tomar el otro camino.",
-      real: "Con un adulto, lleva en casa un cuaderno de 'escucha y observa'. Anota los cambios de ruido, luces o agua que notes. Nunca te acerques a una obra.",
-      askH: "Pregúntale a un adulto", ask: "¿Qué promesa de nuestro pueblo te gustaría revisar, y a quién le podríamos preguntar?",
-      gu: "Para adultos: sobre esta parada",
-      guText: "Las promesas vienen del pueblo, de los constructores y de los vecinos. Los niños comparan cada promesa con una pista un año después y eligen un seguimiento amable. La revisión real es trabajo de adultos: pidan informes anuales y actas de las reuniones, y pregunten quién hace cumplir cada promesa. En cada ronda, el pueblo tomó uno de dos caminos justos: construir con cambios, o no construir mientras estudia."
-    }
-  }[LANG];
+  var T = window.CBLocale.read("stop-14", LANG, {en:{"T.step":function (n) { return window.CBLocale.part("stop-14", "en", "T.step", 0) + n + window.CBLocale.part("stop-14", "en", "T.step", 1); },"T.clueAria":function (l) { return window.CBLocale.part("stop-14", "en", "T.clueAria", 0) + l; },"T.promiseN":function (n) { return window.CBLocale.part("stop-14", "en", "T.promiseN", 0) + n + window.CBLocale.part("stop-14", "en", "T.promiseN", 1); },"T.stAria":function (l) { return l + window.CBLocale.part("stop-14", "en", "T.stAria", 0); },"T.fuN":function (n, t) { return window.CBLocale.part("stop-14", "en", "T.fuN", 0) + n + window.CBLocale.part("stop-14", "en", "T.fuN", 1) + t; },"T.still":function (n) { return n === 1 ? window.CBLocale.part("stop-14", "en", "T.still", 0) : n + window.CBLocale.part("stop-14", "en", "T.still", 1); }},es:{"T.step":function (n) { return window.CBLocale.part("stop-14", "es", "T.step", 0) + n + window.CBLocale.part("stop-14", "es", "T.step", 1); },"T.clueAria":function (l) { return window.CBLocale.part("stop-14", "es", "T.clueAria", 0) + l; },"T.promiseN":function (n) { return window.CBLocale.part("stop-14", "es", "T.promiseN", 0) + n + window.CBLocale.part("stop-14", "es", "T.promiseN", 1); },"T.stAria":function (l) { return l + window.CBLocale.part("stop-14", "es", "T.stAria", 0); },"T.fuN":function (n, t) { return window.CBLocale.part("stop-14", "es", "T.fuN", 0) + n + window.CBLocale.part("stop-14", "es", "T.fuN", 1) + t; },"T.still":function (n) { return n === 1 ? window.CBLocale.part("stop-14", "es", "T.still", 0) : window.CBLocale.part("stop-14", "es", "T.still", 1) + n + window.CBLocale.part("stop-14", "es", "T.still", 2); }}}).T;
 
   /* ── who promised: the builders (hard hat), the Town Council (small Town Hall), or a neighbor (portrait) ── */
   var MAKERS = {
-    builders: { label: ["From the builders", "De los constructores"], icon: "hardhat" },
-    council: { label: ["From the Town Council", "Del Concejo del pueblo"], icon: "townhall" },
-    ana: { label: ["From Ana", "De Ana"], nb: "ana" },
-    jayden: { label: ["From Jayden", "De Jayden"], nb: "jayden" },
-    patel: { label: ["From Mr. Patel", "Del Sr. Patel"], nb: "patel" }
+    builders: { label: window.CBLocale.pair("stop-14","bank.b0001"), icon: "hardhat" },
+    council: { label: window.CBLocale.pair("stop-14","bank.b0002"), icon: "townhall" },
+    ana: { label: window.CBLocale.pair("stop-14","bank.b0003"), nb: "ana" },
+    jayden: { label: window.CBLocale.pair("stop-14","bank.b0004"), nb: "jayden" },
+    patel: { label: window.CBLocale.pair("stop-14","bank.b0005"), nb: "patel" }
   };
   /* the seven clues: separate icons on real buttons, so they can move and one can be missing */
   var CLUES = {
-    lights: ["Lights", "Luces"], letter: ["Well-test letter", "Carta de las pruebas de agua"], truck: ["Truck sign", "Letrero de camiones"],
-    school: ["School class", "Clase en la escuela"], poster: ["Meeting poster", "Cartel de la reunión"],
-    stakes: ["Study stakes", "Estacas de estudio"], hall: ["Town Hall meeting", "Reunión en el ayuntamiento"]
+    lights: window.CBLocale.pair("stop-14","bank.b0006"), letter: window.CBLocale.pair("stop-14","bank.b0007"), truck: window.CBLocale.pair("stop-14","bank.b0008"),
+    school: window.CBLocale.pair("stop-14","bank.b0009"), poster: window.CBLocale.pair("stop-14","bank.b0010"),
+    stakes: window.CBLocale.pair("stop-14","bank.b0011"), hall: window.CBLocale.pair("stop-14","bank.b0012")
   };
   /* codes K1..S5 and the keys kept / notyet / unclear are for code only; they never show */
-  var K1_NOT = ["The letter says the wells were tested. The creek tests start next month.", "La carta dice que revisaron los pozos. Las pruebas del arroyo empiezan el próximo mes."];
-  var K1_UNC = ["The van drives by sometimes, but no letter has come. We can't tell.", "La camioneta pasa a veces, pero no ha llegado ninguna carta. No se sabe."];
+  var K1_NOT = window.CBLocale.pair("stop-14","bank.b0013");
+  var K1_UNC = window.CBLocale.pair("stop-14","bank.b0014");
   var PROMISES = {
     built: [
-      { code: "K1", maker: "builders", clue: "letter", words: ["We'll test the wells and the creek every month.", "Vamos a revisar los pozos y el arroyo cada mes."],
-        kept: ["A letter came to every farm. The wells and the creek were tested every month.", "Llegó una carta a cada granja. Revisaron los pozos y el arroyo cada mes."], notyet: K1_NOT, unclear: K1_UNC },
-      { code: "K2", maker: "builders", clue: "lights", words: ["We'll point every outside light down.", "Vamos a apuntar todas las luces de afuera hacia abajo."],
-        kept: ["Every outside light points down. You can see the stars over the farm.", "Todas las luces de afuera apuntan hacia abajo. Se ven las estrellas sobre la granja."],
-        notyet: ["Half the lights point down. A box of new lamps waits by the fence.", "La mitad de las luces apuntan hacia abajo. Una caja de lámparas nuevas espera junto a la cerca."],
-        unclear: ["The lights point down, but some stay on all night. Was that part of the promise?", "Las luces apuntan hacia abajo, pero algunas quedan prendidas toda la noche. ¿Eso era parte de la promesa?"] },
-      { code: "K3", maker: "builders", clue: "truck", words: ["We'll keep big trucks off Main Street.", "Vamos a mantener los camiones grandes fuera de la calle principal."],
-        kept: ["The truck sign points to the farm road. Main Street is calm.", "El letrero de camiones señala el camino de la granja. La calle principal está tranquila."],
-        notyet: ["The farm road isn't finished. Some trucks still use Main Street.", "El camino de la granja no está terminado. Algunos camiones todavía pasan por la calle principal."],
-        unclear: ["The sign shows a clock and a truck. Which hours does it mean?", "El letrero muestra un reloj y un camión. ¿Qué horario quiere decir?"] },
-      { code: "K4", maker: "ana", clue: "school", words: ["I'll teach a class for young electricians at the school.", "Voy a dar una clase para jóvenes electricistas en la escuela."],
-        kept: ["Ana's class meets every Tuesday. Jayden is in it!", "La clase de Ana es cada martes. ¡Jayden está en ella!"],
-        notyet: ["The classroom is ready, but the class starts in the fall.", "El salón está listo, pero la clase empieza en el otoño."],
-        unclear: ["There's a class at the school. Is it Ana's class?", "Hay una clase en la escuela. ¿Es la clase de Ana?"] },
-      { code: "K5", maker: "council", clue: "poster", words: ["We'll hold a meeting every spring to share the yearly report.", "Vamos a hacer una reunión cada primavera para compartir el informe del año."],
-        kept: ["The poster in the bakery window shows the date of the spring meeting.", "El cartel en la ventana de la panadería muestra la fecha de la reunión de primavera."],
-        notyet: ["The poster is up, but the meeting has no date yet.", "El cartel ya está, pero la reunión todavía no tiene fecha."],
-        unclear: ["The poster shows a meeting. Will they share the report there?", "El cartel anuncia una reunión. ¿Van a compartir ahí el informe?"] }
+      { code: "K1", maker: "builders", clue: "letter", words: window.CBLocale.pair("stop-14","bank.b0015"),
+        kept: window.CBLocale.pair("stop-14","bank.b0016"), notyet: K1_NOT, unclear: K1_UNC },
+      { code: "K2", maker: "builders", clue: "lights", words: window.CBLocale.pair("stop-14","bank.b0017"),
+        kept: window.CBLocale.pair("stop-14","bank.b0018"),
+        notyet: window.CBLocale.pair("stop-14","bank.b0019"),
+        unclear: window.CBLocale.pair("stop-14","bank.b0020") },
+      { code: "K3", maker: "builders", clue: "truck", words: window.CBLocale.pair("stop-14","bank.b0021"),
+        kept: window.CBLocale.pair("stop-14","bank.b0022"),
+        notyet: window.CBLocale.pair("stop-14","bank.b0023"),
+        unclear: window.CBLocale.pair("stop-14","bank.b0024") },
+      { code: "K4", maker: "ana", clue: "school", words: window.CBLocale.pair("stop-14","bank.b0025"),
+        kept: window.CBLocale.pair("stop-14","bank.b0026"),
+        notyet: window.CBLocale.pair("stop-14","bank.b0027"),
+        unclear: window.CBLocale.pair("stop-14","bank.b0028") },
+      { code: "K5", maker: "council", clue: "poster", words: window.CBLocale.pair("stop-14","bank.b0029"),
+        kept: window.CBLocale.pair("stop-14","bank.b0030"),
+        notyet: window.CBLocale.pair("stop-14","bank.b0031"),
+        unclear: window.CBLocale.pair("stop-14","bank.b0032") }
     ],
     studying: [
-      { code: "S1", maker: "council", clue: "letter", words: ["We'll test the wells and the creek before we decide.", "Vamos a revisar los pozos y el arroyo antes de decidir."],
-        kept: ["A letter with the test results came to every farm.", "Llegó a cada granja una carta con los resultados."], notyet: K1_NOT, unclear: K1_UNC },
-      { code: "S2", maker: "builders", clue: "stakes", words: ["We'll pay for every study the town asks for.", "Vamos a pagar cada estudio que pida el pueblo."],
-        kept: ["Study teams are measuring the field. The builders paid for every study.", "Los equipos de estudio miden el campo. Los constructores pagaron cada estudio."],
-        notyet: ["One study has started. The others start in the summer.", "Ya empezó un estudio. Los demás empiezan en el verano."],
-        unclear: ["Little flags stand in the field, but no one is there. Is the study still going?", "Hay banderitas en el campo, pero no hay nadie. ¿Sigue el estudio?"] },
-      { code: "S3", maker: "council", clue: "hall", words: ["We'll write the new rules in open meetings.", "Vamos a escribir las reglas nuevas en reuniones abiertas."],
-        kept: ["Neighbors fill Town Hall. Anyone can come and speak.", "Los vecinos llenan el ayuntamiento. Cualquiera puede venir y hablar."],
-        notyet: ["The meetings were planned for winter. The first one is next month.", "Las reuniones eran para el invierno. La primera es el próximo mes."],
-        unclear: ["Town Hall's lights are on. Is the meeting open to everyone?", "Las luces del ayuntamiento están prendidas. ¿La reunión está abierta a todos?"] },
-      { code: "S4", maker: "jayden", clue: "school", words: ["I'll start a tech club at the school.", "Voy a empezar un club de tecnología en la escuela."],
-        kept: ["Jayden's tech club meets every Friday after school.", "El club de tecnología de Jayden se reúne cada viernes después de clases."],
-        notyet: ["Jayden found a room, but the club starts after the summer.", "Jayden ya consiguió un salón, pero el club empieza después del verano."],
-        unclear: ["Some kids meet after school. Is it Jayden's club?", "Unos niños se reúnen después de clases. ¿Es el club de Jayden?"] },
-      { code: "S5", maker: "patel", clue: "poster", words: ["I'll put a poster for every town meeting in my bakery window.", "Voy a poner en la ventana de mi panadería un cartel de cada reunión del pueblo."],
-        kept: ["The bakery window shows a poster for the next meeting.", "En la ventana de la panadería hay un cartel de la próxima reunión."],
-        notyet: ["Mr. Patel made the poster, but it's not in the window yet.", "El Sr. Patel ya hizo el cartel, pero todavía no está en la ventana."],
-        unclear: ["The bakery poster is from last month. Is a new one coming?", "El cartel de la panadería es del mes pasado. ¿Viene uno nuevo?"] }
+      { code: "S1", maker: "council", clue: "letter", words: window.CBLocale.pair("stop-14","bank.b0033"),
+        kept: window.CBLocale.pair("stop-14","bank.b0034"), notyet: K1_NOT, unclear: K1_UNC },
+      { code: "S2", maker: "builders", clue: "stakes", words: window.CBLocale.pair("stop-14","bank.b0035"),
+        kept: window.CBLocale.pair("stop-14","bank.b0036"),
+        notyet: window.CBLocale.pair("stop-14","bank.b0037"),
+        unclear: window.CBLocale.pair("stop-14","bank.b0038") },
+      { code: "S3", maker: "council", clue: "hall", words: window.CBLocale.pair("stop-14","bank.b0039"),
+        kept: window.CBLocale.pair("stop-14","bank.b0040"),
+        notyet: window.CBLocale.pair("stop-14","bank.b0041"),
+        unclear: window.CBLocale.pair("stop-14","bank.b0042") },
+      { code: "S4", maker: "jayden", clue: "school", words: window.CBLocale.pair("stop-14","bank.b0043"),
+        kept: window.CBLocale.pair("stop-14","bank.b0044"),
+        notyet: window.CBLocale.pair("stop-14","bank.b0045"),
+        unclear: window.CBLocale.pair("stop-14","bank.b0046") },
+      { code: "S5", maker: "patel", clue: "poster", words: window.CBLocale.pair("stop-14","bank.b0047"),
+        kept: window.CBLocale.pair("stop-14","bank.b0048"),
+        notyet: window.CBLocale.pair("stop-14","bank.b0049"),
+        unclear: window.CBLocale.pair("stop-14","bank.b0050") }
     ]
   };
 
@@ -234,7 +145,7 @@
     var s = document.createElementNS(SVGNS, "svg");
     s.setAttribute("viewBox", "0 0 24 24"); s.setAttribute("aria-hidden", "true"); s.setAttribute("focusable", "false");
     s.setAttribute("class", "cb-ico" + (cls ? " " + cls : ""));
-    s.innerHTML = ICON[name];                                   // constant, authored markup only
+    host.setAuthoredMarkup(s, ICON[name]);                                   // constant, authored markup only
     return s;
   }
 
@@ -250,12 +161,12 @@
       var rec = api.rec(stop.id) || {}, tm = api.team(), path;
       if (tm && tm.phase === "B" && tm.kwPath) path = tm.kwPath === "built" ? "studying" : "built";   // Team 2 gets the other path
       else if (rec.lastPath) path = rec.lastPath === "built" ? "studying" : "built";                   // then they alternate
-      else path = Math.random() < 0.5 ? "built" : "studying";                                          // the first round is random
+      else path = (api.rng ? api.rng() : Math.random()) < 0.5 ? "built" : "studying";                                          // the first round is random
       if (tm && tm.phase === "A") tm.kwPath = path;
       var list = PROMISES[path], lastNo = (rec.noClue || {})[path];
       var noClue = api.pick(list.filter(function (p) { return p.code !== lastNo; }));   // never the same as last time on this path
       var rest = api.shuffle(list.filter(function (p) { return p !== noClue; }));
-      var mixed = api.shuffle(["kept", "notyet", Math.random() < 0.5 ? "kept" : "notyet"]);
+      var mixed = api.shuffle(["kept", "notyet", (api.rng ? api.rng() : Math.random()) < 0.5 ? "kept" : "notyet"]);
       var state = {}; state[noClue.code] = "none"; state[rest[0].code] = "unclear";
       rest.slice(1).forEach(function (p, i) { state[p.code] = mixed[i]; });
       var items = api.shuffle(list).map(function (p) {
@@ -266,7 +177,7 @@
       var spots = api.shuffle([0, 1, 2, 3, 4, 5]), sp = 0;
       items.forEach(function (it) { if (it.state !== "none") it.spot = spots[sp++]; });
       var need = items.filter(function (it) { return it.truth !== "kept"; });
-      var ci = 0;
+      var ci = 0, viewPhase = "intro", confirmingClose = false;
 
       /* a fast double tap would land its second tap on the next screen's controls (a clue, "Close the notebook",
          "Play again"): pointer taps in the first moment after a screen change are ignored; keys are never held back */
@@ -314,6 +225,7 @@
 
       /* ── start: this round's picture, the notebook, and the path in words ── */
       function intro() {
+        viewPhase = "intro";
         var pad = h("span", { "class": "cb-s14-pad", "aria-hidden": "true" }, [h("span", { "class": "cb-story-obj" }, [api.story(ART.pad)]), h("span", { "class": "cb-story-tag", text: T.notebook })]);
         api.screen([api.stopHud(stop, null), h("div", { "class": "cb-board" }, [h("div", { "class": "cb-s14-intro" }, [
           art("cb-s14-intro__art", [pad], true),
@@ -345,6 +257,7 @@
         say(it.stOK ? T.ok[it.truth] : T.wrong[it.truth]);
       }
       function check(focus, toBox) {
+        viewPhase = "check";
         var it = items[ci], phase = it.st ? "answered" : it.clueTap ? "status" : "clue", has = it.state !== "none";
         var rows = h("ol", { "class": "cb-s14-rows" }, items.map(function (r, i) {
           var now = i === ci, shown = i < ci || (now && r.st) ? r.truth : null;
@@ -354,7 +267,7 @@
         var nb = h("section", { "class": "cb-s14-nb", "aria-labelledby": "cb-s14-nb-h" }, [nbHead(T.promiseN(ci + 1)), rows]);
         /* the clues in town: 4 buttons, each at the painted place it names, in reading order (left to right) */
         var vis = items.filter(function (r) { return r.state !== "none"; }).sort(function (a, b) { return CLUE_AT[path][a.p.clue][0] - CLUE_AT[path][b.p.clue][0]; });
-        var clues = h("ul", { "class": "cb-s14-clues" }, vis.map(function (r) {
+        var clues = h("ul", { "class": "cb-s14-clues", "data-cb-choices": "" }, vis.map(function (r) {
           var isThis = phase !== "clue" && r === it, tapped = phase !== "clue" && it.clueTap === r.p.clue && r !== it, label = api.t2(CLUES[r.p.clue]);
           var b = h("button", { type: "button", "class": "cb-s14-clue" + (isThis ? " is-this" : "") + (tapped ? " is-tapped" : ""), "data-clue": r.p.clue,
             "aria-label": T.clueAria(label), "aria-disabled": phase !== "clue" ? "true" : null, onclick: G(function () { tapClue(r.p.clue); }) },
@@ -367,7 +280,7 @@
           [h("span", { "class": "cb-s14-none__disc", "aria-hidden": "true" }, [icon("ask")]), h("span", { text: T.noClue })]);
         var box = null;
         if (phase !== "clue") {
-          var m = boxMsg(it), sts = h("div", { "class": "cb-s14-sts" }, ["kept", "notyet", "ask"].map(function (s) {
+          var m = boxMsg(it), sts = h("div", { "class": "cb-s14-sts", "data-cb-choices": "" }, ["kept", "notyet", "ask"].map(function (s) {
             var isR = phase === "answered" && s === it.truth, mine = phase === "answered" && s === it.st && !isR;
             return h("button", { type: "button", "class": "cb-s14-st" + (isR ? " is-right" : "") + (mine ? " is-chosen" : ""), "data-st": s,
               "aria-label": T.stAria(T.st[s]), "aria-disabled": phase === "answered" ? "true" : null, onclick: G(function () { tapStatus(s); }) },
@@ -420,6 +333,7 @@
         say(T.reply + " " + T.fuN(done(), need.length));
       }
       function follow(first, focus, fresh) {
+        viewPhase = "follow";
         var firstNeed = -1;
         var rows = h("ol", { "class": "cb-s14-rows" }, items.map(function (it, i) {
           var needs = it.truth !== "kept";
@@ -450,10 +364,12 @@
       function tryClose(opener) {
         var missing = need.filter(function (it) { return !it.fu; });
         if (!missing.length) return closed();
+        confirmingClose = true;
         var choice = null, d;
         var back = api.btn(T.goBack, "cb-btn--primary", G(function () { choice = "back"; d.close(); }), "back");
         var anyway = api.btn(T.closeAnyway, "cb-btn--quiet", G(function () { choice = "close"; d.close(); }));
         d = api.dialog(T.still(missing.length), [h("div", { "class": "cb-row cb-s14-confirm" }, [back, anyway])], null, function () {
+          confirmingClose = false;
           if (choice === "close") return closed();
           var target = choice === "back" ? document.querySelector('[data-row="' + items.indexOf(missing[0]) + '"][data-fu="thanks"]') : opener;
           if (target && target.isConnected) {
@@ -467,6 +383,7 @@
 
       /* ── closed: the notebook shuts gently and the Checkmark Badge lands on its cover ── */
       function closed() {
+        viewPhase = "closed";
         var see = api.btn(T.seeScore, "cb-btn--go cb-btn--big", G(finish), "go", true); see.setAttribute("data-s14", "see");
         api.screen([api.stopHud(stop, STEPS, 2, T.step(2)), h("div", { "class": "cb-board" }, [h("div", { "class": "cb-s14-end" }, [
           art("cb-s14-end__art", [h("span", { "class": "cb-s14-end__desk" }, [cover()])]),
@@ -477,6 +394,7 @@
 
       /* ── score card: process only, never a path, a maker or speed ── */
       function finish() {
+        viewPhase = "result";
         var clues = items.filter(function (it) { return it.clueOK; }).length, sts = items.filter(function (it) { return it.stOK; }).length;
         var allFu = need.every(function (it) { return it.fu; });
         var score = 8 * clues + 8 * sts + (allFu ? 20 : 0);
@@ -487,7 +405,7 @@
         var nc = {}, old = (api.rec(stop.id) || {}).noClue || {};
         for (var k in old) nc[k] = old[k];
         nc[path] = noClue.code;
-        var info = api.saveRound(stop.id, score, { lastPath: path, noClue: nc,
+        var info = api.saveRound(stop.id, score, { processBadge: allFu && clues === 5 ? "process-14" : null, lastPath: path, noClue: nc,
           lastRound: path + ":" + items.map(function (it) { return it.p.code + "=" + it.state; }).join(",") });
         api.endPlay();
         var recap = h("div", { "class": "cb-s14-recap" }, [h("p", { "class": "cb-s14-recap__h" }, [icon("notebook"), h("strong", { text: T.notebook })]),
@@ -507,7 +425,26 @@
         say(api.W.score + " " + score + " / 100");
       }
 
+      if (api.setController) api.setController({
+        snapshot: function () { return { v: 2, phase: viewPhase, ci: ci, confirming: confirmingClose,
+          items: items.map(function (it) { return { code: it.p.code, clueTap: it.clueTap, clueOK: it.clueOK, st: it.st, stOK: it.stOK, fu: it.fu }; }) }; },
+        restore: function (saved) {
+          if (!saved || saved.v !== 2 || !Array.isArray(saved.items)) return false;
+          saved.items.forEach(function (value, i) { var it = items[i]; ["clueTap", "clueOK", "st", "stOK", "fu"].forEach(function (key) { it[key] = value[key]; }); });
+          ci = saved.ci; confirmingClose = false;
+          if (saved.phase === "result") finish(); else if (saved.phase === "closed") closed(); else if (saved.phase === "follow") {
+            follow(); if (saved.confirming) tryClose(null);
+          } else if (saved.phase === "check") check(); else intro();
+          return true;
+        }
+      });
+
       intro();
     }
   });
+
+    return definition;
+  }
+  if (host.defineStop) host.defineStop(factory);
+  else host.register(factory({ document: document, window: window, Date: Date, setTimeout: setTimeout, clearTimeout: clearTimeout, requestAnimationFrame: requestAnimationFrame, cancelAnimationFrame: typeof cancelAnimationFrame === "function" ? cancelAnimationFrame : function () {} }));
 })();
