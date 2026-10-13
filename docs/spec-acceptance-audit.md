@@ -9,7 +9,7 @@ Updated 2026-10-12 against all 64 tickets in [the specification](Pecan_Grove_Mod
 - Readability remains incomplete: 1,928 EN and 1,928 ES strings measured, 355 English and 659 Spanish flags, no approved exceptions. Stops 1–2 kid-copy rewrite/exception criteria and Claude's assigned native Spanish/classification sign-offs remain open.
 - Exact differences: chapter labels are in the legend rather than inside hulls; offline voice uses its own progress interface rather than the common loading screen. Selected-disc zoom1→1.15 and a filtered-noise paper swish are now implemented.
 - Stop files remain lazy classic factories within a native ESM engine instead of literal native ESM imports per stop. Existing vector avatar/neighbor artwork is resolution independent instead of duplicated raster1x/2x portraits.
-- Active language switching is live, but the unused compatibility reload helper remains contrary to the literal removal criterion.
+- Active language switching is live; the obsolete reload helper and its unused API exposure have now been removed.
 - Intro is a compact team/privacy card over full-bleed town art before entering the game title. It preserves the owner's earlier team-first flow; title and gated intro remain separate DOM sections.
 - Root completed idle larger-AVIF warming after Start, authored-step manifest validation and actual Git SHA metadata, with an independent content hash and build.json commit. Reconcile actual build/CI receipts against the release commit.
 - Browser matrix, rendered contrast, Slow4G timing, physical controllers/screen readers and installed/offline play remain execution/review work. See [the bounded A–O coverage](e2e-coverage.md).
@@ -27,7 +27,7 @@ Updated 2026-10-12 against all 64 tickets in [the specification](Pecan_Grove_Mod
 | P0-04 privacy copy | Present | Copy distinguishes local drafts, explicit notes and optional scores. Ali approved privacy/receiver changes; acknowledgements/draft/player isolation have tests. |
 | P0-05 external noise | Present | First-party script CSP, automatic browser console/network guard and EN/ES add-on noise note. Clean-profile matrix and Pages/custom-domain environment still need evidence. |
 | P0-06 receiver/frame | Present |64KiB/content bounds, station/global rate limits/scrub, frame guard before game/feedback boot. Actual iframe case authored; no fictional Pages frame-ancestors response header. |
-| P0-07 language/place | Present | Live snapshot/answer/narration-line restore, singleton feedback translation, document/URL update without navigation. All15 native controllers. Obsolete helper removal is P4-02. |
+| P0-07 language/place | Present | Live snapshot/answer/narration-line restore, singleton feedback translation, document/URL update without navigation. All15 native controllers. The obsolete helper is removed. |
 | P0-08 cold art | Present | Consumed LQIP/gradient, responsive AVIF/WebP, priority/preload/decode, DPR/crop sizes and idle larger-AVIF warming after Start exist. <=100ms placeholder and <=2.5s cold Slow4G criteria unmeasured. |
 | P0-09 first speaker | Present | Stop 2 same seeded speaker/crop/caption; twenty-seed EN/ES browser checks authored. Other character-intro order has native state support; rendered checkG remains pending. |
 | P0-10 collisions | Present | Every visible plate/tag uses four-position obstacle checks, hides if no fit, updates on fonts/resize/focus/hover/zoom. Zoom coordinates/clipping regression passes; six completed-map browser scenarios unrun. |
@@ -96,11 +96,11 @@ Updated 2026-10-12 against all 64 tickets in [the specification](Pecan_Grove_Mod
 | Ticket | Code status | Current implementation and remaining evidence |
 | --- | --- | --- |
 | P4-01 modules | Present | Small compatibility cb.js/native ESM boot/factory graph/public API; actual native-import tests. No engine module>500 lines at inspection. |
-| P4-02 locale | Partial | Real EN/ES JSON for core/all 15 story+option banks/engine/shell PWA/feedback, parity/placeholders/Intl/live restore. Unused navigateLanguage reload helper still remains contrary to literal removal AC. |
+| P4-02 locale | Present | Real EN/ES JSON for core/all 15 story+option banks/engine/shell PWA/feedback, parity/placeholders/Intl/live restore. Obsolete navigateLanguage reload helper is removed. |
 | P4-03 template | Present | One Python template EN/ES; structural parity and catalogs. |
 | P4-04 SVG/TT | Present | Allowlisted namespaced cached SVG clones/replaceChildren/Trusted Types script policy; no raw stop innerHTML. Native strict-sink first-action tests pass; real Chromium CSP console pending. |
 | P4-05 API rollout | Present principal behavior | All15 native authored snapshot/restore/pause/resume controllers plus section9 choices/nav/input/hints/hud/effects/art/badges/save/docs/types. Native phase/wrong-answer tests. Spec does not require localeKey/summary hooks. Full section10 browser acceptance remains pending. |
-| P4-06 coverage | Present | Meaningful production native/input/store/state/score/content/media/shell/privacy/receiver tests; V8 engine/playtest>=80% line gate. Last inspected intermediate 81.43% receipt had passed=false due fixture failure; final green rerun required. |
+| P4-06 coverage | Present | Meaningful production native/input/store/state/score/content/media/shell/privacy/receiver tests; V8 engine/playtest>=80% line gate. Local final native receipt is82.01% lines/76.47% branches/72.45% functions with passed=true; GitHub branch quality must also pass. |
 | P4-07 browser matrix | Partial | Five projects, 91 scenarios each, all 15 EN/ES smoke/Continue/axe, full selected Stops 1–2, six completed-map cases/pixel probes. Full all-stop keyboard/gamepad completion/every branch/dialog/forced-color/reviewed screenshots still lack traversal; execution pending. |
 | P4-08 hygiene | Present principal behavior | Flat ESLint/compat, all CSS token/Stylelint, Prettier, no-emoji/ticket commit checks/hooks. Last-two-browser targets exist; exactSafari15/Chrome100 minimum runtime evidence not established. Final precommit/CI result pending. |
 | P4-09 neutrality | Present code; human pending | Generic AST/JSON fact-source validator handles real/future banks/missing/unknown IDs/derived records. Inspectable dated fictional proposal in Stop 4 Peek; canonical [content review](content-review.md) covers Stop 4/13. References are not truth proof; Claude review unfinished. |
@@ -116,6 +116,8 @@ Real focused local results from this agent:31 native core/map/input cases, two W
 Browser syntax/discovery succeeded:455 combinations. This agent ran no browser, screenshot generation, Lighthouse or physical-device test. Thirty visual scenarios per project remain optional pending actual files/review; family browser check needs its separate flavor server while structural family tests run independently.
 
 A report can comprehensively cover every ticket while clearly retaining unfinished acceptance work. Do not describe the entire specification as complete until these implementation differences, required reviews and actual evidence are resolved or explicitly deferred.
+
+
 
 
 

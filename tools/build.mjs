@@ -6,6 +6,7 @@ import { spawnSync } from 'node:child_process';
 import { build } from 'vite';
 import { gzipSync } from 'node:zlib';
 import { splitStyles } from './critical-css.mjs';
+import { prepareManifest, linkManifest } from './delivery-manifest.mjs';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const flavorArg = process.argv.find(a => a.startsWith('--flavor='));
 const flavor = flavorArg ? flavorArg.split('=')[1] : process.argv.includes('--flavor') ? process.argv[process.argv.indexOf('--flavor') + 1] : 'playtest';
@@ -105,8 +106,14 @@ for (const item of statics) {
 const buildInfo = JSON.parse(await fs.readFile(path.join(output, 'build.json'), 'utf8'));
 for (const lang of ['en', 'es']) {
   const manifest = JSON.parse(await fs.readFile(path.join(output, `manifest.${lang}.webmanifest`), 'utf8'));
-  manifest.icons.forEach(icon => { icon.src = assetMap[icon.src] || icon.src; });
-  await fs.writeFile(path.join(dist, `manifest.${lang}.webmanifest`), JSON.stringify(manifest));
+  const prepared = prepareManifest(manifest, assetMap, lang);
+  await fs.writeFile(path.join(dist, prepared.name), prepared.text);
+  const pageFile = path.join(dist, lang === 'en' ? 'index.html' : 'espanol.html');
+  await fs.writeFile(pageFile, linkManifest(await fs.readFile(pageFile, 'utf8'), prepared.name));
+}
+// Vite's copies keep pre-fingerprint icon references and have the wrong directory for relative scope.
+for (const entry of await fs.readdir(path.join(dist, 'assets'))) {
+  if (/^manifest\.(?:en|es)-[a-zA-Z0-9_-]+\.webmanifest$/.test(entry)) await fs.unlink(path.join(dist, 'assets', entry));
 }
 await fs.copyFile(path.join(output, 'build.json'), path.join(dist, 'build.json'));
 await fs.copyFile(path.join(output, 'robots.txt'), path.join(dist, 'robots.txt'));

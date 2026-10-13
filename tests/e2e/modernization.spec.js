@@ -189,10 +189,18 @@ test('pause/resume preserves selected choices and native Tab access',async({page
   const selected=await page.locator('.cb-s02-tile[aria-pressed="true"]').getAttribute('data-id');await page.keyboard.press('Escape');await expect(page.locator('.cb-pause')).toBeVisible();await page.keyboard.press('Tab');await page.keyboard.press('Shift+Tab');await page.keyboard.press('Escape');await expect(page.locator('.cb-pause')).toHaveCount(0);await expect(page.locator('.cb-s02-tile[aria-pressed="true"]')).toHaveAttribute('data-id',selected);
 });
 test('docked/floating collapse preserves the single feedback form and keyboard move works',async({page})=>{
-  await start(page);if(await page.locator('#pt-feedback').isHidden())await page.locator('#pt-feedback-dock-collapse').click();await page.locator('#pt-feedback-fix').fill('Keep this draft when collapsed');await page.locator('#pt-feedback-dock-collapse').click();await expect(page.locator('#pt-feedback')).toBeHidden();await expect(page.locator('#pt-feedback-dock-collapse')).toHaveAttribute('aria-expanded','false');
+  // Floating controls are a desktop layout; narrow viewports intentionally use a modal.
+  await page.setViewportSize({width:1280,height:900});await start(page);if(await page.locator('#pt-feedback').isHidden())await page.locator('#pt-feedback-dock-collapse').click();await page.locator('#pt-feedback-fix').fill('Keep this draft when collapsed');await page.locator('#pt-feedback-dock-collapse').click();await expect(page.locator('#pt-feedback')).toBeHidden();await expect(page.locator('#pt-feedback-dock-collapse')).toHaveAttribute('aria-expanded','false');
   await page.locator('#pt-feedback-dock-float').click();await expect(page.locator('#pt-review-dialog')).toHaveClass(/is-floating/);await expect(page.locator('#pt-feedback-fix')).toHaveValue('Keep this draft when collapsed');
   const before=await page.locator('#pt-review-dialog').boundingBox();await page.locator('#pt-review-move').press('ArrowLeft');const after=await page.locator('#pt-review-dialog').boundingBox();expect(after.x).toBeLessThan(before.x);
   await page.locator('#pt-review-collapse').click();await expect(page.locator('#pt-feedback-window')).toBeHidden();await page.locator('#pt-review-collapse').click();await expect(page.locator('#pt-feedback-fix')).toHaveValue('Keep this draft when collapsed');await expect(page.locator('#pt-feedback-form')).toHaveCount(1);
+});
+test('narrow feedback opens as a modal and preserves its single draft form',async({page})=>{
+  await page.setViewportSize({width:360,height:800});await start(page);await page.locator('#pt-review-tab').click();
+  await expect(page.locator('#pt-review-dialog')).toBeVisible();await expect(page.locator('#pt-review-dialog')).not.toHaveClass(/is-floating/);
+  await page.locator('#pt-feedback-fix').fill('Keep this draft when the narrow review closes');await page.locator('#pt-review-close').click();
+  await expect(page.locator('#pt-review-tab')).toBeFocused();await page.locator('#pt-review-tab').click();
+  await expect(page.locator('#pt-feedback-fix')).toHaveValue('Keep this draft when the narrow review closes');await expect(page.locator('#pt-feedback-form')).toHaveCount(1);
 });
 test('frame guard replaces an embedded game with a safe open link',async({page})=>{
   await page.route('**/__frame-test.html',route=>route.fulfill({contentType:'text/html',body:'<!doctype html><html lang="en"><title>Frame test</title><iframe title="Game" src="/index.html"></iframe></html>'}));await page.goto('/__frame-test.html');const frame=page.frameLocator('iframe');await expect(frame.getByRole('heading',{name:'Open the game in its own tab'})).toBeVisible();await expect(frame.locator('#community-builders')).toHaveCount(0);await expect(frame.getByRole('link',{name:'Open Pecan Grove'})).toHaveAttribute('rel','noopener');
