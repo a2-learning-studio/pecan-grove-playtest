@@ -20,7 +20,7 @@ html:has(.cb-s13-bar) { scroll-padding-bottom: 128px; }
 .cb-s13-scene, .cb-s13-band { margin: 0; }
 .cb-s13-mark { position: absolute; left: 63%; top: 66%; z-index: 1; display: grid; justify-items: center; transform: translate(-50%, -50%); }
 .cb-s13-mark .cb-story-obj { width: 62px; height: 62px; }
-.cb-s13-mark .cb-story-tag { margin-top: -6px; white-space: nowrap; }
+.cb-s13-mark .cb-story-tag { margin-top: -6px; max-width: 8.5rem; white-space: normal; text-wrap: balance; }
 
 /* ── intro ── */
 .cb-s13-intro { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 28px; align-items: center; }

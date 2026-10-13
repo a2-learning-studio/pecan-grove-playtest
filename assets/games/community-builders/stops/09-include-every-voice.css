@@ -37,7 +37,7 @@
 /* an empty chair: the storybook chair itself stands in the lamp light, no disc */
 .cb-s09-chair__disc--empty { border: 0; border-radius: 0; background: none; box-shadow: none; }
 .cb-s09-chair__disc--empty .cb-story { width: 86%; height: 86%; }
-.cb-s09-chair__tag { margin-top: -4px; }
+.cb-s09-chair__tag { margin-top: -4px; max-width: 100%; white-space: normal; text-wrap: balance; }
 @media (hover: hover) { button.cb-s09-chair:hover:not([aria-disabled="true"]) .cb-s09-chair__disc { transform: translateY(-3px); box-shadow: var(--cb-shadow-2); } }   /* no sticky hover on touch */
 button.cb-s09-chair:active:not([aria-disabled="true"]) .cb-s09-chair__disc { transform: scale(0.96); }
 .cb-s09-chair:focus-visible { outline: none; }
