@@ -9,83 +9,44 @@
 /* Scene: the clock-tower building of the painted town map stands in for the library porch; no text inputs, no network. */
 (function () {
   "use strict";
-  var CB = window.CommunityBuilders; if (!CB) return;
+  var host = window.CommunityBuilders; if (!host) return;
+  function factory(lifecycle) {
+    var document = lifecycle.document, window = lifecycle.window, Date = lifecycle.Date;
+    var setTimeout = lifecycle.setTimeout, clearTimeout = lifecycle.clearTimeout;
+    var requestAnimationFrame = lifecycle.requestAnimationFrame, cancelAnimationFrame = lifecycle.cancelAnimationFrame;
+    var definition = null, CB = { register: function (value) { definition = value; } };
+
+  "use strict";
+
   var L = (document.documentElement.lang || "en").slice(0, 2) === "es" ? "es" : "en";
   var I = L === "es" ? 1 : 0;                       // index into every [en, es] pair below
   var ID = "ask-a-good-question";
 
   /* ── words (exact, from the spec) ─────────────────────────────────── */
-  var T = {
-    en: {
-      intro1: "The neighbors are going to the Planning Board meeting. Help them turn each worry into a clear question.",
-      ex: [["'Will it be big?'", " just gets a 'yes'."], ["'How much water will it use on the hottest day?'", " gets an answer you can use."]],
-      start: "Let's start", coach: "Tap one tile in each row. Then tap Ask it.", ask: "Ask it", over: "Start over", yourQ: "Your question:",
-      coachFor: function (n) { return "Turn " + n + "'s worry into a clear question. Tap one tile in each row, then tap Ask it."; },
-      boardK: function (n) { return "Your questions for the Planning Board: " + n + " of 4"; }, slotNow: "Your question goes here when you tap Ask it.",
-      rows: { start: "1. Start: how you ask", topic: "2. Topic: what it's about", detail: "3. Detail: when or where" },
-      worryN: function (n) { return "Worry " + n + " of 4"; },
-      ans3: "I can really use that question. Thank you!", ans12: "Good try. Let's make the question fit my worry:", ans0: "Thanks for trying! Here's how to fix it:",
-      topicOk: "Topic: yes, that's my worry.", topicNo: function (t) { return "Topic: my worry is about " + t + "."; },
-      startOk: "Start: an open question asks for information, not just yes or no.", startWill: "Start: 'Will...' just gets a yes or a no. Try How, When, Who or What happens if.",
-      detOk: "Detail: now it's specific.", detNone: "Detail: add when or where to make it specific.",
-      detTopic: "Detail: choose my worry's topic first, then add a detail that fits.",
-      detNo: function (d) { return "Detail: that one doesn't fit my worry. Try '" + d + "'."; },
-      next: "Next worry", see: "See my score",
-      fix: "Fix my question", fixCoach: "Use the tips to change your question. The tile with the dashed ring is one to try. Then tap Ask it.",
-      can: "I can turn a worry into a clear question.",
-      tipTopic: "Next time, read the worry again and pick its topic.", tipWill: "Next time, choose a start that asks for information, not just yes or no.",
-      tipDetail: "Next time, add a detail that fits: when or where.", tip100: "Great questions! Try a new round.",
-      real: "Write one good question about your town on paper. Ask a grown-up to help you find who could answer it.",
-      gu: "Ask a grown-up",
-      guText: "Open, specific questions ('How much water on the hottest, driest day, and from where?') get more useful answers than yes/no ones. The hub's '30 questions to ask' list has more examples you can take to a public meeting."
-    },
-    es: {
-      intro1: "Los vecinos van a ir a la reunión de la Junta de Planificación. Ayúdalos a convertir cada preocupación en una pregunta clara.",
-      ex: [["'¿Va a ser grande?'", " solo recibe un 'sí'."], ["'¿Cuánta agua va a usar en el día más caluroso?'", " recibe una respuesta que te sirve."]],
-      start: "¡Empecemos!", coach: "Toca una ficha en cada fila. Luego toca Pregúntalo.", ask: "Pregúntalo", over: "Volver a empezar", yourQ: "Tu pregunta:",
-      coachFor: function (n) { return ("Convierte la preocupación de " + n + " en una pregunta clara. Toca una ficha en cada fila y luego toca Pregúntalo.").replace(" de el ", " del "); },
-      boardK: function (n) { return "Tus preguntas para la Junta de Planificación: " + n + " de 4"; }, slotNow: "Tu pregunta va aquí cuando tocas Pregúntalo.",
-      rows: { start: "1. Inicio: cómo preguntas", topic: "2. Tema: de qué se trata", detail: "3. Detalle: cuándo o dónde" },
-      worryN: function (n) { return "Preocupación " + n + " de 4"; },
-      ans3: "Esa pregunta de verdad me sirve. ¡Gracias!", ans12: "Buen intento. Hagamos que la pregunta vaya con mi preocupación:", ans0: "¡Gracias por intentarlo! Así la puedes arreglar:",
-      topicOk: "Tema: sí, eso es lo que me preocupa.", topicNo: function (t) { return "Tema: mi preocupación tiene que ver con " + t + "."; },
-      startOk: "Inicio: una pregunta abierta pide información, no solo sí o no.", startWill: "Inicio: '¿Va a...?' solo recibe un sí o un no. Prueba con ¿Cómo?, ¿Cuánto?, ¿Cuándo?, ¿Quién? o ¿Qué pasa si?",
-      detOk: "Detalle: ahora es concreta.", detNone: "Detalle: agrega cuándo o dónde para que sea concreta.",
-      detTopic: "Detalle: primero elige el tema de mi preocupación y luego agrega un detalle que vaya con ella.",
-      detNo: function (d) { return "Detalle: ese no va con mi preocupación. Prueba con '" + d + "'."; },
-      next: "Siguiente preocupación", see: "Ver mi puntaje",
-      fix: "Arreglar mi pregunta", fixCoach: "Usa los consejos para cambiar tu pregunta. La ficha con el borde punteado es una para probar. Luego toca Pregúntalo.",
-      can: "Puedo convertir una preocupación en una pregunta clara.",
-      tipTopic: "La próxima vez, vuelve a leer la preocupación y elige su tema.", tipWill: "La próxima vez, elige un inicio que pida información, no solo sí o no.",
-      tipDetail: "La próxima vez, agrega un detalle que vaya con la preocupación: cuándo o dónde.", tip100: "¡Muy buenas preguntas! Prueba una nueva ronda.",
-      real: "Escribe en papel una buena pregunta sobre tu pueblo. Pídele a un adulto que te ayude a encontrar quién podría responderla.",
-      gu: "Pregúntale a un adulto",
-      guText: "Las preguntas abiertas y concretas ('¿Cuánta agua en el día más caluroso y seco, y de dónde?') reciben respuestas más útiles que las de sí o no. La lista de '30 preguntas para hacer' del sitio tiene más ejemplos para llevar a una reunión pública."
-    }
-  }[L];
+  var T = window.CBLocale.read("stop-02", L, {en:{"T.coachFor":function (n) { return window.CBLocale.part("stop-02", "en", "T.coachFor", 0) + n + window.CBLocale.part("stop-02", "en", "T.coachFor", 1); },"T.boardK":function (n) { return window.CBLocale.part("stop-02", "en", "T.boardK", 0) + n + window.CBLocale.part("stop-02", "en", "T.boardK", 1); },"T.worryN":function (n) { return window.CBLocale.part("stop-02", "en", "T.worryN", 0) + n + window.CBLocale.part("stop-02", "en", "T.worryN", 1); },"T.topicNo":function (t) { return window.CBLocale.part("stop-02", "en", "T.topicNo", 0) + t + window.CBLocale.part("stop-02", "en", "T.topicNo", 1); },"T.detNo":function (d) { return window.CBLocale.part("stop-02", "en", "T.detNo", 0) + d + window.CBLocale.part("stop-02", "en", "T.detNo", 1); }},es:{"T.coachFor":function (n) { return (window.CBLocale.part("stop-02", "es", "T.coachFor", 0) + n + window.CBLocale.part("stop-02", "es", "T.coachFor", 1)).replace(window.CBLocale.part("stop-02", "es", "T.coachFor", 2), window.CBLocale.part("stop-02", "es", "T.coachFor", 3)); },"T.boardK":function (n) { return window.CBLocale.part("stop-02", "es", "T.boardK", 0) + n + window.CBLocale.part("stop-02", "es", "T.boardK", 1); },"T.worryN":function (n) { return window.CBLocale.part("stop-02", "es", "T.worryN", 0) + n + window.CBLocale.part("stop-02", "es", "T.worryN", 1); },"T.topicNo":function (t) { return window.CBLocale.part("stop-02", "es", "T.topicNo", 0) + t + window.CBLocale.part("stop-02", "es", "T.topicNo", 1); },"T.detNo":function (d) { return window.CBLocale.part("stop-02", "es", "T.detNo", 0) + d + window.CBLocale.part("stop-02", "es", "T.detNo", 1); }}}).T;
 
   /* tiles: [id, en, es]; topics also carry the fixed "How much" opening [en, es] */
-  var START = [["how", "How...", "¿Cómo...?"], ["when", "When...", "¿Cuándo...?"], ["who", "Who...", "¿Quién...?"],
-    ["whatif", "What happens if...", "¿Qué pasa si...?"], ["will", "Will...", "¿Va a...?"]];
+  var START = [[].concat(["how"],window.CBLocale.pair("stop-02","bank.b0001")), [].concat(["when"],window.CBLocale.pair("stop-02","bank.b0002")), [].concat(["who"],window.CBLocale.pair("stop-02","bank.b0003")),
+    [].concat(["whatif"],window.CBLocale.pair("stop-02","bank.b0004")), [].concat(["will"],window.CBLocale.pair("stop-02","bank.b0005"))];
   var TOPIC = [
-    ["water", "the water", "el agua", "How much water will it use", "¿Cuánta agua va a usar"],
-    ["trucks", "the trucks", "los camiones", "How many trucks will there be", "¿Cuántos camiones va a haber"],
-    ["noise", "the noise and lights at night", "el ruido y las luces de noche", "How much noise and light will there be at night", "¿Cuánto ruido y luz va a haber de noche"],
-    ["jobs", "the jobs", "los empleos", "How many jobs will there be", "¿Cuántos empleos va a haber"],
-    ["bills", "power bills and rent", "el recibo de luz y la renta", "How could power bills and rent change", "¿Cómo podrían cambiar el recibo de luz y la renta"],
-    ["graves", "the old graves", "las tumbas antiguas", "How much land will they check for old graves", "¿Cuánto terreno van a revisar para buscar tumbas antiguas"],
-    ["engines", "the backup engines", "los motores de respaldo", "How much smoke will the backup engines make", "¿Cuánto humo van a echar los motores de respaldo"]
+    [].concat(["water"],window.CBLocale.pair("stop-02","bank.b0006"),window.CBLocale.pair("stop-02","bank.b0007")),
+    [].concat(["trucks"],window.CBLocale.pair("stop-02","bank.b0008"),window.CBLocale.pair("stop-02","bank.b0009")),
+    [].concat(["noise"],window.CBLocale.pair("stop-02","bank.b0010"),window.CBLocale.pair("stop-02","bank.b0011")),
+    [].concat(["jobs"],window.CBLocale.pair("stop-02","bank.b0012"),window.CBLocale.pair("stop-02","bank.b0013")),
+    [].concat(["bills"],window.CBLocale.pair("stop-02","bank.b0014"),window.CBLocale.pair("stop-02","bank.b0015")),
+    [].concat(["graves"],window.CBLocale.pair("stop-02","bank.b0016"),window.CBLocale.pair("stop-02","bank.b0017")),
+    [].concat(["engines"],window.CBLocale.pair("stop-02","bank.b0018"),window.CBLocale.pair("stop-02","bank.b0019"))
   ];
-  var DETAIL = [["d1", "on the hottest day", "en el día más caluroso"], ["d2", "after it opens", "después de que abra"], ["d3", "for people who live here", "para la gente de aquí"],
-    ["d4", "near the school", "cerca de la escuela"], ["d5", "before digging", "antes de excavar"], ["d6", "on Main Street", "en la calle principal"],
-    ["d7", "during construction", "durante la construcción"]];
+  var DETAIL = [[].concat(["d1"],window.CBLocale.pair("stop-02","bank.b0020")), [].concat(["d2"],window.CBLocale.pair("stop-02","bank.b0021")), [].concat(["d3"],window.CBLocale.pair("stop-02","bank.b0022")),
+    [].concat(["d4"],window.CBLocale.pair("stop-02","bank.b0023")), [].concat(["d5"],window.CBLocale.pair("stop-02","bank.b0024")), [].concat(["d6"],window.CBLocale.pair("stop-02","bank.b0025")),
+    [].concat(["d7"],window.CBLocale.pair("stop-02","bank.b0026"))];
   var POOL = { start: START, topic: TOPIC, detail: DETAIL };
   /* the question is built from fixed frames, never by joining tiles; {d} is " detail" or nothing */
   var FRAME = {
-    when: ["When will we know more about {t}{d}?", "¿Cuándo vamos a saber más sobre {t}{d}?"],
-    who: ["Who will check {t}{d}?", "¿Quién va a revisar {t}{d}?"],
-    whatif: ["What happens if there is a problem with {t}{d}?", "¿Qué pasa si hay un problema con {t}{d}?"],
-    will: ["Will everything be OK with {t}{d}?", "¿Va a estar todo bien con {t}{d}?"]
+    when: window.CBLocale.pair("stop-02","bank.b0027"),
+    who: window.CBLocale.pair("stop-02","bank.b0028"),
+    whatif: window.CBLocale.pair("stop-02","bank.b0029"),
+    will: window.CBLocale.pair("stop-02","bank.b0030")
   };
 
   /* Every open start has an authored purpose for the current worry: a measurement, schedule, responsible person,
@@ -94,97 +55,97 @@
      intact. Do not attach an old recording to new words, or offer a replay button for an unavailable recording. */
   var QUESTIONS = {
     "A-lee": {
-      how: ["How often will the backup engines be tested{d}?", "¿Cada cuánto van a probar los motores de respaldo{d}?"],
-      when: ["When will the backup engines run for testing, and how often will that happen{d}?", "¿Cuándo van a probar los motores de respaldo y cada cuánto lo van a hacer{d}?"],
-      who: ["Who will share the backup engines' testing schedule{d}?", "¿Quién va a compartir el calendario de pruebas de los motores de respaldo{d}?"],
-      whatif: ["What happens if the backup engines run more often than planned{d}?", "¿Qué pasa si los motores de respaldo funcionan más seguido de lo previsto{d}?"]
+      how: window.CBLocale.pair("stop-02","bank.b0031"),
+      when: window.CBLocale.pair("stop-02","bank.b0032"),
+      who: window.CBLocale.pair("stop-02","bank.b0033"),
+      whatif: window.CBLocale.pair("stop-02","bank.b0034")
     },
     "A-johnson": {
-      how: ["How will mud be kept out of the creek and nearby wells{d}?", "¿Cómo van a evitar que el lodo llegue al arroyo y a los pozos cercanos{d}?"],
-      when: ["When will the creek and nearby wells be checked for mud{d}?", "¿Cuándo van a revisar si hay lodo en el arroyo y en los pozos cercanos{d}?"],
-      who: ["Who will check that mud stays out of the creek and nearby wells{d}?", "¿Quién va a revisar que el lodo no llegue al arroyo ni a los pozos cercanos{d}?"],
-      whatif: ["What happens if mud reaches the creek or nearby wells{d}?", "¿Qué pasa si el lodo llega al arroyo o a los pozos cercanos{d}?"]
+      how: window.CBLocale.pair("stop-02","bank.b0035"),
+      when: window.CBLocale.pair("stop-02","bank.b0036"),
+      who: window.CBLocale.pair("stop-02","bank.b0037"),
+      whatif: window.CBLocale.pair("stop-02","bank.b0038")
     },
     "A-ana": {
-      how: ["How many jobs will last beyond construction{d}?", "¿Cuántos empleos van a seguir después de la construcción{d}?"],
-      when: ["When will jobs that continue after construction be listed{d}?", "¿Cuándo van a publicar cuáles empleos van a seguir después de la construcción{d}?"],
-      who: ["Who can explain which jobs will continue after construction{d}?", "¿Quién puede explicar cuáles empleos van a seguir después de la construcción{d}?"],
-      whatif: ["What happens if construction jobs end and workers need another job{d}?", "¿Qué pasa si se acaban los empleos de construcción y los trabajadores necesitan otro empleo{d}?"]
+      how: window.CBLocale.pair("stop-02","bank.b0039"),
+      when: window.CBLocale.pair("stop-02","bank.b0040"),
+      who: window.CBLocale.pair("stop-02","bank.b0041"),
+      whatif: window.CBLocale.pair("stop-02","bank.b0042")
     },
     "A-ruth": {
-      how: ["How will the land be checked for old graves{d}?", "¿Cómo van a revisar el terreno para buscar tumbas antiguas{d}?"],
-      when: ["When will a search for old graves be completed{d}?", "¿Cuándo van a terminar de buscar tumbas antiguas{d}?"],
-      who: ["Who will search the land for old graves{d}?", "¿Quién va a buscar tumbas antiguas en el terreno{d}?"],
-      whatif: ["What happens if someone finds an old grave{d}?", "¿Qué pasa si alguien encuentra una tumba antigua{d}?"]
+      how: window.CBLocale.pair("stop-02","bank.b0043"),
+      when: window.CBLocale.pair("stop-02","bank.b0044"),
+      who: window.CBLocale.pair("stop-02","bank.b0045"),
+      whatif: window.CBLocale.pair("stop-02","bank.b0046")
     },
     "A-patel": {
-      how: ["How many construction trucks will travel{d}?", "¿Cuántos camiones de construcción van a circular{d}?"],
-      when: ["When will construction trucks be allowed to travel{d}?", "¿Cuándo van a poder circular los camiones de construcción{d}?"],
-      who: ["Who will plan safe routes for construction trucks{d}?", "¿Quién va a planear rutas seguras para los camiones de construcción{d}?"],
-      whatif: ["What happens if construction trucks block traffic{d}?", "¿Qué pasa si los camiones de construcción bloquean el tráfico{d}?"]
+      how: window.CBLocale.pair("stop-02","bank.b0047"),
+      when: window.CBLocale.pair("stop-02","bank.b0048"),
+      who: window.CBLocale.pair("stop-02","bank.b0049"),
+      whatif: window.CBLocale.pair("stop-02","bank.b0050")
     },
     "A-jayden": {
-      how: ["How will young people get training for jobs that stay in town{d}?", "¿Cómo van a recibir capacitación los jóvenes para empleos que se queden en el pueblo{d}?"],
-      when: ["When can young people apply for training and jobs in town{d}?", "¿Cuándo pueden los jóvenes solicitar capacitación y empleos en el pueblo{d}?"],
-      who: ["Who will help young people find training and jobs in town{d}?", "¿Quién va a ayudar a los jóvenes a encontrar capacitación y empleos en el pueblo{d}?"],
-      whatif: ["What happens if young people cannot get the training they need for local jobs{d}?", "¿Qué pasa si los jóvenes no consiguen la capacitación que necesitan para los empleos locales{d}?"]
+      how: window.CBLocale.pair("stop-02","bank.b0051"),
+      when: window.CBLocale.pair("stop-02","bank.b0052"),
+      who: window.CBLocale.pair("stop-02","bank.b0053"),
+      whatif: window.CBLocale.pair("stop-02","bank.b0054")
     },
     "B-lee": {
-      how: ["How will bright outdoor lights be kept out of bedrooms{d}?", "¿Cómo van a evitar que las luces fuertes de afuera alumbren los cuartos{d}?"],
-      when: ["When will outdoor lights be dimmed at night{d}?", "¿Cuándo van a bajar la intensidad de las luces de afuera por la noche{d}?"],
-      who: ["Who will check that outdoor lights stay out of bedrooms{d}?", "¿Quién va a revisar que las luces de afuera no alumbren los cuartos{d}?"],
-      whatif: ["What happens if outdoor lights shine into bedrooms{d}?", "¿Qué pasa si las luces de afuera alumbran los cuartos{d}?"]
+      how: window.CBLocale.pair("stop-02","bank.b0055"),
+      when: window.CBLocale.pair("stop-02","bank.b0056"),
+      who: window.CBLocale.pair("stop-02","bank.b0057"),
+      whatif: window.CBLocale.pair("stop-02","bank.b0058")
     },
     "B-johnson": {
-      how: ["How will nearby wells be tested and the results shared{d}?", "¿Cómo van a analizar el agua de los pozos cercanos y compartir los resultados{d}?"],
-      when: ["When will nearby wells be tested{d}?", "¿Cuándo van a analizar el agua de los pozos cercanos{d}?"],
-      who: ["Who will test nearby wells and share the results{d}?", "¿Quién va a analizar el agua de los pozos cercanos y compartir los resultados{d}?"],
-      whatif: ["What happens if a well has not been tested{d}?", "¿Qué pasa si todavía no han analizado el agua de un pozo{d}?"]
+      how: window.CBLocale.pair("stop-02","bank.b0059"),
+      when: window.CBLocale.pair("stop-02","bank.b0060"),
+      who: window.CBLocale.pair("stop-02","bank.b0061"),
+      whatif: window.CBLocale.pair("stop-02","bank.b0062")
     },
     "B-ana": {
-      how: ["How will mud be kept out of the creek where families fish{d}?", "¿Cómo van a evitar que el lodo llegue al arroyo donde pescan las familias{d}?"],
-      when: ["When will the creek be checked for mud{d}?", "¿Cuándo van a revisar si hay lodo en el arroyo{d}?"],
-      who: ["Who will check the creek for mud and tell families if it is safe to fish{d}?", "¿Quién va a revisar si hay lodo en el arroyo y decirles a las familias si es seguro pescar{d}?"],
-      whatif: ["What happens if mud reaches the creek where families fish{d}?", "¿Qué pasa si el lodo llega al arroyo donde pescan las familias{d}?"]
+      how: window.CBLocale.pair("stop-02","bank.b0063"),
+      when: window.CBLocale.pair("stop-02","bank.b0064"),
+      who: window.CBLocale.pair("stop-02","bank.b0065"),
+      whatif: window.CBLocale.pair("stop-02","bank.b0066")
     },
     "B-ruth": {
-      how: ["How much could the project change household power bills{d}?", "¿Cuánto podría cambiar el proyecto los recibos de luz de las familias{d}?"],
-      when: ["When will households learn whether the project could change their power bills{d}?", "¿Cuándo van a saber las familias si el proyecto podría cambiar sus recibos de luz{d}?"],
-      who: ["Who can explain whether the project could change household power bills{d}?", "¿Quién puede explicar si el proyecto podría cambiar los recibos de luz de las familias{d}?"],
-      whatif: ["What happens if household power bills rise because of the project{d}?", "¿Qué pasa si los recibos de luz de las familias suben por el proyecto{d}?"]
+      how: window.CBLocale.pair("stop-02","bank.b0067"),
+      when: window.CBLocale.pair("stop-02","bank.b0068"),
+      who: window.CBLocale.pair("stop-02","bank.b0069"),
+      whatif: window.CBLocale.pair("stop-02","bank.b0070")
     },
     "B-patel": {
-      how: ["How could construction affect shop rents{d}?", "¿Cómo podría afectar la construcción la renta de los locales{d}?"],
-      when: ["When will shop owners learn about possible rent changes{d}?", "¿Cuándo van a saber los dueños de los locales si podría cambiar la renta{d}?"],
-      who: ["Who can help shop owners understand possible rent changes{d}?", "¿Quién puede ayudar a los dueños de los locales a entender los posibles cambios en la renta{d}?"],
-      whatif: ["What happens if shop rents rise{d}?", "¿Qué pasa si sube la renta de los locales{d}?"]
+      how: window.CBLocale.pair("stop-02","bank.b0071"),
+      when: window.CBLocale.pair("stop-02","bank.b0072"),
+      who: window.CBLocale.pair("stop-02","bank.b0073"),
+      whatif: window.CBLocale.pair("stop-02","bank.b0074")
     },
     "B-jayden": {
-      how: ["How will nighttime noise be measured and kept low enough for sleep{d}?", "¿Cómo van a medir el ruido nocturno y mantenerlo lo bastante bajo para dormir{d}?"],
-      when: ["When will nighttime noise be measured{d}?", "¿Cuándo van a medir el ruido nocturno{d}?"],
-      who: ["Who will check nighttime noise and respond to neighbors{d}?", "¿Quién va a revisar el ruido nocturno y responderles a los vecinos{d}?"],
-      whatif: ["What happens if a nighttime hum keeps neighbors awake{d}?", "¿Qué pasa si un zumbido nocturno no deja dormir a los vecinos{d}?"]
+      how: window.CBLocale.pair("stop-02","bank.b0075"),
+      when: window.CBLocale.pair("stop-02","bank.b0076"),
+      who: window.CBLocale.pair("stop-02","bank.b0077"),
+      whatif: window.CBLocale.pair("stop-02","bank.b0078")
     }
   };
   var HOW_START = {
-    "A-lee": ["How often...", "¿Cada cuánto...?"], "A-ana": ["How many...", "¿Cuántos...?"],
-    "A-patel": ["How many...", "¿Cuántos...?"], "B-ruth": ["How much...", "¿Cuánto...?"]
+    "A-lee": window.CBLocale.pair("stop-02","bank.b0079"), "A-ana": window.CBLocale.pair("stop-02","bank.b0080"),
+    "A-patel": window.CBLocale.pair("stop-02","bank.b0080"), "B-ruth": window.CBLocale.pair("stop-02","bank.b0081")
   };
 
   /* the 12 Stop 3 worries, word for word: [id, neighbor, set, topic, details that fit, [en, es]] */
   var WORRIES = [
-    ["A-lee", "lee", "A", "engines", ["d2", "d4"], ["I worry the big backup engines could make smoky air. I want to know how often they run.", "Me preocupa que los grandes motores de respaldo echen humo. Quiero saber cada cuánto los prenden."]],
-    ["A-johnson", "johnson", "A", "water", ["d5", "d7"], ["I worry mud could reach the creek and my well.", "Me preocupa que el lodo llegue al arroyo y a mi pozo."]],
-    ["A-ana", "ana", "A", "jobs", ["d2", "d3"], ["I worry the jobs will end when the building is done.", "Me preocupa que los empleos se acaben cuando terminen de construir."]],
-    ["A-ruth", "ruth", "A", "graves", ["d5"], ["I worry old graves could be hidden on the farm. I want someone to look before digging.", "Me preocupa que haya tumbas antiguas escondidas en la granja. Quiero que alguien las busque antes de excavar."]],
-    ["A-patel", "patel", "A", "trucks", ["d6", "d7"], ["I worry big trucks will crowd Main Street for months.", "Me preocupa que los camiones grandes llenen la calle principal por meses."]],
-    ["A-jayden", "jayden", "A", "jobs", ["d2", "d3"], ["I worry young people will move away to find work.", "Me preocupa que los jóvenes se vayan a buscar trabajo a otro lado."]],
-    ["B-lee", "lee", "B", "noise", ["d2", "d3"], ["I worry bright lights all night could shine into bedrooms.", "Me preocupa que las luces fuertes toda la noche alumbren los cuartos."]],
-    ["B-johnson", "johnson", "B", "water", ["d5"], ["I worry no one will test my well before they dig.", "Me preocupa que nadie revise mi pozo antes de excavar."]],
-    ["B-ana", "ana", "B", "water", ["d5", "d7"], ["I worry the creek could get muddy. I fish there with my kids.", "Me preocupa que el arroyo se llene de lodo. Ahí pesco con mis hijos."]],
-    ["B-ruth", "ruth", "B", "bills", ["d2", "d3"], ["I worry my power bill will go up.", "Me preocupa que suba mi recibo de luz."]],
-    ["B-patel", "patel", "B", "bills", ["d7", "d6"], ["I worry the rent for my shop will go up while they build.", "Me preocupa que suba la renta de mi local mientras construyen."]],
-    ["B-jayden", "jayden", "B", "noise", ["d2", "d3"], ["I worry a hum at night could keep my little sister awake.", "Me preocupa que un zumbido de noche no deje dormir a mi hermanita."]]
+    ["A-lee", "lee", "A", "engines", ["d2", "d4"], window.CBLocale.pair("stop-02","bank.b0082")],
+    ["A-johnson", "johnson", "A", "water", ["d5", "d7"], window.CBLocale.pair("stop-02","bank.b0083")],
+    ["A-ana", "ana", "A", "jobs", ["d2", "d3"], window.CBLocale.pair("stop-02","bank.b0084")],
+    ["A-ruth", "ruth", "A", "graves", ["d5"], window.CBLocale.pair("stop-02","bank.b0085")],
+    ["A-patel", "patel", "A", "trucks", ["d6", "d7"], window.CBLocale.pair("stop-02","bank.b0086")],
+    ["A-jayden", "jayden", "A", "jobs", ["d2", "d3"], window.CBLocale.pair("stop-02","bank.b0087")],
+    ["B-lee", "lee", "B", "noise", ["d2", "d3"], window.CBLocale.pair("stop-02","bank.b0088")],
+    ["B-johnson", "johnson", "B", "water", ["d5"], window.CBLocale.pair("stop-02","bank.b0089")],
+    ["B-ana", "ana", "B", "water", ["d5", "d7"], window.CBLocale.pair("stop-02","bank.b0090")],
+    ["B-ruth", "ruth", "B", "bills", ["d2", "d3"], window.CBLocale.pair("stop-02","bank.b0091")],
+    ["B-patel", "patel", "B", "bills", ["d7", "d6"], window.CBLocale.pair("stop-02","bank.b0092")],
+    ["B-jayden", "jayden", "B", "noise", ["d2", "d3"], window.CBLocale.pair("stop-02","bank.b0093")]
   ].map(function (w) { return { id: w[0], nb: w[1], set: w[2], topic: w[3], d: w[4], text: w[5][I] }; });
 
   /* the Pecan Sticker (spec: "a pecan-shaped sticker" on each asked question): a storybook pecan, see .cb-story in cb.css */
@@ -218,7 +179,8 @@
   }
 
   function run(api, stop) {
-    var h = api.h, REDUCED = api.REDUCED, rec = api.rec(stop.id), team = api.team();
+    function reduced() { return api.motionAllowed ? !api.motionAllowed() : api.REDUCED; }
+    var h = api.h, rec = api.rec(stop.id), team = api.team();
     var DOTS = [null, null, null, null], uid = 0;
 
     /* ── a new round: 4 worries from 4 different neighbors, both sets, at least 2 new since last time ── */
@@ -252,20 +214,35 @@
       });
       orders.push(o);
     });
-    var answers = [], wi = 0, sel = null;
+    var answers = [], wi = 0, sel = null, screenKey = "intro", restoreAsk = null, stopLayout = null;
+    if (api.setController) api.setController({
+      snapshot: function () { return { screenKey: screenKey, round: round.map(function (w) { return w.id; }), orders: orders, answers: answers, wi: wi, sel: sel }; },
+      restore: function (state) {
+        if (!state || !Array.isArray(state.round) || state.round.length !== 4) return;
+        var restoredRound = state.round.map(function (id) { return WORRIES.filter(function (w) { return w.id === id; })[0]; });
+        if (restoredRound.some(function (w) { return !w; })) return;
+        round = restoredRound; speakers = round.map(function (w) { return api.nbById(w.nb); });
+        if (Array.isArray(state.orders) && state.orders.length === 4) orders = state.orders;
+        answers = (state.answers || []).slice(0, 4).map(function (a, i) { var copy = Object.assign({}, a); copy.q = question(round[i], a.start, a.topic, a.detail); copy.r = a.fixed ? a.r : judge(round[i], a); if (a.fixed) copy.fixed = judge(round[i], a); return copy; });
+        wi = Math.max(0, Math.min(4, Number(state.wi) || 0));
+        if (state.screenKey === "result" || wi === 4) finish();
+        else if (state.screenKey === "intro") intro();
+        else { worry(!!answers[wi], state.sel); if (state.screenKey === "answer" && restoreAsk) restoreAsk(true); }
+      }, onPause: function () {}, onResume: function () {}
+    });
 
     function sticker(empty) { return h("span", { "class": "cb-s02-sticker" + (empty ? " is-empty" : ""), "aria-hidden": "true" }, [h("span", { "class": "cb-story-obj" }, [api.story(PECAN_ART)])]); }
 
     /* ── the scene: the painted library with this round's four neighbors on its steps ── */
     function scene(cur, answered, withBubble) {
       var porch = h("ul", { "class": "cb-s02-porch", "aria-hidden": "true" }, speakers.map(function (n, i) {
-        var s = cur < 0 ? "wait" : i < cur ? "done" : i === cur ? "now" : "wait";
+        var s = cur < 0 ? "wait" : i < cur ? "done" : i === cur ? (withBubble ? "now" : "up-next") : "wait";
         return h("li", { "class": "cb-s02-nb", "data-s": s, "data-i": String(i) }, [
           h("span", { "class": "cb-s02-nb__face" }, [api.img(n.img, "", null, true), s === "done" || (s === "now" && answered) ? h("span", { "class": "cb-badge" }, [api.ico("check")]) : null]),
           h("span", { "class": "cb-s02-nb__name", text: api.nmCap(n) })]);
       }));
       var kids = withBubble
-        ? [api.crop(CROP.scene, "cb-s02-art cb-s02-art--wide"), api.crop(CROP.centred, "cb-s02-art cb-s02-art--narrow"), porch]
+        ? [api.crop(CROP.centred, "cb-s02-art cb-s02-art--wide"), api.crop(CROP.centred, "cb-s02-art cb-s02-art--narrow"), porch]
         : [api.crop(CROP.centred, "cb-s02-art"), porch];
       if (withBubble) {
         var n = speakers[cur], w = round[cur];
@@ -290,11 +267,12 @@
 
     /* ── intro ── */
     function intro() {
+      screenKey = "intro";
       var ex = h("p", { "class": "cb-s02-ex" }, [exLine(0), " ", exLine(1)]);
       var go = api.btn(T.start, "cb-btn--go cb-btn--big", function () { worry(); }, "go", true);
       api.screen([api.stopHud(stop, null), h("div", { "class": "cb-board" }, [h("div", { "class": "cb-s02-intro" }, [
-        scene(-1, false, false),
-        h("div", { "class": "cb-s02-intro__copy" }, [h("p", { "class": "cb-s02-intro__lead", text: T.intro1 }), ex, h("div", { "class": "cb-row" }, [go])])])])]);
+        scene(0, false, false),
+        h("div", { "class": "cb-s02-intro__copy" }, [h("p", { "class": "cb-s02-first", text: (window.CBLocale.t("stop-02",L,"bank.b0094")) + api.nmCap(speakers[0]) }), h("p", { "class": "cb-s02-intro__lead", text: T.intro1 }), ex, h("div", { "class": "cb-row" }, [go])])])])]);
       /* the shell frames the stage top; on a phone the intro is taller than the screen, so go one step further
          (never past the stage top) until "Let's start" is in view too */
       var root = go.closest(".cb"); if (!root) return api.frame();
@@ -303,34 +281,37 @@
         framed = (v.fs ? v.y > 4 : r.top < -4) ? Math.max(0, top - pad) : v.y,
         to = Math.min(top, Math.max(framed, go.getBoundingClientRect().bottom - v.top + v.y - v.h + 20));
       if (Math.abs(to - framed) <= 4) api.frame();
-      else v.el.scrollTo({ top: to, behavior: REDUCED ? "auto" : "smooth" });
+      else v.el.scrollTo({ top: to, behavior: reduced() ? "auto" : "smooth" });
     }
     function exLine(i) { var p = T.ex[i]; return h("span", { "class": "cb-s02-ex__line" }, [api.ico(i ? "check" : "chat"), h("span", null, [h("b", { text: p[0] }), p[1]])]); }
 
     /* ── one worry: tiles in, question on the strip, then the neighbor answers ── */
-    function worry(again) {
+    function worry(again, restoredSelection) {
+      if (stopLayout) stopLayout();
+      screenKey = "worry";
       var prev = again ? answers[wi] : null, lastR = prev ? (prev.fixed || prev.r) : null;
       sel = prev ? { start: prev.start, topic: prev.topic, detail: prev.detail } : { start: null, topic: null, detail: null };
+      if (restoredSelection) sel = { start: restoredSelection.start || null, topic: restoredSelection.topic || null, detail: restoredSelection.detail || null };
       var hint = { start: null, topic: null, detail: null };
       if (lastR) {
         if (!lastR.sOk) hint.start = "how";
         if (!lastR.tOk) hint.topic = round[wi].topic;
         if (!lastR.dOk) hint.detail = round[wi].d[0];
       }
-      var born = Date.now(), fresh = function () { return Date.now() - born < 300; };   // the second half of a double tap on the last screen's button
+      var born = Date.now(), fresh = function (event) { return !(event && event.detail === 0) && Date.now() - born < 300; };   // the second half of a double tap on the last screen's button
       var lineEl = h("p", { "class": "cb-s02-q__line is-empty", id: "cb-s02-q", "data-cb-novoice": "" });
       var overBtn = api.btn(T.over, "cb-btn--quiet", function () { if (overBtn.getAttribute("aria-disabled") === "true") return; sel = { start: null, topic: null, detail: null }; refresh(); }, "replay");
-      var askBtn = api.btn(T.ask, "cb-btn--go cb-btn--big cb-s02-ask", function () { if (!fresh()) ask(); }, "chat");
+      var askBtn = api.btn(T.ask, "cb-btn--go cb-btn--big cb-s02-ask", function (event) { if (!fresh(event)) ask(); }, "chat");
       askBtn.setAttribute("aria-describedby", "cb-s02-q");
       var strip = h("div", { "class": "cb-actions cb-s02-strip" }, [h("span", { "class": "cb-s02-q__k", text: T.yourQ }), lineEl, askBtn]);
       var rows = ["start", "topic", "detail"].map(function (row) {
         var lid = "cb-s02-r" + (++uid);
         var tiles = h("div", { "class": "cb-s02-tiles" }, orders[wi][row].map(function (id) {
-          return h("button", { type: "button", "class": "cb-s02-tile" + (hint[row] === id ? " is-hint" : ""), "aria-pressed": "false", "data-row": row, "data-id": id, onclick: function () { if (!fresh()) pick(row, id); } }, [
+          return h("button", { type: "button", "class": "cb-s02-tile" + (hint[row] === id ? " is-hint" : ""), "aria-pressed": "false", "data-row": row, "data-id": id, onclick: function (event) { if (!fresh(event)) pick(row, id); } }, [
             h("span", { text: row === "start" ? startWord(round[wi], id) : word(POOL[row], id) }), h("span", { "class": "cb-s02-tile__ck", "aria-hidden": "true" }, [api.ico("check")])]);
         }));
         var fixRow = lastR && (row === "start" ? !lastR.sOk : row === "topic" ? !lastR.tOk : !lastR.dOk);
-        return h("div", { "class": "cb-s02-row" + (fixRow ? " is-needed" : ""), role: "group", "aria-labelledby": lid, "data-row": row }, [
+        return h("div", { "class": "cb-s02-row" + (fixRow ? " is-needed" : ""), role: "group", "aria-labelledby": lid, "data-row": row, "data-cb-choices": "" }, [
           h("p", { "class": "cb-s02-row__k", id: lid }, [h("i", { "aria-hidden": "true" }), h("span", { text: T.rows[row] })]), tiles]);
       });
       var tray = h("div", { "class": "cb-s02-tray" }, rows.concat([h("div", { "class": "cb-s02-tray__foot" }, [overBtn])]));
@@ -345,11 +326,16 @@
       /* the worry and the board stay in view while the tiles scroll: a sticky side column on a wide stage,
          a sticky speech bubble on a narrow one (CSS) */
       var side = h("div", { "class": "cb-s02-side" }, [sceneEl, board]);
+      var compactAsk = api.btn(T.ask, "cb-btn--go cb-s02-ask-float", function (event) { if (!fresh(event)) ask(); }, "chat");
+      compactAsk.setAttribute("aria-describedby", "cb-s02-q");
+      compactAsk.setAttribute("aria-label", T.ask);
+      compactAsk.hidden = true;
       var playEl = h("div", { "class": "cb-s02-play" }, [side, work]);
       var bubble = sceneEl.querySelector('[data-s02="worry"]');
       refresh();
-      api.screen([api.stopHud(stop, DOTS, wi, T.worryN(wi + 1)), h("div", { "class": "cb-board" }, [playEl, strip])], '[data-s02="worry"]');
+      api.screen([api.stopHud(stop, DOTS, wi, T.worryN(wi + 1)), h("div", { "class": "cb-board" }, [playEl, strip, compactAsk])], '[data-s02="worry"]');
       stickRoom(playEl, bubble);
+      stopLayout = measureLayout(playEl, bubble, strip, compactAsk);
       frameWorry(sceneEl, bubble, strip);
 
       function refresh() {
@@ -359,6 +345,7 @@
         var q = question(round[wi], sel.start, sel.topic, sel.detail);
         lineEl.textContent = q; lineEl.classList.toggle("is-empty", !q);
         askBtn.setAttribute("aria-disabled", sel.start && sel.topic ? "false" : "true");
+        if (typeof compactAsk !== "undefined" && compactAsk) compactAsk.setAttribute("aria-disabled", sel.start && sel.topic ? "false" : "true");
         overBtn.setAttribute("aria-disabled", sel.start || sel.topic || sel.detail ? "false" : "true");
         return q;
       }
@@ -368,19 +355,20 @@
         var q = refresh();
         if (q) api.say(q);                                                // the live area reads the question as it changes
       }
-      function ask() {
+      function ask(renderOnly) {
         if (!sel.start || !sel.topic) {                                   // "Ask it" works once Start and Topic are picked
           rows.forEach(function (r) { var k = r.getAttribute("data-row"); r.classList.toggle("is-needed", k !== "detail" && !sel[k]); });
           var need = tray.querySelector(".cb-s02-row.is-needed");
-          if (need) need.scrollIntoView({ block: "nearest", behavior: REDUCED ? "auto" : "smooth" });   // show the row that still needs a tile
+          if (need) need.scrollIntoView({ block: "nearest", behavior: reduced() ? "auto" : "smooth" });   // show the row that still needs a tile
           api.say(T.coachFor(api.nm(speakers[wi]))); return;
         }
+        screenKey = "answer";
         var w = round[wi], n = speakers[wi], a = { w: w.id, start: sel.start, topic: sel.topic, detail: sel.detail };
         a.q = question(w, a.start, a.topic, a.detail);
         var r = judge(w, a), first = answers[wi];
-        if (first) {                                                      // a fixed question: new words and a new answer, same points
+        if (first && !renderOnly) {                                       // a fixed question: new words and a new answer, same points
           first.q = a.q; first.start = a.start; first.topic = a.topic; first.detail = a.detail; first.fixed = r;
-        } else { a.pts = r.pts; a.r = r; answers.push(a); }
+        } else if (!first) { a.pts = r.pts; a.r = r; answers.push(a); }
         var talk = h("div", { "class": "cb-s02-talk", role: "group", "aria-label": api.nmCap(n), tabindex: "-1", "data-s02": "answer", "data-cb-novoice": "" }, [
           h("p", { "class": "cb-s02-you", text: a.q }),
           h("div", { "class": "cb-s02-reply" }, [api.img(n.img, "", "cb-s02-reply__face", true), h("p", { "class": "cb-s02-reply__line", text: r.line }),
@@ -390,20 +378,24 @@
         var face = sceneEl.querySelector('.cb-s02-nb[data-i="' + wi + '"] .cb-s02-nb__face');
         if (face && !face.querySelector(".cb-badge")) face.appendChild(h("span", { "class": "cb-badge" }, [api.ico("check")]));
         var asked = Date.now(), last = wi === 3;
-        var nextBtn = api.btn(last ? T.see : T.next, "cb-btn--go cb-btn--big", function () {
-          if (Date.now() - asked < 400) return;                           // a double tap on "Ask it" never skips the neighbor's answer
+        var nextBtn = api.btn(last ? T.see : T.next, "cb-btn--go cb-btn--big", function (event) {
+          if (event && event.detail > 0 && Date.now() - asked < 400) return; // a double tap on "Ask it" never skips the neighbor's answer
           wi++; if (wi < 4) worry(); else finish();
         }, "go", true);
-        var fixBtn = r.tOk && r.sOk && r.dOk ? null : api.btn(T.fix, "cb-btn--quiet cb-btn--big", function () {
-          if (Date.now() - asked < 400) return;
+        var fixBtn = r.tOk && r.sOk && r.dOk ? null : api.btn(T.fix, "cb-btn--quiet cb-btn--big", function (event) {
+          if (event && event.detail > 0 && Date.now() - asked < 400) return;
           worry(true);
         }, "replay");
         var strip2 = h("div", { "class": "cb-actions cb-s02-strip is-done" }, [fixBtn, nextBtn]);
         strip.parentNode.replaceChild(strip2, strip);
+        compactAsk.remove();
+        if (stopLayout) stopLayout();
+        stopLayout = measureLayout(playEl, bubble, strip2, null);
         talk.focus({ preventScroll: true });                              // after Ask it, focus moves to the answer
         reveal(talk, bubble, strip2);
         api.say(r.line + " " + r.notes.map(function (x) { return x[1]; }).join(" "));   // the answer and notes, never points
       }
+      restoreAsk = ask;
     }
 
     /* how much of the screen top the stuck speech bubble covers (narrow stage only), for scroll margins */
@@ -411,6 +403,36 @@
       function set() { if (bubble.isConnected) playEl.style.setProperty("--s02-stick", (bubble.offsetHeight + 12) + "px"); }
       set();
       if (window.ResizeObserver) { var ro = new ResizeObserver(function () { if (!bubble.isConnected) ro.disconnect(); else set(); }); ro.observe(bubble); }
+    }
+    // Use the stage's measured available space, including embedded/fullscreen and zoomed layouts.
+    function measureLayout(play, bubble, strip, floating) {
+      var root = play.closest(".cb"), board = play.closest(".cb-board"), observer = null, disposed = false;
+      if (!root) return function () {};
+      function overlaps(a, b) { return a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top; }
+      function measure() {
+        if (disposed || !strip.isConnected) return;
+        var r = root.getBoundingClientRect(), height = Math.min(root.clientHeight || window.innerHeight, window.innerHeight), width = r.width || root.clientWidth;
+        var compact = width < 600 || height < 700;
+        root.setAttribute("data-s02-layout", "");
+        root.toggleAttribute("data-s02-short", height < 640);
+        board.classList.toggle("is-s02-compact", compact);
+        root.style.setProperty("--s02-strip-h", Math.ceil(strip.getBoundingClientRect().height) + "px");
+        if (!floating) return;
+        floating.hidden = !compact;
+        floating.style.right = Math.max(12, window.innerWidth - r.right + 12) + "px";
+        if (compact) {
+          var button = floating.getBoundingClientRect();
+          // Keep the duplicate shortcut out of the art. The inline Ask button remains available.
+          var collision = [].some.call(play.querySelectorAll(".cb-s02-art,.cb-s02-say"), function (art) { return overlaps(button, art.getBoundingClientRect()); });
+          floating.hidden = collision;
+        }
+      }
+      if (window.ResizeObserver) { observer = new window.ResizeObserver(measure); observer.observe(root); observer.observe(strip); observer.observe(bubble); }
+      window.addEventListener("resize", measure); document.addEventListener("scroll", measure, true);
+      measure();
+      function dispose() { if (disposed) return; disposed = true; if (observer) observer.disconnect(); window.removeEventListener("resize", measure); document.removeEventListener("scroll", measure, true); root.removeAttribute("data-s02-layout"); root.removeAttribute("data-s02-short"); root.style.removeProperty("--s02-strip-h"); }
+      if (lifecycle.cleanup) lifecycle.cleanup(dispose);
+      return dispose;
     }
     function stuck(bubble) { return getComputedStyle(bubble).position === "sticky"; }
     /* bring an element fully into view, between the stuck bubble (narrow stage) or the screen top, and the sticky strip */
@@ -420,7 +442,7 @@
         topPad = stuck(bubble) ? 12 + bubble.offsetHeight + 14 : 12, limit = v.h - strip.getBoundingClientRect().height - 24, d = 0;
       if (t < topPad) d = t - topPad;
       else if (b > limit) d = Math.min(b - limit, t - topPad);
-      if (Math.abs(d) > 4) v.el.scrollBy({ top: d, behavior: REDUCED ? "auto" : "smooth" });
+      if (Math.abs(d) > 4) v.el.scrollBy({ top: d, behavior: reduced() ? "auto" : "smooth" });
     }
     /* a new worry: the stage top comes into view (header, the worry and the first rows), and on a narrow stage the page
        scrolls just far enough that the worry bubble clears the sticky question strip */
@@ -432,7 +454,7 @@
           room = v.h - strip.getBoundingClientRect().height - 24;
         to = Math.min(Math.max(top, bb - room), bt - 12);
       }
-      if (Math.abs(to - v.y) > 4) v.el.scrollTo({ top: to, behavior: REDUCED ? "auto" : "smooth" });
+      if (Math.abs(to - v.y) > 4) v.el.scrollTo({ top: to, behavior: reduced() ? "auto" : "smooth" });
     }
     /* the page scrolls, except in the shell's full screen, where the stage itself is the scroller */
     function view(root) {
@@ -443,6 +465,7 @@
 
     /* ── score card ── */
     function finish() {
+      screenKey = "result";
       var score = answers.reduce(function (s, a) { return s + a.pts; }, 0);
       var tip = answers.some(function (a) { return !a.r.tOk; }) ? T.tipTopic
         : answers.some(function (a) { return !a.r.sOk; }) ? T.tipWill
@@ -462,4 +485,9 @@
   }
 
   CB.register({ id: ID, steps: [null, null, null, null], css: "02-ask-a-good-question.css", run: run });
+
+    return definition;
+  }
+  if (host.defineStop) host.defineStop(factory);
+  else host.register(factory({ document: document, window: window, Date: Date, setTimeout: setTimeout, clearTimeout: clearTimeout, requestAnimationFrame: requestAnimationFrame, cancelAnimationFrame: typeof cancelAnimationFrame === "function" ? cancelAnimationFrame : function () {} }));
 })();
