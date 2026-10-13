@@ -5,101 +5,56 @@
    Score (score card only): +12 per sign found (72) + careful noticing 28, minus 4 per everyday change tapped. */
 (function () {
   "use strict";
-  var CB = window.CommunityBuilders; if (!CB) return;
+  var host = window.CommunityBuilders; if (!host) return;
+  function factory(lifecycle) {
+    var document = lifecycle.document, window = lifecycle.window, Date = lifecycle.Date;
+    var setTimeout = lifecycle.setTimeout, clearTimeout = lifecycle.clearTimeout;
+    var requestAnimationFrame = lifecycle.requestAnimationFrame, cancelAnimationFrame = lifecycle.cancelAnimationFrame;
+    var definition = null, CB = { register: function (value) { definition = value; } };
+
+  "use strict";
+
   var LANG = (document.documentElement.lang || "en").slice(0, 2) === "es" ? "es" : "en";
 
   /* ── words, exact from the spec (01 - notice-the-signs.md) ─────────── */
-  var T = {
-    en: {
-      lead: "Big changes often start with small signs.", start: "Start looking",
-      story: "The Miller family wants to sell their old farm by the creek. A company wants to build a data center there.",
-      todayMore: "Some are signs of the project. Some are just everyday changes.",
-      aboutH: "About this module",
-      about: "Notice the Signs is stop 1 of Community Builders of Pecan Grove, a free bilingual game for ages 8-14. Players compare a road last month and today and find small signs that a big project may be coming. They learn that not every change is about the project.",
-      past: "Last month", today: "Today",
-      pastLine: "This is the road last month. Now tap Today.",
-      todayLine: "Tap only the new things that could be about the farm project.",
-      done: "I'm done looking",
-      signT: "A sign of change!", askLine: "Ask a grown-up: what could this mean?",
-      found: "Found", not: "Not the project", missed: "Missed", keep: "Keep looking",
-      every: function (n) { return "That's " + n + "."; },
-      everyRest: "Good eyes, but it isn't about the farm. Not every change is about the project.",
-      aFound: ", found", aNot: ", not the project", aMissed: ", missed",
-      foundN: function (n) { return "Signs found: " + n + " of 6"; }, all6: "You found all 6 signs!",
-      review: "Here are the signs you didn't find. Tap one to read it.", seeScore: "See my score",
-      can: "I can notice when something in my town is changing.",
-      everyN: function (n) { return "Everyday changes tapped: " + n; },
-      tipMiss: function (n) { return "Next time, look for " + n + " too!"; },
-      tipEvery: "Next time, ask yourself: is this new thing about the farm's land?",
-      tip100: "Sharp eyes! Try a new round.",
-      real: "With a grown-up, look for one sign of change on your street or in the local news this week. Talk about what it might mean.",
-      ask: "Ask a grown-up",
-      guText: "Kids practice noticing change without jumping to conclusions. In Georgia, a rezoning usually comes with a public notice in the newspaper, and often a sign on the land, before the public hearing. Ask together: what is changing, and where can we read more?"
-    },
-    es: {
-      lead: "Los cambios grandes muchas veces empiezan con señales pequeñas.", start: "Empezar a buscar",
-      story: "La familia Miller quiere vender su vieja granja junto al arroyo. Una empresa quiere construir ahí un centro de datos.",
-      todayMore: "Algunas son señales del proyecto. Otras son solo cambios comunes.",
-      aboutH: "Sobre este módulo",
-      about: "Fíjate en las señales es la parada 1 de Constructores de comunidad de Pecan Grove, un juego gratis y bilingüe para niños de 8 a 14 años. Los jugadores comparan un camino el mes pasado y hoy, y encuentran señales pequeñas de que puede venir un proyecto grande. Aprenden que no todo cambio tiene que ver con el proyecto.",
-      past: "El mes pasado", today: "Hoy",
-      pastLine: "Así estaba el camino el mes pasado. Ahora toca Hoy.",
-      todayLine: "Toca solo las cosas nuevas que podrían tener que ver con el proyecto de la granja.",
-      done: "Ya terminé de buscar",
-      signT: "¡Una señal de cambio!", askLine: "Pregúntale a un adulto: ¿qué podría significar?",
-      found: "Encontrada", not: "No es del proyecto", missed: "No encontrada", keep: "Sigue buscando",
-      every: function (n) { return "Es " + n + "."; },
-      everyRest: "Buen ojo, pero no tiene que ver con la granja. No todo cambio es por el proyecto.",
-      aFound: ", encontrada", aNot: ", no es del proyecto", aMissed: ", no encontrada",
-      foundN: function (n) { return "Señales encontradas: " + n + " de 6"; }, all6: "¡Encontraste las 6 señales!",
-      review: "Estas son las señales que no encontraste. Toca una para leerla.", seeScore: "Ver mi puntaje",
-      can: "Puedo darme cuenta cuando algo cambia en mi pueblo.",
-      everyN: function (n) { return "Cambios comunes que tocaste: " + n; },
-      tipMiss: function (n) { return "La próxima vez, busca también " + n + "."; },
-      tipEvery: "La próxima vez, pregúntate: ¿esto nuevo tiene que ver con el terreno de la granja?",
-      tip100: "¡Qué buen ojo! Prueba una nueva ronda.",
-      real: "Con un adulto, busca esta semana una señal de cambio en tu calle o en las noticias locales. Hablen de lo que podría significar.",
-      ask: "Pregúntale a un adulto",
-      guText: "Los niños practican notar cambios sin sacar conclusiones apresuradas. En Georgia, un cambio de zonificación casi siempre trae un aviso público en el periódico y, a menudo, un letrero en el terreno antes de la audiencia pública. Pregunten juntos: ¿qué está cambiando y dónde podemos leer más?"
-    }
-  }[LANG];
+  var T = window.CBLocale.read("stop-01", LANG, {en:{"T.every":function (n) { return window.CBLocale.part("stop-01", "en", "T.every", 0) + n + window.CBLocale.part("stop-01", "en", "T.every", 1); },"T.foundN":function (n) { return window.CBLocale.part("stop-01", "en", "T.foundN", 0) + n + window.CBLocale.part("stop-01", "en", "T.foundN", 1); },"T.everyN":function (n) { return window.CBLocale.part("stop-01", "en", "T.everyN", 0) + n; },"T.tipMiss":function (n) { return window.CBLocale.part("stop-01", "en", "T.tipMiss", 0) + n + window.CBLocale.part("stop-01", "en", "T.tipMiss", 1); }},es:{"T.every":function (n) { return window.CBLocale.part("stop-01", "es", "T.every", 0) + n + window.CBLocale.part("stop-01", "es", "T.every", 1); },"T.foundN":function (n) { return window.CBLocale.part("stop-01", "es", "T.foundN", 0) + n + window.CBLocale.part("stop-01", "es", "T.foundN", 1); },"T.everyN":function (n) { return window.CBLocale.part("stop-01", "es", "T.everyN", 0) + n; },"T.tipMiss":function (n) { return window.CBLocale.part("stop-01", "es", "T.tipMiss", 0) + n + window.CBLocale.part("stop-01", "es", "T.tipMiss", 1); }}}).T;
 
   /* ── the 20 items. sign: true = a sign of the project. board = words that sit on the item as HTML text.
      tag = the short name written under the picture, so a first-time player always knows what each thing is ── */
   var ITEMS = [
-    { id: "sign", sign: true, name: ["a new sign on a post", "un letrero nuevo en un poste"], tag: ["Sign on a post", "Letrero en un poste"],
-      board: { kind: "post", text: ["Rezoning request. Public hearing: Nov. 12", "Solicitud de cambio de zonificación. Audiencia pública: 12 de nov."] },
-      line: ["A rezoning sign. Someone asked to use this land in a new way.", "Un letrero de cambio de zonificación. Alguien pidió usar este terreno de otra forma."] },
-    { id: "flags", sign: true, name: ["small orange flags in the grass", "banderitas anaranjadas en el pasto"], tag: ["Orange flags", "Banderitas"],
-      line: ["Survey flags. Someone measured this land.", "Banderitas de topografía. Alguien midió este terreno."] },
-    { id: "paint", sign: true, name: ["orange paint marks on the ground", "marcas de pintura anaranjada en el suelo"], tag: ["Paint marks", "Marcas de pintura"],
-      line: ["Dig marks. They show where pipes and wires are before digging.", "Marcas para excavar. Muestran dónde hay tubos y cables antes de excavar."] },
-    { id: "notice", sign: true, name: ["a new notice on a board", "un aviso nuevo en un tablero"], tag: ["Notice board", "Tablero de avisos"],
-      line: ["A library notice about a meeting on the farm.", "Un aviso de la biblioteca sobre una reunión acerca de la granja."] },
-    { id: "truck", sign: true, name: ["a surveyor's truck with a tripod", "una camioneta de topógrafos con un trípode"], tag: ["Surveyor's truck", "Camioneta de topógrafos"],
-      line: ["Surveyors measure land, often before it is sold or built on.", "Los topógrafos miden terrenos, muchas veces antes de que se vendan o se construya en ellos."] },
-    { id: "drill", sign: true, name: ["a small drill testing the soil", "una perforadora pequeña que prueba el suelo"], tag: ["Soil drill", "Perforadora"],
-      line: ["Builders check if the ground can hold a big building.", "Los constructores revisan si el suelo aguanta un edificio grande."] },
-    { id: "paper", sign: true, name: ["a newspaper open to a notice", "un periódico abierto en la página de avisos"], tag: ["Newspaper", "Periódico"],
-      line: ["Towns print a notice in the newspaper before a public hearing.", "Los pueblos publican un aviso en el periódico antes de una audiencia pública."] },
-    { id: "code", sign: true, name: ["a paper that says Project Acorn", "un papel que dice Proyecto Bellota"], tag: ["A paper", "Un papel"],
-      board: { kind: "paper", text: ["Project Acorn", "Proyecto Bellota"] },
-      line: ["A code name. Big projects sometimes use one at first.", "Un nombre clave. A veces los proyectos grandes usan uno al principio."] },
-    { id: "letter", sign: true, name: ["a letter about a meeting in a mailbox", "una carta sobre una reunión en un buzón"], tag: ["Letter in a mailbox", "Carta en el buzón"],
-      line: ["Some towns mail letters to neighbors near the land.", "Algunos pueblos mandan cartas a los vecinos que viven cerca del terreno."] },
-    { id: "sale", sign: true, name: ["a Sale pending sign", "un letrero de Venta pendiente"], tag: ["Sale sign", "Letrero de venta"],
-      board: { kind: "hang", text: ["Sale pending", "Venta pendiente"] },
-      line: ["A land sale can come before anyone hears about a project.", "Una venta de terreno puede pasar antes de que alguien sepa del proyecto."] },
-    { id: "mural", name: ["a new mural on a little wall", "un mural nuevo en una pared bajita"], tag: ["New mural", "Mural nuevo"] },
-    { id: "icecream", name: ["an ice-cream cart", "un carrito de helados"], tag: ["Ice-cream cart", "Carrito de helados"] },
-    { id: "branch", name: ["a fallen branch", "una rama caída"], tag: ["Fallen branch", "Rama caída"] },
-    { id: "cat", name: ["a lost-cat poster", "un cartel de gato perdido"], tag: ["Lost-cat poster", "Cartel de gato perdido"] },
-    { id: "pumpkin", name: ["a big pumpkin", "una calabaza grande"], tag: ["Big pumpkin", "Calabaza grande"] },
-    { id: "bike", name: ["a new bike rack", "un estacionamiento nuevo para bicis"], tag: ["Bike rack", "Lugar para bicis"] },
-    { id: "yard", name: ["a yard-sale table", "una mesa de venta de garaje"], tag: ["Yard-sale table", "Venta de garaje"] },
-    { id: "ball", name: ["a soccer ball in the grass", "un balón de fútbol en el pasto"], tag: ["Soccer ball", "Balón de fútbol"] },
-    { id: "leaves", name: ["a big pile of leaves", "un montón grande de hojas"], tag: ["Pile of leaves", "Montón de hojas"] },
-    { id: "feeder", name: ["a new bird feeder", "un comedero nuevo para pájaros"], tag: ["Bird feeder", "Comedero de pájaros"] }
+    { id: "sign", sign: true, name: window.CBLocale.pair("stop-01","bank.b0001"), tag: window.CBLocale.pair("stop-01","bank.b0002"),
+      board: { kind: "post", text: window.CBLocale.pair("stop-01","bank.b0003") },
+      line: window.CBLocale.pair("stop-01","bank.b0004") },
+    { id: "flags", sign: true, name: window.CBLocale.pair("stop-01","bank.b0005"), tag: window.CBLocale.pair("stop-01","bank.b0006"),
+      line: window.CBLocale.pair("stop-01","bank.b0007") },
+    { id: "paint", sign: true, name: window.CBLocale.pair("stop-01","bank.b0008"), tag: window.CBLocale.pair("stop-01","bank.b0009"),
+      line: window.CBLocale.pair("stop-01","bank.b0010") },
+    { id: "notice", sign: true, name: window.CBLocale.pair("stop-01","bank.b0011"), tag: window.CBLocale.pair("stop-01","bank.b0012"),
+      line: window.CBLocale.pair("stop-01","bank.b0013") },
+    { id: "truck", sign: true, name: window.CBLocale.pair("stop-01","bank.b0014"), tag: window.CBLocale.pair("stop-01","bank.b0015"),
+      line: window.CBLocale.pair("stop-01","bank.b0016") },
+    { id: "drill", sign: true, name: window.CBLocale.pair("stop-01","bank.b0017"), tag: window.CBLocale.pair("stop-01","bank.b0018"),
+      line: window.CBLocale.pair("stop-01","bank.b0019") },
+    { id: "paper", sign: true, name: window.CBLocale.pair("stop-01","bank.b0020"), tag: window.CBLocale.pair("stop-01","bank.b0021"),
+      line: window.CBLocale.pair("stop-01","bank.b0022") },
+    { id: "code", sign: true, name: window.CBLocale.pair("stop-01","bank.b0023"), tag: window.CBLocale.pair("stop-01","bank.b0024"),
+      board: { kind: "paper", text: window.CBLocale.pair("stop-01","bank.b0025") },
+      line: window.CBLocale.pair("stop-01","bank.b0026") },
+    { id: "letter", sign: true, name: window.CBLocale.pair("stop-01","bank.b0027"), tag: window.CBLocale.pair("stop-01","bank.b0028"),
+      line: window.CBLocale.pair("stop-01","bank.b0029") },
+    { id: "sale", sign: true, name: window.CBLocale.pair("stop-01","bank.b0030"), tag: window.CBLocale.pair("stop-01","bank.b0031"),
+      board: { kind: "hang", text: window.CBLocale.pair("stop-01","bank.b0032") },
+      line: window.CBLocale.pair("stop-01","bank.b0033") },
+    { id: "mural", name: window.CBLocale.pair("stop-01","bank.b0034"), tag: window.CBLocale.pair("stop-01","bank.b0035") },
+    { id: "icecream", name: window.CBLocale.pair("stop-01","bank.b0036"), tag: window.CBLocale.pair("stop-01","bank.b0037") },
+    { id: "branch", name: window.CBLocale.pair("stop-01","bank.b0038"), tag: window.CBLocale.pair("stop-01","bank.b0039") },
+    { id: "cat", name: window.CBLocale.pair("stop-01","bank.b0040"), tag: window.CBLocale.pair("stop-01","bank.b0041") },
+    { id: "pumpkin", name: window.CBLocale.pair("stop-01","bank.b0042"), tag: window.CBLocale.pair("stop-01","bank.b0043") },
+    { id: "bike", name: window.CBLocale.pair("stop-01","bank.b0044"), tag: window.CBLocale.pair("stop-01","bank.b0045") },
+    { id: "yard", name: window.CBLocale.pair("stop-01","bank.b0046"), tag: window.CBLocale.pair("stop-01","bank.b0047") },
+    { id: "ball", name: window.CBLocale.pair("stop-01","bank.b0048"), tag: window.CBLocale.pair("stop-01","bank.b0049") },
+    { id: "leaves", name: window.CBLocale.pair("stop-01","bank.b0050"), tag: window.CBLocale.pair("stop-01","bank.b0051") },
+    { id: "feeder", name: window.CBLocale.pair("stop-01","bank.b0052"), tag: window.CBLocale.pair("stop-01","bank.b0053") }
   ];
 
   /* ── storybook art: each thing is a small painted object on the 64-unit grid, standing on its own ground shadow.
@@ -225,7 +180,7 @@
       var s = document.createElementNS("http://www.w3.org/2000/svg", "svg");
       s.setAttribute("viewBox", "0 0 64 64"); s.setAttribute("aria-hidden", "true"); s.setAttribute("focusable", "false");
       s.setAttribute("class", "cb-story cb-s01-art" + (cls ? " " + cls : ""));
-      s.innerHTML = ART[id];                                    // constant, authored markup only
+      host.setAuthoredMarkup(s, ART[id]);                                    // constant, authored markup only
       return s;
     }
 
@@ -257,7 +212,22 @@
     var spots = order.map(function (it, i) {
       return { i: i, item: it, x: POS[i][0], y: POS[i][1], sy: POS[i][2], px: PCOL[Math.floor(i / 4)], py: PROW[i % 4], qx: QCOL[Math.floor(i / 6)], qy: QROW[i % 6] };
     });
-    var found = {}, tapped = {}, view = "past", seenToday = false, reviewing = false, finished = false;
+    var found = {}, tapped = {}, view = "past", seenToday = false, reviewing = false, finished = false, screenKey = "intro";
+    if (api.setController) api.setController({
+      snapshot: function () { return { screenKey: screenKey, order: spots.map(function (s) { return s.item.id; }), found: Object.keys(found), tapped: Object.keys(tapped), view: view, seenToday: seenToday }; },
+      restore: function (state) {
+        if (!state || !Array.isArray(state.order) || state.order.length !== 12) return;
+        var restoredItems = state.order.map(function (id) { return ITEMS.filter(function (it) { return it.id === id; })[0]; });
+        if (restoredItems.some(function (it) { return !it; }) || restoredItems.filter(function (it) { return it.sign; }).length !== 6) return;
+        spots = restoredItems.map(function (it, i) { return { i: i, item: it, x: POS[i][0], y: POS[i][1], sy: POS[i][2], px: PCOL[Math.floor(i / 4)], py: PROW[i % 4], qx: QCOL[Math.floor(i / 6)], qy: QROW[i % 6] }; });
+        key = restoredItems.map(function (it) { return it.id; }).sort().join(",");
+        found = {}; tapped = {};
+        (state.found || []).forEach(function (id) { if (restoredItems.some(function (it) { return it.id === id && it.sign; })) found[id] = 1; });
+        (state.tapped || []).forEach(function (id) { if (restoredItems.some(function (it) { return it.id === id && !it.sign; })) tapped[id] = 1; });
+        view = state.view === "today" ? "today" : "past"; seenToday = !!state.seenToday; reviewing = false; finished = false;
+        if (state.screenKey === "result") finish(); else if (state.screenKey === "review") doneLooking(); else if (state.screenKey === "look") look(); else start();
+      }, onPause: function () {}, onResume: function () {}
+    });
     function nFound() { return Object.keys(found).length; }
     function nTapped() { return Object.keys(tapped).length; }
 
@@ -311,7 +281,13 @@
 
     /* ── cards: one button, "Keep looking"; Esc closes; focus goes back to the spot ── */
     function card(s, onClose) {
-      var it = s.item, badge = h("span", { "class": "cb-s01-dlgbadge" + (it.sign ? " is-sign" : ""), "aria-hidden": "true" }, [icon(it.id)]), d;
+      var it = s.item;
+      if (api.callout && !(api.prefersFindCards && api.prefersFindCards())) {
+        var content = [h("p", { text: it.sign ? t2(it.line) : T.everyRest })];
+        if (it.sign) content.push(h("p", { text: T.askLine }));
+        return api.callout(s.btn, content, { title: it.sign ? T.signT : T.every(t2(it.name)), closeLabel: T.keep, onClose: onClose });
+      }
+      var badge = h("span", { "class": "cb-s01-dlgbadge" + (it.sign ? " is-sign" : ""), "aria-hidden": "true" }, [icon(it.id)]), d;
       if (it.sign) {
         d = api.dialog(T.signT, [h("div", { "class": "cb-s01-cardbody" }, [
           it.board ? h("div", { "class": "cb-s01-bigboard" }, [boardEl(it, true)]) : null,
@@ -333,12 +309,8 @@
         if (it.sign && !found[it.id]) { found[it.id] = 1; fresh = true; }
         else if (!it.sign && !tapped[it.id]) { tapped[it.id] = 1; fresh = true; }
       }
-      card(s, function () {
-        quiet();
-        if (!fresh) return;
-        paint(s, true);
-        if (it.sign) progress(true);
-      });
+      if (fresh) { paint(s, true); if (it.sign) progress(true); }
+      card(s, function () { quiet(); });
       quiet();
     }
 
@@ -363,6 +335,7 @@
 
     /* ── 1 · start ── */
     function start() {
+      screenKey = "intro";
       var aid = "cb-s01-about-h";
       api.screen([api.stopHud(stop, null), h("div", { "class": "cb-board" }, [h("div", { "class": "cb-s01-start" }, [
         api.crop(CROP, "cb-s01-startart"),
@@ -376,15 +349,16 @@
 
     /* ── 2 · look: Last month / Today ── */
     function look() {
-      var coachEl = api.coach(T.pastLine, "peek"), sc = scene(true);
+      screenKey = "look";
+      var coachEl = api.coach(view === "past" ? T.pastLine : T.todayLine + " " + T.todayMore, "peek"), sc = scene(view === "past");
       function vbtn(v) {
         return h("button", { type: "button", "class": "cb-s01-view", "data-view": v, "aria-pressed": v === view ? "true" : "false", onclick: function () { setView(v); } },
           [api.ico("check", "cb-s01-view__ic"), h("span", { text: v === "past" ? T.past : T.today })]);
       }
-      var views = h("div", { "class": "cb-s01-views is-cue" }, [vbtn("past"), vbtn("today")]);
+      var views = h("div", { "class": "cb-s01-views" + (seenToday ? "" : " is-cue") }, [vbtn("past"), vbtn("today")]);
       function setView(v) {
         if (v === view) return;
-        if (v === "today" && !seenToday) {                    // the first look at Today: the new things pop in, one after another
+        if (v === "today" && !seenToday && (!api.motionAllowed || api.motionAllowed())) {
           sc.classList.add("is-arriving");
           setTimeout(function () { sc.classList.remove("is-arriving"); }, 1700);
         }
@@ -408,6 +382,7 @@
       var missed = spots.filter(function (s) { return s.item.sign && !found[s.item.id]; });
       if (!missed.length) return finish();
       reviewing = true;
+      screenKey = "review";
       var sc = scene(false, function (s) { return s.item.sign && !found[s.item.id]; });
       api.screen([api.stopHud(stop, [null, null], 1), h("div", { "class": "cb-board cb-s01-board" }, [
         api.coach(T.review, "bulb"), sc,
@@ -422,11 +397,12 @@
     function finish() {
       if (finished) return;
       finished = true;
+      screenKey = "result";
       var nF = nFound(), nE = nTapped();
       var score = 12 * nF + Math.max(0, 28 - 4 * nE);
       var miss = spots.filter(function (s) { return s.item.sign && !found[s.item.id]; })[0];
       var tip = miss ? T.tipMiss(t2(miss.item.name)) : nE ? T.tipEvery : T.tip100;
-      var info = api.saveRound(stop.id, score, { lastRound: key });
+      var info = api.saveRound(stop.id, score, { lastRound: key, allSigns: nF === 6, extraTaps: nE, processBadge: nF === 6 && nE === 0 ? "process-1" : null });
       api.endPlay();
       var card = api.scoreCard(stop, score, info, tip, T.can, T.real);
       var stats = h("ul", { "class": "cb-s01-stats" }, [
@@ -445,4 +421,9 @@
 
     start();
   }
+
+    return definition;
+  }
+  if (host.defineStop) host.defineStop(factory);
+  else host.register(factory({ document: document, window: window, Date: Date, setTimeout: setTimeout, clearTimeout: clearTimeout, requestAnimationFrame: requestAnimationFrame, cancelAnimationFrame: typeof cancelAnimationFrame === "function" ? cancelAnimationFrame : function () {} }));
 })();

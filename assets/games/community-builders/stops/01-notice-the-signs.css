@@ -43,22 +43,22 @@
    ground shadow keep them clear of the busy brushwork. */
 .cb-s01-spot { display: grid; justify-items: center; width: max-content; border-radius: 16px; cursor: pointer; }
 .cb-s01-stk { position: relative; display: grid; place-items: center; width: var(--s); height: var(--s);
-  filter: drop-shadow(0 0 0.8px #FFF8EA) drop-shadow(0 0 0.8px #FFF8EA) drop-shadow(0 4px 4px rgba(48, 30, 14, 0.34));
+  filter: drop-shadow(0 0 0.8px var(--pg-color-fff8ea)) drop-shadow(0 0 0.8px var(--pg-color-fff8ea)) drop-shadow(0 4px 4px rgba(48, 30, 14, 0.34));
   transition: transform var(--a2-dur-3) var(--cb-ease), opacity var(--a2-dur-2), filter var(--a2-dur-2); }
 .cb-s01-scene.is-past .cb-s01-stk { transform: translateY(10px) scale(0.92); }
 .cb-s01-spot:not([disabled]):hover .cb-s01-stk { transform: translateY(-4px) scale(1.04); }
 .cb-s01-spot:not([disabled]):active .cb-s01-stk { transform: scale(0.96); }
-.cb-s01-spot:focus-visible { outline: 3px solid var(--cb-focus); outline-offset: 3px; box-shadow: 0 0 0 3px #FFF8EA; }
+.cb-s01-spot:focus-visible { outline: 3px solid var(--cb-focus); outline-offset: 3px; box-shadow: 0 0 0 3px var(--pg-color-fff8ea); }
 .cb-s01-stk--board { width: var(--bw); height: auto; min-height: var(--s); align-content: end; }
 .cb-s01-stk--post { width: calc(var(--bw) * 1.42); }            /* the rezoning sign has the most words: wider, so its type stays readable */
 
 /* the paper tag: the thing's name, always; after a tap, a second line in words */
 .cb-s01-tag { position: relative; z-index: 1; display: grid; justify-items: center; gap: 0; max-width: 132px; margin-top: -2px; padding: 2px 9px 3px;
-  border-radius: 9px; border: 1.5px solid rgba(71, 50, 31, 0.24); background: #FFF8EA; color: #3A2A1C;
+  border-radius: 9px; border: 1px solid var(--pg-color-3a2a1c); background: var(--pg-color-fff8ea); color: var(--pg-color-3a2a1c);
   box-shadow: 0 1px 2px rgba(48, 30, 14, 0.22), 0 4px 10px -4px rgba(48, 30, 14, 0.42);
   font-size: 0.8125rem; font-weight: 720; line-height: 1.1; letter-spacing: -0.005em; text-align: center; text-wrap: balance;
   transition: background-color var(--a2-dur-2), color var(--a2-dur-2), border-color var(--a2-dur-2); }
-.cb-s01-tag__s { display: inline-flex; align-items: center; gap: 3px; font-size: 0.71875rem; font-weight: 780; }
+.cb-s01-tag__s { display: inline-flex; align-items: center; gap: 3px; font-size: 0.8125rem; font-weight: 780; }
 .cb-s01-tag__s .cb-ico { width: 13px; height: 13px; stroke-width: 3.4; }
 
 /* the storybook palette itself lives in the shell (cb.css, .cb-story) so every stop draws things the same way */
@@ -66,31 +66,31 @@
 
 /* words on a board or paper are real text, on wood and paper that match the pictures; sizes in em so the card copy can grow */
 .cb-s01-brd { display: grid; justify-items: center; width: 100%; font-size: var(--bf, 1rem); }
-.cb-s01-brd__face { position: relative; display: block; width: 100%; padding: 0.4em 0.5em 0.45em; border: 2px solid #47321F; border-radius: 0.4em; background: #FFFDF6;
-  font-family: var(--a2-font-display); font-size: 1em; font-weight: 650; line-height: 1.12; letter-spacing: -0.008em; text-align: center; text-wrap: balance; color: #3A2A1C; }
+.cb-s01-brd__face { position: relative; display: block; width: 100%; padding: 0.4em 0.5em 0.45em; border: 2px solid var(--pg-color-47321f); border-radius: 0.4em; background: var(--pg-color-fffdf6);
+  font-family: var(--a2-font-display); font-size: 1em; font-weight: 650; line-height: 1.12; letter-spacing: -0.008em; text-align: center; text-wrap: balance; color: var(--pg-color-3a2a1c); }
 .cb-s01-brd__face b { display: block; font-weight: 780; }
-.cb-s01-brd--post .cb-s01-brd__face { border-top: 0.42em solid #4F8FB6; }
-.cb-s01-brd--post::after { content: ""; width: 0.55em; height: 0.95em; border: 2px solid #47321F; border-top: 0; border-radius: 0 0 0.15em 0.15em; background: #B07A43; }
+.cb-s01-brd--post .cb-s01-brd__face { border-top: 0.42em solid var(--pg-color-4f8fb6); }
+.cb-s01-brd--post::after { content: ""; width: 0.55em; height: 0.95em; border: 2px solid var(--pg-color-47321f); border-top: 0; border-radius: 0 0 0.15em 0.15em; background: var(--pg-color-b07a43); }
 .cb-s01-brd--hang { position: relative; padding: 0.95em 0 0.25em 0.75em; }
-.cb-s01-brd--hang::before { content: ""; position: absolute; left: 0; top: 0; width: 88%; height: 100%; border-top: 0.32em solid #845630; border-left: 0.32em solid #845630; border-radius: 0.25em 0 0 0; }
-.cb-s01-brd--hang .cb-s01-brd__face { background: #F4C94E; font-weight: 780; font-size: 1.12em; }
-.cb-s01-brd--hang .cb-s01-brd__face::before, .cb-s01-brd--hang .cb-s01-brd__face::after { content: ""; position: absolute; top: -0.78em; width: 0.14em; height: 0.62em; background: #47321F; }
+.cb-s01-brd--hang::before { content: ""; position: absolute; left: 0; top: 0; width: 88%; height: 100%; border-top: 0.32em solid var(--pg-color-845630); border-left: 0.32em solid var(--pg-color-845630); border-radius: 0.25em 0 0 0; }
+.cb-s01-brd--hang .cb-s01-brd__face { background: var(--pg-color-f4c94e); font-weight: 780; font-size: 1.12em; }
+.cb-s01-brd--hang .cb-s01-brd__face::before, .cb-s01-brd--hang .cb-s01-brd__face::after { content: ""; position: absolute; top: -0.78em; width: 0.14em; height: 0.62em; background: var(--pg-color-47321f); }
 .cb-s01-brd--hang .cb-s01-brd__face::before { left: 22%; }
 .cb-s01-brd--hang .cb-s01-brd__face::after { right: 22%; }
 .cb-s01-brd--paper { padding: 0.15em 0.2em; }
-.cb-s01-brd--paper .cb-s01-brd__face { padding: 0.75em 0.55em 0.85em; border-radius: 0.2em; background: #FFF6E3; font-weight: 780; font-size: 1.12em; transform: rotate(-3deg); }
-.cb-s01-brd--paper .cb-s01-brd__face::after { content: ""; position: absolute; top: -2px; right: -2px; width: 0.95em; height: 0.95em; border-left: 2px solid #47321F; border-bottom: 2px solid #47321F; border-radius: 0 0 0 0.2em;
-  background: linear-gradient(225deg, #FFFDF6 50%, #EAD8B4 50%); }
+.cb-s01-brd--paper .cb-s01-brd__face { padding: 0.75em 0.55em 0.85em; border-radius: 0.2em; background: var(--pg-color-fff6e3); font-weight: 780; font-size: 1.12em; transform: rotate(-3deg); }
+.cb-s01-brd--paper .cb-s01-brd__face::after { content: ""; position: absolute; top: -2px; right: -2px; width: 0.95em; height: 0.95em; border-left: 2px solid var(--pg-color-47321f); border-bottom: 2px solid var(--pg-color-47321f); border-radius: 0 0 0 0.2em;
+  background: linear-gradient(225deg, var(--pg-color-fffdf6) 50%, var(--pg-color-ead8b4) 50%); }
 
 /* ── states: words always carry the meaning (the tag's second line); the ring and the badge only add to them ── */
 .cb-s01-ring { position: absolute; left: 50%; top: calc(var(--s) / 2); width: calc(var(--s) + 6px); aspect-ratio: 1; border-radius: 50%; opacity: 0; pointer-events: none; transform: translate(-50%, -50%); }
 .cb-s01-spot--board .cb-s01-ring { width: calc(100% + 8px); height: calc(var(--s) + 6px); aspect-ratio: auto; border-radius: 20px; }
 .cb-s01-spot.is-found .cb-s01-ring { opacity: 1; background: rgba(233, 242, 238, 0.34); border: 3px solid var(--cb-stage-2); box-shadow: 0 0 0 2px rgba(255, 248, 234, 0.85); }
-.cb-s01-spot.is-missed .cb-s01-ring { opacity: 1; border: 3px dashed #3A2A1C; background: rgba(255, 248, 234, 0.4); }
+.cb-s01-spot.is-missed .cb-s01-ring { opacity: 1; border: 3px dashed var(--pg-color-3a2a1c); background: rgba(255, 248, 234, 0.4); }
 .cb-s01-spot.is-not .cb-s01-stk { opacity: 0.72; filter: saturate(0.55) drop-shadow(0 2px 2px rgba(48, 30, 14, 0.25)); }
 .cb-s01-spot.is-found .cb-s01-tag { background: var(--cb-stage-2); border-color: var(--cb-stage-2); color: var(--cb-on-accent); }
 .cb-s01-spot.is-not .cb-s01-tag { background: var(--cb-sunken); border-color: var(--cb-line-strong); color: var(--cb-ink-2); }
-.cb-s01-spot.is-missed .cb-s01-tag { border: 1.5px dashed #3A2A1C; }
+.cb-s01-spot.is-missed .cb-s01-tag { border: 1.5px dashed var(--pg-color-3a2a1c); }
 .cb-s01-spot .cb-badge { top: -4px; right: -6px; bottom: auto; width: 28px; height: 28px; z-index: 1; }
 .cb-s01-spot--board .cb-badge { top: -9px; right: -9px; }
 .cb-s01-spot:not(.is-fresh) .cb-badge { animation: none; }
@@ -100,7 +100,7 @@
 @keyframes cb-s01-say { from { opacity: 0; transform: translateY(-4px); } }
 .cb-s01-spot[disabled] { cursor: default; }
 .cb-s01-spot[disabled] .cb-s01-stk { opacity: 0.55; filter: grayscale(1) drop-shadow(0 2px 2px rgba(48, 30, 14, 0.2)); }
-.cb-s01-spot[disabled] .cb-s01-tag { opacity: 0.75; }
+.cb-s01-spot[disabled] .cb-s01-tag { opacity: 1; }
 
 /* the first look at Today: the new things pop up out of the ground, left to right (none with reduced motion) */
 .cb-s01-scene.is-arriving .cb-s01-spot { animation: cb-s01-in 0.6s cubic-bezier(0.16, 1, 0.3, 1) both; animation-delay: calc(var(--i, 0) * 70ms + 140ms); }
@@ -115,7 +115,7 @@
 
 /* ── cards ── */
 .cb-s01-dlg .cb-dlg__head { padding-right: 0; }
-.cb-s01-dlgbadge { display: grid; place-items: center; flex: none; width: 84px; height: 84px; border-radius: 50%; background: #FFF8EA; border: 4px solid var(--cb-info-soft); box-shadow: var(--cb-shadow-1); color: var(--cb-ink); }
+.cb-s01-dlgbadge { display: grid; place-items: center; flex: none; width: 84px; height: 84px; border-radius: 50%; background: var(--pg-color-fff8ea); border: 4px solid var(--cb-info-soft); box-shadow: var(--cb-shadow-1); color: var(--cb-ink); }
 .cb-s01-dlgbadge.is-sign { border-color: var(--cb-pine-soft); }
 .cb-s01-dlgbadge .cb-s01-art { width: 76%; height: 76%; }
 .cb-s01-cardbody { display: grid; gap: 12px; }
@@ -154,11 +154,11 @@
   .cb-s01-spots li { top: var(--y); }
   .cb-s01-scene { --bf: calc(var(--s) * 0.135); }                /* the narrower tablet scene keeps compact boards */
   .cb-s01-stk--post { width: var(--bw); }
-  .cb-s01-tag { max-width: 112px; font-size: 0.75rem; }
+  .cb-s01-tag { max-width: 112px; font-size: 0.8125rem; }
 }
 @container cb (min-width: 600px) and (max-width: 699.98px) {       /* the narrowest tablet scenes: slightly smaller pictures and tags */
   .cb-s01-scene { --s: 64px; --bw: 100px; }
-  .cb-s01-tag { max-width: 100px; font-size: 0.71875rem; }
+  .cb-s01-tag { max-width: 100px; font-size: 0.8125rem; }
 }
 @container cb (max-width: 599.98px) {
   .cb-s01-views { display: flex; width: 100%; }
@@ -172,9 +172,9 @@
   .cb-s01-board .cb-actions > .cb-btn { flex: 1 1 100%; }
   .cb-s01-spots li { left: var(--px); top: var(--py); }
   .cb .cb-s01-scene .cb-art__map--crop { object-position: 50% 100% !important; transform-origin: 50% 100% !important; transform: scale(2.2) !important; }
-  .cb-s01-tag { max-width: 102px; padding: 1px 6px 2px; border-radius: 8px; font-size: 0.6875rem; line-height: 1.08; }
+  .cb-s01-tag { max-width: 102px; padding: 2px 6px 3px; border-radius: 8px; font-size: 0.8125rem; line-height: 1.1; }
   .cb-s01-spot--board .cb-s01-ring { width: calc(100% + 2px); }
-  .cb-s01-tag__s { font-size: 0.65625rem; }
+  .cb-s01-tag__s { font-size: 0.8125rem; }
   .cb-s01-tag__s .cb-ico { width: 11px; height: 11px; }
   .cb-s01-dlgbadge { width: 68px; height: 68px; }
   .cb-s01-dlg .cb-s01-line { font-size: 1.0625rem; }
