@@ -46,8 +46,8 @@
 .cb-s11-hero__signs li:nth-child(4) { left: 84%; bottom: 7%; }
 .cb-s11-hero__signs li::after { content: ""; position: absolute; left: 50%; bottom: 0; width: 8px; height: 26px; margin-left: -4px; border-radius: 0 0 3px 3px; background: var(--s11-wood); }
 /* each path is a wooden plank sign with its name in carved cream letters (the storybook wood, DESIGN.md "Things on a scene") */
-.cb-s11-hero__sign { position: relative; z-index: 1; display: block; width: max-content; max-width: min(28cqi, 120px); padding: 0.35em 0.55em 0.4em; border-radius: 5px; border: 2px solid #47321F;
-  background: #845630; color: #FFF8EA; box-shadow: 0 4px 6px -2px rgba(48, 30, 14, 0.5); font-family: var(--a2-font-display); font-size: clamp(0.5625rem, 0.3rem + 0.75cqi, 0.8125rem);
+.cb-s11-hero__sign { position: relative; z-index: 1; display: block; width: max-content; max-width: min(28cqi, 120px); padding: 0.35em 0.55em 0.4em; border-radius: 5px; border: 2px solid var(--pg-color-47321f);
+  background: var(--pg-color-845630); color: var(--pg-color-fff8ea); box-shadow: 0 4px 6px -2px rgba(48, 30, 14, 0.5); font-family: var(--a2-font-display); font-size: clamp(0.5625rem, 0.3rem + 0.75cqi, 0.8125rem);
   font-weight: 760; line-height: 1.1; letter-spacing: -0.005em; text-align: center; text-wrap: balance; transform: rotate(-2.5deg); }
 .cb-s11-hero__signs li:nth-child(even) .cb-s11-hero__sign { transform: rotate(2deg); }
 .cb-s11-hero__thing { width: clamp(28px, 6cqi, 44px); aspect-ratio: 1; }
