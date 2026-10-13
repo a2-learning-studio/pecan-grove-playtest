@@ -6,86 +6,29 @@
    No network, no inputs, no inline styles: every colour lives in 09-include-every-voice.css. */
 (function () {
   "use strict";
-  var CB = window.CommunityBuilders; if (!CB) return;
+  var host = window.CommunityBuilders; if (!host) return;
+  function factory(lifecycle) {
+    var document = lifecycle.document, window = lifecycle.window, Date = lifecycle.Date;
+    var setTimeout = lifecycle.setTimeout, clearTimeout = lifecycle.clearTimeout;
+    var requestAnimationFrame = lifecycle.requestAnimationFrame, cancelAnimationFrame = lifecycle.cancelAnimationFrame;
+    var definition = null, CB = { register: function (value) { definition = value; } };
+
+  "use strict";
+
   var LANG = (document.documentElement.lang || "en").slice(0, 2) === "es" ? "es" : "en";
   var ID = "include-every-voice";
 
   /* ── words (exact) ─────────────────────────────────────────────────── */
-  var WORDS = {
-    en: {
-      library: "Library",
-      intro: "The town is planning another meeting about the farm, here at the library. Last time, the meeting was at 2 pm, upstairs, and only in English. Five chairs stayed empty. Who was missing? Help everyone join.",
-      start: "Start",
-      noteK: "Last meeting:", note: ["2 pm", "upstairs", "English only"],
-      filled: function (n) { return "Chairs filled: " + n + " of 5"; },
-      chair: function (n) { return "Empty chair " + n + " of 5"; }, empty: "Empty chair",
-      instr: "Tap an empty chair to see who is missing.",
-      ask: function (n) { return "How can " + n + " join? Tap a way."; },
-      way: function (w) { return "Way: " + w; },
-      finishPlan: "Finish the plan",
-      missing: function (n) { return n + " is missing"; },
-      joined: "Joined",
-      right: function (n) { return "Yes! Now " + n + " can join."; },
-      wrong1: function (hint) { return "That can help other people. " + hint; },
-      tried: "Tried",
-      shown: "Here is a way that helps.",
-      also: "Also helps:",
-      done: "Done",
-      all: "Every chair is filled!",
-      confirm: "Some chairs are still empty. Finish anyway?",
-      keep: "Keep looking", finish: "Finish",
-      aha: "A meeting at 2 pm, upstairs and only in English leaves people out: nurses who sleep in the day, kids in school, families who speak Spanish. Small changes can bring everyone in.",
-      see: "See my score",
-      can: "I can notice who is missing and help them join.",
-      tipOpen: function (n) { return "Next time, open every empty chair. " + n + " was waiting!"; },
-      tipRead: function (n) { return "Next time, read why " + n + " is missing, then pick a way that fixes that."; },
-      tip100: "Great job! Everyone can join. Try a new round.",
-      real: "Think of someone who doesn't usually get asked, at school or at home. With a grown-up, find a way to ask what they think.",
-      gu: "For grown-ups: about this stop",
-      guText: "Kids notice who is missing from a meeting and match a way to include them: evening times, interpreters, a ride, a ramp, a recording, a kids' corner. At real hearings, interpreters and written comments let more people take part."
-    },
-    es: {
-      library: "Biblioteca",
-      intro: "El pueblo está planeando otra reunión sobre la granja, aquí en la biblioteca. La última vez, la reunión fue a las 2 de la tarde, en el piso de arriba y solo en inglés. Cinco sillas quedaron vacías. ¿Quién faltó? Ayuda a que todos puedan participar.",
-      start: "Empezar",
-      noteK: "Última reunión:", note: ["2 de la tarde", "piso de arriba", "solo en inglés"],
-      filled: function (n) { return "Sillas ocupadas: " + n + " de 5"; },
-      chair: function (n) { return "Silla vacía " + n + " de 5"; }, empty: "Silla vacía",
-      instr: "Toca una silla vacía para ver quién falta.",
-      ask: function (n) { return "¿Cómo puede participar " + n + "? Toca una forma."; },
-      way: function (w) { return "Forma: " + w; },
-      finishPlan: "Terminar el plan",
-      missing: function (n) { return "Falta " + n; },
-      joined: "Ya participa",
-      right: function (n) { return "¡Sí! Así " + n + " puede participar."; },
-      wrong1: function (hint) { return "Eso puede ayudar a otras personas. " + hint; },
-      tried: "Ya probaste",
-      shown: "Mira una forma que ayuda.",
-      also: "También ayuda:",
-      done: "Listo",
-      all: "¡Todas las sillas están ocupadas!",
-      confirm: "Todavía hay sillas vacías. ¿Terminar de todos modos?",
-      keep: "Seguir buscando", finish: "Terminar",
-      aha: "Una reunión a las 2 de la tarde, en el piso de arriba y solo en inglés deja a gente afuera: enfermeras que duermen de día, niños en la escuela, familias que hablan español. Con cambios pequeños, todos pueden participar.",
-      see: "Ver mi puntaje",
-      can: "Puedo notar quién falta y ayudarle a participar.",
-      tipOpen: function (n) { return "La próxima vez, abre todas las sillas vacías. ¡Ahí estaba esperando " + n + "!"; },
-      tipRead: function (n) { return "La próxima vez, lee por qué falta " + n + " y elige una forma que lo resuelva."; },
-      tip100: "¡Muy bien! Todos pueden participar. Prueba una nueva ronda.",
-      real: "Piensa en alguien a quien casi nunca le preguntan, en la escuela o en casa. Con un adulto, busca cómo preguntarle qué piensa.",
-      gu: "Para adultos: sobre esta parada",
-      guText: "Los niños notan quién falta en una reunión y eligen una forma de incluirlo: horarios en la tarde, intérpretes, transporte, una rampa, una grabación o un rincón para niños. En las audiencias reales, los intérpretes y los comentarios por escrito permiten que participe más gente."
-    }
-  };
+  var WORDS = {en:window.CBLocale.read("stop-09", "en", {en:{"WORDS.filled":function (n) { return window.CBLocale.part("stop-09", "en", "WORDS.filled", 0) + n + window.CBLocale.part("stop-09", "en", "WORDS.filled", 1); },"WORDS.chair":function (n) { return window.CBLocale.part("stop-09", "en", "WORDS.chair", 0) + n + window.CBLocale.part("stop-09", "en", "WORDS.chair", 1); },"WORDS.ask":function (n) { return window.CBLocale.part("stop-09", "en", "WORDS.ask", 0) + n + window.CBLocale.part("stop-09", "en", "WORDS.ask", 1); },"WORDS.way":function (w) { return window.CBLocale.part("stop-09", "en", "WORDS.way", 0) + w; },"WORDS.missing":function (n) { return n + window.CBLocale.part("stop-09", "en", "WORDS.missing", 0); },"WORDS.right":function (n) { return window.CBLocale.part("stop-09", "en", "WORDS.right", 0) + n + window.CBLocale.part("stop-09", "en", "WORDS.right", 1); },"WORDS.wrong1":function (hint) { return window.CBLocale.part("stop-09", "en", "WORDS.wrong1", 0) + hint; },"WORDS.tipOpen":function (n) { return window.CBLocale.part("stop-09", "en", "WORDS.tipOpen", 0) + n + window.CBLocale.part("stop-09", "en", "WORDS.tipOpen", 1); },"WORDS.tipRead":function (n) { return window.CBLocale.part("stop-09", "en", "WORDS.tipRead", 0) + n + window.CBLocale.part("stop-09", "en", "WORDS.tipRead", 1); }},es:{"WORDS.filled":function (n) { return window.CBLocale.part("stop-09", "es", "WORDS.filled", 0) + n + window.CBLocale.part("stop-09", "es", "WORDS.filled", 1); },"WORDS.chair":function (n) { return window.CBLocale.part("stop-09", "es", "WORDS.chair", 0) + n + window.CBLocale.part("stop-09", "es", "WORDS.chair", 1); },"WORDS.ask":function (n) { return window.CBLocale.part("stop-09", "es", "WORDS.ask", 0) + n + window.CBLocale.part("stop-09", "es", "WORDS.ask", 1); },"WORDS.way":function (w) { return window.CBLocale.part("stop-09", "es", "WORDS.way", 0) + w; },"WORDS.missing":function (n) { return window.CBLocale.part("stop-09", "es", "WORDS.missing", 0) + n; },"WORDS.right":function (n) { return window.CBLocale.part("stop-09", "es", "WORDS.right", 0) + n + window.CBLocale.part("stop-09", "es", "WORDS.right", 1); },"WORDS.wrong1":function (hint) { return window.CBLocale.part("stop-09", "es", "WORDS.wrong1", 0) + hint; },"WORDS.tipOpen":function (n) { return window.CBLocale.part("stop-09", "es", "WORDS.tipOpen", 0) + n + window.CBLocale.part("stop-09", "es", "WORDS.tipOpen", 1); },"WORDS.tipRead":function (n) { return window.CBLocale.part("stop-09", "es", "WORDS.tipRead", 0) + n + window.CBLocale.part("stop-09", "es", "WORDS.tipRead", 1); }}}).WORDS,es:window.CBLocale.read("stop-09", "es", {en:{"WORDS.filled":function (n) { return window.CBLocale.part("stop-09", "en", "WORDS.filled", 0) + n + window.CBLocale.part("stop-09", "en", "WORDS.filled", 1); },"WORDS.chair":function (n) { return window.CBLocale.part("stop-09", "en", "WORDS.chair", 0) + n + window.CBLocale.part("stop-09", "en", "WORDS.chair", 1); },"WORDS.ask":function (n) { return window.CBLocale.part("stop-09", "en", "WORDS.ask", 0) + n + window.CBLocale.part("stop-09", "en", "WORDS.ask", 1); },"WORDS.way":function (w) { return window.CBLocale.part("stop-09", "en", "WORDS.way", 0) + w; },"WORDS.missing":function (n) { return n + window.CBLocale.part("stop-09", "en", "WORDS.missing", 0); },"WORDS.right":function (n) { return window.CBLocale.part("stop-09", "en", "WORDS.right", 0) + n + window.CBLocale.part("stop-09", "en", "WORDS.right", 1); },"WORDS.wrong1":function (hint) { return window.CBLocale.part("stop-09", "en", "WORDS.wrong1", 0) + hint; },"WORDS.tipOpen":function (n) { return window.CBLocale.part("stop-09", "en", "WORDS.tipOpen", 0) + n + window.CBLocale.part("stop-09", "en", "WORDS.tipOpen", 1); },"WORDS.tipRead":function (n) { return window.CBLocale.part("stop-09", "en", "WORDS.tipRead", 0) + n + window.CBLocale.part("stop-09", "en", "WORDS.tipRead", 1); }},es:{"WORDS.filled":function (n) { return window.CBLocale.part("stop-09", "es", "WORDS.filled", 0) + n + window.CBLocale.part("stop-09", "es", "WORDS.filled", 1); },"WORDS.chair":function (n) { return window.CBLocale.part("stop-09", "es", "WORDS.chair", 0) + n + window.CBLocale.part("stop-09", "es", "WORDS.chair", 1); },"WORDS.ask":function (n) { return window.CBLocale.part("stop-09", "es", "WORDS.ask", 0) + n + window.CBLocale.part("stop-09", "es", "WORDS.ask", 1); },"WORDS.way":function (w) { return window.CBLocale.part("stop-09", "es", "WORDS.way", 0) + w; },"WORDS.missing":function (n) { return window.CBLocale.part("stop-09", "es", "WORDS.missing", 0) + n; },"WORDS.right":function (n) { return window.CBLocale.part("stop-09", "es", "WORDS.right", 0) + n + window.CBLocale.part("stop-09", "es", "WORDS.right", 1); },"WORDS.wrong1":function (hint) { return window.CBLocale.part("stop-09", "es", "WORDS.wrong1", 0) + hint; },"WORDS.tipOpen":function (n) { return window.CBLocale.part("stop-09", "es", "WORDS.tipOpen", 0) + n + window.CBLocale.part("stop-09", "es", "WORDS.tipOpen", 1); },"WORDS.tipRead":function (n) { return window.CBLocale.part("stop-09", "es", "WORDS.tipRead", 0) + n + window.CBLocale.part("stop-09", "es", "WORDS.tipRead", 1); }}}).WORDS};
 
   /* ── the six ways (exact). Ids are for code only; never shown. ────── */
   var WAYS = [
-    { id: "evening", name: ["A meeting at 7 pm", "Una reunión a las 7 de la noche"] },
-    { id: "interpreter", name: ["An interpreter and a Spanish flyer", "Un intérprete y un volante en español"] },
-    { id: "kids", name: ["A kids' corner and a question box", "Un rincón para niños y un buzón de preguntas"] },
-    { id: "recording", name: ["A recording to watch later", "Una grabación para ver después"] },
-    { id: "ride", name: ["A ride to the meeting", "Transporte a la reunión"] },
-    { id: "ramp", name: ["A ramp and a ground-floor room", "Una rampa y un salón en la planta baja"] }
+    { id: "evening", name: window.CBLocale.pair("stop-09","bank.b0001") },
+    { id: "interpreter", name: window.CBLocale.pair("stop-09","bank.b0002") },
+    { id: "kids", name: window.CBLocale.pair("stop-09","bank.b0003") },
+    { id: "recording", name: window.CBLocale.pair("stop-09","bank.b0004") },
+    { id: "ride", name: window.CBLocale.pair("stop-09","bank.b0005") },
+    { id: "ramp", name: window.CBLocale.pair("stop-09","bank.b0006") }
   ];
   var WAY = {}; WAYS.forEach(function (w) { WAY[w.id] = w; });
 
@@ -93,29 +36,29 @@
      portrait yet, so they show their initial in a ring (api.mono), never a symbol in their place. ── */
   var PEOPLE = [
     { id: "nights", nb: "lee", helps: ["evening", "recording"],
-      why: ["Ms. Lee works nights at the clinic. At 2 pm, she is asleep.", "La Sra. Lee trabaja de noche en la clínica. A las 2 de la tarde está dormida."],
-      hint: ["Look for a way that works while she is awake.", "Busca una forma que funcione cuando ella está despierta."] },
-    { id: "spanish", ic: "family", name: { en: "Lucía's family", es: "la familia de Lucía", esCap: "La familia de Lucía" }, helps: ["interpreter"],
-      why: ["Lucía's mom and dad speak Spanish best. The flyer and the meeting were only in English.", "La mamá y el papá de Lucía hablan mejor el español. El volante y la reunión fueron solo en inglés."],
-      hint: ["Look for a way to share the meeting in Spanish.", "Busca una forma de compartir la reunión en español."] },
+      why: window.CBLocale.pair("stop-09","bank.b0007"),
+      hint: window.CBLocale.pair("stop-09","bank.b0008") },
+    { id: "spanish", ic: "family", name: { en: window.CBLocale.pair("stop-09","bank.b0009")[0], es: window.CBLocale.pair("stop-09","bank.b0009")[1], esCap: window.CBLocale.t("stop-09", LANG, "capitalNames.spanish") }, helps: ["interpreter"],
+      why: window.CBLocale.pair("stop-09","bank.b0010"),
+      hint: window.CBLocale.pair("stop-09","bank.b0011") },
     { id: "students", nb: "jayden", helps: ["evening", "kids"],
-      why: ["Jayden is in class at 2 pm. And nobody asked students what they think.", "Jayden está en clase a las 2 de la tarde. Y nadie les preguntó a los estudiantes qué piensan."],
-      hint: ["Look for a time after school, or a way for students to share.", "Busca una hora después de clases, o una forma de que los estudiantes opinen."] },
+      why: window.CBLocale.pair("stop-09","bank.b0012"),
+      hint: window.CBLocale.pair("stop-09","bank.b0013") },
     { id: "harvest", nb: "johnson", helps: ["recording"],
-      why: ["It's harvest time. Mr. Johnson works in his fields until late every night.", "Es tiempo de cosecha. El Sr. Johnson trabaja en sus campos hasta tarde todas las noches."],
-      hint: ["Look for a way that works any time he is free.", "Busca una forma que sirva a cualquier hora en que esté libre."] },
+      why: window.CBLocale.pair("stop-09","bank.b0014"),
+      hint: window.CBLocale.pair("stop-09","bank.b0015") },
     { id: "ride", nb: "ruth", helps: ["ride"],
-      why: ["Grandma Ruth doesn't drive anymore, and no bus goes to the library.", "La abuela Ruth ya no maneja, y ningún autobús llega a la biblioteca."],
-      hint: ["Look for a way to get her there.", "Busca una forma de que pueda llegar."] },
-    { id: "stairs", ic: "wheelchair", name: { en: "Theo", es: "Theo", esCap: "Theo" }, helps: ["ramp"],
-      why: ["Theo uses a wheelchair. The meeting room was upstairs, with no elevator.", "Theo usa silla de ruedas. El salón estaba en el piso de arriba, sin elevador."],
-      hint: ["Look for a way in without stairs.", "Busca una forma de entrar sin escaleras."] },
+      why: window.CBLocale.pair("stop-09","bank.b0016"),
+      hint: window.CBLocale.pair("stop-09","bank.b0017") },
+    { id: "stairs", ic: "wheelchair", name: { en: window.CBLocale.pair("stop-09","bank.b0018")[0], es: window.CBLocale.pair("stop-09","bank.b0018")[1], esCap: window.CBLocale.t("stop-09", LANG, "capitalNames.stairs") }, helps: ["ramp"],
+      why: window.CBLocale.pair("stop-09","bank.b0019"),
+      hint: window.CBLocale.pair("stop-09","bank.b0020") },
     { id: "shop", nb: "patel", helps: ["evening", "recording"],
-      why: ["Mr. Patel can't close the bakery in the middle of the day.", "El Sr. Patel no puede cerrar la panadería a mitad del día."],
-      hint: ["Look for a way that works after the bakery closes.", "Busca una forma que funcione cuando cierre la panadería."] },
+      why: window.CBLocale.pair("stop-09","bank.b0021"),
+      hint: window.CBLocale.pair("stop-09","bank.b0022") },
     { id: "babysitter", nb: "ana", helps: ["kids", "recording"],
-      why: ["Ana has two little kids and no babysitter.", "Ana tiene dos hijos pequeños y nadie que se los cuide."],
-      hint: ["Look for a way to bring her kids, or to join after bedtime.", "Busca una forma de que traiga a sus hijos, o de que participe cuando ellos ya duerman."] }
+      why: window.CBLocale.pair("stop-09","bank.b0023"),
+      hint: window.CBLocale.pair("stop-09","bank.b0024") }
   ];
   var PERSON = {}; PEOPLE.forEach(function (p) { PERSON[p.id] = p; });
   var IDS = PEOPLE.map(function (p) { return p.id; });
@@ -146,7 +89,7 @@
     var s = document.createElementNS(SVGNS, "svg");
     s.setAttribute("viewBox", "0 0 24 24"); s.setAttribute("aria-hidden", "true"); s.setAttribute("focusable", "false");
     s.setAttribute("class", "cb-ico" + (cls ? " " + cls : ""));
-    s.innerHTML = ICONS[name];                                  // constant, authored markup only
+    host.setAuthoredMarkup(s, ICONS[name]);                                  // constant, authored markup only
     return s;
   }
 
@@ -179,6 +122,7 @@
     var seats = ids.map(function (id) { return { p: PERSON[id], opened: false, tries: [], result: null, fill: null }; });
 
     /* ── play state ──────────────────────────────────────────────────── */
+    var phase = "intro";
     var open = -1, resolved = false, confirming = false, msg = null, freshSeat = -1, freshCard = false;
     var swapAt = 0;                             // when the action bar's button changed role under the finger (Done -> Finish the plan -> Finish)
     function settled(e) { return (e && e.detail === 0) || Date.now() - swapAt > 400; }   // a fast second tap must not fall through to the new button; keys always work
@@ -221,7 +165,7 @@
         onclick: function () { tapChair(i); } }, [disc, plate])]);
     }
     function chairs(live) {
-      return h("ol", { "class": "cb-s09-chairs", "aria-hidden": live ? null : "true" }, seats.map(function (s, i) { return seatEl(s, i, live); }));
+      return h("ol", { "class": "cb-s09-chairs", "data-cb-choices": "", "aria-hidden": live ? null : "true" }, seats.map(function (s, i) { return seatEl(s, i, live); }));
     }
     function room() { return h("div", { "class": "cb-s09-room" }, [api.crop(CROP, "cb-s09-scene", [place()]), note(), chairs(true)]); }
     function stage(kind, card) {                // intro and aha: the room, its chairs, and a card over it
@@ -283,27 +227,32 @@
       return h("div", { "class": "cb-actions cb-s09-actions" }, [h("div", { "class": "cb-actions__info" }, info), main]);
     }
     function withKey(el, key) { el.setAttribute("data-s09", key); return el; }
-    function keyRoute(e) {
-      if (e.key !== "Escape") return;
-      if (confirming) { e.preventDefault(); keepLooking(); }
+    function onBack(board, callback) {
+      if (api.input && api.input.on) api.input.on("back", callback, { scope: board });
     }
 
     /* ── 1 · intro over the room ─────────────────────────────────────── */
     function intro() {
+      phase = "intro";
       var go = api.btn(T.start, "cb-btn--go cb-btn--big", function () { play(); }, "go", true);
       go.setAttribute("data-s09", "start");
       var say = h("div", { "class": "cb-s09-say" }, [h("p", { "class": "cb-s09-say__text", tabindex: "-1", "data-s09": "lead", text: T.intro }), h("div", { "class": "cb-row" }, [go])]);
-      api.screen([api.stopHud(stop, null), h("div", { "class": "cb-board cb-s09", onkeydown: function (e) { if (e.key === "Escape") { e.preventDefault(); play(); } } }, [stage("intro", say)])], '[data-s09="lead"]');
+      var board = h("div", { "class": "cb-board cb-s09" }, [stage("intro", say)]);
+      api.screen([api.stopHud(stop, null), board], '[data-s09="lead"]');
+      onBack(board, function () { play(); return true; });
       api.frame();
     }
 
     /* ── 2 · the room: five chairs, the open card, six ways ──────────── */
     function render(focusSel) {
+      phase = "play";
       var n = nFilled();
       var work = h("div", { "class": "cb-s09-work" }, [open === -1 ? coachLine() : card(seats[open]),
-        h("ul", { "class": "cb-s09-ways" }, ways.map(wayEl))]);
-      api.screen([api.stopHud(stop, DOTS, n, T.filled(n)), h("div", { "class": "cb-board cb-s09", onkeydown: keyRoute }, [
-        h("div", { "class": "cb-s09-play" }, [room(), work]), actions()])], focusSel);
+        h("ul", { "class": "cb-s09-ways", "data-cb-choices": "" }, ways.map(wayEl))]);
+      var board = h("div", { "class": "cb-board cb-s09" }, [
+        h("div", { "class": "cb-s09-play" }, [room(), work]), actions()]);
+      api.screen([api.stopHud(stop, DOTS, n, T.filled(n)), board], focusSel);
+      onBack(board, function () { if (!confirming) return false; keepLooking(); return true; });
       freshSeat = -1; freshCard = false;
     }
     /* bring something into view above the sticky action bar (api.screen focuses without scrolling).
@@ -383,6 +332,7 @@
 
     /* ── 3 · the aha card over the room and its filled chairs ────────── */
     function aha() {
+      phase = "aha";
       confirming = false; open = -1; resolved = false; msg = null;
       var n = nFilled();
       var see = withKey(api.btn(T.see, "cb-btn--go cb-btn--big", function () { finish(); }, "go", true), "see");
@@ -396,12 +346,13 @@
 
     /* ── 4 · score: +8 per chair opened; +12 first way helps, +6 second way helps ── */
     function finish() {
+      phase = "result";
       var score = 0;
       seats.forEach(function (s) { if (s.opened) score += 8; if (s.result === "first") score += 12; else if (s.result === "second") score += 6; });
       var unopened = seats.filter(function (s) { return !s.opened; })[0];
       var missed = seats.filter(function (s) { return s.opened && s.result !== "first"; })[0];
       var tip = unopened ? T.tipOpen(nmP(unopened.p)) : missed ? T.tipRead(nmP(missed.p)) : T.tip100;
-      var info = api.saveRound(stop.id, score, { lastRound: ids.join(","), lastPeople: ids.slice(), lastWays: ways.map(function (w) { return w.id; }) });
+      var info = api.saveRound(stop.id, score, { processBadge: nFilled() === 5 ? "process-9" : null, lastRound: ids.join(","), lastPeople: ids.slice(), lastWays: ways.map(function (w) { return w.id; }) });
       api.endPlay();
       var gu = api.btn(T.gu, "cb-btn--quiet", function () { api.dialog(T.gu, [h("div", { "class": "cb-dlg__body" }, [h("p", { text: T.guText })])], gu); }, "family");
       var scard = api.scoreCard(stop, score, info, tip, T.can, T.real);
@@ -409,8 +360,30 @@
       api.say(api.W.score + " " + score + " / 100");
     }
 
+    if (api.setController) api.setController({
+      snapshot: function () { return { v: 2, phase: phase, open: open, resolved: resolved, confirming: confirming,
+        seats: seats.map(function (s) { return { id: s.p.id, opened: s.opened, tries: s.tries.slice(), result: s.result, fill: s.fill }; }) }; },
+      restore: function (saved) {
+        if (!saved || saved.v !== 2 || !Array.isArray(saved.seats) || saved.seats.length !== 5) return false;
+        saved.seats.forEach(function (value, i) { var s = seats[i]; s.opened = !!value.opened; s.tries = value.tries.slice(); s.result = value.result; s.fill = value.fill; });
+        open = saved.open; resolved = !!saved.resolved; confirming = !!saved.confirming; freshSeat = -1; freshCard = false; msg = null;
+        if (open !== -1) { var s = seats[open];
+          if (s.fill) { var others = s.p.helps.filter(function (id) { return id !== s.fill; }).map(function (id) { return t2(WAY[id].name); });
+            msg = { text: s.result === "shown" ? T.shown : T.right(nmP(s.p)), ok: s.result !== "shown", also: others.length ? others.join(", ") : null }; }
+          else if (s.tries.length) msg = { text: T.wrong1(t2(s.p.hint)), ok: false };
+        }
+        if (saved.phase === "result") finish(); else if (saved.phase === "aha") aha(); else if (saved.phase === "play") render(); else intro();
+        return true;
+      }
+    });
+
     intro();
   }
 
   CB.register({ id: ID, steps: DOTS, css: "09-include-every-voice.css", run: run });
+
+    return definition;
+  }
+  if (host.defineStop) host.defineStop(factory);
+  else host.register(factory({ document: document, window: window, Date: Date, setTimeout: setTimeout, clearTimeout: clearTimeout, requestAnimationFrame: requestAnimationFrame, cancelAnimationFrame: typeof cancelAnimationFrame === "function" ? cancelAnimationFrame : function () {} }));
 })();

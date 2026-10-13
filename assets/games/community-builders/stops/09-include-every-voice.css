@@ -43,7 +43,7 @@ button.cb-s09-chair:active:not([aria-disabled="true"]) .cb-s09-chair__disc { tra
 .cb-s09-chair:focus-visible { outline: none; }
 .cb-s09-chair:focus-visible .cb-s09-chair__disc { outline: 3px solid var(--cb-focus); outline-offset: 4px; }
 .cb-s09-chair.is-open .cb-s09-chair__disc { border: 5px solid var(--cb-clay); transform: translateY(-4px); }
-.cb-s09-chair.is-open .cb-s09-chair__disc--empty { border: 0; filter: drop-shadow(0 0 0.8px #FFF8EA) drop-shadow(0 0 6px rgba(169, 73, 42, 0.55)) drop-shadow(0 4px 4px rgba(48, 30, 14, 0.34)); }
+.cb-s09-chair.is-open .cb-s09-chair__disc--empty { border: 0; filter: drop-shadow(0 0 0.8px var(--pg-color-fff8ea)) drop-shadow(0 0 6px rgba(169, 73, 42, 0.55)) drop-shadow(0 4px 4px rgba(48, 30, 14, 0.34)); }
 .cb-s09-chair.is-wait { cursor: default; }
 .cb-s09-chair.is-wait::before { opacity: 0.45; }
 .cb-s09-chair.is-wait .cb-s09-chair__disc { background: var(--cb-sunken); border-color: var(--cb-line-strong); box-shadow: var(--cb-shadow-1); }
