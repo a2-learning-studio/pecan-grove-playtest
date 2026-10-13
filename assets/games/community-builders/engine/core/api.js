@@ -1,3 +1,5 @@
+import { showCallout, prefersFindCards } from "../callout.js";
+import { annotateChoices } from "../choice-hints.js";
 export default function createApi(ctx) {
   var API = {
     L: ctx.L,
@@ -118,8 +120,34 @@ export default function createApi(ctx) {
         ctx.activeLifecycle.cleanup(off);
       return off;
     },
+    off: function (action, handler) {
+      return engineDelegate("input", "off", [action, handler]);
+    },
+  };
+  API.choices = function (element) {
+    if (!element?.setAttribute) return element;
+    element.setAttribute("data-cb-choices", "");
+    annotateChoices(element);
+    return element;
   };
   API.nav = {
+    group: function (element, options) {
+      if (!element?.setAttribute) return element;
+      options = options || {};
+      element.setAttribute("data-cb-nav-group", options.axis || "row");
+      element.setAttribute("data-cb-nav-wrap", String(options.wrap !== false));
+      var entry =
+        typeof options.entry === "string"
+          ? element.querySelector(options.entry)
+          : options.entry;
+      if (!entry)
+        entry = element.querySelector(
+          "button:not(:disabled), a[href], [tabindex='0']",
+        );
+      if (entry && element.contains(entry))
+        entry.setAttribute("data-cb-nav-entry", "");
+      return element;
+    },
     push: function (scope, opener) {
       return engineDelegate("focus", "push", [scope, opener]);
     },
@@ -141,74 +169,11 @@ export default function createApi(ctx) {
   API.save = function () {
     ctx.emit("cb:step", { snapshot: ctx.snapshot() });
   };
+  API.prefersFindCards = function () {
+    return prefersFindCards(ctx);
+  };
   API.callout = function (anchor, content, options) {
-    options = options || {};
-    var previous = ctx.root.querySelector(".cb-callout");
-    if (previous && previous.dismiss) previous.dismiss();
-    var panel = ctx.h(
-      "section",
-      {
-        class: "cb-callout",
-        role: "region",
-        "aria-label":
-          options.title ||
-          (ctx.L === "es" ? "Lo que notaste" : "What you noticed"),
-      },
-      [ctx.h("h3", { text: options.title || "" })].concat(
-        Array.isArray(content) ? content : [content],
-      ),
-    );
-    var closed = false;
-    function close() {
-      if (closed) return;
-      closed = true;
-      ctx.document.removeEventListener("pointerdown", outside, true);
-      ctx.document.removeEventListener("keydown", escape, true);
-      panel.remove();
-      if (options.onClose) options.onClose();
-    }
-    function outside(event) {
-      if (!panel.contains(event.target) && !anchor.contains(event.target))
-        close();
-    }
-    function escape(event) {
-      if (event.key === "Escape") {
-        event.preventDefault();
-        event.stopPropagation();
-        close();
-        anchor.focus({ preventScroll: true });
-      }
-    }
-    panel.appendChild(
-      ctx.btn(
-        options.closeLabel || ctx.W.close,
-        "cb-btn--quiet",
-        function () {
-          close();
-          anchor.focus({ preventScroll: true });
-        },
-        "close",
-      ),
-    );
-    ctx.root.appendChild(panel);
-    panel.dismiss = close;
-    var box = anchor.getBoundingClientRect(),
-      width = Math.min(350, ctx.window.innerWidth - 24),
-      rect = panel.getBoundingClientRect();
-    panel.style.width = width + "px";
-    panel.style.left =
-      Math.max(12, Math.min(box.left, ctx.window.innerWidth - width - 12)) +
-      "px";
-    panel.style.top =
-      Math.max(
-        12,
-        box.bottom + rect.height + 12 < ctx.window.innerHeight
-          ? box.bottom + 8
-          : box.top - rect.height - 8,
-      ) + "px";
-    ctx.document.addEventListener("pointerdown", outside, true);
-    ctx.document.addEventListener("keydown", escape, true);
-    return panel;
+    return showCallout(ctx, anchor, content, options);
   };
   ctx.window.CommunityBuilders = {
     clear: ctx.clear,
@@ -306,7 +271,7 @@ export default function createApi(ctx) {
       ctx.suspendVoice(false);
       if (options && options.quiet) ctx.setVoice(false, false);
       if (!ctx.booted) ctx.boot();
-      else if (ctx.mode === "title") ctx.showMap();
+      else ctx.showTitle();
       ctx.vLoad();
       ctx.vScan([ctx.main]);
       var heading = ctx.main.querySelector("h2");

@@ -140,7 +140,18 @@
         "Parte ",
         " de 3"
       ]
-    }
+    },
+    "mapLegend": "Clave del mapa",
+    "mapList": "Lista",
+    "mapMap": "Mapa",
+    "mapKeepGoing": "Sigue jugando",
+    "mapPlayInOrder": "Jugar las paradas en orden",
+    "mapOrderHelp": "Termina una parada para abrir la siguiente.",
+    "installGame": "Instalar el juego",
+    "consentHeading": "Compartir durante la prueba",
+    "consentScores": "Compartir puntajes con el equipo de prueba",
+    "consentDetails": "Envía el número de parada, puntaje, idioma y un código aleatorio. Nunca nombres. Puedes desactivarlo cuando quieras.",
+    "consentAutoScores": "Enviar también los puntajes al terminar una parada"
   },
   "X": {
     "parts3": [
@@ -251,5 +262,61 @@
     "libraryGroupsNote": "Los perfiles de animales y los puntajes de equipos pertenecen a esta sesión. Usa Nuevo jugador para los comentarios privados de otra persona.",
     "librarySettings": "Ajustes de sonido y subtítulos",
     "libraryReady": "Seguir jugando en silencio"
+  },
+  "bank": {
+    "b0001": "Fíjate en las señales",
+    "b0002": "Haz una buena pregunta",
+    "b0003": "Escucha a cada vecino",
+    "b0004": "¿Dato o rumor?",
+    "b0005": "Mapa de lo que puede cambiar",
+    "b0006": "¿Quién decide?",
+    "b0007": "Habla con respeto",
+    "b0008": "Desacuerdo con respeto",
+    "b0009": "Incluye todas las voces",
+    "b0010": "Une problema y solución",
+    "b0011": "Pesa lo bueno y lo difícil",
+    "b0012": "Haz un trato justo",
+    "b0013": "Comparte bien la información",
+    "b0014": "Vigila las promesas",
+    "b0015": "Construyamos el futuro juntos",
+    "b0016": "la Sra. Lee",
+    "b0017": "Enfermera de la clínica",
+    "b0018": "Enfermera",
+    "b0019": "el Sr. Johnson",
+    "b0020": "Agricultor de tercera generación",
+    "b0021": "Agricultor",
+    "b0022": "Ana",
+    "b0023": "Electricista maestra",
+    "b0024": "Electricista",
+    "b0025": "la abuela Ruth",
+    "b0026": "Historiadora del pueblo",
+    "b0027": "Guarda las historias del pueblo",
+    "b0028": "el Sr. Patel",
+    "b0029": "Comerciante de la calle principal",
+    "b0030": "Dueño de la panadería",
+    "b0031": "Jayden",
+    "b0032": "Líder de tecnología de la escuela",
+    "b0033": "Estudiante",
+    "b0034": "Zorro",
+    "b0035": "Búho",
+    "b0036": "Tortuga",
+    "b0037": "Conejo",
+    "b0038": "Venado",
+    "b0039": "Garza",
+    "b0040": "Abeja",
+    "b0041": "Nutria",
+    "b0042": "No se pudo cargar esta parada. Revisa la conexión e inténtalo de nuevo.",
+    "b0043": "Intentar de nuevo"
+  },
+  "loading": {
+    "title": "Preparando tu juego",
+    "progress": "Carga del juego",
+    "fail": "Algo no se pudo cargar. Inténtalo de nuevo.",
+    "retry": "Intentar de nuevo",
+    "tips": [
+      "Consejo: abre Pausa para descansar.",
+      "Consejo: puedes escuchar una línea otra vez.",
+      "Consejo: cada voz del pueblo cuenta."
+    ]
   }
 }

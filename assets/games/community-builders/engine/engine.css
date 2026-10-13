@@ -1,3 +1,6 @@
+@import './map.css';
+@import './input-hints.css';
+@import './presentation.css';
 .cb[data-screen="stop"] {
   font-size: calc(var(--pg-type-body) * var(--cb-text-scale));
 }
@@ -191,6 +194,32 @@
   font-size: var(--pg-type-small);
   white-space: nowrap;
   overflow: hidden;
+}
+.cb-loading-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 70;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 16px;
+  padding: 32px;
+  background: var(--cb-stage);
+  color: var(--cb-on-stage);
+  text-align: center;
+}
+.cb-loading-overlay progress {
+  width: min(320px, 80vw);
+  height: 12px;
+  accent-color: var(--cb-gold);
+}
+.cb-loading-crest {
+  width: 72px;
+  height: 72px;
+}
+.cb-loading-crest svg {
+  width: 100%;
+  height: 100%;
 }
 .cb-hints.is-hidden {
   visibility: hidden;
@@ -452,17 +481,19 @@
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .cb :where(.cb-choice, .cb-stop, .cb-engine-dialog) {
+  .cb :where(.cb-choice, .cb-engine-dialog) {
     transform: none !important;
     animation: none !important;
     transition-duration: 0ms !important;
   }
+  .cb .cb-stop { transform: translate(-50%, -50%) !important; animation: none !important; transition-duration: 0ms !important; }
 }
-.cb.is-calm :where(.cb-choice, .cb-stop, .cb-engine-dialog) {
+.cb.is-calm :where(.cb-choice, .cb-engine-dialog) {
   transform: none !important;
   animation: none !important;
   transition-duration: 0ms !important;
 }
+.cb.is-calm .cb-stop { transform: translate(-50%, -50%) !important; animation: none !important; transition-duration: 0ms !important; }
 @media (forced-colors: active) {
   .cb :where(button, a, input, select, [tabindex="0"]):focus-visible,
   .cb .is-kbd-focus,

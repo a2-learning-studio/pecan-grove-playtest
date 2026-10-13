@@ -106,5 +106,35 @@
     "real": "Think of someone who doesn't usually get asked, at school or at home. With a grown-up, find a way to ask what they think.",
     "gu": "For grown-ups: about this stop",
     "guText": "Kids notice who is missing from a meeting and match a way to include them: evening times, interpreters, a ride, a ramp, a recording, a kids' corner. At real hearings, interpreters and written comments let more people take part."
+  },
+  "bank": {
+    "b0001": "A meeting at 7 pm",
+    "b0002": "An interpreter and a Spanish flyer",
+    "b0003": "A kids' corner and a question box",
+    "b0004": "A recording to watch later",
+    "b0005": "A ride to the meeting",
+    "b0006": "A ramp and a ground-floor room",
+    "b0007": "Ms. Lee works nights at the clinic. At 2 pm, she is asleep.",
+    "b0008": "Look for a way that works while she is awake.",
+    "b0009": "Lucía's family",
+    "b0010": "Lucía's mom and dad speak Spanish best. The flyer and the meeting were only in English.",
+    "b0011": "Look for a way to share the meeting in Spanish.",
+    "b0012": "Jayden is in class at 2 pm. And nobody asked students what they think.",
+    "b0013": "Look for a time after school, or a way for students to share.",
+    "b0014": "It's harvest time. Mr. Johnson works in his fields until late every night.",
+    "b0015": "Look for a way that works any time he is free.",
+    "b0016": "Grandma Ruth doesn't drive anymore, and no bus goes to the library.",
+    "b0017": "Look for a way to get her there.",
+    "b0018": "Theo",
+    "b0019": "Theo uses a wheelchair. The meeting room was upstairs, with no elevator.",
+    "b0020": "Look for a way in without stairs.",
+    "b0021": "Mr. Patel can't close the bakery in the middle of the day.",
+    "b0022": "Look for a way that works after the bakery closes.",
+    "b0023": "Ana has two little kids and no babysitter.",
+    "b0024": "Look for a way to bring her kids, or to join after bedtime."
+  },
+  "capitalNames": {
+    "spanish": "Lucía's family",
+    "stairs": "Theo"
   }
 }

@@ -39,7 +39,10 @@ export function reserved(event) {
     ].includes(event.code)
   );
 }
-export function keyName(code) {
+export function keyName(code, display) {
+  if (display === " ") return "Space";
+  if (display && display !== code && !/^(Key|Digit|Numpad)/.test(display))
+    return display.length === 1 ? display.toLocaleUpperCase() : display;
   return (
     {
       Space: "Space",
@@ -61,6 +64,13 @@ export class Bindings {
     this.listeners = new Set();
     this.defaults = structuredClone(DEFAULT_BINDINGS);
     this.value = structuredClone(DEFAULT_BINDINGS);
+    this.labels = safeGet(storage, "pecan-grove-binding-labels-v1", {});
+    if (
+      !this.labels ||
+      typeof this.labels !== "object" ||
+      Array.isArray(this.labels)
+    )
+      this.labels = {};
     const saved = safeGet(storage, "pecan-grove-bindings-v1", {});
     for (const action of Object.keys(this.value))
       if (
@@ -70,6 +80,13 @@ export class Bindings {
         )
       )
         this.value[action] = saved[action].slice(0, 2);
+  }
+  label(code) {
+    const display = this.labels[code];
+    return keyName(
+      code || "",
+      typeof display === "string" && display.length <= 64 ? display : undefined,
+    );
   }
   action(event) {
     const number = /^(?:Digit|Numpad)([1-9])$/.exec(event.code);
@@ -100,16 +117,24 @@ export class Bindings {
       event.code,
       ...this.value[action].slice(1).filter((code) => code !== event.code),
     ];
+    if (typeof event.key === "string" && event.key.length <= 64)
+      this.labels[event.code] = event.key;
     this.save();
     return { ok: true };
   }
   save() {
     const ok = safeSet(this.storage, "pecan-grove-bindings-v1", this.value);
+    const labelsOK = safeSet(
+      this.storage,
+      "pecan-grove-binding-labels-v1",
+      this.labels,
+    );
     for (const f of this.listeners) f(this.value);
-    return ok;
+    return ok && labelsOK;
   }
   reset() {
     this.value = structuredClone(this.defaults);
+    this.labels = {};
     this.save();
   }
   onChange(handler) {

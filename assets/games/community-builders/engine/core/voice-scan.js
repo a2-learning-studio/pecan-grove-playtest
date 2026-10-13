@@ -134,6 +134,7 @@ export default function createVoiceScan(ctx) {
           {
             type: "button",
             class: "cb-vbtn",
+            "data-cb-shortcut": "voice.replay",
             "aria-label": ctx.X.replay,
             title: ctx.vOn ? ctx.X.replay : ctx.X.voiceOff,
             disabled: !ctx.vOn || null,
@@ -147,6 +148,7 @@ export default function createVoiceScan(ctx) {
         ),
       );
     });
+    ctx.window?.PecanGroveEngine?.syncControls?.();
     if (ctx.restoreVoice(found)) return;
     if (
       ctx.restoring ||
@@ -196,6 +198,7 @@ export default function createVoiceScan(ctx) {
           "cb-btn cb-btn--onstage cb-voice" + (iconOnly ? " cb-fs--icon" : ""),
         "aria-pressed": ctx.vOn ? "true" : "false",
         "aria-label": ctx.X.voice,
+        "data-cb-shortcut": "voice.toggle",
         title: (ctx.vOn ? ctx.X.voiceOn : ctx.X.voiceOff) + " (M)",
         onclick: function () {
           setVoice(!ctx.vOn, true);
@@ -233,6 +236,7 @@ export default function createVoiceScan(ctx) {
       },
     );
     if (tell) ctx.say(ctx.vOn ? ctx.X.voiceOn : ctx.X.voiceOff);
+    ctx.window?.PecanGroveEngine?.syncControls?.();
   }
   function setCap(on, tell) {
     ctx.CFG.cap = on;
@@ -263,6 +267,7 @@ export default function createVoiceScan(ctx) {
         class:
           "cb-btn cb-btn--onstage cb-setbtn" + (iconOnly ? " cb-fs--icon" : ""),
         "aria-label": ctx.X.settings,
+        "data-cb-shortcut": "pause",
         "aria-haspopup": "dialog",
         title: ctx.X.settings + " (Esc)",
         onclick: function (e) {

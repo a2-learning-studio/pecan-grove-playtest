@@ -13,6 +13,11 @@ import { Badges, BADGE_IDS } from "./badges.js";
 import { Gestures } from "./gestures.js";
 import { HUD } from "./hud.js";
 import { motion, configureMotion } from "./motion.js";
+import { enhanceTitle as titleMenu } from "./title-menu.js";
+import { badgeIcon, badgeHint } from "./badge-art.js";
+import { annotateChoices, syncShortcutLabels } from "./choice-hints.js";
+import { Tooltips } from "./tooltips.js";
+import { showResultBadges, observeFeedback } from "./result-presentation.js";
 
 export async function mount(
   root = document.getElementById("community-builders"),
@@ -29,6 +34,8 @@ export async function mount(
   let settings;
   const audio = new AudioMixer({ settings: () => settings?.get() });
   const fx = new FX(root);
+  const tooltips = new Tooltips(root);
+  observeFeedback(root, fx, audio);
   const input = new Input({
     root,
     scope: () => focus.active(),
@@ -65,7 +72,7 @@ export async function mount(
     if (toastTimer || !toastQueue.length) return;
     const next = toastQueue.shift();
     const card = h("div", { class: "cb-engine-toast", role: "status" }, [
-      icon(next.badgeId ? "badge" : "check"),
+      next.badgeId ? badgeIcon(next.badgeId) : icon("check"),
       h("span", { text: next.text }),
     ]);
     toastHost.append(card);
@@ -110,9 +117,9 @@ export async function mount(
         "article",
         { class: "cb-engine-badge" + (earned[id] ? " is-earned" : "") },
         [
-          icon("badge"),
+          badgeIcon(id),
           h("h3", { text: i18n.t(id) }),
-          h("p", { text: i18n.t(earned[id] ? "earned" : "badgeLocked") }),
+          h("p", { text: earned[id] ? i18n.t("earned") : badgeHint(i18n, id) }),
         ],
       );
       grid.append(entry);
@@ -268,6 +275,7 @@ export async function mount(
     slots,
     pause,
     i18n,
+    focus,
     onSlots: openSlots,
     onBadges: openBadges,
   });
@@ -277,6 +285,7 @@ export async function mount(
     motion,
     audio,
     fx,
+    tooltips,
     pause,
     settings,
     store: slots,
@@ -286,6 +295,7 @@ export async function mount(
     i18n,
     openSlots,
     openBadges,
+    syncControls: () => syncShortcutLabels(root, input.bindings),
   };
   globalThis.PecanGroveEngine = engine;
   root.dataset.engineInput = "true";
@@ -338,63 +348,26 @@ export async function mount(
     gestures.toggle();
     return true;
   });
-  function annotateChoices() {
-    for (const group of root.querySelectorAll("[data-cb-choices]")) {
-      const choices = [
-        ...group.querySelectorAll("button:not(:disabled), [data-cb-choice]"),
-      ].filter((node) => node.closest("[data-cb-choices]") === group);
-      choices.slice(0, 9).forEach((node, i) => {
-        const n = node.dataset.cbChoice || String(i + 1);
-        node.dataset.cbChoice = n;
-        node.classList.add("cb-choice");
-        node.setAttribute("aria-keyshortcuts", n);
-        if (!node.querySelector(".cb-keycap"))
-          node.append(
-            h("span", { class: "cb-keycap", "aria-hidden": "true", text: n }),
-          );
-      });
-    }
-  }
+  const choices = () => annotateChoices(root, { settings: () => settings.get(), pad: () => pad.pad });
+  document.addEventListener("cb:input-device", choices);
+  root.addEventListener("focusin", choices);
+  input.bindings.onChange(engine.syncControls);
   function enhanceTitle() {
-    const hero = root.querySelector(".cb-hero__copy");
-    if (!hero || hero.querySelector(".cb-engine-title-actions")) return;
-    const row = h("div", { class: "cb-engine-title-actions" });
-    const saved = Object.values(slots.store().players).some(
-      (p) => Object.keys(p.stops).length || p.resume,
-    );
-    if (saved)
-      row.append(
-        button(i18n.t("continue"), resumeCurrent, {
-          class: "cb-btn cb-btn--go cb-btn--big",
-          "data-cb-nav-entry": "",
-        }),
-      );
-    row.append(
-      button(i18n.t("newGame"), () => openSlots(document.activeElement, true)),
-      button(i18n.t("loadGame"), () => openSlots(document.activeElement)),
-      button(i18n.t("settings"), () => settings.open(document.activeElement)),
-    );
-    hero.append(row);
+    titleMenu({ root, slots, api, core, i18n, resumeCurrent, openSlots, settings });
   }
   let saveTimer;
+  let roundBadges = [];
   function refresh(event) {
     if (settings.dialog?.open) return;
     if (state().quiet && settings.get().voice !== false)
       settings.update({ voice: false, musicOn: false, sfx: 30 });
     hud.render();
-    annotateChoices();
+    choices();
     gestures.refresh();
     enhanceTitle();
-    const screen = root.dataset.screen;
-    hints.set(
-      screen === "title"
-        ? [{ action: "confirm", label: i18n.t("hintChoose") }]
-        : [
-            { action: "nav.right", label: i18n.t("hintMove") },
-            { action: "confirm", label: i18n.t("hintChoose") },
-            { action: "pause", label: i18n.t("hintPause") },
-          ],
-    );
+    if (event?.detail?.phase === "result") showResultBadges(root, roundBadges, i18n);
+    engine.syncControls();
+    hints.refresh();
     if (event?.detail?.phase === "playing") {
       clearTimeout(saveTimer);
       saveTimer = setTimeout(() => {
@@ -421,7 +394,8 @@ export async function mount(
   });
   document.addEventListener("cb:result", (e) => {
     clearTimeout(saveTimer);
-    badge.evaluate({ ...e.detail, quiet: root.classList.contains("is-quiet") });
+    roundBadges = badge.evaluate({ ...e.detail, quiet: root.classList.contains("is-quiet") });
+    hud.earned(e.detail?.score || 0, e.detail?.previousBest || 0);
     if (e.detail?.score >= 40) pad.rumble();
     audio.play(e.detail?.newBest ? "star" : "ok");
   });
@@ -453,6 +427,11 @@ export async function mount(
   });
   window.addEventListener("online", () => hud.render());
   window.addEventListener("offline", () => hud.render());
+  document.addEventListener("pg:language-change", async event => {
+    await i18n.load(event.detail?.language);
+    root.querySelector(".cb-engine-title-actions")?.remove();
+    refresh();
+  });
   root.addEventListener("click", () => {
     if (!root.classList.contains("is-quiet")) return;
     if (settings.get().voice !== false)

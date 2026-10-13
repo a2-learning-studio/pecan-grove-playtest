@@ -3,18 +3,21 @@ import vm from 'node:vm';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createRequire} from 'node:module';
+import {mapOrderControl} from '../../assets/games/community-builders/engine/map-layout.js';
 const require=createRequire(import.meta.url);
 const {functionSource,sectionSource,objectStatementSource}=require('./core-fragments.cjs');
 class Node {
   constructor(tag, attrs = {}, kids = []) { this.tag = tag; this.attrs = attrs || {}; this.children = kids; kids.forEach(k => { if (k) k.parent = this; }); }
   appendChild(n) { this.children.push(n); n.parent = this; }
+  append(...nodes) { nodes.forEach(node => this.appendChild(node)); }
+  addEventListener(name, handler) { (this.events ||= {})[name] = handler; }
   setAttribute(k, v) { this.attrs[k] = String(v); }
   get textContent() { return (this.attrs.text || '') + this.children.map(k => k?.textContent || '').join(' '); }
   closest(tag) { for (let p = this; p; p = p.parent) if (p.tag === tag) return p; return null; }
   get isConnected() { return true; }
 }
 function libraryHarness(lang) {
-  const c = vm.createContext({ L: lang, window: {}, W: { library: lang === 'es' ? 'Modo biblioteca / clase' : 'Library / Class mode' }, vOn: true,
+  const c = vm.createContext({ L: lang, window: {}, mapOrderControl,uid:0,CFG:{},cfgSave(){}, W: { library: lang === 'es' ? 'Modo biblioteca / clase' : 'Library / Class mode' }, vOn: true,
     h: (tag, attrs, kids = []) => new Node(tag, attrs, kids), stops: 0, settings: 0, groups: 0, identity: 'same-player-session',
     vStop() { c.stops++; }, setVoice(on) { c.vOn = on; }, openSettings(opener) { c.settings++; c.nextOpener = opener; },
     openWho(opener) { c.groups++; c.nextOpener = opener; },
@@ -99,30 +102,31 @@ test('Suspended screens still attach replay controls but never autoplay new line
   c.vSuspended = false; c.vScan([line()]); assert.deepEqual([...c.played], ['en/line.mp3']);
 });
 
-test('Start enters the map while Continue preserves an in-progress scene and saved quiet preference', () => {
+test('Start opens the title menu from every prior screen and respects saved quiet preference', () => {
   for (const mode of ['title', 'map', 'stop']) {
-    const c = vm.createContext({ mode, booted: true, acted: false, playRequested: false, window: {}, maps: 0, muted: 0, scans: 0,
+    const c = vm.createContext({ mode, booted: true, acted: false, playRequested: false, window: {}, maps: 0,titles:0, muted: 0, scans: 0,
       root: { removeAttribute(k) { c.removed = k; } }, main: { querySelector: () => null }, suspendVoice(v) { c.suspended = v; },
-      setVoice(v) { c.muted++; c.voice = v; }, showMap() { c.maps++; }, vLoad() {}, vScan() { c.scans++; },
+      setVoice(v) { c.muted++; c.voice = v; }, showMap() { c.maps++; },showTitle(){c.titles++;}, vLoad() {}, vScan() { c.scans++; },
       openLibraryMode() {}, openGrownups() {} });
     publicHookFixture(c);
     vm.runInContext(objectStatementSource('CommunityBuilders'), c);
     c.window.CommunityBuilders.enterPlay({ quiet: false });
-    assert.equal(c.removed, 'data-playtest-paused'); assert.equal(c.suspended, false); assert.equal(c.maps, mode === 'title' ? 1 : 0);
+    assert.equal(c.removed, 'data-playtest-paused'); assert.equal(c.suspended, false); assert.equal(c.maps,0);assert.equal(c.titles,1);
     assert.equal(c.muted, 0, 'Regular Start respects the existing saved sound setting');
     c.window.CommunityBuilders.enterPlay({ quiet: true }); assert.equal(c.muted, 1); assert.equal(c.voice, false);
   }
 });
 
-test('Starting while stop modules are loading prevents their later boot from replacing the map with a title', () => {
+test('Starting while stop modules load opens the title once and a late boot cannot replace the chosen screen', () => {
   const c = vm.createContext({ mode: 'title', booted: false, acted: false, playRequested: false, window: {}, maps: 0, titles: 0,
     store: { players: { you: { stops: {} } } }, root: { removeAttribute() {} }, main: { querySelector: () => null }, suspendVoice() {},
     setVoice() {}, showMap() { c.maps++; c.mode = 'map'; }, showTitle() { c.titles++; c.mode = 'title'; }, vLoad() {}, vScan() {},
     openLibraryMode() {}, openGrownups() {} });
   publicHookFixture(c);
   vm.runInContext(objectStatementSource('CommunityBuilders') + functionSource('boot'), c);
-  c.window.CommunityBuilders.enterPlay({ quiet: false }); c.boot();
-  assert.equal(c.mode, 'map'); assert.equal(c.maps, 1); assert.equal(c.titles, 0);
+  c.window.CommunityBuilders.enterPlay({ quiet: false });assert.equal(c.mode,'title');assert.equal(c.titles,1);
+  c.showMap();c.boot();
+  assert.equal(c.mode, 'map'); assert.equal(c.maps, 1); assert.equal(c.titles, 1);
 });
 
 test('Changing Voice updates replay and sample disabled states together', () => {

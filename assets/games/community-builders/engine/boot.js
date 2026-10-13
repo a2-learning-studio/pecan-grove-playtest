@@ -20,6 +20,7 @@ import createRuntime from "./core/runtime.js";
 import createResume from "./core/resume.js";
 import createApi from "./core/api.js";
 import createLoading from "./core/loading.js";
+import createLoadingView from "./core/loading-view.js";
 import { clear, setAuthoredMarkup } from "./authored-markup.js";
 import { createLifecycle as ownedLifecycle } from "./lifecycle.js";
 import { trustedScriptURL } from "./assets.js";
@@ -165,6 +166,7 @@ export function bootGame(window) {
   createRuntime(ctx);
   createResume(ctx);
   createApi(ctx);
+  createLoadingView(ctx);
   createLoading(ctx);
   return window.CommunityBuilders;
 }

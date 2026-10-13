@@ -20,7 +20,7 @@ export function button(text, run, attrs = {}) {
     ...attrs,
   });
 }
-export function icon(name) {
+export function icon(name, document = globalThis.document) {
   const paths = {
     pause: "M8 5v14M16 5v14",
     play: "m8 5 11 7-11 7Z",

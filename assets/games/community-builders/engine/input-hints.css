@@ -1,0 +1,22 @@
+.cb-choice-glyph {
+  position: absolute;
+  right: 4px;
+  top: 4px;
+  width: 24px;
+  height: 24px;
+  pointer-events: none;
+}
+.cb-tip-page-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 12px;
+}
+.cb-tip-page-controls [role="status"] {
+  font-weight: 700;
+}
+.cb-tip-pages .cb-tipcard[hidden] {
+  display: none;
+}

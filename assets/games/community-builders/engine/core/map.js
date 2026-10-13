@@ -1,3 +1,4 @@
+import {installMapPresentation} from '../map-layout.js';
 export default function createMap(ctx) {
   function showMap(msg) {
     if (typeof ctx.activeLifecycle !== "undefined" && ctx.activeLifecycle) {
@@ -45,6 +46,7 @@ export default function createMap(ctx) {
         var trail = ctx.document.createElementNS(ctx.SVGNS, "path");
         trail.setAttribute("d", d);
         trail.setAttribute("class", "cb-trail");
+        trail.setAttribute("data-from", String(i));
         svg.appendChild(trail);
         if (stampId === ctx.STOPS[i].id && !ctx.REDUCED)
           (function (tr) {
@@ -64,20 +66,25 @@ export default function createMap(ctx) {
     canvas.appendChild(svg);
     function token(s, onMap) {
       var r = ctx.rec(s.id, pl),
-        playable = ctx.PLAYABLE[s.id],
+        firstUnfinished = ctx.STOPS.find(function (candidate) { return !ctx.rec(candidate.id, pl); }),
+        orderLocked = ctx.CFG.playInOrder && firstUnfinished && s.n > firstUnfinished.n && !r,
+        playable = ctx.PLAYABLE[s.id] && !orderLocked,
+        saved = pl.resume && pl.resume.stopId === s.id ? pl.resume : null,
         st = r ? ctx.starsFor(r.best) : 0;
       var state = !playable
         ? "locked"
         : r
           ? "done"
-          : sug === s.id
+          : saved
+            ? "started"
+            : sug === s.id
             ? "next"
             : "open";
       var label = playable
         ? r
           ? ctx.W.stopStars(s.n, s.name, st)
           : ctx.W.stopOpen(s.n, s.name) +
-            (state === "next" ? ", " + ctx.W.next : "")
+            (state === "next" ? ", " + ctx.W.next : state === "started" ? ", " + ctx.W.mapKeepGoing : "")
         : ctx.W.stopSoon(s.n, s.name);
       var disc = ctx.h(
         "span",
@@ -97,6 +104,7 @@ export default function createMap(ctx) {
         [
           ctx.h("span", { class: "cb-stop__n", text: ctx.W.stop + " " + s.n }),
           ctx.h("b", { text: s.name }),
+          state === "started" ? ctx.h("span", {class:"cb-state",text:ctx.W.mapKeepGoing}) : null,
           playable
             ? r
               ? ctx.starRow(st)
@@ -119,8 +127,11 @@ export default function createMap(ctx) {
           "data-stop-id": s.id,
           "data-stop-n": String(s.n),
           "aria-label": label,
+          "aria-disabled": orderLocked ? "true" : null,
           onclick: function () {
-            if (playable) ctx.startStop(s.id);
+            if (orderLocked) { ctx.say(ctx.W.mapOrderHelp); return; }
+            if (saved && playable) ctx.resume(saved);
+            else if (playable) ctx.startStop(s.id);
             else ctx.comingSoon(s, b);
           },
         },
@@ -262,143 +273,8 @@ export default function createMap(ctx) {
         ctx.h("div", { class: "cb-row" }, [lib, gu]),
       ]),
     ]);
-    function edges() {
-      var m = pan.scrollWidth - pan.clientWidth;
-      if (m > 4) pan.setAttribute("tabindex", "0");
-      else pan.removeAttribute("tabindex");
-      world.classList.toggle("is-more-l", pan.scrollLeft > 6);
-      world.classList.toggle("is-more-r", pan.scrollLeft < m - 6);
-    }
-    pan.addEventListener("keydown", function (e) {
-      if (
-        e.target !== pan ||
-        pan.scrollWidth <= pan.clientWidth + 4 ||
-        (e.key !== "ArrowLeft" && e.key !== "ArrowRight")
-      )
-        return;
-      e.preventDefault();
-      pan.scrollBy({
-        left: e.key === "ArrowLeft" ? -160 : 160,
-        behavior: ctx.REDUCED ? "auto" : "smooth",
-      });
-    });
-    pan.addEventListener("scroll", edges, { passive: true });
-    pan.addEventListener("focusin", function (e) {
-      var d = e.target.closest && e.target.closest(".cb-stop");
-      d = d && d.querySelector(".cb-stop__disc");
-      if (d)
-        d.scrollIntoView({
-          inline: "nearest",
-          block: "nearest",
-          behavior: ctx.REDUCED ? "auto" : "smooth",
-        });
-    });
-    if (pan.scrollWidth > pan.clientWidth + 4) {
-      // narrow stage: start the pan on the next stop
-      var focusStop =
-        ctx.STOPS.filter(function (s) {
-          return s.id === (sug || stampId);
-        })[0] || ctx.STOPS[0];
-      var target = Math.max(
-        0,
-        (ctx.POS[focusStop.n - 1][0] / 100) * canvas.offsetWidth -
-          pan.clientWidth / 2,
-      );
-      if (!ctx.nudged && !ctx.REDUCED) {
-        // once per visit: the town slides into place, so it reads as draggable
-        ctx.nudged = true;
-        pan.scrollLeft = Math.max(0, target - 90);
-        ctx.requestAnimationFrame(function () {
-          pan.scrollTo({ left: target, behavior: "smooth" });
-        });
-      } else pan.scrollLeft = target;
-    }
-    edges();
     ctx.frame(true);
-    function unblock() {
-      var nx = canvas.querySelector('.cb-stop[data-state="next"]'),
-        pl = nx && nx.querySelector(".cb-stop__plate");
-      if (!pl || !canvas.isConnected) return;
-      var discs = [].slice
-        .call(canvas.querySelectorAll(".cb-stop__disc"))
-        .filter(function (d) {
-          return !nx.contains(d);
-        });
-      function hits() {
-        var a = pl.getBoundingClientRect();
-        return discs.some(function (d) {
-          var b = d.getBoundingClientRect();
-          return (
-            a.left < b.right + 4 &&
-            a.right > b.left - 4 &&
-            a.top < b.bottom + 4 &&
-            a.bottom > b.top - 4
-          );
-        });
-      }
-      nx.classList.remove("is-plate-up");
-      if (hits()) {
-        nx.style.setProperty("--cb-plate-h", pl.offsetHeight + "px");
-        nx.classList.add("is-plate-up");
-        if (hits()) nx.classList.remove("is-plate-up");
-      }
-      var tag = nx.querySelector(".cb-tag");
-      if (!tag) return;
-      var obstacles = [].slice
-        .call(canvas.querySelectorAll(".cb-stop__disc, .cb-stop__plate"))
-        .filter(function (node) {
-          return !nx.contains(node);
-        });
-      tag.hidden = false;
-      var placements = [
-        { left: "50%", top: "-38px", transform: "translateX(-50%)" },
-        {
-          left: "50%",
-          top: "calc(var(--d) + 6px)",
-          transform: "translateX(-50%)",
-        },
-        { left: "-12px", top: "12px", transform: "translateX(-100%)" },
-        { left: "calc(100% + 12px)", top: "12px", transform: "none" },
-      ];
-      var placed = placements.some(function (placement) {
-        Object.keys(placement).forEach(function (key) {
-          tag.style[key] = placement[key];
-        });
-        var a = tag.getBoundingClientRect(),
-          bounds = canvas.getBoundingClientRect();
-        return (
-          a.left >= bounds.left &&
-          a.right <= bounds.right &&
-          a.top >= bounds.top &&
-          a.bottom <= bounds.bottom &&
-          !obstacles.some(function (node) {
-            var b = node.getBoundingClientRect();
-            return (
-              a.left < b.right + 4 &&
-              a.right > b.left - 4 &&
-              a.top < b.bottom + 4 &&
-              a.bottom > b.top - 4
-            );
-          })
-        );
-      });
-      tag.hidden = !placed;
-    }
-    unblock();
-    if (ctx.window.ResizeObserver) {
-      var mapObserver = new ResizeObserver(function () {
-        if (!canvas.isConnected) {
-          mapObserver.disconnect();
-          return;
-        }
-        edges();
-        unblock();
-      });
-      mapObserver.observe(canvas);
-      mapObserver.observe(pan);
-    }
-    if (ctx.document.fonts && ctx.document.fonts.ready)
-      ctx.document.fonts.ready.then(unblock);
+    installMapPresentation(ctx,world,canvas,pan);
     if (ctx.window.requestIdleCallback && sug && ctx.moduleManifest[sug])
       ctx.window.requestIdleCallback(
         function () {

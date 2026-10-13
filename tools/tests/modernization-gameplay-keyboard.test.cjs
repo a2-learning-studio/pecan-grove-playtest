@@ -29,10 +29,11 @@ test('Stop 13 permits successive keyboard card and source choices without a dela
 test('Stop 15 permits immediate keyboard placement while its pointer guard is active',async()=>{
   const r=await fullCore('en',42);try{
     await r.core.startStop('build-the-future-together');r.main().querySelector('.cb-btn--go').click();
-    r.main().querySelector('.cb-s15-place').click();
+    const place=r.main().querySelector('.cb-s15-place'),pid=place.dataset.s15Place;place.click();
     assert.ok(r.main().querySelector('.cb-s15-tray'),'the tray opens without a pointer delay');
     const put=r.main().querySelector('[data-s15-put]');assert.ok(put);const id=put.dataset.s15Put;put.click();
     assert.ok(r.main().querySelector('[data-s15-put="'+id+'"]')?.getAttribute('aria-pressed')==='true'||!r.main().querySelector('.cb-s15-tray'),'the selected plan is accepted');
-    assert.ok(r.core.snapshot().state.actions.length>=3,'the accepted actions are available for resume');
+    assert.equal(r.core.snapshot().state.v,2,'the stop uses its native state controller');
+    assert.equal(r.core.snapshot().state.plan[pid],id,'the accepted plan choice is available directly for resume');
   }finally{r.close();}
 });

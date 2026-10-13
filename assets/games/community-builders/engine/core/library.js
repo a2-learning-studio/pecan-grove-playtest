@@ -1,3 +1,4 @@
+import { mapOrderControl } from "../map-layout.js";
 export default function createLibrary(ctx) {
   function openLibraryMode(opener) {
     ctx.vStop();
@@ -16,6 +17,14 @@ export default function createLibrary(ctx) {
       "cb-btn--go",
       function () {
         ctx.setVoice(false, true);
+        // Library mode chooses the classic, predictable reading-card format.
+        var settings =
+          ctx.window.PecanGroveEngine && ctx.window.PecanGroveEngine.settings;
+        if (settings) settings.update({ findCards: true });
+        else {
+          ctx.CFG.findCards = true;
+          ctx.cfgSave();
+        }
         status.textContent = ctx.X.libraryActive;
         d.close();
       },
@@ -43,6 +52,7 @@ export default function createLibrary(ctx) {
     [
       note,
       status,
+      mapOrderControl(ctx),
       ctx.h("div", { class: "cb-row" }, [quiet, settings]),
       ctx.h("section", { class: "cb-library__groups" }, [
         ctx.h("h3", { text: ctx.X.libraryGroups }),

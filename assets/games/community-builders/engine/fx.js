@@ -9,6 +9,7 @@ export class FX {
     this.frame = 0;
     this.paused = false;
     this.last = 0;
+    this.animations = new Set();
     this.render = this.render.bind(this);
   }
   burst(x, y, { kind = "sparkle" } = {}) {
@@ -38,7 +39,7 @@ export class FX {
             : "--pg-gold",
       )
       .trim();
-    const count = Math.min(24, 48 - this.pool.length);
+    const count = Math.max(0, 24 - this.pool.length);
     for (let i = 0; i < count; i++) {
       const angle = (i / 24) * Math.PI * 2;
       this.pool.push({
@@ -85,10 +86,17 @@ export class FX {
   }
   animate(node, frames, ms) {
     if (!node || !motion.allowed()) return;
-    node.animate?.(frames, {
+    const animation = node.animate?.(frames, {
       duration: ms,
       easing: "cubic-bezier(0.16,1,0.3,1)",
     });
+    if (animation) {
+      this.animations.add(animation);
+      const remove = () => this.animations.delete(animation);
+      animation.addEventListener?.("finish", remove, { once: true });
+      animation.addEventListener?.("cancel", remove, { once: true });
+      if (this.paused) animation.pause();
+    }
   }
   stamp(node) {
     this.animate(
@@ -126,12 +134,15 @@ export class FX {
   }
   pause(value) {
     this.paused = value;
+    for (const animation of this.animations) value ? animation.pause() : animation.play();
     if (value) {
       if (this.frame) this.win.cancelAnimationFrame(this.frame);
       this.frame = 0;
     } else this.start();
   }
   clear() {
+    for (const animation of this.animations) animation.cancel();
+    this.animations.clear();
     if (this.frame) this.win.cancelAnimationFrame(this.frame);
     this.frame = 0;
     this.pool = [];

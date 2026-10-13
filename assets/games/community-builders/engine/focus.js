@@ -51,7 +51,7 @@ export function chooseSpatial(current, candidates, direction) {
         chosen = node;
       }
     }
-  if (!chosen && row && sameRow)
+  if (!chosen && row && sameRow && row.dataset?.cbNavWrap !== "false")
     chosen = direction === "left" ? pool.at(-1) : pool[0];
   return chosen;
 }

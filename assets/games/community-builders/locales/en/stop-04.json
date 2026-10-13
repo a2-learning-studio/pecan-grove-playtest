@@ -83,6 +83,45 @@
     "tip100": "Great checking! Try a new round with new claims.",
     "real": "Next time you hear 'Everyone says…', ask a grown-up: 'Who said it? How do they know?'",
     "gu": "For grown-ups: this stop",
-    "guText": "Kids check a claim's source before sorting it as a checked fact, a rumor or 'we don't know yet'. Rumors in the game come from both sides, for example 'the lights will go out' and 'it uses no water at all'. Health effects for a site that isn't built yet go under 'we don't know yet'."
+    "guText": "Kids check a claim's source before sorting it as a checked fact, a rumor or 'we don't know yet'. Rumors in the game come from both sides, for example 'the lights will go out' and 'it uses no water at all'. Health effects for a site that isn't built yet go under 'we don't know yet'.",
+    "sourceExcerptTitle": "Read the story proposal",
+    "sourceFiction": "This document is made up for Pecan Grove. It is not a real company plan.",
+    "planExcerpt": [
+      "Company proposal — September 3",
+      "Water: This plan expects daily water use. A water-use estimate is part of the proposal.",
+      "Jobs: The plan lists many jobs while building and fewer jobs after opening.",
+      "Backup engines: The plan says they would run during power cuts and short tests.",
+      "This is a proposal, not an approval or a promise about future results."
+    ]
+  },
+  "bank": {
+    "b0001": "It's written in the plan the company sent to Regional Review. Anyone can read it at the library.",
+    "b0002": "The plan is dated September 3.",
+    "b0003": "The State Environment Office is still checking the air permit.",
+    "b0004": "It isn't finished yet.",
+    "b0005": "The sound study isn't done yet.",
+    "b0006": "It's due in the spring.",
+    "b0007": "The Development Board hasn't decided about tax breaks yet.",
+    "b0008": "It meets in November.",
+    "b0009": "A friend of a friend told them.",
+    "b0010": "They heard it at a ball game. Nobody checked.",
+    "b0011": "Lots of people passed it on. Nobody knows who said it first.",
+    "b0012": "Someone saw it online and can't find it again.",
+    "b0013": "No date. Nobody remembers.",
+    "b0014": "It uses no water at all.",
+    "b0015": "Every well in town will dry up next year.",
+    "b0016": "The company's September 3 proposal lists a daily water-use estimate.",
+    "b0017": "Everyone in Pecan Grove will get a job there.",
+    "b0018": "Not one job will go to people from here.",
+    "b0019": "The company's September 3 proposal lists many building jobs and fewer jobs after opening.",
+    "b0020": "The lights will go out in every house.",
+    "b0021": "Everyone's power bill will go down.",
+    "b0022": "The backup engines will run all day, every day.",
+    "b0023": "The company's September 3 proposal says the backup engines would run during power cuts and short tests.",
+    "b0024": "Every student will get a new laptop next month.",
+    "b0025": "The school will get lots of new money.",
+    "b0026": "You won't hear any hum from the farm fence.",
+    "b0027": "The hum will keep kids awake at night.",
+    "b0028": "Smoke from the backup engines will reach the clinic."
   }
 }

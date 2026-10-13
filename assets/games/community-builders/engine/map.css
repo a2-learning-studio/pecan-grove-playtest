@@ -1,0 +1,206 @@
+.cb-map-ready .cb-world__canvas {
+  width: 100%;
+  min-width: 0;
+  padding: 0;
+  aspect-ratio: 1376 / 768;
+}
+.cb-map-ready .cb-world__art {
+  opacity: 1;
+}
+.cb-map-ready .cb-path {
+  display: block;
+}
+.cb-map-ready .cb-stops--onmap {
+  position: absolute;
+  inset: 0;
+  display: block;
+  padding: 0;
+}
+.cb-map-ready .cb-stops--onmap li {
+  position: absolute;
+  width: 0;
+  height: 0;
+}
+.cb-map-ready .cb-stops--onmap .cb-stop {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: var(--d);
+  height: var(--d);
+  min-height: 0;
+  justify-items: center;
+  transform: translate(-50%, -50%);
+}
+.cb-map-ready .cb-stop__disc {
+  box-sizing: border-box;
+}
+.cb-map-ready .cb-stops--onmap .cb-stop__plate {
+  position: absolute;
+  z-index: 5;
+  display: grid;
+  width: max-content;
+  max-width: min(210px, 48cqw);
+  min-width: 110px;
+  opacity: 1;
+  visibility: visible;
+  transform: none !important;
+  right: auto !important;
+  bottom: auto !important;
+  pointer-events: none;
+}
+.cb-map-ready .cb-stops--onmap .cb-stop__plate b {
+  white-space: normal;
+  text-wrap: balance;
+  font-size: 0.9375rem;
+}
+.cb-map-ready
+  .cb-stops--onmap
+  .cb-stop[data-plate-visible="false"]
+  .cb-stop__plate,
+.cb-map-ready
+  .cb-stops--onmap
+  .cb-stop[data-plate-hidden="true"]
+  .cb-stop__plate {
+  opacity: 0 !important;
+  visibility: hidden !important;
+}
+.cb-map-ready .cb-tag {
+  display: block;
+  transform: none !important;
+  right: auto;
+  bottom: auto;
+}
+.cb-map-ready .cb-tag[hidden] {
+  display: none;
+}
+.cb-map-ready .cb-stop[data-state="started"] .cb-stop__disc {
+  outline: 3px dashed var(--cb-clay);
+  outline-offset: 4px;
+}
+.cb-map-chapter {
+  fill-opacity: 0.12;
+  stroke-width: 3;
+  stroke-dasharray: 12 8;
+  stroke-opacity: 0.8;
+  pointer-events: none;
+}
+.cb-map-chapter--1 {
+  fill: var(--pg-chapter-1);
+  stroke: var(--pg-chapter-1);
+}
+.cb-map-chapter--2 {
+  fill: var(--pg-chapter-2);
+  stroke: var(--pg-chapter-2);
+}
+.cb-map-chapter--3 {
+  fill: var(--pg-chapter-3);
+  stroke: var(--pg-chapter-3);
+}
+.cb-map-chapter--4 {
+  fill: var(--pg-chapter-4);
+  stroke: var(--pg-chapter-4);
+}
+.cb-map-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  background: var(--cb-stage);
+  color: var(--cb-on-stage);
+}
+.cb-map-ready .cb-world__hud {
+  position: static;
+  display: flex;
+  flex: 1;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.cb-map-legend {
+  position: relative;
+  flex: 0 1 auto;
+  align-self: flex-start;
+  margin-left: auto;
+}
+.cb-map-legend summary {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  border: 1px solid currentColor;
+  border-radius: 12px;
+  padding: 0 12px;
+  font-weight: 700;
+}
+.cb-map-legend ul {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  margin: 0;
+  list-style: none;
+  background: var(--cb-card);
+  color: var(--cb-ink);
+  border-radius: 12px;
+}
+.cb-map-legend li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.cb-map-legend li > span:first-child {
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--cb-ink);
+  border-radius: 50%;
+  background: var(--pg-chapter-1);
+}
+.cb-map-legend li[data-chapter="2"] > span:first-child {
+  background: var(--pg-chapter-2);
+}
+.cb-map-legend li[data-chapter="3"] > span:first-child {
+  background: var(--pg-chapter-3);
+}
+.cb-map-legend li[data-chapter="4"] > span:first-child {
+  background: var(--pg-chapter-4);
+}
+.cb-map-list {
+  display: none;
+}
+.cb-map-ready .cb-engine-zoom {
+  position: static;
+}
+.cb-map-order {
+  padding: 12px;
+  border: 1px solid var(--cb-line-strong);
+  border-radius: 12px;
+}
+.cb-map-order label {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  min-height: 44px;
+  font-weight: 700;
+}
+.cb-map-order input {
+  width: 24px;
+  height: 24px;
+}
+@container cb (max-width: 479.98px) {
+  .cb-map-list {
+    display: inline-flex;
+  }
+  .cb-map-controls {
+    padding: 8px;
+  }
+}
+@media (forced-colors: active) {
+  .cb-map-chapter {
+    fill: none;
+    stroke: CanvasText;
+  }
+  .cb-map-legend li > span:first-child {
+    forced-color-adjust: none;
+    background: Canvas;
+    border-color: CanvasText;
+  }
+}

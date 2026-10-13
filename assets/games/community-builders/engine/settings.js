@@ -308,6 +308,7 @@ export class Settings {
           ["normal", "off"],
         ]),
         this.toggle("words"),
+        this.toggle("numericScore"),
       );
     }
     if (name === "controls") {
@@ -386,7 +387,7 @@ export class Settings {
               "musicOn",
               "duck",
             ],
-            display: ["cap", "capSize", "textScale", "contrast", "words"],
+            display: ["cap", "capSize", "textScale", "contrast", "words", "numericScore"],
             controls: [
               "hints",
               "padLayout",

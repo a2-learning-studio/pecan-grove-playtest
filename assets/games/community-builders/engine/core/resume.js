@@ -100,6 +100,11 @@ export default function createResume(ctx) {
       return Promise.resolve(true);
     }
     ctx.restoring = true;
+    ctx.replayingActions = !!(record.state && record.state.adapter === "actions-v1");
+    [].slice.call(ctx.root.querySelectorAll('dialog.cb-dlg[open]:not([data-cb-utility])')).forEach(function(dialog) {
+      if (dialog.dispose) dialog.dispose();
+      else dialog.close();
+    });
     ctx.restoringRecord = record.roundRecord || null;
     ctx.restoringResultInfo = record.resultInfo || null;
     ctx.replayClock = Date.now();
@@ -108,10 +113,10 @@ export default function createResume(ctx) {
       .then(function (loaded) {
         if (loaded === false) return false;
         var restored =
-          ctx.activeController && ctx.activeController.restore && record.state
-            ? ctx.activeController.restore(record.state)
-            : record.state && record.state.adapter === "actions-v1"
-              ? replayActions(record.state.actions)
+          record.state && record.state.adapter === "actions-v1"
+            ? replayActions(record.state.actions)
+            : ctx.activeController && ctx.activeController.restore && record.state
+              ? ctx.activeController.restore(record.state)
               : null;
         return Promise.resolve(restored).then(function () {
           ctx.rngState = Number(record.rng) >>> 0;
@@ -134,6 +139,7 @@ export default function createResume(ctx) {
       })
       .finally(function () {
         ctx.restoring = false;
+        ctx.replayingActions = false;
         ctx.progressEvent();
       });
   }

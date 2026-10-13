@@ -1,3 +1,4 @@
+import { animateScene } from "../transitions.js";
 export default function createScene(ctx) {
   var live = ctx.h("p", { class: "cb-live", "aria-live": "polite" });
   var bar = ctx.h("div", { class: "cb-bar" });
@@ -103,6 +104,7 @@ export default function createScene(ctx) {
         class:
           "cb-btn cb-btn--onstage cb-fs" + (iconOnly ? " cb-fs--icon" : ""),
         "aria-label": on ? ctx.X.fsOff : ctx.X.fsOn,
+        "data-cb-shortcut": "fullscreen.toggle",
         onclick: toggleFS,
       },
       [
@@ -122,7 +124,9 @@ export default function createScene(ctx) {
       var t = b.querySelector("span");
       if (t) t.textContent = on ? ctx.X.fsOff : ctx.X.fsOn;
       b.setAttribute("aria-label", on ? ctx.X.fsOff : ctx.X.fsOn);
+      b.title = on ? ctx.X.fsOff : ctx.X.fsOn;
     });
+    ctx.window?.PecanGroveEngine?.syncControls?.();
   }
   ctx.document.addEventListener("fullscreenchange", syncFS);
   ctx.document.addEventListener("webkitfullscreenchange", syncFS);
@@ -175,28 +179,18 @@ export default function createScene(ctx) {
     } catch (e) {
       return null;
     }
-    var b = btn(ctx.W.language, "cb-btn--onstage cb-language", function () {
-      if (inStop)
-        ctx.dialog(
-          ctx.W.languageTitle,
-          [
-            ctx.h("p", { text: ctx.W.languageNote }),
-            btn(ctx.W.languageGo, "cb-btn--go", function () {
-              var d = b.closest && ctx.root.querySelector("dialog[open]");
-              if (d) d.close();
-              ctx.changeLanguage(other, url);
-            }),
-          ],
-          b,
-          null,
-          { utility: true },
-        );
-      else {
-        ctx.changeLanguage(other, url);
-      }
+    var group = ctx.h("div", { class: "cb-language-group", role: "group", "aria-label": "English / Español", "data-cb-novoice": "" });
+    ["en", "es"].forEach(function (language) {
+      var active = language === ctx.L;
+      var b = btn(language.toUpperCase(), "cb-btn cb-btn--onstage cb-language", function () {
+        if (!active) ctx.changeLanguage(language, url);
+      });
+      b.setAttribute("lang", language);
+      b.setAttribute("aria-label", language === "en" ? "English" : "Español");
+      b.setAttribute("aria-pressed", String(active));
+      group.appendChild(b);
     });
-    b.setAttribute("lang", other);
-    return b;
+    return group;
   }
   function screen(kids, focusSel) {
     ctx.vMark(ctx.vEl, false);
@@ -225,6 +219,7 @@ export default function createScene(ctx) {
       if (f) f.setAttribute("tabindex", "-1");
     }
     if (f && acted) f.focus({ preventScroll: true });
+    animateScene(ctx, main, mode === "stop" && !ctx.actionHistory.length ? "stop" : "step");
     guard();
   }
   function progressEvent() {
@@ -376,8 +371,8 @@ export default function createScene(ctx) {
   }
   function fb(text, ok) {
     return text
-      ? ctx.h("div", { class: "cb-feedback" + (ok ? " is-ok" : "") }, [
-          ctx.ico(ok ? "check" : "bulb"),
+      ? ctx.h("div", { class: "cb-feedback" + (ok ? " is-ok" : ""), "data-cb-feedback": ok ? "ok" : "try" }, [
+          ctx.h("span", { class: "cb-feedback-badge", "aria-hidden": "true" }, [ctx.ico(ok ? "check" : "bulb")]),
           ctx.h("p", { text: text }),
         ])
       : null;

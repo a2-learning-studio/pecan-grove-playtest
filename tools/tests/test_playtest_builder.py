@@ -41,6 +41,14 @@ class Elements(HTMLParser):
 
 
 class PlaytestBuilderTests(unittest.TestCase):
+    def test_family_boot_removes_the_feedback_module_and_retains_game_and_frame_guard(self):
+        source = (MODULE.parents[1] / 'assets/playtest/boot.js').read_text(encoding='utf-8')
+        output = builder.family_boot(source)
+        self.assertNotIn('feedback.js', output)
+        self.assertNotIn('PecanGroveFeedback', output)
+        for required in ('frame-guard.js', 'styles.js', 'community-builders/cb.js', 'engine/main.js', 'shell.js'):
+            self.assertIn(required, output)
+
     def test_feedback_destinations(self):
         for url in ("https://forms.office.com/r/abc", "https://forms.microsoft.com/Pages/ResponsePage.aspx?id=abc",
                     "https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=abc"):

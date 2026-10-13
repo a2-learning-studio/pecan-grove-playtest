@@ -9,6 +9,7 @@ export default function createSettings(ctx) {
     vol: 0.9,
     rate: 1,
     words: true,
+    numericScore: false,
     cap: false,
     capSize: "m",
     circles: true,

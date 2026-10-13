@@ -19,8 +19,16 @@ async function nativeCore(language='en',{failOnce=null,paused=false}={}) {
   w.HTMLDialogElement.prototype.close=function(){this.removeAttribute('open');this.dispatchEvent(new w.Event('close'));};
   w.HTMLImageElement.prototype.decode=()=>Promise.resolve();
   w.Audio=class {constructor(src){this.src=src;this.paused=true;this.currentTime=0;}pause(){this.paused=true;}play(){this.paused=false;return Promise.resolve();}addEventListener(){}removeEventListener(){}};
-  // No resource loader is enabled, and any accidental fetch fails locally.
-  w.fetch=()=>{throw Error('Native core test attempted a real fetch');};
+  // The only fetch is the actual first-party lazy-stop descriptor, read locally.
+  // No resource loader or socket is enabled; any other fetch fails explicitly.
+  w.fetch=async url=>{
+    const parsed=new URL(String(url),w.location.href);
+    if(parsed.origin===w.location.origin&&parsed.pathname.endsWith('/stops/manifest.json')) {
+      requests.push('manifest.json');
+      return{ok:true,json:async()=>JSON.parse(fs.readFileSync(path.join(base,'stops/manifest.json'),'utf8'))};
+    }
+    throw Error('Unexpected native core fetch: '+parsed.pathname);
+  };
   w.addEventListener('error',event=>errors.push(event.error||event.message));
   w.console.error=(...args)=>errors.push(args);
   const append=w.document.head.appendChild.bind(w.document.head);
@@ -64,7 +72,7 @@ for(const language of ['en','es']) {
       r.main().querySelector('.cb-hero .cb-btn--go').click();
       assert.equal(r.core.getState().mode,'map');assert.equal(r.core.getState().quiet,true);assert.equal(r.root.hasAttribute('data-playtest-paused'),false);
       assert.equal(new Set([...r.main().querySelectorAll('.cb-stop[data-stop-n]')].map(node=>node.dataset.stopN)).size,15,'The canvas and accessible stop list cover the same fifteen stops');
-      assert.ok(r.requests.includes('manifest.js'));assert.equal(r.requests.filter(name=>/^\d\d-/.test(name)).length,0,'Stops remain lazy until chosen');
+      assert.ok(r.requests.includes('manifest.json'));assert.equal(r.requests.filter(name=>/^\d\d-/.test(name)).length,0,'Stops remain lazy until chosen');
       assert.equal(r.errors.length,0,String(r.errors));
     }finally{r.close();}
   });
@@ -113,10 +121,19 @@ test('native settings/library dialogs preserve the session, save quiet settings 
     assert.equal(stored.voice,false);assert.equal(stored.cap,true);assert.equal(stored.rate,1.15);assert.equal(r.core.motionAllowed(),false);
     dialog=r.core.openLibraryMode(opener);assert.ok(dialog.querySelector('.cb-library'));dialog.querySelector('.cb-library .cb-btn--go').click();
     assert.equal(r.core.getState().quiet,true);assert.equal(r.core.getState().session,session);assert.equal(r.root.querySelectorAll('dialog[open]').length,0);
-    let closes=0;dialog=r.core.getAPI().dialog('A test note',[r.core.getAPI().h('p',{text:'A real dialog body'})],opener,()=>closes++);
+    assert.equal(r.core.getAPI().prefersFindCards(),true,'Library mode enables classic finding cards');
+    await r.core.startStop('notice-the-signs');r.main().querySelector('.cb-s01-intro .cb-btn--go').click();r.main().querySelector('[data-view="today"]').click();r.main().querySelector('[data-spot="0"]').click();
+    assert.ok(r.root.querySelector('.cb-s01-dlg[open]'),'The classic setting changes the real Stop 1 finding UI');r.root.querySelector('.cb-s01-dlg').close();
+    r.core.showMap();
+    const modalOpener=r.main().querySelector('.cb-stop');modalOpener.focus();
+    let closes=0;dialog=r.core.getAPI().dialog('A test note',[r.core.getAPI().h('p',{text:'A real dialog body'})],modalOpener,()=>closes++);
     dialog.dispatchEvent(new r.w.Event('cancel',{cancelable:true}));dialog.close();
-    assert.equal(closes,1);assert.equal(dialog.isConnected,false);assert.equal(r.w.document.activeElement,opener);assert.equal(r.errors.length,0,String(r.errors));
+    assert.equal(closes,1);assert.equal(dialog.isConnected,false);assert.equal(r.w.document.activeElement,modalOpener);assert.equal(r.errors.length,0,String(r.errors));
   }finally{r.close();}
+});
+
+test('grown-up Install action prompts only after an explicit click',async()=>{
+  const r=await nativeCore();try{let prompts=0;r.w.PecanGroveOffline={availableInstall:true,install(){prompts++;return Promise.resolve(true);}};r.core.enterPlay({quiet:true});r.main().querySelector('.cb-hero .cb-btn--go').click();r.core.openGrownups(r.main().querySelector('.cb-stop'));const d=r.root.querySelector('dialog[open]');assert.equal(prompts,0);const install=[...d.querySelectorAll('button')].find(b=>b.textContent===r.core.getAPI().W.installGame);assert.ok(install);install.click();assert.equal(prompts,1);}finally{r.close();}
 });
 
 test('native lazy-stop failure renders a usable retry and the next attempt loads the real module',async()=>{
@@ -127,4 +144,27 @@ test('native lazy-stop failure renders a usable retry and the next attempt loads
     r.main().querySelector('.cb-btn--go').click();await r.tick();await r.tick();
     assert.ok(r.main().querySelector('.cb-intro'));assert.equal(r.core.getState().stopId,'fact-or-rumor');assert.equal(r.requests.filter(name=>name==='04-fact-or-rumor.js').length,2);assert.equal(r.errors.length,0,String(r.errors));
   }finally{r.close();}
+});
+
+test('native public choices/nav helpers annotate actual stop controls and preserve explicit entry/wrap',async()=>{
+ const r=await nativeCore();try{const api=r.core.getAPI(),group=api.h('div',{},[api.h('button',{text:'First'}),api.h('button',{text:'Second',id:'entry-two'})]);r.main().append(group);
+ assert.equal(api.choices(group),group);assert.equal(group.querySelectorAll('[data-cb-choice]').length,2);assert.equal(group.lastChild.getAttribute('aria-keyshortcuts'),'2');assert.equal(group.querySelectorAll('.cb-choice-badge').length,2);
+ assert.equal(api.nav.group(group,{entry:'#entry-two',wrap:false}),group);assert.equal(group.dataset.cbNavGroup,'row');assert.equal(group.dataset.cbNavWrap,'false');assert.ok(group.lastChild.hasAttribute('data-cb-nav-entry'));
+ let removed=null;const handler=()=>{};r.w.PecanGroveEngine={input:{off:(...args)=>{removed=args;}}};api.input.off('confirm',handler);assert.deepEqual(removed,['confirm',handler]);
+ }finally{r.close();}
+});
+test('native map locks only later unfinished stops when adults choose order and labels resumable steps',async()=>{
+ const r=await nativeCore();try{r.core.enterPlay({quiet:true});r.main().querySelector('.cb-hero .cb-btn--go').click();const api=r.core.getAPI();
+ assert.equal(r.main().querySelectorAll('.cb-stop[aria-disabled="true"]').length,0);
+ r.core.updateSettings({playInOrder:true});r.core.showMap();assert.equal(r.main().querySelector('.cb-stop[data-stop-n="1"]').getAttribute('aria-disabled'),null);assert.equal(r.main().querySelector('.cb-stop[data-stop-n="2"]').getAttribute('aria-disabled'),'true');
+ const state=r.core.getState(),player=state.store.players[state.store.current];player.stops[api.STOPS[0].id]={best:90,rounds:1};r.core.showMap();assert.equal(r.main().querySelector('.cb-stop[data-stop-n="2"]').getAttribute('aria-disabled'),null);assert.equal(r.main().querySelector('.cb-stop[data-stop-n="3"]').getAttribute('aria-disabled'),'true');
+ await r.core.startStop(api.STOPS[1].id);player.resume=r.core.snapshot();r.core.showMap();const started=r.main().querySelector('.cb-stop[data-stop-n="2"]');assert.equal(started.dataset.state,'started');assert.match(started.getAttribute('aria-label'),/Keep going/);started.click();await r.tick();assert.ok(r.main().querySelector('.cb-s02-intro'));
+ }finally{r.close();}
+});
+
+for(const language of ['en','es'])test(`${language}: native Peek exposes the actual dated fictional proposal excerpt`,async()=>{
+ const r=await nativeCore(language);try{r.core.enterPlay({quiet:true});await r.core.startStop('fact-or-rumor');r.main().querySelector('.cb-intro .cb-btn--go').click();
+ let found=false;for(let i=0;i<5;i++){const excerpt=r.main().querySelector('.cb-source-excerpt');if(excerpt){r.main().querySelector('.cb-peekbtn').click();assert.equal(excerpt.closest('.cb-source').hidden,false);assert.match(excerpt.textContent,language==='en'?/made up for Pecan Grove/:/inventó para Pecan Grove/);assert.equal(excerpt.querySelectorAll('blockquote p').length,5);found=true;break;}r.main().querySelector('.cb-basket').click();r.main().querySelector('.cb-actions .cb-btn--go').click();}
+ assert.equal(found,true,'Every five-claim round includes one proposal-backed fact');assert.equal(r.errors.length,0,String(r.errors));
+ }finally{r.close();}
 });

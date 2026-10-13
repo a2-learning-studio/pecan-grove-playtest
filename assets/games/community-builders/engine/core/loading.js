@@ -1,17 +1,9 @@
 export default function createLoading(ctx) {
   var booted = false,
     playRequested = false;
-  function boot() {
-    if (booted) return;
-    booted = true;
-    var played = Object.keys(ctx.store.players).some(function (k) {
-      return Object.keys(ctx.store.players[k].stops || {}).length;
-    });
-    if (played || playRequested) ctx.showMap();
-    else ctx.showTitle();
-  }
   var moduleManifest = {},
-    moduleLoads = {};
+    moduleLoads = {},
+    manifestReady;
   ctx.STOPS.forEach(function (stop) {
     var stem = (stop.n < 10 ? "0" : "") + stop.n + "-" + stop.id;
     moduleManifest[stop.id] = {
@@ -22,17 +14,59 @@ export default function createLoading(ctx) {
     };
     ctx.PLAYABLE[stop.id] = 1;
   });
-  (ctx.window.CB_STOP_MANIFEST || []).forEach(function (item) {
-    if (item && ctx.stopById(item.id)) moduleManifest[item.id] = item;
-  });
-  function loadStop(descriptor) {
-    if (ctx.REG[descriptor.id]) return Promise.resolve();
+  function boot() {
+    if (booted) return;
+    booted = true;
+    ctx.showTitle();
+  }
+  function loadManifest() {
+    return ctx.window
+      .fetch(ctx.resolveAsset(ctx.BASE + "stops/manifest.json"), {
+        credentials: "same-origin",
+      })
+      .then(function (response) {
+        if (!response.ok) throw new Error("manifest_unavailable");
+        return response.json();
+      })
+      .then(function (items) {
+        if (!Array.isArray(items) || items.length !== ctx.STOPS.length)
+          throw new Error("manifest_invalid");
+        var seen = {};
+        items.forEach(function (item) {
+          var stop = item && ctx.stopById(item.id);
+          if (
+            !stop ||
+            seen[item.id] ||
+            Number(item.n) !== stop.n ||
+            !/^\d\d-[a-z-]+\.js$/.test(item.file) ||
+            item.css !== item.file.replace(/\.js$/, ".css")
+          )
+            throw new Error("manifest_invalid");
+          seen[item.id] = true;
+          moduleManifest[item.id] = {
+            id: item.id,
+            n: stop.n,
+            file: item.file,
+            css: item.css,
+          };
+        });
+        return moduleManifest;
+      });
+  }
+  function loadStop(descriptor, progress) {
+    if (ctx.REG[descriptor.id]) {
+      if (progress) progress(1);
+      return Promise.resolve();
+    }
     if (moduleLoads[descriptor.id]) return moduleLoads[descriptor.id];
     moduleLoads[descriptor.id] = new Promise(function (resolve, reject) {
       var pending = 2,
         failed = false;
       function done() {
-        if (!failed && --pending === 0) {
+        if (failed) return;
+        pending--;
+        if (progress) progress((2 - pending) / 2);
+        if (!pending) {
           if (ctx.REG[descriptor.id]) resolve();
           else fail();
         }
@@ -41,6 +75,8 @@ export default function createLoading(ctx) {
         if (failed) return;
         failed = true;
         delete moduleLoads[descriptor.id];
+        css.remove();
+        script.remove();
         reject(new Error("stop_unavailable"));
       }
       var css = ctx.h("link", {
@@ -59,57 +95,30 @@ export default function createLoading(ctx) {
     });
     return moduleLoads[descriptor.id];
   }
-  function loadModules(list) {
-    list.forEach(function (m) {
-      var number = parseInt(m.slice(0, 2), 10),
-        stop = ctx.STOPS[number - 1];
-      if (!stop) return;
-      moduleManifest[stop.id] = {
-        id: stop.id,
-        n: number,
-        file: m + ".js",
-        css: m + ".css",
-      };
-      ctx.PLAYABLE[stop.id] = 1;
-    });
-    boot();
+  function startResources() {
+    var loading = ctx.loadingTask(startResources);
+    loading.set("module", 1);
+    manifestReady = loadManifest();
+    var voice = ctx.vOn ? ctx.vLoad(true) : Promise.resolve(true);
+    Promise.all([
+      manifestReady.then(function () {
+        loading.set("manifest", 1);
+      }),
+      loading.art(ctx.main),
+      Promise.resolve(voice).then(function (ready) {
+        if (ready === false) throw new Error("voice_unavailable");
+        loading.set("voice", 1);
+      }),
+    ]).then(loading.finish, loading.fail);
   }
-  var extra = [];
-  try {
-    new ctx.URLSearchParams(ctx.location.search)
-      .getAll("cbstop")
-      .forEach(function (m) {
-        if (/^\d\d-[a-z-]+$/.test(m)) extra.push(m);
-      });
-  } catch (e) {
-    /* old browser */
-  }
-  var man = ctx.h("script", {
-    src: ctx.resolveAsset(ctx.BASE + "stops/manifest.js"),
-  });
-  man.onload = function () {
-    var list = (ctx.window.CB_STOP_MODULES || []).filter(function (m) {
-      return /^\d\d-[a-z-]+$/.test(m);
-    });
-    extra.forEach(function (m) {
-      if (list.indexOf(m) < 0) list.push(m);
-    });
-    loadModules(list);
-  };
-  man.onerror = function () {
-    loadModules(extra);
-  };
-  ctx.document.head.appendChild(man);
-  ctx.setTimeout(function () {
-    if (!booted) loadModules(extra);
-  }, 2500);
-  ctx.publish({ boot, loadStop, loadModules });
+  ctx.publish({ boot, loadManifest, loadStop, startResources });
   ctx.bind({
     booted: [() => booted, (value) => (booted = value)],
     playRequested: [() => playRequested, (value) => (playRequested = value)],
     moduleManifest: [() => moduleManifest, (value) => (moduleManifest = value)],
     moduleLoads: [() => moduleLoads, (value) => (moduleLoads = value)],
-    extra: [() => extra, (value) => (extra = value)],
-    man: [() => man, (value) => (man = value)],
+    manifestReady: [() => manifestReady, (value) => (manifestReady = value)],
   });
+  boot();
+  startResources();
 }

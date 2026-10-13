@@ -5,19 +5,21 @@ export function createLifecycle({
   window = globalThis.window,
   definitionOnly = false,
   isRestoring = () => false,
+  isReplaying = isRestoring,
   replayClock = () => 0,
 }) {
   let listeners = [],
     cleanups = [],
     nextTask = 0;
   const tasks = new Map();
+  const animations = new Set();
   let suspended = false,
     disposed = false,
     pausedAt = 0,
     pausedDuration = 0;
   const now = () => window.Date.now();
   const clock = () =>
-    isRestoring()
+    isReplaying()
       ? replayClock()
       : now() - pausedDuration - (suspended ? now() - pausedAt : 0);
   function facade(target) {
@@ -87,7 +89,7 @@ export function createLifecycle({
       };
       task.native = frame
         ? window.requestAnimationFrame(run)
-        : window.setTimeout(run, isRestoring() ? 0 : task.remaining);
+        : window.setTimeout(run, isReplaying() ? 0 : task.remaining);
     };
     if (!suspended) task.arm();
     return id;
@@ -102,6 +104,16 @@ export function createLifecycle({
     clearTimeout: cancel,
     requestAnimationFrame: (fn) => schedule(fn, 0, true),
     cancelAnimationFrame: cancel,
+    animation(value) {
+      if (!value) return value;
+      if (disposed || definitionOnly) value.cancel?.();
+      else {
+        animations.add(value);
+        if (suspended) value.pause?.();
+        value.finished?.then(() => animations.delete(value), () => animations.delete(value));
+      }
+      return value;
+    },
     cleanup(fn) {
       if (typeof fn !== "function") return fn;
       if (disposed || definitionOnly) fn();
@@ -112,6 +124,7 @@ export function createLifecycle({
       if (disposed || suspended) return;
       pausedAt = now();
       suspended = true;
+      for (const animation of animations) animation.pause?.();
       for (const task of tasks.values()) {
         (task.frame ? window.cancelAnimationFrame : window.clearTimeout).call(
           window,
@@ -124,6 +137,7 @@ export function createLifecycle({
       if (disposed || !suspended) return;
       pausedDuration += now() - pausedAt;
       suspended = false;
+      for (const animation of animations) animation.play?.();
       for (const task of tasks.values()) task.arm();
     },
     dispose() {
@@ -133,6 +147,8 @@ export function createLifecycle({
         item.object.removeEventListener(item.type, item.guarded, item.options);
       listeners = [];
       for (const id of tasks.keys()) cancel(id);
+      for (const animation of animations) animation.cancel?.();
+      animations.clear();
       for (const fn of cleanups) fn();
       cleanups = [];
     },

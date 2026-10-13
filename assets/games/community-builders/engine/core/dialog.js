@@ -1,3 +1,4 @@
+import { mapOrderControl } from "../map-layout.js";
 export default function createDialog(ctx) {
   function dialog(title, body, opener, onClose, opt) {
     opt = opt || {};
@@ -45,12 +46,12 @@ export default function createDialog(ctx) {
     );
     var cleaned = false,
       nativeClose = d.close.bind(d);
-    function cleanup() {
+    function cleanup(silent) {
       // synchronous and idempotent: never wait for the async close event
       if (cleaned) return;
       cleaned = true;
       if (
-        !opt.utility &&
+        !silent && !opt.utility &&
         ctx.inStop &&
         !ctx.restoring &&
         ctx.actionHistory.length < 1000
@@ -59,18 +60,27 @@ export default function createDialog(ctx) {
       if (d.open) nativeClose();
       d.remove();
       ctx.guard();
-      if (onClose) onClose();
-      if (opener && opener.isConnected && opener.focus) opener.focus();
+      if (!silent && onClose) onClose();
+      if (!silent && opener && opener.isConnected && opener.focus) opener.focus();
     }
-    d.close = cleanup;
+    d.close = function () { cleanup(false); };
+    d.dispose = function () { cleanup(true); };
     d.addEventListener("cancel", function (e) {
       e.preventDefault();
-      cleanup();
+      cleanup(false);
     }); // Esc
-    d.addEventListener("close", cleanup); // backup
+    d.addEventListener("close", function () { cleanup(false); }); // backup
     ctx.root.appendChild(d);
     if (d.showModal) d.showModal();
     else d.setAttribute("open", "");
+    if (d.animate && !ctx.restoring) {
+      var fullMotion = ctx.motionAllowed(),
+        animation = d.animate(fullMotion
+          ? [{ opacity: 0, transform: "scale(.96)" }, { opacity: 1, transform: "none" }]
+          : [{ opacity: 0 }, { opacity: 1 }],
+          { duration: fullMotion ? 160 : 120, easing: "cubic-bezier(0.16,1,0.3,1)" });
+      if (ctx.activeLifecycle && ctx.activeLifecycle.animation) ctx.activeLifecycle.animation(animation);
+    }
     hd.focus();
     return d;
   }
@@ -94,6 +104,14 @@ export default function createDialog(ctx) {
   function grownBody(wrap, changed) {
     ctx.clear(wrap);
     wrap.appendChild(ctx.h("p", { text: ctx.W.grownText }));
+    wrap.appendChild(mapOrderControl(ctx));
+    var offline = ctx.window.PecanGroveOffline;
+    if (offline && offline.availableInstall)
+      wrap.appendChild(
+        ctx.btn(ctx.W.installGame, "", function () {
+          offline.install();
+        }),
+      );
     var consentApi = ctx.window.PecanGroveFeedback;
     if (consentApi && consentApi.getConsent && consentApi.setConsent) {
       var consent = consentApi.getConsent();
@@ -125,29 +143,13 @@ export default function createDialog(ctx) {
       wrap.appendChild(
         ctx.h("fieldset", { class: "cb-consent" }, [
           ctx.h("legend", {
-            text:
-              ctx.L === "es"
-                ? "Compartir durante la prueba"
-                : "Playtest sharing",
+            text: ctx.W.consentHeading,
           }),
-          ctx.h("label", null, [
-            scoreInput,
-            ctx.L === "es"
-              ? "Compartir puntajes con el equipo de prueba"
-              : "Share scores with the playtest team",
-          ]),
+          ctx.h("label", null, [scoreInput, ctx.W.consentScores]),
           ctx.h("p", {
-            text:
-              ctx.L === "es"
-                ? "Envía el número de parada, puntaje, idioma y un código aleatorio. Nunca nombres. Puedes desactivarlo cuando quieras."
-                : "Sends the stop number, score, language and a random code. Never names. You can turn this off at any time.",
+            text: ctx.W.consentDetails,
           }),
-          ctx.h("label", null, [
-            autoInput,
-            ctx.L === "es"
-              ? "Enviar también los puntajes al terminar una parada"
-              : "Also send scores when a stop is finished",
-          ]),
+          ctx.h("label", null, [autoInput, ctx.W.consentAutoScores]),
         ]),
       );
     }

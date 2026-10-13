@@ -106,5 +106,35 @@
     "real": "Piensa en alguien a quien casi nunca le preguntan, en la escuela o en casa. Con un adulto, busca cómo preguntarle qué piensa.",
     "gu": "Para adultos: sobre esta parada",
     "guText": "Los niños notan quién falta en una reunión y eligen una forma de incluirlo: horarios en la tarde, intérpretes, transporte, una rampa, una grabación o un rincón para niños. En las audiencias reales, los intérpretes y los comentarios por escrito permiten que participe más gente."
+  },
+  "bank": {
+    "b0001": "Una reunión a las 7 de la noche",
+    "b0002": "Un intérprete y un volante en español",
+    "b0003": "Un rincón para niños y un buzón de preguntas",
+    "b0004": "Una grabación para ver después",
+    "b0005": "Transporte a la reunión",
+    "b0006": "Una rampa y un salón en la planta baja",
+    "b0007": "La Sra. Lee trabaja de noche en la clínica. A las 2 de la tarde está dormida.",
+    "b0008": "Busca una forma que funcione cuando ella está despierta.",
+    "b0009": "la familia de Lucía",
+    "b0010": "La mamá y el papá de Lucía hablan mejor el español. El volante y la reunión fueron solo en inglés.",
+    "b0011": "Busca una forma de compartir la reunión en español.",
+    "b0012": "Jayden está en clase a las 2 de la tarde. Y nadie les preguntó a los estudiantes qué piensan.",
+    "b0013": "Busca una hora después de clases, o una forma de que los estudiantes opinen.",
+    "b0014": "Es tiempo de cosecha. El Sr. Johnson trabaja en sus campos hasta tarde todas las noches.",
+    "b0015": "Busca una forma que sirva a cualquier hora en que esté libre.",
+    "b0016": "La abuela Ruth ya no maneja, y ningún autobús llega a la biblioteca.",
+    "b0017": "Busca una forma de que pueda llegar.",
+    "b0018": "Theo",
+    "b0019": "Theo usa silla de ruedas. El salón estaba en el piso de arriba, sin elevador.",
+    "b0020": "Busca una forma de entrar sin escaleras.",
+    "b0021": "El Sr. Patel no puede cerrar la panadería a mitad del día.",
+    "b0022": "Busca una forma que funcione cuando cierre la panadería.",
+    "b0023": "Ana tiene dos hijos pequeños y nadie que se los cuide.",
+    "b0024": "Busca una forma de que traiga a sus hijos, o de que participe cuando ellos ya duerman."
+  },
+  "capitalNames": {
+    "spanish": "La familia de Lucía",
+    "stairs": "Theo"
   }
 }

@@ -14,8 +14,14 @@ async function startStage(page,file='index.html',seed=42) {
 }
 async function start(page,file='index.html',seed=42) {
   await startStage(page,file,seed);
-  await page.locator('.cb-hero .cb-btn--go').first().click();
+  await newGame(page);
   await expect(page.locator('.cb-stop[data-stop-n="1"]:visible').first()).toBeVisible();
+}
+async function newGame(page) {
+  const words=await page.evaluate(()=>window.PecanGroveEngine.i18n.messages);
+  await page.locator('.cb-engine-title-actions').getByRole('button',{name:words.newGame,exact:true}).click();
+  await page.locator('dialog[open] .cb-engine-slot-pick').first().click();
+  await expect(page.locator('.cb-world__pan')).toBeVisible();
 }
 async function stop(page,n) { await page.locator(`.cb-stop[data-stop-n="${n}"]:visible`).first().click(); await expect(page.locator('.cb-board')).toBeVisible(); }
 async function primary(page) { return page.locator('.cb-main .cb-btn--go.cb-btn--big').last().click(); }
@@ -118,8 +124,7 @@ for(const {lang,file} of languages) for(let n=1;n<=15;n++) {
     // test-owned snapshot across reload and calling resume with it.
     await expect.poll(()=>page.evaluate(()=>window.PecanGroveEngine.store.current().resume?.stopId)).toBe(record.stopId);
     await startStage(page,file);
-    const words=require(`../../assets/games/community-builders/engine/locales/${lang}.json`);
-    await page.locator('.cb-engine-title-actions').getByRole('button',{name:words.continue,exact:true}).click();
+    await page.locator('.cb-engine-title-actions .cb-continue').click();
     await expect.poll(()=>page.evaluate(()=>window.CommunityBuilders.snapshot().stopId)).toBe(record.stopId);
     await expect.poll(async()=>stableRound(await page.evaluate(()=>window.CommunityBuilders.snapshot()))).toEqual(stableRound(record));
     await audit(page);expect(noNetwork.receiverRequests).toHaveLength(0);
@@ -133,6 +138,7 @@ for(const {lang,file} of languages) for(let n=1;n<=15;n++) {
 
 for(const {lang,file} of languages) test(`${lang}: Stop2 intro speaker matches first play speaker across twenty seeds`,async({page})=>{
   test.setTimeout(180000);
+  await page.addInitScript(()=>{for(const key of Object.keys(localStorage))if(key.startsWith('pecan-grove-journey'))localStorage.removeItem(key);});
   for(let seed=0;seed<20;seed++) {await start(page,file,seed);await stop(page,2);const first=(await page.locator('.cb-s02-first').innerText()).replace(/^[^:]+:\s*/,'');await page.locator('.cb-s02-intro .cb-btn--go').click();await expect(page.locator('.cb-s02-nb[data-i="0"] .cb-s02-nb__name'),`speaker for seed ${seed}`).toHaveText(first);}
 });
 
@@ -148,6 +154,7 @@ for(const {lang,file} of languages) {
   test(`${lang}: accessibility on intro, map and every Stops 1–2 screen`,async({page})=>{
     await page.goto(`/${file}?seed=42`); await expect(page.locator('#community-builders')).toHaveAttribute('data-engine-mounted','true'); await audit(page);
     await page.locator('#pt-quiet').check(); await page.locator('#pt-start').click(); await audit(page);
+    await newGame(page);await audit(page);
     await completeStop1(page,()=>audit(page)); await backToMap(page); await completeStop2(page,()=>audit(page));
     await page.locator('#pt-review-tab').click(); await audit(page);
   });
@@ -173,7 +180,7 @@ test('seed 42 repeats Stop2 speaker and tile order after a clean reload',async({
 test('language switch mid-stop retains the current step and selected tiles',async({page})=>{
   await start(page);await stop(page,2);await page.locator('.cb-s02-intro .cb-btn--go').click();await page.locator('.cb-s02-row[data-row="topic"] .cb-s02-tile').first().click();
   const selected=await page.locator('.cb-s02-tile[aria-pressed="true"]').getAttribute('data-id');
-  await page.locator('.cb-stophud .cb-language').click();if(await page.locator('dialog[open] .cb-btn--go').count())await page.locator('dialog[open] .cb-btn--go').click();await expect(page.locator('html')).toHaveAttribute('lang','es');await expect(page.locator('.cb-s02-play')).toBeVisible();await expect(page.locator('.cb-s02-tile[aria-pressed="true"]')).toHaveAttribute('data-id',selected);
+  await page.locator('.cb-stophud .cb-language[lang="es"]').click();await expect(page.locator('html')).toHaveAttribute('lang','es');await expect(page.locator('.cb-s02-play')).toBeVisible();await expect(page.locator('.cb-s02-tile[aria-pressed="true"]')).toHaveAttribute('data-id',selected);
   await page.locator('#pt-review-tab').click();await expect(page.locator('#pt-feedback-h')).toHaveText('Comentarios de la prueba');await expect(page.locator('#pt-feedback-save-draft')).toHaveText('Guardar borrador en este dispositivo');await expect(page.locator('#pt-feedback-category option[value="art"]')).toHaveText('Imágenes o diseño');
 });
 test('pause/resume preserves selected choices and native Tab access',async({page})=>{
@@ -204,3 +211,20 @@ test('family flavor has no feedback or endpoint',async({page,noNetwork})=>{
   test.skip(!process.env.PG_FAMILY_BASE_URL,'Set PG_FAMILY_BASE_URL to run the separately built family flavor. Structural family tests always run in Python.');
   await page.goto(process.env.PG_FAMILY_BASE_URL);await expect(page.locator('html')).toHaveAttribute('data-flavor','family');await expect(page.locator('#pt-feedback')).toHaveCount(0);await expect(page.locator('#pt-review-tab')).toHaveCount(0);expect(await page.content()).not.toContain('script.google.com');expect(noNetwork.receiverRequests).toHaveLength(0);
 });
+
+for(const {lang,file} of languages) for(const completed of [1,2,15]) {
+ test(`${lang}: map fit and labels stay clear after ${completed} completed stops`,async({page,noNetwork})=>{
+  test.setTimeout(90000);await start(page,file);await page.evaluate(count=>{const core=window.CommunityBuilders,state=core.getState(),player=state.store.players[state.store.current];core.getAPI().STOPS.slice(0,count).forEach(stop=>{player.stops[stop.id]={best:90,rounds:1};});core.updateSettings({calm:true});core.showMap();},completed);
+  for(const width of [360,414,600,768,900,1280,1600]) {
+   await page.setViewportSize({width,height:900});await page.evaluate(async()=>{await document.fonts.ready;await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));});
+   const result=await page.locator('.cb-world__pan').evaluate(pan=>{
+    const canvas=pan.querySelector('.cb-world__canvas'),bounds=pan.getBoundingClientRect(),buttons=[...canvas.querySelectorAll('.cb-stop')],discs=buttons.map(button=>button.querySelector('.cb-stop__disc').getBoundingClientRect());
+    const overlaps=(a,b)=>a.left<b.right-.5&&a.right>b.left+.5&&a.top<b.bottom-.5&&a.bottom>b.top+.5;
+    const labels=[];buttons.forEach((button,index)=>{for(const node of button.querySelectorAll('.cb-tag,.cb-stop__plate')){const style=getComputedStyle(node),box=node.getBoundingClientRect();if(node.hidden||style.visibility==='hidden'||Number(style.opacity)===0||!box.width||!box.height)continue;for(let j=0;j<discs.length;j++)if(j!==index&&overlaps(box,discs[j]))labels.push({stop:index+1,other:j+1,label:node.className});}});
+    return{count:discs.length,scroll:pan.scrollWidth>pan.clientWidth+1,outside:discs.map((box,index)=>({box,index})).filter(({box})=>box.width<43.9||box.height<43.9||box.left<bounds.left-.5||box.right>bounds.right+.5||box.top<bounds.top-.5||box.bottom>bounds.bottom+.5).map(({index})=>index+1),labels};
+   });
+   expect(result.count).toBe(15);expect(result.scroll,`${width}px horizontal map overflow`).toBe(false);expect(result.outside,`${width}px clipped or undersized discs`).toEqual([]);expect(result.labels,`${width}px labels cover a different disc`).toEqual([]);
+  }
+  noNetwork.assertClean();
+ });
+}

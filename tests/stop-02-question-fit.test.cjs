@@ -163,6 +163,7 @@ class Element {
   classes() { return (this.attrs.class || '').split(/\s+/).filter(Boolean); }
   appendChild(child) { this.children.push(child); if (child instanceof Element) child.parentNode = this; return child; }
   removeChild(child) { this.children.splice(this.children.indexOf(child), 1); if (child instanceof Element) child.parentNode = null; }
+  remove() { if (this.parentNode) this.parentNode.removeChild(this); this.isConnected = false; }
   replaceChild(next, prev) { const i = this.children.indexOf(prev); assert.ok(i >= 0); this.children[i] = next; next.parentNode = this; prev.parentNode = null; }
   setAttribute(key, value) { this.attrs[key] = value; }
   getAttribute(key) { return this.attrs[key] === undefined ? null : this.attrs[key]; }

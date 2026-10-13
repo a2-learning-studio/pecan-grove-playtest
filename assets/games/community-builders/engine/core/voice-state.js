@@ -4,7 +4,9 @@ export default function createVoiceState(ctx) {
     vIdx = null,
     vClips = {},
     vKeys = null,
-    vLoading = false;
+    vLoading = false,
+    voiceReady = null,
+    voiceFailed = false;
   var vAudio = null,
     vEl = null,
     vQueue = [],
@@ -96,26 +98,40 @@ export default function createVoiceState(ctx) {
   function vTok(w) {
     return (w || "").toLowerCase().replace(/[^0-9a-záéíóúüñ']/g, "");
   }
-  function vLoad() {
-    if (vIdx || vLoading) return;
+  function vLoad(retry) {
+    if (retry && voiceFailed) {
+      vIdx = null;
+      vLoading = false;
+      voiceReady = null;
+    }
+    if (vIdx) return Promise.resolve(!voiceFailed);
+    if (vLoading) return voiceReady;
     vLoading = true;
-    var s = ctx.h("script", {
-      src: ctx.resolveAsset(ctx.BASE + "voice/index.js"),
+    voiceReady = new Promise(function (resolve) {
+      var s = ctx.h("script", {
+        src: ctx.resolveAsset(ctx.BASE + "voice/index.js"),
+      });
+      s.onload = function () {
+        voiceFailed = false;
+        var V = ctx.window.CB_VOICE || {};
+        vIdx = V[ctx.L] || {};
+        vClips = V.clips || {};
+        ctx.vScan(
+          [ctx.main].concat(
+            [].slice.call(ctx.root.querySelectorAll("dialog[open]")),
+          ),
+        );
+        resolve(true);
+      };
+      s.onerror = function () {
+        voiceFailed = true;
+        vIdx = {};
+        vLoading = false;
+        resolve(false);
+      };
+      ctx.document.head.appendChild(s);
     });
-    s.onload = function () {
-      var V = ctx.window.CB_VOICE || {};
-      vIdx = V[ctx.L] || {};
-      vClips = V.clips || {};
-      ctx.vScan(
-        [ctx.main].concat(
-          [].slice.call(ctx.root.querySelectorAll("dialog[open]")),
-        ),
-      );
-    };
-    s.onerror = function () {
-      vIdx = {};
-    };
-    ctx.document.head.appendChild(s);
+    return voiceReady;
   }
   function vMark(el, on) {
     if (el) el.classList.toggle("is-speaking", on);
@@ -185,6 +201,8 @@ export default function createVoiceState(ctx) {
     vClips: [() => vClips, (value) => (vClips = value)],
     vKeys: [() => vKeys, (value) => (vKeys = value)],
     vLoading: [() => vLoading, (value) => (vLoading = value)],
+    voiceReady: [() => voiceReady, (value) => (voiceReady = value)],
+    voiceFailed: [() => voiceFailed, (value) => (voiceFailed = value)],
     vAudio: [() => vAudio, (value) => (vAudio = value)],
     vEl: [() => vEl, (value) => (vEl = value)],
     vQueue: [() => vQueue, (value) => (vQueue = value)],

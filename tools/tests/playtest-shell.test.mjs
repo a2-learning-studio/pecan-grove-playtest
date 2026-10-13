@@ -89,6 +89,7 @@ function harness({ lang = 'en', fullscreen = 'success', liveFeedback = false, vi
   field('feedback-dock-collapse').setAttribute('data-expand-label', lang === 'es' ? 'Expandir comentarios' : 'Expand feedback');
   panel.dataset = { lang, build: 'shell-test', endpoint: '' }; game.dataset.currentStop = '0';
   const win = new Element(doc), calls = [], timers = new Map(), saved = new Map(); let timerId = 0;
+  win.PGShellLocale = Object.fromEntries(['en','es'].map(language => [language, JSON.parse(fs.readFileSync(path.join(root, 'assets/playtest/locales', language + '.json'), 'utf8'))]));
   win.innerWidth = 1024; win.innerHeight = 768; doc.defaultView = win;
   if (visualViewport) Object.assign(win.visualViewport = new Element(doc), visualViewport);
   const observers = [];
@@ -120,6 +121,32 @@ test('Start opens expanded play and requests fullscreen on the common stage; qui
   assert.equal(h.calls.findIndex(c => c[0] === 'requestFullscreen') < h.calls.findIndex(c => c[0] === 'enter'), true);
   assert.equal(h.calls.find(c => c[0] === 'enter')[1].quiet, true); assert.equal(h.doc.activeElement, h.game);
   assert.equal(h.stage.contains(h.field('review-tab')), true); assert.equal(h.stage.contains(h.field('review-dialog')), true);
+});
+
+test('Start requests fullscreen immediately but waits for game styles, and Exit cancels a pending entry', async () => {
+  const h = harness(); let resolve;
+  h.win.PGStyles = {required:true,load:()=>new Promise(done=>{resolve=done;})};
+  const starting = h.app.start();
+  assert.equal(h.calls.some(call=>call[0]==='requestFullscreen'),true);
+  assert.equal(h.calls.some(call=>call[0]==='enter'),false);
+  assert.equal(h.game.getAttribute('aria-busy'),'true');
+  assert.equal(h.field('start').disabled,true);
+  h.app.exit();resolve();await starting;
+  assert.equal(h.calls.some(call=>call[0]==='enter'),false);
+  assert.equal(h.field('intro').hidden,false);assert.equal(h.game.getAttribute('inert'),null);
+  h.win.PGStyles = {required:true,load:()=>Promise.resolve()};
+  await h.app.start();assert.equal(h.calls.some(call=>call[0]==='enter'),true);
+});
+
+test('a stylesheet failure returns to an accessible introduction with a localized retry message', async () => {
+  const h = harness({lang:'es'});
+  h.win.PGStyles = {required:true,load:()=>Promise.reject(new Error('offline'))};
+  await h.app.start();
+  assert.equal(h.field('intro').hidden,false);assert.equal(h.stage.classList.contains('is-playing'),false);
+  assert.equal(h.field('start').disabled,false);assert.equal(h.doc.activeElement,h.field('start'));
+  const message=h.field('intro').children.find(node=>node.id==='pt-style-error');
+  assert.match(message.textContent,/conexión/);assert.equal(message.getAttribute('role'),'alert');
+  assert.equal(h.calls.some(call=>call[0]==='enter'),false);
 });
 
 test('Denied, throwing or unavailable fullscreen leaves a usable expanded play view', async () => {

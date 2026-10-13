@@ -1,5 +1,7 @@
+import { transitionScene } from "../transitions.js";
 export default function createRuntime(ctx) {
   function startStop(id) {
+    var fromMap = ctx.mode === "map" && !ctx.restoring;
     if (ctx.activeLifecycle) {
       ctx.activeLifecycle.dispose();
       ctx.activeLifecycle = null;
@@ -14,56 +16,65 @@ export default function createRuntime(ctx) {
     ctx.feedbackStop = id;
     ctx.feedbackScore = null;
     if (REG[id]) {
-      runModule(id);
-      return Promise.resolve();
+      return fromMap ? transitionScene(ctx, function () { runModule(id); }, "stop") : (runModule(id), Promise.resolve());
     }
     var descriptor = ctx.moduleManifest[id];
     if (!descriptor) return Promise.resolve(false);
     ctx.mode = "stop";
     ctx.inStop = true;
-    ctx.screen([
-      ctx.h(
-        "div",
-        { class: "cb-board cb-loading", role: "status", "aria-live": "polite" },
-        [
-          ctx.h("h2", {
-            text:
-              ctx.L === "es"
-                ? "Preparando tu parada…"
-                : "Getting your stop ready…",
-          }),
-        ],
-      ),
-    ]);
-    return ctx.loadStop(descriptor).then(
-      function () {
-        if (ctx.feedbackStop === id && ctx.mode === "stop") runModule(id);
-        return true;
-      },
-      function () {
-        if (ctx.feedbackStop === id)
-          ctx.screen([
-            ctx.h("div", { class: "cb-board" }, [
-              ctx.h("p", {
-                role: "status",
-                text:
-                  ctx.L === "es"
-                    ? "No se pudo cargar esta parada. Revisa la conexión e inténtalo de nuevo."
-                    : "This stop could not load. Check the connection and try again.",
-              }),
-              ctx.btn(
-                ctx.L === "es" ? "Intentar de nuevo" : "Try again",
-                "cb-btn--go",
-                function () {
-                  startStop(id);
-                },
-              ),
-              ctx.btn(ctx.W.back, "", ctx.showMap),
-            ]),
-          ]);
+    var loading = ctx.loadingTask(function () {
+      startStop(id);
+    });
+    return Promise.resolve(ctx.manifestReady)
+      .then(function () {
+        loading.set("manifest", 1);
+        var descriptor = ctx.moduleManifest[id];
+        var bank = ctx.window.CBLocale.load ? ctx.window.CBLocale.load("stop-" + String(descriptor.n).padStart(2, "0")) : Promise.resolve();
+        return bank.then(function () { return ctx.loadStop(descriptor, function (value) {
+          loading.set("module", value);
+        }); });
+      })
+      .then(
+        function () {
+          var render = function () { if (ctx.feedbackStop === id && ctx.mode === "stop") runModule(id); };
+          return (fromMap ? transitionScene(ctx, render, "stop") : (render(), Promise.resolve())).then(function () { return Promise.all([
+            loading.art(ctx.main),
+            Promise.resolve(ctx.vOn ? ctx.vLoad(true) : true).then(
+              function (ready) {
+                if (ready === false) throw new Error("voice_unavailable");
+                loading.set("voice", 1);
+              },
+            ),
+          ]); }).then(function () {
+            loading.finish();
+            return true;
+          });
+        },
+        function () {
+          loading.finish();
+          if (ctx.feedbackStop === id)
+            ctx.screen([
+              ctx.h("div", { class: "cb-board" }, [
+                ctx.h("p", {
+                  role: "status",
+                  text: ctx.window.CBLocale.t("core", ctx.L, "bank.b0042"),
+                }),
+                ctx.btn(
+                  ctx.window.CBLocale.t("core", ctx.L, "bank.b0043"),
+                  "cb-btn--go",
+                  function () {
+                    startStop(id);
+                  },
+                ),
+                ctx.btn(ctx.W.back, "", ctx.showMap),
+              ]),
+            ]);
+          return false;
+        },
+      ).catch(function () {
+        loading.fail();
         return false;
-      },
-    );
+      });
   }
   var REG = {};
   function createLifecycle(definitionOnly) {
@@ -75,6 +86,7 @@ export default function createRuntime(ctx) {
       isRestoring: function () {
         return ctx.restoring;
       },
+      isReplaying: function () { return !!ctx.replayingActions; },
       replayClock: function () {
         return ctx.replayClock;
       },

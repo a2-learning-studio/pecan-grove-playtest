@@ -107,7 +107,7 @@ export default function createScorecard(ctx) {
     );
     var medal = ctx.h("div", { class: "cb-medal", "aria-hidden": "true" }, [
       stars,
-      ctx.h("div", { class: "cb-medal__disc" }, [
+      ctx.h("div", { class: "cb-medal__disc", hidden: !ctx.CFG.numericScore }, [
         ctx.h("span", { class: "cb-medal__k", text: ctx.W.score }),
         ctx.h("b", {
           class: "cb-count",
@@ -132,24 +132,21 @@ export default function createScorecard(ctx) {
       ctx.h("p", {
         class: "cb-vh cb-card__score",
         text:
-          ctx.W.score +
-          " " +
-          score +
-          " / 100. " +
+          (ctx.CFG.numericScore ? ctx.W.score + " " + score + " / 100. " : "") +
           (st ? ctx.W.stars(st) : ctx.W.goodStart),
       }),
+      ctx.h("p", { class: "cb-card__can" }, [
+        ctx.h("span", { class: "cb-feedback-badge", "aria-hidden": "true" }, [ctx.ico("check")]),
+        ctx.h("span", { text: can }),
+      ]),
       medal,
       ctx.h("div", { class: "cb-card__body" }, [
-        ctx.h("p", { class: "cb-card__can" }, [
-          ctx.ico("check"),
-          ctx.h("span", { text: can }),
-        ]),
         ctx.h("p", { class: "cb-card__meta" }, [
           ctx.h("span", {
             class: "cb-card__stars",
             text: st ? ctx.W.stars(st) : ctx.W.goodStart,
           }),
-          ctx.h("span", { class: "cb-card__best" }, [
+          ctx.h("span", { class: "cb-card__best", hidden: !ctx.CFG.numericScore }, [
             ctx.W.yourBest + " ",
             ctx.h("b", { text: String(info.best) }),
             " / 100",
@@ -190,12 +187,22 @@ export default function createScorecard(ctx) {
       num.textContent = String(v);
       if (disc) disc.style.setProperty("--p", v);
       stars.forEach(function (s) {
-        if (v >= +s.getAttribute("data-at")) s.classList.add("is-on");
+        if (v >= +s.getAttribute("data-at") && !s.classList.contains("is-on")) {
+          s.classList.add("is-on");
+          var fx = ctx.window.PecanGroveEngine && ctx.window.PecanGroveEngine.fx;
+          if (fx && ctx.motionAllowed()) {
+            fx.stamp(s);
+            var rect = s.getBoundingClientRect();
+            fx.burst(rect.left + rect.width / 2, rect.top + rect.height / 2, { kind: "sparkle" });
+          }
+        }
       });
     }
     function end() {
       paint(to);
       if (rib) rib.classList.add("is-on");
+      var tip = card.querySelector(".cb-tipcard"), fx = ctx.window.PecanGroveEngine && ctx.window.PecanGroveEngine.fx;
+      if (fx && tip) fx.animate(tip, [{ opacity: 0, transform: "translateY(8px)" }, { opacity: 1, transform: "none" }], 200);
     }
     if (!ctx.motionAllowed() || !ctx.window.requestAnimationFrame) return end();
     var clock = ctx.activeLifecycle || ctx.window;

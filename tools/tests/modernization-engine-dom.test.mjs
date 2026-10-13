@@ -7,7 +7,7 @@ import { Gestures } from "../../assets/games/community-builders/engine/gestures.
 import { FX } from "../../assets/games/community-builders/engine/fx.js";
 import { configureMotion } from "../../assets/games/community-builders/engine/motion.js";
 import { controllerGlyph } from "../../assets/games/community-builders/engine/hints.js";
-import { trustedScriptURL } from "../../assets/games/community-builders/engine/assets.js";
+import { trustedScriptURL, trustedWorkerURL } from "../../assets/games/community-builders/engine/assets.js";
 import createLegacyInput from "../../assets/games/community-builders/engine/core/legacy-input.js";
 import {
   clear,
@@ -41,6 +41,9 @@ test("script URL policy admits only authored local game modules and caches the s
   assert.deepEqual(trustedScriptURL(window, stop), { trusted: stop });
   const voice = "/play/assets/games/community-builders/voice/index.abc12.js";
   assert.deepEqual(trustedScriptURL(window, voice), { trusted: voice });
+  assert.deepEqual(trustedWorkerURL(window, '/play/sw.js'), {trusted:'/play/sw.js'});
+  assert.throws(() => trustedScriptURL(window, '/play/sw.js'), TypeError);
+  for (const candidate of [voice, '/sw.js', '/play/sw.js?different=1', 'https://external.test/play/sw.js']) assert.throws(()=>trustedWorkerURL(window,candidate),TypeError);
   assert.equal(creations, 1);
   for (const url of [
     "https://untrusted.org/assets/games/community-builders/stops/03.js",
@@ -571,8 +574,10 @@ test("HUD progress and device hints update without duplicating controls", async 
     h.engine.input.setDevice("keyboard");
     assert.equal(h.root.querySelector(".cb-hints kbd").textContent, "Enter");
     h.engine.input.setDevice("touch");
+    h.root.dispatchEvent(new h.dom.window.Event("click"));
+    assert.equal(h.root.querySelector(".cb-hints").classList.contains("is-hidden"), false, "background taps do not count as successful choices");
     for (let n = 0; n < 3; n++)
-      h.root.dispatchEvent(new h.dom.window.Event("click"));
+      h.root.querySelector("#choice-a").click();
     assert.equal(
       h.root.querySelector(".cb-hints").classList.contains("is-hidden"),
       true,
@@ -696,23 +701,27 @@ test("FX uses bounded particles, stops idle frames, freezes on pause and obeys C
     fx.burst(10, 10, { kind: "pecans" });
     assert.equal(fx.pool.length, 24);
     fx.burst(10, 10, { kind: "leaves" });
-    assert.equal(fx.pool.length, 48);
+    assert.equal(fx.pool.length, 24);
     fx.pause(true);
     assert.equal(frames.size, 0);
     fx.pause(false);
     assert.equal(frames.size, 1);
     let stamps = 0;
-    const target = { animate: () => stamps++ };
+    let paused = 0, played = 0, cancelled = 0;
+    const target = { animate: () => { stamps++; return { pause: () => paused++, play: () => played++, cancel: () => cancelled++ }; } };
     fx.stamp(target);
     fx.pulse(target);
     fx.nudge(target);
     assert.equal(stamps, 3);
+    fx.pause(true); assert.equal(paused, 3);
+    fx.pause(false); assert.equal(played, 3);
     for (let i = 0; i < 70 && frames.size; i++) {
       const [id, callback] = frames.entries().next().value;
       frames.delete(id);
       callback(i * 16);
     }
     assert.equal(fx.canvas, null);
+    assert.equal(cancelled, 3);
     assert.equal(frames.size, 0);
     fx.burst(10, 10);
     configureMotion(

@@ -1,5 +1,5 @@
 import { h, button } from "./dom.js";
-import { keyName, DEFAULT_BINDINGS } from "./bindings.js";
+import { DEFAULT_BINDINGS } from "./bindings.js";
 
 export function bindingTable(editor) {
   const table = h("table", { class: "cb-engine-bindings" }, [
@@ -28,8 +28,14 @@ export function bindingTable(editor) {
     body.append(
       h("tr", {}, [
         h("th", { scope: "row", text: editor.label(action) }),
-        h("td", {}, h("kbd", { text: keyName(codes[0]) })),
-        h("td", {}, h("kbd", { text: codes[1] ? keyName(codes[1]) : "—" })),
+        h("td", {}, h("kbd", { text: editor.input.bindings.label(codes[0]) })),
+        h(
+          "td",
+          {},
+          h("kbd", {
+            text: codes[1] ? editor.input.bindings.label(codes[1]) : "—",
+          }),
+        ),
         h("td", {}, change),
       ]),
     );

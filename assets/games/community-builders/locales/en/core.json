@@ -140,7 +140,18 @@
         "Part ",
         " of 3"
       ]
-    }
+    },
+    "mapLegend": "Map key",
+    "mapList": "List",
+    "mapMap": "Map",
+    "mapKeepGoing": "Keep going",
+    "mapPlayInOrder": "Play stops in order",
+    "mapOrderHelp": "Finish a stop to open the next one.",
+    "installGame": "Install the game",
+    "consentHeading": "Playtest sharing",
+    "consentScores": "Share scores with the playtest team",
+    "consentDetails": "Sends the stop number, score, language and a random code. Never names. You can turn this off at any time.",
+    "consentAutoScores": "Also send scores when a stop is finished"
   },
   "X": {
     "parts3": [
@@ -251,5 +262,61 @@
     "libraryGroupsNote": "Animal profiles and team scores belong to this player session. Use New player for a different person's private feedback.",
     "librarySettings": "Sound and caption settings",
     "libraryReady": "Keep playing quietly"
+  },
+  "bank": {
+    "b0001": "Notice the Signs",
+    "b0002": "Ask a Good Question",
+    "b0003": "Listen to Every Neighbor",
+    "b0004": "Fact or Rumor?",
+    "b0005": "Map What Could Change",
+    "b0006": "Who Decides?",
+    "b0007": "Speak Up Kindly",
+    "b0008": "Disagree Kindly",
+    "b0009": "Include Every Voice",
+    "b0010": "Match a Fix",
+    "b0011": "Weigh the Trade-offs",
+    "b0012": "Make a Fair Deal",
+    "b0013": "Spread the Word Right",
+    "b0014": "Keep Watch",
+    "b0015": "Build the Future Together",
+    "b0016": "Ms. Lee",
+    "b0017": "Clinic Nurse",
+    "b0018": "Nurse",
+    "b0019": "Mr. Johnson",
+    "b0020": "Third-Generation Farmer",
+    "b0021": "Farmer",
+    "b0022": "Ana",
+    "b0023": "Master Electrician",
+    "b0024": "Electrician",
+    "b0025": "Grandma Ruth",
+    "b0026": "Town Historian & Elder",
+    "b0027": "Keeps the town's stories",
+    "b0028": "Mr. Patel",
+    "b0029": "Main Street Merchant",
+    "b0030": "Bakery owner",
+    "b0031": "Jayden",
+    "b0032": "High School Tech Lead",
+    "b0033": "Student",
+    "b0034": "Fox",
+    "b0035": "Owl",
+    "b0036": "Turtle",
+    "b0037": "Rabbit",
+    "b0038": "Deer",
+    "b0039": "Heron",
+    "b0040": "Bee",
+    "b0041": "Otter",
+    "b0042": "This stop could not load. Check the connection and try again.",
+    "b0043": "Try again"
+  },
+  "loading": {
+    "title": "Getting your game ready",
+    "progress": "Game loading",
+    "fail": "Something didn't load. Try again.",
+    "retry": "Try again",
+    "tips": [
+      "Tip: open Pause to take a break.",
+      "Tip: you can hear a line again.",
+      "Tip: every town voice counts."
+    ]
   }
 }

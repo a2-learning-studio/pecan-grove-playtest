@@ -27,12 +27,15 @@ export default function createTitle(ctx) {
         return li;
       }),
     );
+    var crest = ctx.h("span", { class: "cb-hero__crest", "aria-hidden": "true" });
+    ctx.setAuthoredMarkup(crest, ctx.CREST);
     ctx.screen([
       ctx.h("section", { class: "cb-hero", "aria-labelledby": "cb-hero-h" }, [
         ctx.img("town-map", "", "cb-hero__art", true),
         ctx.h("span", { class: "cb-hero__scrim", "aria-hidden": "true" }),
         ctx.h("div", { class: "cb-hero__copy" }, [
-          ctx.h("h2", { class: "cb-vh", id: "cb-hero-h", text: ctx.W.series }),
+          crest,
+          ctx.h("h2", { class: "cb-hero__lockup", id: "cb-hero-h", text: ctx.W.series }),
           ctx.h("p", { class: "cb-hero__lead", text: ctx.W.intro1 }),
           ctx.h("p", { class: "cb-hero__note" }, [
             ctx.ico("star", "cb-ico--fill"),
@@ -51,6 +54,7 @@ export default function createTitle(ctx) {
             gu,
           ]),
           chapters,
+          ctx.h("small", { class: "cb-hero__build", "data-cb-novoice": "", text: ctx.root.getAttribute("data-build") || "playtest" }),
         ]),
       ]),
     ]);

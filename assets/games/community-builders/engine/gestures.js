@@ -1,9 +1,38 @@
 import { h, button } from "./dom.js";
 import { starsFor } from "./store.js";
+import { motion } from "./motion.js";
 export const clampZoom = (value) => Math.max(1, Math.min(2.5, value));
+export function zoomToPair(bounds, current, previous = current) {
+  const points = [current, previous].map((rect) => ({
+    x: (rect.left + rect.right) / 2,
+    y: (rect.top + rect.bottom) / 2,
+  }));
+  const pad = 36;
+  const zoom = clampZoom(
+    Math.min(
+      1.8,
+      (bounds.width - pad * 2) /
+        Math.max(pad * 2, Math.abs(points[0].x - points[1].x) + pad),
+      (bounds.height - pad * 2) /
+        Math.max(pad * 2, Math.abs(points[0].y - points[1].y) + pad),
+    ),
+  );
+  return {
+    zoom,
+    pan: {
+      x:
+        (bounds.left + bounds.width / 2 - (points[0].x + points[1].x) / 2) *
+        zoom,
+      y:
+        (bounds.top + bounds.height / 2 - (points[0].y + points[1].y) / 2) *
+        zoom,
+    },
+  };
+}
 export class Gestures {
   constructor({ root, i18n, focus, core, settings }) {
     Object.assign(this, { root, i18n, focus, core, settings });
+    this.win = root.ownerDocument.defaultView;
     this.points = new Map();
     this.zoom = 1;
     this.pan = { x: 0, y: 0 };
@@ -19,6 +48,7 @@ export class Gestures {
     root.addEventListener("click", (e) => this.click(e), true);
   }
   refresh() {
+    this.stopCoast();
     this.map = this.root.querySelector(".cb-world__pan");
     this.canvas = this.map?.querySelector(".cb-world__canvas");
     this.zoom = 1;
@@ -31,14 +61,72 @@ export class Gestures {
         class: "cb-btn cb-engine-zoom",
         "aria-pressed": "false",
       });
-      this.map.parentNode.append(b);
+      (
+        this.map.parentNode.querySelector(".cb-map-controls") ||
+        this.map.parentNode
+      ).append(b);
     }
     this.paint();
   }
   toggle() {
-    this.zoom = this.zoom > 1 ? 1 : 1.8;
+    this.stopCoast();
+    const zooming = this.zoom === 1;
+    this.zoom = zooming ? 1.8 : 1;
     this.pan = { x: 0, y: 0 };
+    if (zooming && this.map) {
+      const tokens = [...this.map.querySelectorAll(".cb-stop")];
+      const active = this.root.ownerDocument.activeElement;
+      const selected = tokens.includes(active)
+        ? active
+        : tokens.find((node) =>
+            ["started", "next"].includes(node.dataset.state),
+          );
+      if (selected)
+        Object.assign(
+          this,
+          zoomToPair(
+            this.map.getBoundingClientRect(),
+            selected.getBoundingClientRect(),
+            (
+              tokens[tokens.indexOf(selected) - 1] || selected
+            ).getBoundingClientRect(),
+          ),
+        );
+    }
     this.paint();
+  }
+  stopCoast() {
+    if (this.coastFrame) this.win.cancelAnimationFrame(this.coastFrame);
+    this.coastFrame = 0;
+    this.velocity = null;
+  }
+  coast() {
+    if (!motion.allowed() || !this.velocity || this.zoom <= 1) return;
+    let last = this.win.performance.now(),
+      elapsed = 0;
+    const frame = (now) => {
+      this.coastFrame = 0;
+      if (!motion.allowed() || !this.canvas?.isConnected || !this.velocity)
+        return this.stopCoast();
+      const dt = Math.min(32, now - last);
+      last = now;
+      elapsed += dt;
+      const old = { ...this.pan };
+      this.pan.x += this.velocity.x * dt;
+      this.pan.y += this.velocity.y * dt;
+      this.paint();
+      const decay = Math.pow(0.9, dt / 16);
+      this.velocity.x *= decay;
+      this.velocity.y *= decay;
+      if (
+        elapsed < 500 &&
+        Math.hypot(this.velocity.x, this.velocity.y) > 0.02 &&
+        (old.x !== this.pan.x || old.y !== this.pan.y)
+      )
+        this.coastFrame = this.win.requestAnimationFrame(frame);
+      else this.stopCoast();
+    };
+    this.coastFrame = this.win.requestAnimationFrame(frame);
   }
   paint() {
     if (!this.canvas) return;
@@ -62,9 +150,11 @@ export class Gestures {
       b.textContent = this.i18n.t(this.zoom > 1 ? "fit" : "zoom");
       b.setAttribute("aria-pressed", String(this.zoom > 1));
     }
+    this.canvas.dispatchEvent(new this.win.Event("cb:map-transform"));
   }
   down(e) {
     if (e.pointerType !== "touch") return;
+    this.stopCoast();
     this.swipe = {
       x: e.clientX,
       y: e.clientY,
@@ -73,7 +163,16 @@ export class Gestures {
     };
     if (!this.map?.contains(e.target)) return;
     this.points.set(e.pointerId, { x: e.clientX, y: e.clientY });
-    this.drag = { x: e.clientX, y: e.clientY, pan: { ...this.pan } };
+    this.drag = {
+      x: e.clientX,
+      y: e.clientY,
+      pan: { ...this.pan },
+      last: {
+        x: e.clientX,
+        y: e.clientY,
+        at: e.timeStamp || this.win.performance.now(),
+      },
+    };
     if (this.points.size === 2) {
       const [a, b] = [...this.points.values()];
       this.pinch = {
@@ -107,6 +206,13 @@ export class Gestures {
       this.suppressClick = true;
       this.paint();
     } else if (this.zoom > 1 && this.drag) {
+      const now = e.timeStamp || this.win.performance.now(),
+        dt = Math.max(1, now - this.drag.last.at);
+      this.velocity = {
+        x: (e.clientX - this.drag.last.x) / dt,
+        y: (e.clientY - this.drag.last.y) / dt,
+      };
+      this.drag.last = { x: e.clientX, y: e.clientY, at: now };
       this.pan = {
         x: this.drag.pan.x + e.clientX - this.drag.x,
         y: this.drag.pan.y + e.clientY - this.drag.y,
@@ -120,6 +226,7 @@ export class Gestures {
     this.longTimer = 0;
     this.points.delete(e.pointerId);
     if (!this.points.size) {
+      if (!this.pinch) this.coast();
       this.drag = null;
       this.pinch = null;
     }
@@ -133,7 +240,7 @@ export class Gestures {
         this.settings.next(dx < 0 ? 1 : -1);
         this.suppressClick = true;
       } else {
-        const dialog = target.closest("dialog[data-cb-pages]");
+        const dialog = target.closest("[data-cb-pages]");
         dialog?.dispatchEvent(
           new CustomEvent("cb:page", { detail: { delta: dx < 0 ? 1 : -1 } }),
         );
@@ -161,6 +268,7 @@ export class Gestures {
     this.swipe = null;
   }
   cancel(e) {
+    this.stopCoast();
     clearTimeout(this.longTimer);
     this.longTimer = 0;
     this.points.delete(e.pointerId);
@@ -200,7 +308,7 @@ export class Gestures {
         h("p", { text: api.W.chapters[stop.chap - 1] }),
         h("p", {
           text: this.i18n.t("starsCount", {
-            count: starsFor(api.rec(stop.id)?.best || 0),
+            count: starsFor(api.rec?.(stop.id)?.best || 0),
           }),
         }),
         button(this.i18n.t("previewPlay"), () => {

@@ -1,7 +1,42 @@
 import { h, icon } from "./dom.js";
-import { keyName } from "./bindings.js";
 import { padLayout } from "./gamepad.js";
-export function controllerGlyph(action, layout = "xbox") {
+export function screenHints(root, i18n) {
+  if (!["map", "stop"].includes(root.dataset.screen)) return [];
+  if (root.dataset.screen === "map")
+    return [
+      { action: "nav.right", label: i18n.t("hintMove") },
+      { action: "confirm", label: i18n.t("hintChoose") },
+      { action: "map.zoom", label: i18n.t("zoom") },
+      { action: "pause", label: i18n.t("hintPause") },
+    ];
+  const groups = [...root.querySelectorAll(".cb-main [data-cb-choices]")];
+  const active =
+    root.ownerDocument.activeElement?.closest?.("[data-cb-choices]");
+  const group = groups.includes(active)
+    ? active
+    : groups.find((node) => !node.closest("[hidden], [inert]"));
+  const count = Math.min(
+    9,
+    group?.querySelectorAll("[data-cb-choice]:not(:disabled)").length || 0,
+  );
+  const items = [{ action: "nav.right", label: i18n.t("hintMove") }];
+  if (count)
+    items.push({
+      action: "choice",
+      label: i18n.t("hintPickCount", { count }),
+      keys: "1–" + count,
+    });
+  items.push(
+    { action: "confirm", label: i18n.t("hintChoose") },
+    { action: "pause", label: i18n.t("hintPause") },
+  );
+  return items;
+}
+export function controllerGlyph(
+  action,
+  layout = "xbox",
+  document = globalThis.document,
+) {
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
   svg.setAttribute("viewBox", "0 0 24 24");
   svg.setAttribute("aria-hidden", "true");
@@ -68,8 +103,20 @@ export class Hints {
     });
     root.append(this.node);
     document.addEventListener("cb:input-device", () => this.render());
-    root.addEventListener("click", () => {
-      if (input.device === "touch") {
+    root.addEventListener("focusin", () => {
+      if (!this.declared()) this.refresh();
+    });
+    root.addEventListener("click", (event) => {
+      const target = event.target.closest?.("button, a[href]");
+      if (
+        input.device === "touch" &&
+        !event.defaultPrevented &&
+        target &&
+        !target.disabled &&
+        target.getAttribute("aria-disabled") !== "true" &&
+        target.closest(".cb-main") &&
+        !target.closest("dialog")
+      ) {
         this.taps++;
         this.render();
       }
@@ -78,6 +125,18 @@ export class Hints {
   }
   set(items) {
     this.items = items || [];
+    this.declaredScope = this.root.querySelector(".cb-main")?.firstElementChild;
+    this.render();
+  }
+  declared() {
+    return (
+      this.declaredScope &&
+      this.declaredScope ===
+        this.root.querySelector(".cb-main")?.firstElementChild
+    );
+  }
+  refresh() {
+    if (!this.declared()) this.items = screenHints(this.root, this.i18n);
     this.render();
   }
   render() {
@@ -105,8 +164,8 @@ export class Hints {
           h("kbd", {
             text:
               hint.action === "choice"
-                ? "1–9"
-                : keyName(
+                ? hint.keys || "1–9"
+                : this.input.bindings.label(
                     this.input.bindings.value[hint.action]?.[0] || "Enter",
                   ),
           }),
