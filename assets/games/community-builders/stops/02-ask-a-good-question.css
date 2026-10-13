@@ -203,5 +203,24 @@
 .cb-s02-tips { grid-area: auto; }                                  /* the answer card's notes sit in a named area; here they just stack */
 .cb-s02-tips li { background: var(--cb-warn-soft); }
 .cb-s02-tips .cb-ico { color: var(--cb-warn-ink); }
+.cb-s02-nb[data-s="up-next"] .cb-s02-nb__face { width: 76px; height: 76px; outline: 3px solid var(--cb-gold); outline-offset: 3px; }
+.cb-s02-nb[data-s="up-next"] .cb-s02-nb__name { font-weight: 750; background: var(--cb-pine-soft); color: var(--cb-ink); }
+.cb-s02-first { margin: 0; padding: 8px 12px; border-radius: 999px; width: fit-content; background: var(--cb-pine-soft); color: var(--cb-ink); font-weight: 700; }
+@container cb (max-width: 600px) {
+  .cb-s02-strip, .cb-s02-play .cb-s02-say, .cb-s02-side { position: static !important; }
+  .cb-s02-row, .cb-s02-tile, .cb-s02-tray__foot .cb-btn, .cb-s02-talk { scroll-margin-top: 16px; }
+}
+@media (max-height: 700px) { .cb-s02-strip { position: static !important; } }
+@media (max-height: 640px) { .cb-s02-play .cb-s02-say, .cb-s02-side { position: static !important; } }
+@media (forced-colors: active) { .cb-s02-tile[aria-pressed="true"] { border: 3px solid Highlight; outline: 2px solid Highlight; } }
 .cb-s02-strip.is-done { gap: 10px; flex-wrap: wrap; }
 @container cb (max-width: 599.98px) { .cb-s02-strip.is-done { width: 100%; } .cb-s02-strip.is-done > .cb-btn { flex: 1 1 100%; } }
+
+/* The compact action is a duplicate shortcut; its measured collision check protects the painted art. */
+.cb[data-s02-layout] { scroll-padding-bottom: calc(var(--s02-strip-h, 0px) + 16px); }
+.cb-s02-ask-float { position: fixed; right: 12px; bottom: max(12px, env(safe-area-inset-bottom)); z-index: 8; width: 56px; height: 56px; min-width: 56px; min-height: 56px; padding: 0; border-radius: 50%; box-shadow: var(--cb-shadow-2); font-size: 0; }
+.cb-s02-ask-float .cb-ico { width: 26px; height: 26px; }
+.cb-s02-ask-float[hidden] { display: none !important; }
+.cb-s02-ask-float[aria-disabled="true"] { background: var(--cb-clay-soft); border-color: var(--cb-clay-soft); color: var(--cb-clay-ink); }
+.is-s02-compact > .cb-s02-strip { position: static !important; }
+.cb[data-s02-short] .cb-s02-say, .cb[data-s02-short] .cb-s02-side { position: static !important; }
