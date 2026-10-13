@@ -8,206 +8,127 @@
    Words are exact from the stop spec (15 - build-the-future-together.md). No network, no inputs, no inline styles. */
 (function () {
   "use strict";
-  var CB = window.CommunityBuilders; if (!CB) return;
+  var host = window.CommunityBuilders; if (!host) return;
+  function factory(lifecycle) {
+    var document = lifecycle.document, window = lifecycle.window, Date = lifecycle.Date;
+    var setTimeout = lifecycle.setTimeout, clearTimeout = lifecycle.clearTimeout;
+    var requestAnimationFrame = lifecycle.requestAnimationFrame, cancelAnimationFrame = lifecycle.cancelAnimationFrame;
+    var definition = null, CB = { register: function (value) { definition = value; } };
+
+  "use strict";
+
   var ID = "build-the-future-together";
   var DOTS = [null, null, null];
 
   /* ── words (exact) ─────────────────────────────────────────────────── */
-  var WORDS = {
-    en: {
-      lucia1: "Imagine Pecan Grove in 2035. Jayden is grown up, and so are you!",
-      theo1: "Today the town draws a plan for 2035. Every neighbor shares one wish.",
-      plan: "Plan 5 places so every neighbor's wish is in the plan. Use all your skills: listen, weigh, include and check. There's no wrong choice for the old farm.",
-      start: "Start",
-      step: function (n) { return "Step " + n + " of 3"; },
-      s1: "Tap a place, then pick a tile for it.",
-      tray: function (p) { return p + ": pick a tile"; },
-      see: "See the trade-off", good: "Good:", hard: "Hard:", put: "Put it in the plan",
-      inPlan: "In the plan", notYet: "Not planned yet",
-      lblNot: function (p) { return p + ", not planned yet"; },
-      lblOn: function (p, t) { return p + ", planned: " + t; },
-      placesN: function (n) { return "Places planned: " + n + " of 5"; },
-      wishesN: function (n) { return "Wishes in the plan: " + n + " of 6"; },
-      myWish: "My wish for 2035", forHere: "Wishes for this place",
-      theo2: "A plan needs care over time. Add one yearly check-in.",
-      added: "Check-in added!",
-      lucia3: "Who isn't at the table yet? Invite one person.",
-      table: "At the planning table", who: "Who else lives in Pecan Grove?",
-      great: function (p) { return "Great! A new seat at the table: " + p + "."; },
-      look: function (p) { return "Look again. Already at the table: " + p + "."; },
-      tried: "Tried", finishPlan: "Finish the plan",
-      yes: "My wish is in the plan. Thanks for hearing me!",
-      notYetWish: "My wish isn't in the plan yet. Maybe next time?",
-      luciaFarm: function (t) { return "For the old farm, we chose: " + t + ". Like every choice, it has good parts and hard parts."; },
-      theoCheck: "And we'll check the plan every year!",
-      thanks: "Thanks for inviting me!",
-      picnic: "Picnic time!",
-      aha: "A good plan answers every neighbor's wish a little, instead of answering one neighbor's wish completely.",
-      seeScore: "See my score",
-      can: "I can use all my skills to help plan our town's future.",
-      tipWish: function (n) { return "Next time, find a tile for " + n + " too."; },
-      tipTrade: "Next time, open each trade-off before you place a tile.",
-      tipCheck: "Next time, add a yearly check-in, so the plan gets checked over time.",
-      tipInvite: "Next time, look at who's already at the table, then invite someone who's missing.",
-      tip100: "A plan for everyone! Try a new round with new wishes.",
-      real: "Draw your town in 2035 and share it with your family or class. When you're in high school, you can apply to a youth commission. Ask a grown-up.",
-      askK: "Ask a grown-up",
-      ask: "What do you hope our town looks like when I'm grown up?",
-      journeyDone: "You finished the journey! Play any stop again for a new round.",
-      gu: "For grown-ups: about this stop",
-      guText: "Kids plan Pecan Grove in 2035 using every skill. The old farm can hold a data center as planned or with changes, stay a farm, or wait for a study. Every choice can earn full points if every neighbor is heard. In Fulton County, high school students can apply to the county Youth Commission. In Georgia, county plans usually look about 20 years ahead and are updated every five years."
-    },
-    es: {
-      lucia1: "Imagina Pecan Grove en 2035. Jayden ya es adulto, ¡y tú también!",
-      theo1: "Hoy el pueblo dibuja un plan para 2035. Cada vecino comparte un deseo.",
-      plan: "Planea 5 lugares para que el deseo de cada vecino esté en el plan. Usa todas tus habilidades: escuchar, pesar, incluir y revisar. Para la vieja granja no hay una opción equivocada.",
-      start: "Empezar",
-      step: function (n) { return "Paso " + n + " de 3"; },
-      s1: "Toca un lugar y elige una ficha para él.",
-      tray: function (p) { return p + ": elige una ficha"; },
-      see: "Ver lo bueno y lo difícil", good: "Lo bueno:", hard: "Lo difícil:", put: "Ponerla en el plan",
-      inPlan: "En el plan", notYet: "Sin planear",
-      lblNot: function (p) { return p + ", sin planear"; },
-      lblOn: function (p, t) { return p + ", planeado: " + t; },
-      placesN: function (n) { return "Lugares planeados: " + n + " de 5"; },
-      wishesN: function (n) { return "Deseos en el plan: " + n + " de 6"; },
-      myWish: "Mi deseo para 2035", forHere: "Deseos para este lugar",
-      theo2: "Un plan necesita cuidado con el tiempo. Agrega una revisión cada año.",
-      added: "¡Revisión agregada!",
-      lucia3: "¿Quién todavía no está en la mesa? Invita a una persona.",
-      table: "En la mesa del plan", who: "¿Quién más vive en Pecan Grove?",
-      great: function (p) { return "¡Qué bueno! Un lugar nuevo en la mesa: " + p + "."; },
-      look: function (p) { return "Mira otra vez. Ya está en la mesa: " + p + "."; },
-      tried: "Ya probaste", finishPlan: "Terminar el plan",
-      yes: "Mi deseo está en el plan. ¡Gracias por escucharme!",
-      notYetWish: "Mi deseo todavía no está en el plan. ¿Tal vez la próxima vez?",
-      luciaFarm: function (t) { return "Para la vieja granja elegimos: " + t + ". Como cada opción, tiene partes buenas y partes difíciles."; },
-      theoCheck: "¡Y vamos a revisar el plan cada año!",
-      thanks: "¡Gracias por invitarme!",
-      picnic: "¡Hora del pícnic!",
-      aha: "Un buen plan responde un poco al deseo de cada vecino, en vez de responder por completo al deseo de uno solo.",
-      seeScore: "Ver mi puntaje",
-      can: "Puedo usar todas mis habilidades para ayudar a planear el futuro de mi pueblo.",
-      tipWish: function (n) { return "La próxima vez, busca también una ficha para " + n + "."; },
-      tipTrade: "La próxima vez, mira lo bueno y lo difícil de cada ficha antes de ponerla.",
-      tipCheck: "La próxima vez, agrega una revisión cada año, para que el plan se revise con el tiempo.",
-      tipInvite: "La próxima vez, mira quién ya está en la mesa y luego invita a alguien que falte.",
-      tip100: "¡Un plan para todos! Prueba una nueva ronda con otros deseos.",
-      real: "Dibuja tu pueblo en 2035 y compártelo con tu familia o tu clase. Cuando estés en la preparatoria, podrás postularte a una comisión juvenil. Pregúntale a un adulto.",
-      askK: "Pregúntale a un adulto",
-      ask: "¿Cómo te gustaría que fuera nuestro pueblo cuando yo sea grande?",
-      journeyDone: "¡Terminaste el camino! Juega cualquier parada otra vez para una nueva ronda.",
-      gu: "Para adultos: sobre esta parada",
-      guText: "Los niños planean Pecan Grove en 2035 usando todas sus habilidades. En la vieja granja puede haber un centro de datos como se planeó o con cambios, puede seguir siendo granja o se puede esperar un estudio, y cualquier opción puede ganar todos los puntos si se escucha a todos los vecinos. En el condado de Fulton, los estudiantes de preparatoria pueden postularse a la Comisión Juvenil del condado. En Georgia, los planes de los condados suelen mirar unos 20 años hacia adelante y se actualizan cada cinco años."
-    }
-  };
+  var WORDS = {en:window.CBLocale.read("stop-15", "en", {en:{"WORDS.step":function (n) { return window.CBLocale.part("stop-15", "en", "WORDS.step", 0) + n + window.CBLocale.part("stop-15", "en", "WORDS.step", 1); },"WORDS.tray":function (p) { return p + window.CBLocale.part("stop-15", "en", "WORDS.tray", 0); },"WORDS.lblNot":function (p) { return p + window.CBLocale.part("stop-15", "en", "WORDS.lblNot", 0); },"WORDS.lblOn":function (p, t) { return p + window.CBLocale.part("stop-15", "en", "WORDS.lblOn", 0) + t; },"WORDS.placesN":function (n) { return window.CBLocale.part("stop-15", "en", "WORDS.placesN", 0) + n + window.CBLocale.part("stop-15", "en", "WORDS.placesN", 1); },"WORDS.wishesN":function (n) { return window.CBLocale.part("stop-15", "en", "WORDS.wishesN", 0) + n + window.CBLocale.part("stop-15", "en", "WORDS.wishesN", 1); },"WORDS.great":function (p) { return window.CBLocale.part("stop-15", "en", "WORDS.great", 0) + p + window.CBLocale.part("stop-15", "en", "WORDS.great", 1); },"WORDS.look":function (p) { return window.CBLocale.part("stop-15", "en", "WORDS.look", 0) + p + window.CBLocale.part("stop-15", "en", "WORDS.look", 1); },"WORDS.luciaFarm":function (t) { return window.CBLocale.part("stop-15", "en", "WORDS.luciaFarm", 0) + t + window.CBLocale.part("stop-15", "en", "WORDS.luciaFarm", 1); },"WORDS.tipWish":function (n) { return window.CBLocale.part("stop-15", "en", "WORDS.tipWish", 0) + n + window.CBLocale.part("stop-15", "en", "WORDS.tipWish", 1); }},es:{"WORDS.step":function (n) { return window.CBLocale.part("stop-15", "es", "WORDS.step", 0) + n + window.CBLocale.part("stop-15", "es", "WORDS.step", 1); },"WORDS.tray":function (p) { return p + window.CBLocale.part("stop-15", "es", "WORDS.tray", 0); },"WORDS.lblNot":function (p) { return p + window.CBLocale.part("stop-15", "es", "WORDS.lblNot", 0); },"WORDS.lblOn":function (p, t) { return p + window.CBLocale.part("stop-15", "es", "WORDS.lblOn", 0) + t; },"WORDS.placesN":function (n) { return window.CBLocale.part("stop-15", "es", "WORDS.placesN", 0) + n + window.CBLocale.part("stop-15", "es", "WORDS.placesN", 1); },"WORDS.wishesN":function (n) { return window.CBLocale.part("stop-15", "es", "WORDS.wishesN", 0) + n + window.CBLocale.part("stop-15", "es", "WORDS.wishesN", 1); },"WORDS.great":function (p) { return window.CBLocale.part("stop-15", "es", "WORDS.great", 0) + p + window.CBLocale.part("stop-15", "es", "WORDS.great", 1); },"WORDS.look":function (p) { return window.CBLocale.part("stop-15", "es", "WORDS.look", 0) + p + window.CBLocale.part("stop-15", "es", "WORDS.look", 1); },"WORDS.luciaFarm":function (t) { return window.CBLocale.part("stop-15", "es", "WORDS.luciaFarm", 0) + t + window.CBLocale.part("stop-15", "es", "WORDS.luciaFarm", 1); },"WORDS.tipWish":function (n) { return window.CBLocale.part("stop-15", "es", "WORDS.tipWish", 0) + n + window.CBLocale.part("stop-15", "es", "WORDS.tipWish", 1); }}}).WORDS,es:window.CBLocale.read("stop-15", "es", {en:{"WORDS.step":function (n) { return window.CBLocale.part("stop-15", "en", "WORDS.step", 0) + n + window.CBLocale.part("stop-15", "en", "WORDS.step", 1); },"WORDS.tray":function (p) { return p + window.CBLocale.part("stop-15", "en", "WORDS.tray", 0); },"WORDS.lblNot":function (p) { return p + window.CBLocale.part("stop-15", "en", "WORDS.lblNot", 0); },"WORDS.lblOn":function (p, t) { return p + window.CBLocale.part("stop-15", "en", "WORDS.lblOn", 0) + t; },"WORDS.placesN":function (n) { return window.CBLocale.part("stop-15", "en", "WORDS.placesN", 0) + n + window.CBLocale.part("stop-15", "en", "WORDS.placesN", 1); },"WORDS.wishesN":function (n) { return window.CBLocale.part("stop-15", "en", "WORDS.wishesN", 0) + n + window.CBLocale.part("stop-15", "en", "WORDS.wishesN", 1); },"WORDS.great":function (p) { return window.CBLocale.part("stop-15", "en", "WORDS.great", 0) + p + window.CBLocale.part("stop-15", "en", "WORDS.great", 1); },"WORDS.look":function (p) { return window.CBLocale.part("stop-15", "en", "WORDS.look", 0) + p + window.CBLocale.part("stop-15", "en", "WORDS.look", 1); },"WORDS.luciaFarm":function (t) { return window.CBLocale.part("stop-15", "en", "WORDS.luciaFarm", 0) + t + window.CBLocale.part("stop-15", "en", "WORDS.luciaFarm", 1); },"WORDS.tipWish":function (n) { return window.CBLocale.part("stop-15", "en", "WORDS.tipWish", 0) + n + window.CBLocale.part("stop-15", "en", "WORDS.tipWish", 1); }},es:{"WORDS.step":function (n) { return window.CBLocale.part("stop-15", "es", "WORDS.step", 0) + n + window.CBLocale.part("stop-15", "es", "WORDS.step", 1); },"WORDS.tray":function (p) { return p + window.CBLocale.part("stop-15", "es", "WORDS.tray", 0); },"WORDS.lblNot":function (p) { return p + window.CBLocale.part("stop-15", "es", "WORDS.lblNot", 0); },"WORDS.lblOn":function (p, t) { return p + window.CBLocale.part("stop-15", "es", "WORDS.lblOn", 0) + t; },"WORDS.placesN":function (n) { return window.CBLocale.part("stop-15", "es", "WORDS.placesN", 0) + n + window.CBLocale.part("stop-15", "es", "WORDS.placesN", 1); },"WORDS.wishesN":function (n) { return window.CBLocale.part("stop-15", "es", "WORDS.wishesN", 0) + n + window.CBLocale.part("stop-15", "es", "WORDS.wishesN", 1); },"WORDS.great":function (p) { return window.CBLocale.part("stop-15", "es", "WORDS.great", 0) + p + window.CBLocale.part("stop-15", "es", "WORDS.great", 1); },"WORDS.look":function (p) { return window.CBLocale.part("stop-15", "es", "WORDS.look", 0) + p + window.CBLocale.part("stop-15", "es", "WORDS.look", 1); },"WORDS.luciaFarm":function (t) { return window.CBLocale.part("stop-15", "es", "WORDS.luciaFarm", 0) + t + window.CBLocale.part("stop-15", "es", "WORDS.luciaFarm", 1); },"WORDS.tipWish":function (n) { return window.CBLocale.part("stop-15", "es", "WORDS.tipWish", 0) + n + window.CBLocale.part("stop-15", "es", "WORDS.tipWish", 1); }}}).WORDS};
 
   /* ── the 18 wishes. Codes are for code only: second letter = place (K creek, M Main Street, S school, F chapel field).
      Every wish names its place in words (owner play-test, 10 Oct 2026: "there" pointed at nothing). ── */
   var WISH = {
-    LK: ["I hope kids can splash in a clean creek.", "Ojalá los niños puedan chapotear en un arroyo limpio."],
-    LM: ["I hope people can walk safely down Main Street to the clinic.", "Ojalá la gente pueda caminar segura por la calle principal hasta la clínica."],
-    LS: ["I hope kids learn first aid at school.", "Ojalá los niños aprendan primeros auxilios en la escuela."],
-    JK: ["I hope my grandkids can fish in the creek.", "Ojalá mis nietos puedan pescar en el arroyo."],
-    JM: ["I hope farmers can sell their food on Main Street.", "Ojalá los agricultores puedan vender su comida en la calle principal."],
-    JF: ["I hope kids can grow vegetables by the chapel.", "Ojalá los niños puedan sembrar verduras junto a la capilla."],
-    AK: ["I hope my kids can ride bikes along the creek.", "Ojalá mis hijos puedan andar en bici junto al arroyo."],
-    AM: ["I hope Main Street has a place where people learn to fix things.", "Ojalá la calle principal tenga un lugar donde la gente aprenda a arreglar cosas."],
-    AS: ["I hope the school teaches kids to be electricians.", "Ojalá la escuela enseñe a los niños a ser electricistas."],
-    RK: ["I hope there are shady benches by the creek for old friends.", "Ojalá haya bancas con sombra junto al arroyo para los viejos amigos."],
-    RS: ["I hope kids learn the stories of this land at school.", "Ojalá los niños aprendan en la escuela las historias de esta tierra."],
-    RF: ["I hope people still visit the old chapel to hear its stories.", "Ojalá la gente siga visitando la vieja capilla para escuchar sus historias."],
-    PM: ["I hope Main Street is full of small shops.", "Ojalá la calle principal esté llena de tiendas pequeñas."],
-    PS: ["I hope students learn to bake bread at school.", "Ojalá los estudiantes aprendan a hornear pan en la escuela."],
-    PF: ["I hope the whole town has a festival on the chapel field every year.", "Ojalá todo el pueblo haga una fiesta en el campo de la capilla cada año."],
-    YM: ["I hope kids have a quiet place on Main Street to study, with fast internet.", "Ojalá los niños tengan en la calle principal un lugar tranquilo para estudiar, con internet rápido."],
-    YS: ["I hope the school has a lab where kids build robots.", "Ojalá la escuela tenga un laboratorio donde los niños construyan robots."],
-    YF: ["I hope there's a place on the chapel field to play music with friends.", "Ojalá haya un lugar en el campo de la capilla para tocar música con amigos."]
+    LK: window.CBLocale.pair("stop-15","bank.b0001"),
+    LM: window.CBLocale.pair("stop-15","bank.b0002"),
+    LS: window.CBLocale.pair("stop-15","bank.b0003"),
+    JK: window.CBLocale.pair("stop-15","bank.b0004"),
+    JM: window.CBLocale.pair("stop-15","bank.b0005"),
+    JF: window.CBLocale.pair("stop-15","bank.b0006"),
+    AK: window.CBLocale.pair("stop-15","bank.b0007"),
+    AM: window.CBLocale.pair("stop-15","bank.b0008"),
+    AS: window.CBLocale.pair("stop-15","bank.b0009"),
+    RK: window.CBLocale.pair("stop-15","bank.b0010"),
+    RS: window.CBLocale.pair("stop-15","bank.b0011"),
+    RF: window.CBLocale.pair("stop-15","bank.b0012"),
+    PM: window.CBLocale.pair("stop-15","bank.b0013"),
+    PS: window.CBLocale.pair("stop-15","bank.b0014"),
+    PF: window.CBLocale.pair("stop-15","bank.b0015"),
+    YM: window.CBLocale.pair("stop-15","bank.b0016"),
+    YS: window.CBLocale.pair("stop-15","bank.b0017"),
+    YF: window.CBLocale.pair("stop-15","bank.b0018")
   };
   var NBW = { lee: ["LK", "LM", "LS"], johnson: ["JK", "JM", "JF"], ana: ["AK", "AM", "AS"], ruth: ["RK", "RS", "RF"], patel: ["PM", "PS", "PF"], jayden: ["YM", "YS", "YF"] };
   var KEY_PLACE = { K: "creek", M: "main", S: "school", F: "field" };
 
   /* ── the 24 tiles (exact). ans = the wishes a tile answers once it is in the plan; never shown. ic = authored line icons. ── */
-  var FILLS_BANK = ["It fills the whole creek bank, so there's no room for anything else.", "Ocupa toda la orilla del arroyo y no queda espacio para nada más."];
-  var FILLS_BLOCK = ["It fills the whole block, so there's no room for anything else.", "Ocupa toda la cuadra y no queda espacio para nada más."];
-  var FILLS_SCHOOL = ["It fills the whole building, so there's no room for other classes.", "Ocupa todo el edificio y no queda espacio para otras clases."];
+  var FILLS_BANK = window.CBLocale.pair("stop-15","bank.b0019");
+  var FILLS_BLOCK = window.CBLocale.pair("stop-15","bank.b0020");
+  var FILLS_SCHOOL = window.CBLocale.pair("stop-15","bank.b0021");
   var TILES = {
-    G1: { ic: ["lowbuilding", "tree"], ans: [], name: ["Data center as planned", "Centro de datos como se planeó"],
-      good: ["Jobs and tax money for the school come soon.", "Pronto llegan empleos y dinero de impuestos para la escuela."],
-      hard: ["It uses lots of power and water, and someday it gets old and needs a plan.", "Usa mucha luz y agua, y algún día se hace viejo y necesita un plan."] },
-    G2: { ic: ["treering", "waterloop"], ans: [], name: ["Data center with changes", "Centro de datos con cambios"],
-      good: ["It cools with recycled water and has trees all around.", "Se enfría con agua reciclada y tiene árboles alrededor."],
-      hard: ["The changes cost more, and agreeing on them takes longer.", "Los cambios cuestan más y ponerse de acuerdo toma más tiempo."] },
-    G3: { ic: ["barn", "cow"], ans: [], name: ["It stays a farm", "Sigue siendo granja"],
-      good: ["The fields, the creek and the old trees stay as they are.", "Los campos, el arroyo y los árboles viejos se quedan como están."],
-      hard: ["No new tax money for the school, and the Miller family needs a buyer who farms.", "No llega dinero nuevo de impuestos para la escuela, y la familia Miller necesita un comprador que quiera sembrar."] },
-    G4: { ic: ["peek", "hourglass"], ans: [], name: ["Decide after a study", "Decidir después de un estudio"],
-      good: ["There's time to test the water, look for old graves and plan with the fire station.", "Hay tiempo para revisar el agua, buscar tumbas antiguas y planear con los bomberos."],
-      hard: ["Families wait longer to know what's coming, and the study costs money.", "Las familias esperan más para saber qué viene, y el estudio cuesta dinero."] },
-    K1: { ic: ["drop", "bike"], ans: ["LK", "JK", "AK"], name: ["Clean creek and bike trail", "Arroyo limpio y sendero para bicis"],
-      good: ["Clean water to fish and splash in, and a bike trail.", "Agua limpia para pescar y chapotear, y un sendero para bicis."],
-      hard: ["No benches or shade to rest.", "No hay bancas ni sombra para descansar."] },
-    K2: { ic: ["bike", "bench"], ans: ["AK", "RK"], name: ["Trail with benches", "Sendero con bancas"],
-      good: ["A bike trail with shady benches along the way.", "Un sendero para bicis con bancas a la sombra."],
-      hard: ["No spot to fish or splash.", "No hay dónde pescar ni chapotear."] },
-    K3: { ic: ["drop", "bench"], ans: ["LK", "JK", "RK"], name: ["Creek beach with benches", "Playita del arroyo con bancas"],
-      good: ["Clean water to fish and splash in, and benches in the shade.", "Agua limpia para pescar y chapotear, y bancas a la sombra."],
-      hard: ["No bike trail.", "No hay sendero para bicis."] },
-    K4: { ic: ["fish"], ans: ["JK"], name: ["Big fishing pond", "Estanque grande para pescar"],
-      good: ["The best fishing around.", "La mejor pesca de la zona."], hard: FILLS_BANK },
-    K5: { ic: ["path"], ans: ["AK"], name: ["Long bike path", "Ciclovía larga"],
-      good: ["A bike path all the way to the next town.", "Una ciclovía hasta el pueblo de al lado."], hard: FILLS_BANK },
-    M1: { ic: ["stall", "sidewalk"], ans: ["JM", "PM", "LM"], name: ["Market and sidewalks", "Mercado y aceras"],
-      good: ["Farm food, small shops, and wide, safe sidewalks to the clinic.", "Comida de las granjas, tiendas pequeñas y aceras anchas y seguras hasta la clínica."],
-      hard: ["No place to study or fix things.", "No hay un lugar para estudiar ni para arreglar cosas."] },
-    M2: { ic: ["sidewalk", "deskwrench"], ans: ["LM", "AM", "YM"], name: ["Sidewalks and a learning corner", "Aceras y un rincón para aprender"],
-      good: ["Wide, safe sidewalks to the clinic, and a corner to study and fix things.", "Aceras anchas y seguras hasta la clínica, y un rincón para estudiar y arreglar cosas."],
-      hard: ["Fewer shops, and no market.", "Menos tiendas, y no hay mercado."] },
-    M3: { ic: ["awning", "deskwrench"], ans: ["JM", "PM", "AM", "YM"], name: ["Shops and a learning corner", "Tiendas y un rincón para aprender"],
-      good: ["Farm food, small shops, and a corner to study and fix things.", "Comida de las granjas, tiendas pequeñas y un rincón para estudiar y arreglar cosas."],
-      hard: ["The sidewalks stay narrow and crowded.", "Las aceras siguen angostas y llenas de gente."] },
-    M4: { ic: ["studycenter"], ans: ["YM"], name: ["Big study center", "Centro de estudio grande"],
-      good: ["A huge place to study, with fast internet.", "Un lugar enorme para estudiar, con internet rápido."], hard: FILLS_BLOCK },
-    M5: { ic: ["markethall"], ans: ["JM"], name: ["Big market hall", "Mercado techado grande"],
-      good: ["Farmers sell food every day, rain or shine.", "Los agricultores venden comida todos los días, llueva o haga sol."], hard: FILLS_BLOCK },
-    S1: { ic: ["bulb", "whisk"], ans: ["AS", "YS", "LS", "PS"], name: ["Lab and kitchen", "Laboratorio y cocina"],
-      good: ["Kids learn electric work, robots, baking and first aid.", "Los niños aprenden electricidad, robótica, a hornear pan y primeros auxilios."],
-      hard: ["No room for a story club.", "No queda espacio para un club de historias."] },
-    S2: { ic: ["whisk", "book"], ans: ["LS", "PS", "RS"], name: ["Kitchen and story club", "Cocina y club de historias"],
-      good: ["Kids bake bread, learn first aid and record the stories of this land.", "Los niños hornean pan, aprenden primeros auxilios y graban las historias de esta tierra."],
-      hard: ["No lab for electric work or robots.", "No hay laboratorio de electricidad ni de robots."] },
-    S3: { ic: ["bulb", "book"], ans: ["AS", "YS", "RS"], name: ["Lab and story club", "Laboratorio y club de historias"],
-      good: ["Kids learn electric work, build robots and record the stories of this land.", "Los niños aprenden electricidad, construyen robots y graban las historias de esta tierra."],
-      hard: ["No kitchen or first-aid class.", "No hay cocina ni clase de primeros auxilios."] },
-    S4: { ic: ["robot"], ans: ["YS"], name: ["Giant robot lab", "Laboratorio gigante de robots"],
-      good: ["The best robot lab around.", "El mejor laboratorio de robots de la zona."], hard: FILLS_SCHOOL },
-    S5: { ic: ["bread"], ans: ["PS"], name: ["Big school bakery", "Panadería grande de la escuela"],
-      good: ["Students bake bread for the whole town.", "Los estudiantes hornean pan para todo el pueblo."], hard: FILLS_SCHOOL },
-    F1: { ic: ["sprout", "chapel"], ans: ["JF", "RF"], name: ["Story garden", "Huerto de las historias"],
-      good: ["Kids grow vegetables, and the chapel is open for story visits.", "Los niños siembran verduras, y la capilla abre para escuchar sus historias."],
-      hard: ["No room for music or a festival.", "No queda espacio para música ni para una fiesta."] },
-    F2: { ic: ["chapel", "notes"], ans: ["RF", "PF", "YF"], name: ["Chapel and festival lawn", "Capilla y pasto para fiestas"],
-      good: ["The chapel is open for story visits, and the lawn has music and a yearly festival.", "La capilla abre para escuchar sus historias, y en el pasto hay música y una fiesta cada año."],
-      hard: ["No garden this time.", "Esta vez no hay huerto."] },
-    F3: { ic: ["sprout", "notes"], ans: ["JF", "PF", "YF"], name: ["Garden and festival lawn", "Huerto y pasto para fiestas"],
-      good: ["Kids grow vegetables, and the lawn has music and a yearly festival.", "Los niños siembran verduras, y en el pasto hay música y una fiesta cada año."],
-      hard: ["The chapel stays closed most days.", "La capilla está cerrada casi todos los días."] },
-    F4: { ic: ["museum"], ans: ["RF"], name: ["Chapel museum", "Museo de la capilla"],
-      good: ["The chapel becomes a museum full of the town's stories.", "La capilla se vuelve un museo lleno de las historias del pueblo."],
-      hard: ["The museum fills the whole field, so there's no room for anything else.", "El museo ocupa todo el campo y no queda espacio para nada más."] },
-    F5: { ic: ["vegpatch"], ans: ["JF"], name: ["Big kids' farm", "Granja grande para niños"],
-      good: ["Kids grow lots and lots of vegetables.", "Los niños siembran muchísimas verduras."],
-      hard: ["The farm fills the whole field, so there's no room for anything else.", "La granja ocupa todo el campo y no queda espacio para nada más."] }
+    G1: { ic: ["lowbuilding", "tree"], ans: [], name: window.CBLocale.pair("stop-15","bank.b0022"),
+      good: window.CBLocale.pair("stop-15","bank.b0023"),
+      hard: window.CBLocale.pair("stop-15","bank.b0024") },
+    G2: { ic: ["treering", "waterloop"], ans: [], name: window.CBLocale.pair("stop-15","bank.b0025"),
+      good: window.CBLocale.pair("stop-15","bank.b0026"),
+      hard: window.CBLocale.pair("stop-15","bank.b0027") },
+    G3: { ic: ["barn", "cow"], ans: [], name: window.CBLocale.pair("stop-15","bank.b0028"),
+      good: window.CBLocale.pair("stop-15","bank.b0029"),
+      hard: window.CBLocale.pair("stop-15","bank.b0030") },
+    G4: { ic: ["peek", "hourglass"], ans: [], name: window.CBLocale.pair("stop-15","bank.b0031"),
+      good: window.CBLocale.pair("stop-15","bank.b0032"),
+      hard: window.CBLocale.pair("stop-15","bank.b0033") },
+    K1: { ic: ["drop", "bike"], ans: ["LK", "JK", "AK"], name: window.CBLocale.pair("stop-15","bank.b0034"),
+      good: window.CBLocale.pair("stop-15","bank.b0035"),
+      hard: window.CBLocale.pair("stop-15","bank.b0036") },
+    K2: { ic: ["bike", "bench"], ans: ["AK", "RK"], name: window.CBLocale.pair("stop-15","bank.b0037"),
+      good: window.CBLocale.pair("stop-15","bank.b0038"),
+      hard: window.CBLocale.pair("stop-15","bank.b0039") },
+    K3: { ic: ["drop", "bench"], ans: ["LK", "JK", "RK"], name: window.CBLocale.pair("stop-15","bank.b0040"),
+      good: window.CBLocale.pair("stop-15","bank.b0041"),
+      hard: window.CBLocale.pair("stop-15","bank.b0042") },
+    K4: { ic: ["fish"], ans: ["JK"], name: window.CBLocale.pair("stop-15","bank.b0043"),
+      good: window.CBLocale.pair("stop-15","bank.b0044"), hard: FILLS_BANK },
+    K5: { ic: ["path"], ans: ["AK"], name: window.CBLocale.pair("stop-15","bank.b0045"),
+      good: window.CBLocale.pair("stop-15","bank.b0046"), hard: FILLS_BANK },
+    M1: { ic: ["stall", "sidewalk"], ans: ["JM", "PM", "LM"], name: window.CBLocale.pair("stop-15","bank.b0047"),
+      good: window.CBLocale.pair("stop-15","bank.b0048"),
+      hard: window.CBLocale.pair("stop-15","bank.b0049") },
+    M2: { ic: ["sidewalk", "deskwrench"], ans: ["LM", "AM", "YM"], name: window.CBLocale.pair("stop-15","bank.b0050"),
+      good: window.CBLocale.pair("stop-15","bank.b0051"),
+      hard: window.CBLocale.pair("stop-15","bank.b0052") },
+    M3: { ic: ["awning", "deskwrench"], ans: ["JM", "PM", "AM", "YM"], name: window.CBLocale.pair("stop-15","bank.b0053"),
+      good: window.CBLocale.pair("stop-15","bank.b0054"),
+      hard: window.CBLocale.pair("stop-15","bank.b0055") },
+    M4: { ic: ["studycenter"], ans: ["YM"], name: window.CBLocale.pair("stop-15","bank.b0056"),
+      good: window.CBLocale.pair("stop-15","bank.b0057"), hard: FILLS_BLOCK },
+    M5: { ic: ["markethall"], ans: ["JM"], name: window.CBLocale.pair("stop-15","bank.b0058"),
+      good: window.CBLocale.pair("stop-15","bank.b0059"), hard: FILLS_BLOCK },
+    S1: { ic: ["bulb", "whisk"], ans: ["AS", "YS", "LS", "PS"], name: window.CBLocale.pair("stop-15","bank.b0060"),
+      good: window.CBLocale.pair("stop-15","bank.b0061"),
+      hard: window.CBLocale.pair("stop-15","bank.b0062") },
+    S2: { ic: ["whisk", "book"], ans: ["LS", "PS", "RS"], name: window.CBLocale.pair("stop-15","bank.b0063"),
+      good: window.CBLocale.pair("stop-15","bank.b0064"),
+      hard: window.CBLocale.pair("stop-15","bank.b0065") },
+    S3: { ic: ["bulb", "book"], ans: ["AS", "YS", "RS"], name: window.CBLocale.pair("stop-15","bank.b0066"),
+      good: window.CBLocale.pair("stop-15","bank.b0067"),
+      hard: window.CBLocale.pair("stop-15","bank.b0068") },
+    S4: { ic: ["robot"], ans: ["YS"], name: window.CBLocale.pair("stop-15","bank.b0069"),
+      good: window.CBLocale.pair("stop-15","bank.b0070"), hard: FILLS_SCHOOL },
+    S5: { ic: ["bread"], ans: ["PS"], name: window.CBLocale.pair("stop-15","bank.b0071"),
+      good: window.CBLocale.pair("stop-15","bank.b0072"), hard: FILLS_SCHOOL },
+    F1: { ic: ["sprout", "chapel"], ans: ["JF", "RF"], name: window.CBLocale.pair("stop-15","bank.b0073"),
+      good: window.CBLocale.pair("stop-15","bank.b0074"),
+      hard: window.CBLocale.pair("stop-15","bank.b0075") },
+    F2: { ic: ["chapel", "notes"], ans: ["RF", "PF", "YF"], name: window.CBLocale.pair("stop-15","bank.b0076"),
+      good: window.CBLocale.pair("stop-15","bank.b0077"),
+      hard: window.CBLocale.pair("stop-15","bank.b0078") },
+    F3: { ic: ["sprout", "notes"], ans: ["JF", "PF", "YF"], name: window.CBLocale.pair("stop-15","bank.b0079"),
+      good: window.CBLocale.pair("stop-15","bank.b0080"),
+      hard: window.CBLocale.pair("stop-15","bank.b0081") },
+    F4: { ic: ["museum"], ans: ["RF"], name: window.CBLocale.pair("stop-15","bank.b0082"),
+      good: window.CBLocale.pair("stop-15","bank.b0083"),
+      hard: window.CBLocale.pair("stop-15","bank.b0084") },
+    F5: { ic: ["vegpatch"], ans: ["JF"], name: window.CBLocale.pair("stop-15","bank.b0085"),
+      good: window.CBLocale.pair("stop-15","bank.b0086"),
+      hard: window.CBLocale.pair("stop-15","bank.b0087") }
   };
 
   /* ── the five places, in the fixed Tab order. at = where the clearing sits on the town map (fractions);
      crop = the painted crop shown in the tray. There is no painted chapel: the chapel field is the garden green. ── */
   var PLACES = [
-    { id: "farm", ic: "farm", name: ["The old farm", "La vieja granja"], at: [0.64, 0.27], crop: [0.50, 0.14, 0.86], tiles: ["G1", "G2", "G3", "G4"], big: [] },
-    { id: "creek", ic: "creek", name: ["The creek", "El arroyo"], at: [0.47, 0.745], crop: [0.05, 0.66, 0.45], tiles: ["K1", "K2", "K3"], big: ["K4", "K5"] },
-    { id: "main", ic: "main", name: ["Main Street", "La calle principal"], at: [0.80, 0.47], crop: [0.60, 0.33, 0.98], tiles: ["M1", "M2", "M3"], big: ["M4", "M5"] },
-    { id: "school", ic: "school", name: ["The school", "La escuela"], at: [0.50, 0.44], crop: [0.36, 0.30, 0.72], tiles: ["S1", "S2", "S3"], big: ["S4", "S5"] },
-    { id: "field", ic: "chapel", name: ["The chapel field", "El campo de la capilla"], at: [0.24, 0.60], crop: [0.10, 0.50, 0.50], tiles: ["F1", "F2", "F3"], big: ["F4", "F5"] }
+    { id: "farm", ic: "farm", name: window.CBLocale.pair("stop-15","bank.b0088"), at: [0.64, 0.27], crop: [0.50, 0.14, 0.86], tiles: ["G1", "G2", "G3", "G4"], big: [] },
+    { id: "creek", ic: "creek", name: window.CBLocale.pair("stop-15","bank.b0089"), at: [0.47, 0.745], crop: [0.05, 0.66, 0.45], tiles: ["K1", "K2", "K3"], big: ["K4", "K5"] },
+    { id: "main", ic: "main", name: window.CBLocale.pair("stop-15","bank.b0090"), at: [0.80, 0.47], crop: [0.60, 0.33, 0.98], tiles: ["M1", "M2", "M3"], big: ["M4", "M5"] },
+    { id: "school", ic: "school", name: window.CBLocale.pair("stop-15","bank.b0091"), at: [0.50, 0.44], crop: [0.36, 0.30, 0.72], tiles: ["S1", "S2", "S3"], big: ["S4", "S5"] },
+    { id: "field", ic: "chapel", name: window.CBLocale.pair("stop-15","bank.b0092"), at: [0.24, 0.60], crop: [0.10, 0.50, 0.50], tiles: ["F1", "F2", "F3"], big: ["F4", "F5"] }
   ];
   var PLACE = {}; PLACES.forEach(function (p) { PLACE[p.id] = p; });
   /* two framings of the painted town: the wide band shows map rows 0.1745 to 0.8255 (aspect 1376:500 over the 1376:768 map),
@@ -219,23 +140,22 @@
   };
 
   var CHECKS = [
-    { id: "walk", text: ["Every June, neighbors walk the town and check the plan.", "Cada junio, los vecinos recorren el pueblo y revisan el plan."] },
-    { id: "report", text: ["Every year, the town shares a short report: water, rents, jobs and school money.", "Cada año, el pueblo comparte un informe corto: agua, rentas, empleos y dinero para la escuela."] },
-    { id: "students", text: ["Every year, students check one part of the plan.", "Cada año, los estudiantes revisan una parte del plan."] }
+    { id: "walk", text: window.CBLocale.pair("stop-15","bank.b0093") },
+    { id: "report", text: window.CBLocale.pair("stop-15","bank.b0094") },
+    { id: "students", text: window.CBLocale.pair("stop-15","bank.b0095") }
   ];
   var PEOPLE = [
-    { id: "grandma", ic: "grandma", name: ["Lucía's grandma, who speaks Spanish", "La abuela de Lucía, que habla español"] },
-    { id: "miller", ic: "miller", name: ["Someone from the Miller family", "Alguien de la familia Miller"] },
-    { id: "newfamily", ic: "newfamily", name: ["A family that just moved here", "Una familia que acaba de llegar"] },
-    { id: "night", ic: "night", name: ["A neighbor who works at night", "Una vecina que trabaja de noche"] },
-    { id: "baby", ic: "baby", name: ["A dad with a new baby", "Un papá con su bebé"] },
-    { id: "worker", ic: "worker", name: ["A worker from the farm next door", "Un trabajador de la granja de al lado"] }
+    { id: "grandma", ic: "grandma", name: window.CBLocale.pair("stop-15","bank.b0096") },
+    { id: "miller", ic: "miller", name: window.CBLocale.pair("stop-15","bank.b0097") },
+    { id: "newfamily", ic: "newfamily", name: window.CBLocale.pair("stop-15","bank.b0098") },
+    { id: "night", ic: "night", name: window.CBLocale.pair("stop-15","bank.b0099") },
+    { id: "baby", ic: "baby", name: window.CBLocale.pair("stop-15","bank.b0100") },
+    { id: "worker", ic: "worker", name: window.CBLocale.pair("stop-15","bank.b0101") }
   ];
   var PERSON = {}; PEOPLE.forEach(function (p) { PERSON[p.id] = p; });
-  var GUIDES = { lucia: { name: "Lucía", ic: "notebook" }, theo: { name: "Theo", ic: "wheelchair" } };
   /* short names for the picnic tags, and each townsperson's colour for their paper silhouette (no painted portraits yet) */
-  var PSHORT = { grandma: ["Lucía's grandma", "Abuela de Lucía"], miller: ["The Millers", "Los Miller"], newfamily: ["New family", "Familia nueva"],
-    night: ["Night worker", "Vecina de noche"], baby: ["Dad and baby", "Papá y bebé"], worker: ["Farm worker", "Trabajador de granja"] };
+  var PSHORT = { grandma: window.CBLocale.pair("stop-15","bank.b0102"), miller: window.CBLocale.pair("stop-15","bank.b0103"), newfamily: window.CBLocale.pair("stop-15","bank.b0104"),
+    night: window.CBLocale.pair("stop-15","bank.b0105"), baby: window.CBLocale.pair("stop-15","bank.b0106"), worker: window.CBLocale.pair("stop-15","bank.b0107") };
   var PCOL = { grandma: "pk", miller: "gr", newfamily: "bl", night: "bld", baby: "yl", worker: "or" };
   function silhouette(c) { return '<path class="' + c + '" d="M32 11a11.5 11.5 0 1 1 0 23 11.5 11.5 0 0 1 0-23zM9 64c0-14.5 10-24.5 23-24.5S55 49.5 55 64z"/>'; }
 
@@ -292,21 +212,18 @@
     var s = document.createElementNS(SVGNS, "svg");
     s.setAttribute("viewBox", "0 0 24 24"); s.setAttribute("aria-hidden", "true"); s.setAttribute("focusable", "false");
     s.setAttribute("class", "cb-ico" + (cls ? " " + cls : ""));
-    s.innerHTML = ICONS[name];                                    // constant, authored markup only
+    host.setAuthoredMarkup(s, ICONS[name]);                                    // constant, authored markup only
     return s;
   }
 
   var onEsc = null;
-  document.addEventListener("keydown", function (e) {
-    if (e.key === "Escape" && onEsc && document.querySelector(".cb-s15-tray") && !document.querySelector("dialog[open]")) { e.preventDefault(); onEsc(); }
-  });
   /* A double tap must never act on the screen the first tap just opened (it would place a tile, invite someone or skip
      a step without the player seeing it). For a moment after each screen change under the finger, taps inside the
      game stage are dropped. */
   var calmUntil = 0;
   function calm() { calmUntil = Date.now() + 500; }
   function hush(e) {
-    if (Date.now() >= calmUntil) return;
+    if (e.detail === 0 || Date.now() >= calmUntil) return;
     var t = e.target;
     if (!t || !t.closest || !t.closest('[data-game="community-builders"]')) return;
     e.preventDefault(); if (e.type === "click") e.stopPropagation();   // mousedown too, so focus stays where the first tap put it
@@ -316,6 +233,11 @@
 
   function run(api, stop) {
     var L = api.L, h = api.h, T = WORDS[L], NB = api.NB;
+    var GUIDES = { lucia: { name: window.CBLocale.t("stop-15", L, "guides.lucia"), ic: "notebook" }, theo: { name: window.CBLocale.t("stop-15", L, "guides.theo"), ic: "wheelchair" } };
+    if (api.input && api.input.on) api.input.on("back", function () {
+      if (!onEsc || !document.querySelector(".cb-s15-tray") || document.querySelector("dialog[open]")) return false;
+      onEsc(); return true;
+    }, { scope: document.querySelector('[data-game="community-builders"]') });
     function t2(p) { return L === "es" ? p[1] : p[0]; }
     document.title = stop.name + " - " + api.W.series;
 
@@ -350,6 +272,7 @@
     if (team && team.phase === "A") team.s15A = { deal: deal, guests: guests.slice() };
 
     /* ── play state ──────────────────────────────────────────────────── */
+    var viewPhase = "intro", lastPerson = null;
     var plan = {}, fair = {}, seen = {}, open = {}, openPlace = null;
     var check = null, tried = {}, firstTap = null, invited = null;
     function answered(nbId) {
@@ -461,6 +384,7 @@
 
     /* ── 0 · intro over the town ─────────────────────────────────────── */
     function intro() {
+      viewPhase = "intro";
       var go = keyed(btn(T.start, "cb-btn--go cb-btn--big", function () { calm(); play(); }, "go", true), "start");
       var card = h("div", { "class": "cb-s15-introcard" }, [
         sayRow(guideAv("lucia"), GUIDES.lucia.name, T.lucia1, "intro"),
@@ -473,6 +397,7 @@
 
     /* ── 1 · plan 5 places ───────────────────────────────────────────── */
     function render1(focusSel, opt) {
+      viewPhase = "plan";
       opt = opt || {};
       var coach = api.coach(T.s1, "home"); coach.setAttribute("tabindex", "-1"); coach.setAttribute("data-s15", "coach");
       var work = openPlace ? tray(openPlace) : town("play", opt.freshPlace);
@@ -502,7 +427,7 @@
         h("div", { "class": "cb-s15-tray__head" }, [api.crop(P.crop, "cb-s15-tray__art"),
           h("h3", { id: "cb-s15-tray-h", tabindex: "-1", "data-s15": "tray-h", text: T.tray(t2(P.name)) }), x]),
         trayWishes(pid),
-        h("ul", { "class": "cb-s15-tiles" }, trays[pid].map(function (tid) { return h("li", null, [tileCard(pid, tid)]); }))]);
+        h("ul", { "class": "cb-s15-tiles", "data-cb-choices": "" }, trays[pid].map(function (tid) { return h("li", null, [tileCard(pid, tid)]); }))]);
     }
     function trayWishes(pid) {
       var who = NB.filter(function (n) { return KEY_PLACE[deal[n.id].charAt(1)] === pid; });
@@ -553,7 +478,8 @@
 
     /* ── 2 · check it every year ─────────────────────────────────────── */
     function render2(focusSel, msg) {
-      var list = h("ul", { "class": "cb-s15-checks" }, checks.map(function (c) {
+      viewPhase = "check";
+      var list = h("ul", { "class": "cb-s15-checks", "data-cb-choices": "" }, checks.map(function (c) {
         var on = check === c.id;
         return h("li", null, [h("button", { type: "button", "class": "cb-s15-check" + (on ? " is-on" : ""), "aria-pressed": on ? "true" : "false", "data-s15-check": c.id,
           onclick: function () { pickCheck(c.id); } }, [
@@ -571,11 +497,12 @@
     /* ── 3 · who isn't here yet? ─────────────────────────────────────── */
     function seat(av, name, cls) { return h("li", { "class": "cb-s15-seat" + (cls ? " " + cls : "") }, [av, h("span", { "class": "cb-s15-seat__n", text: name })]); }
     function render3(focusSel, msg, ok) {
+      viewPhase = "invite";
       var seats = NB.map(function (n) { return seat(nbAv(n), api.nmCap(n)); })
         .concat([seat(guideAv("lucia"), GUIDES.lucia.name), seat(guideAv("theo"), GUIDES.theo.name)])
         .concat(guests.map(function (id) { return seat(personAv(id), capP(id), "is-guest"); }))
         .concat([invited ? seat(personAv(invited), capP(invited), "is-guest is-new") : h("li", { "class": "cb-s15-seat cb-s15-seat--empty", "aria-hidden": "true" }, [h("span", { "class": "cb-s15-av cb-s15-av--empty" }, [icon("seat")])])]);
-      var row = h("ul", { "class": "cb-s15-people" }, rowPeople.map(function (id) {
+      var row = h("ul", { "class": "cb-s15-people", "data-cb-choices": "" }, rowPeople.map(function (id) {
         var isTried = !!tried[id], isIn = invited === id, locked = !!invited || isTried;
         return h("li", null, [h("button", { type: "button", "class": "cb-s15-person" + (isTried ? " is-tried" : "") + (isIn ? " is-in" : "") + (locked && !isTried && !isIn ? " is-locked" : ""),
           "data-s15-person": id, "aria-disabled": locked ? "true" : null, "aria-label": capP(id) + (isTried ? ", " + T.tried : ""), onclick: function () { tapPerson(id); } }, [
@@ -593,6 +520,7 @@
     function step3() { render3('[data-s15="lucia"]'); api.frame(true); api.say(T.lucia3); }
     function tapPerson(id) {
       if (invited || tried[id]) return;
+      lastPerson = id;
       var m;
       if (guests.indexOf(id) !== -1) {                                  // already at the table: never wrong-sounding
         tried[id] = 1; if (!firstTap) firstTap = "guest";
@@ -606,6 +534,7 @@
 
     /* ── the neighbors react on the 2035 scene ──────────────────────── */
     function react() {
+      viewPhase = "react";
       var cards = NB.map(function (n) {
         var ok = answered(n.id);
         return h("li", { "class": "cb-s15-react" + (ok ? " is-on" : "") }, [sayRow(h("span", { "class": "cb-s15-react__face" }, [nbAv(n), ok ? badge() : null]), api.nmCap(n), ok ? T.yes : T.notYetWish)]);
@@ -623,12 +552,13 @@
 
     /* ── the picnic: everyone gathers on the river meadow, then the aha ── */
     function picnic() {
+      viewPhase = "picnic";
       var avs = NB.map(function (n) { return [nbAv(n), api.nmCap(n)]; }).concat([[guideAv("lucia"), GUIDES.lucia.name], [guideAv("theo"), GUIDES.theo.name]],
         guests.map(function (g) { return [personAv(g), t2(PSHORT[g])]; }), invited ? [[personAv(invited), t2(PSHORT[invited])]] : []);
       var crowd = h("ul", { "class": "cb-s15-crowd", "aria-hidden": "true" }, avs.map(function (a, i) {
         var li = h("li", null, [a[0], h("span", { "class": "cb-story-tag cb-s15-crowd__n", text: a[1] })]), side = i % 2 ? 1 : -1;
-        li.style.setProperty("--fx", (side * (140 + Math.round(Math.random() * 160))) + "px");
-        li.style.setProperty("--fy", (-30 - Math.round(Math.random() * 60)) + "px");
+        li.style.setProperty("--fx", (side * (140 + Math.round((api.rng ? api.rng() : Math.random()) * 160))) + "px");
+        li.style.setProperty("--fy", (-30 - Math.round((api.rng ? api.rng() : Math.random()) * 60)) + "px");
         li.style.setProperty("--d", (i * 0.07).toFixed(2) + "s");
         return li;
       }));
@@ -644,13 +574,14 @@
 
     /* ── score (process only) and the score card ─────────────────────── */
     function finish() {
+      viewPhase = "result";
       var nW = nAnswered(), nT = PLACES.filter(function (P) { return plan[P.id] && fair[P.id]; }).length;
       var inv = invited ? (firstTap === "missing" ? 10 : 5) : 0;
       var score = 10 * nW + 4 * nT + (check ? 10 : 0) + inv;
       var left = NB.filter(function (n) { return !answered(n.id); })[0];
       var tip = left ? T.tipWish(api.nm(left)) : nT < 5 ? T.tipTrade : !check ? T.tipCheck : inv < 10 ? T.tipInvite : T.tip100;
       var key = NB.map(function (n) { return deal[n.id]; }).join(",") + "|" + guests.slice().sort().join(",");
-      var info = api.saveRound(stop.id, score, { lastRound: key, lastDeal: deal, lastGuests: guests.slice() });
+      var info = api.saveRound(stop.id, score, { processBadge: nW === 6 && nT === 5 && check && invited ? "process-15" : null, lastRound: key, lastDeal: deal, lastGuests: guests.slice() });
       api.endPlay();
       var gu = btn(T.gu, "cb-btn--quiet", function () { api.dialog(T.gu, [h("div", { "class": "cb-dlg__body" }, [h("p", { text: T.guText })])], gu); }, "family");
       var ask = h("div", { "class": "cb-tipcard cb-s15-ask" }, [api.ico("chat"), h("div", null, [h("strong", { text: T.askK }), h("p", { text: T.ask })])]);
@@ -680,8 +611,27 @@
       }, "go", true), old);
     }
 
+    if (api.setController) api.setController({
+      snapshot: function () { return { v: 2, phase: viewPhase, plan: plan, fair: fair, seen: seen, open: open, openPlace: openPlace,
+        check: check, tried: tried, firstTap: firstTap, invited: invited, lastPerson: lastPerson }; },
+      restore: function (saved) {
+        if (!saved || saved.v !== 2) return false;
+        plan = saved.plan; fair = saved.fair; seen = saved.seen; open = saved.open; openPlace = saved.openPlace;
+        check = saved.check; tried = saved.tried; firstTap = saved.firstTap; invited = saved.invited; lastPerson = saved.lastPerson; onEsc = null;
+        if (saved.phase === "result") finish(); else if (saved.phase === "picnic") picnic(); else if (saved.phase === "react") react();
+        else if (saved.phase === "invite") render3(null, lastPerson ? (invited === lastPerson ? T.great(capP(lastPerson)) : T.look(capP(lastPerson))) : null, !!invited);
+        else if (saved.phase === "check") render2(null, check ? T.added : null); else if (saved.phase === "plan") render1(); else intro();
+        return true;
+      }
+    });
+
     intro();
   }
 
   CB.register({ id: ID, steps: DOTS, css: "15-build-the-future-together.css", run: run });
+
+    return definition;
+  }
+  if (host.defineStop) host.defineStop(factory);
+  else host.register(factory({ document: document, window: window, Date: Date, setTimeout: setTimeout, clearTimeout: clearTimeout, requestAnimationFrame: requestAnimationFrame, cancelAnimationFrame: typeof cancelAnimationFrame === "function" ? cancelAnimationFrame : function () {} }));
 })();
