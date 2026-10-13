@@ -13,6 +13,15 @@ async function startStage(page,file='index.html',seed=42) {
   await page.locator('#pt-quiet').check();
   await page.locator('#pt-start').click();
   await expect(page.locator('.cb-hero')).toBeVisible();
+  // Start still exercises native fullscreen. Return the browser to its normal
+  // window before viewport sweeps: Chromium cannot resize a fullscreen window.
+  // The game's expanded view must remain open after that native exit.
+  await page.evaluate(async()=>{
+    const exit=document.exitFullscreen||document.webkitExitFullscreen;
+    if((document.fullscreenElement||document.webkitFullscreenElement)&&exit)await exit.call(document);
+  });
+  await expect.poll(()=>page.evaluate(()=>!!(document.fullscreenElement||document.webkitFullscreenElement))).toBe(false);
+  await expect(page.locator('#pt-stage')).toHaveClass(/is-expanded/);
 }
 async function start(page,file='index.html',seed=42) {
   await startStage(page,file,seed);
@@ -63,14 +72,17 @@ async function installGamepad(page) {
   await page.addInitScript(()=>{
     const pad={id:'Pecan Grove test controller',index:0,connected:true,mapping:'standard',axes:[0,0,0,0],buttons:Array.from({length:16},()=>({pressed:false,touched:false,value:0})),timestamp:0};
     window.__pgTestPad=pad;
-    Object.defineProperty(navigator,'getGamepads',{configurable:true,value:()=>[pad]});
+    window.__pgPadReads=0;
+    Object.defineProperty(navigator,'getGamepads',{configurable:true,value:()=>{window.__pgPadReads++;return[pad];}});
   });
 }
 async function padButton(page,index) {
-  await page.evaluate(index=>{const pad=window.__pgTestPad;pad.buttons[index]={pressed:true,touched:true,value:1};pad.timestamp++;},index);
-  await page.waitForTimeout(100);
-  await page.evaluate(index=>{const pad=window.__pgTestPad;pad.buttons[index]={pressed:false,touched:false,value:0};pad.timestamp++;},index);
-  await page.waitForTimeout(50);
+  const pressedAt=await page.evaluate(index=>{const pad=window.__pgTestPad;pad.buttons[index]={pressed:true,touched:true,value:1};pad.timestamp++;return window.__pgPadReads;},index);
+  // Keep the synthetic physical edge down until the real RAF poll has sampled
+  // it; a fixed100ms pulse may fall entirely between slow CI WebKit frames.
+  await expect.poll(()=>page.evaluate(()=>window.__pgPadReads),'The real gamepad poll must sample the pressed edge').toBeGreaterThan(pressedAt);
+  const releasedAt=await page.evaluate(index=>{const pad=window.__pgTestPad;pad.buttons[index]={pressed:false,touched:false,value:0};pad.timestamp++;return window.__pgPadReads;},index);
+  await expect.poll(()=>page.evaluate(()=>window.__pgPadReads),'The real gamepad poll must sample the released edge').toBeGreaterThan(releasedAt);
 }
 async function choiceReachable(page) {
   const choice=page.locator('.cb-board button:visible:not(:disabled)').first();
@@ -82,11 +94,14 @@ async function choiceReachable(page) {
       const style=getComputedStyle(other),b=other.getBoundingClientRect();
       return ['fixed','sticky'].includes(style.position)&&style.visibility!=='hidden'&&style.display!=='none'&&b.width&&b.height&&a.left<b.right&&a.right>b.left&&a.top<b.bottom&&a.bottom>b.top;
     }).map(other=>other.className);
-    return{hit:!!top&&(node===top||node.contains(top)),occluders,overflow:document.documentElement.scrollWidth>innerWidth+1};
+    const rect=box=>({x:box.x,y:box.y,width:box.width,height:box.height,top:box.top,right:box.right,bottom:box.bottom,left:box.left});
+    const element=other=>other?{tag:other.tagName,id:other.id,className:typeof other.className==='string'?other.className:other.className?.baseVal,text:other.textContent?.trim().slice(0,160),rect:rect(other.getBoundingClientRect())}:null;
+    return{hit:!!top&&(node===top||node.contains(top)),occluders,overflow:document.documentElement.scrollWidth>innerWidth+1,choice:element(node),top:element(top),center:{x,y},viewport:{width:innerWidth,height:innerHeight,visualWidth:visualViewport?.width,visualHeight:visualViewport?.height,scrollX,scrollY,fullscreen:(document.fullscreenElement||document.webkitFullscreenElement)?.id||null}};
   });
-  expect(result.overflow,'The game must fit the viewport width').toBe(false);
-  expect(result.occluders,'Sticky/fixed controls must not cover the current choice').toEqual([]);
-  expect(result.hit,'The choice center must remain reachable').toBe(true);
+  const evidence=JSON.stringify(result);
+  expect(result.overflow,`The game must fit the viewport width: ${evidence}`).toBe(false);
+  expect(result.occluders,`Sticky/fixed controls must not cover the current choice: ${evidence}`).toEqual([]);
+  expect(result.hit,`The choice center must remain reachable: ${evidence}`).toBe(true);
 }
 
 // These are intentionally named smoke checks. They cover the entry/first play state,
@@ -217,9 +232,12 @@ test.describe('explicitly approved feedback transport',()=>{
   });
 });
 
-test('family flavor has no feedback or endpoint',async({page,noNetwork})=>{
-  test.skip(!process.env.PG_FAMILY_BASE_URL,'Set PG_FAMILY_BASE_URL to run the separately built family flavor. Structural family tests always run in Python.');
-  await page.goto(process.env.PG_FAMILY_BASE_URL);await expect(page.locator('html')).toHaveAttribute('data-flavor','family');await expect(page.locator('#pt-feedback')).toHaveCount(0);await expect(page.locator('#pt-review-tab')).toHaveCount(0);expect(await page.content()).not.toContain('script.google.com');expect(noNetwork.receiverRequests).toHaveLength(0);
+test.describe('separately built family flavor',()=>{
+  test.use({baseURL:process.env.PG_FAMILY_BASE_URL||'http://127.0.0.1:8892'});
+  test('family flavor has no feedback or endpoint',async({page,noNetwork})=>{
+    test.skip(!process.env.PG_FAMILY_BASE_URL,'Set PG_FAMILY_BASE_URL to run the separately built family flavor. Structural family tests always run in Python.');
+    await page.goto('/');await expect(page.locator('html')).toHaveAttribute('data-flavor','family');await expect(page.locator('#pt-feedback')).toHaveCount(0);await expect(page.locator('#pt-review-tab')).toHaveCount(0);expect(await page.content()).not.toContain('script.google.com');expect(noNetwork.receiverRequests).toHaveLength(0);
+  });
 });
 
 for(const {lang,file} of languages) for(const completed of [1,2,15]) {

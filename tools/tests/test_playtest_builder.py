@@ -1,5 +1,7 @@
 """Regression checks for safe feedback configuration and bilingual build output."""
 import importlib.util
+import base64
+import hashlib
 import html
 import io
 import json
@@ -41,6 +43,14 @@ class Elements(HTMLParser):
 
 
 class PlaytestBuilderTests(unittest.TestCase):
+    def test_native_select_exception_allows_only_the_exact_browser_declaration(self):
+        directives = {parts[0]: parts[1:] for item in builder.CSP.split(';') if (parts := item.split())}
+        digest = base64.b64encode(hashlib.sha256(b'text-overflow:inherit').digest()).decode('ascii')
+        self.assertEqual(directives['style-src'], ["'self'"])
+        self.assertEqual(directives['style-src-attr'], ["'unsafe-hashes'", "'sha256-" + digest + "'"])
+        self.assertEqual(directives['script-src'], ["'self'"])
+        self.assertNotIn("'unsafe-inline'", builder.CSP)
+
     def test_family_boot_removes_the_feedback_module_and_retains_game_and_frame_guard(self):
         source = (MODULE.parents[1] / 'assets/playtest/boot.js').read_text(encoding='utf-8')
         output = builder.family_boot(source)

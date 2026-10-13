@@ -11,6 +11,8 @@ export function stageReady({ mode, stopId = null }) {
   )
     return false;
   if (stopId && state.stopId !== stopId) return false;
+  if (mode === "map" && root.querySelector('[data-map-layout="pending"]'))
+    return false;
   return true;
 }
 

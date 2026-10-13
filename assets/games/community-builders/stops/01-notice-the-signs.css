@@ -166,7 +166,7 @@
   /* the scene turns tall so twelve 64px spots still fit without overlapping */
   .cb-s01-scene { --s: 56px; --bw: 96px; --bf: 9.25px; --ar: 0.6494; }   /* tall enough for three-line Spanish tags */
   .cb-s01-stk--post { width: var(--bw); }
-  /* a compact action bar: it stays on screen while the player scrolls the tall scene, so it should cover as little of it as it can */
+  /* Keep the action footer compact while it follows the tall scene in normal flow. */
   .cb-s01-board .cb-actions { gap: 10px; padding: 10px; }
   .cb-s01-board .cb-actions__info { flex-basis: 100%; padding: 2px 4px 0; }
   .cb-s01-board .cb-actions > .cb-btn { flex: 1 1 100%; }

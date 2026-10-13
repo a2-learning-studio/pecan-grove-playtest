@@ -19,7 +19,12 @@ from html.parser import HTMLParser
 ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "_publish" / "pecan-grove-playtest"
 IGNORED_FILES = {"desktop.ini", "thumbs.db", ".ds_store"}
-CSP = ("default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; "
+# WebKit's native select shadow tree writes exactly `text-overflow:inherit` before attaching
+# its UA slot. Permit that one declaration; authored style elements and every other attribute stay blocked.
+# The CI WebKit probe checks both the native control and unrelated-style rejection.
+CSP = ("default-src 'self'; script-src 'self'; style-src 'self'; "
+       "style-src-attr 'unsafe-hashes' 'sha256-3oFxofzq3N//6J8H86e9ul4WT2OkJrtonB66gn/TLJw='; "
+       "img-src 'self' data:; font-src 'self'; "
        "connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'; worker-src 'self'; manifest-src 'self'; "
        "require-trusted-types-for 'script'; trusted-types pg-svg")
 

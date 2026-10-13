@@ -26,6 +26,17 @@ test("performance stage readiness waits for the actual screen and completed defe
     root.removeAttribute("inert");
     assert.equal(stageReady({ mode: "title" }), true);
     assert.equal(stageReady({ mode: "map" }), false);
+    state = { mode: "map", stopId: null };
+    const canvas = document.createElement("div");
+    canvas.dataset.mapLayout = "pending";
+    root.append(canvas);
+    assert.equal(
+      stageReady({ mode: "map" }),
+      false,
+      "map geometry remains inside the measured interaction",
+    );
+    canvas.dataset.mapLayout = "ready";
+    assert.equal(stageReady({ mode: "map" }), true);
     state = { mode: "stop", stopId: "notice-the-signs" };
     assert.equal(
       stageReady({ mode: "stop", stopId: "ask-a-good-question" }),

@@ -83,6 +83,15 @@ jobs:
         with:
           name: checked-builds
       - run: npx playwright install --with-deps chromium firefox webkit
+      - name: Isolate native WebKit dropdown CSP behavior
+        if: matrix.project == 'webkit'
+        run: node tools/webkit-csp-probe.mjs
+      - uses: actions/upload-artifact@v7
+        if: always() && matrix.project == 'webkit'
+        with:
+          name: webkit-csp-probe
+          path: test-results/webkit-csp-probe.json
+          retention-days: 7
       - run: npm run test:e2e -- --project=${{ matrix.project }}
         env:
           PG_FAMILY_BASE_URL: http://127.0.0.1:8892

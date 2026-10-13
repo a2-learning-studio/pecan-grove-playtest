@@ -24,6 +24,10 @@ export function createLifecycle({
       : now() - pausedDuration - (suspended ? now() - pausedAt : 0);
   function facade(target) {
     return new Proxy(target, {
+      set(object, key, value) {
+        // Native DOM setters, such as Document.title, require their real receiver.
+        return Reflect.set(object, key, value, object);
+      },
       get(object, key) {
         if (key === "addEventListener")
           return (type, callback, options) => {

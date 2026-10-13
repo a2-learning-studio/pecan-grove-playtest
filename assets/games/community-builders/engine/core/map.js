@@ -275,6 +275,8 @@ export default function createMap(ctx) {
       },
       "family",
     );
+    // Build the final toolbar/classes before the first focus and layout measurement.
+    installMapPresentation(ctx, world, canvas, pan);
     ctx.screen([
       ctx.h("h2", { class: "cb-vh", text: ctx.W.series }),
       world,
@@ -285,7 +287,6 @@ export default function createMap(ctx) {
       ]),
     ]);
     ctx.frame(true);
-    installMapPresentation(ctx, world, canvas, pan);
     if (ctx.window.requestIdleCallback && sug && ctx.moduleManifest[sug])
       ctx.window.requestIdleCallback(
         function () {

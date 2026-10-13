@@ -2,6 +2,49 @@ const test = require("node:test");
 const assert = require("node:assert/strict");
 const { fullCore } = require("./modernization-gameplay-fixture.cjs");
 const copy = (value) => JSON.parse(JSON.stringify(value));
+test("Stop 9, 10 and 11 title writes preserve the native Document setter receiver", async () => {
+  const r = await fullCore("en", 42);
+  try {
+    const document = r.w.document;
+    const native = Object.getOwnPropertyDescriptor(
+      r.w.Document.prototype,
+      "title",
+    );
+    let writes = 0;
+    Object.defineProperty(document, "title", {
+      configurable: true,
+      get() {
+        assert.equal(this, document, "native DOM getter receiver");
+        return native.get.call(document);
+      },
+      set(value) {
+        assert.equal(this, document, "native DOM setter receiver");
+        writes++;
+        native.set.call(document, value);
+      },
+    });
+    for (const id of [
+      "include-every-voice",
+      "match-a-fix",
+      "weigh-the-tradeoffs",
+    ]) {
+      await r.core.startStop(id);
+      assert.equal(r.core.getState().mode, "stop", id);
+      assert.equal(r.core.getState().stopId, id);
+      assert.ok(
+        r.main().querySelector(".cb-btn--go"),
+        "the actual stop introduction renders",
+      );
+    }
+    assert.ok(
+      writes >= 3,
+      "all three authored title writes reach the real Document",
+    );
+    assert.deepEqual(r.errors, []);
+  } finally {
+    r.close();
+  }
+});
 test("Closing a stop dialog with Escape is preserved by snapshot restoration", async () => {
   const r = await fullCore("en", 42);
   try {

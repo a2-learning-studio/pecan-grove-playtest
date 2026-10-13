@@ -23,15 +23,18 @@ DOC_FILES = {"source-map.md", "stop-api.md", "stop-api.d.ts", "stops-audit.md", 
 BACKEND_FILES = {"Code.gs", "appsscript.json", "README.md", "feedback-backend.test.cjs"}
 TOOL_FILES.add("check-fact-sources.mjs")
 TOOL_FILES.add("requirements-build.txt")
-DOC_FILES.add("content-review.md")
+TOOL_FILES.update({"delivery-manifest.mjs", "performance-checks.mjs", "webkit-csp-probe.mjs"})
+DOC_FILES.update({"content-review.md", "engine-coverage.json", "engine-coverage.txt"})
 ROOT_FILES.update({".gitattributes", "IMPLEMENTATION-REPORT.md", "pecan-grove-comprehensive-audit-2026-10-12.md"})
+ROOT_FILES.add("assets/img/mark.svg")
 TREES = {
     "assets/games/community-builders": {".js", ".css", ".json", ".svg", ".webp", ".avif", ".png", ".jpg", ".jpeg", ".mp3"},
     "assets/playtest": {".js", ".css", ".json", ".svg", ".png", ".webp", ".avif"},
     "assets/css": {".css"}, "assets/fonts": {".woff", ".woff2", ".ttf", ".otf"},
+    "assets/icons": {".png", ".svg"},
     "tools/tests": {".py", ".cjs", ".mjs", ".js", ".json"},
     "tests": {".py", ".cjs", ".mjs", ".js", ".json"},
-    "docs/engine-art-review": {".html", ".svg", ".png", ".webp", ".avif"},
+    "docs/engine-art-review": {".html", ".css", ".svg", ".png", ".webp", ".avif"},
 }
 
 
