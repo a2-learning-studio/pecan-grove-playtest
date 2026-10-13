@@ -44,10 +44,19 @@ function pageBuild() {
 }
 function workerBuild(worker) {
   return new Promise(resolve => {
-    const channel = new MessageChannel(), timer = setTimeout(() => resolve(''), 800);
-    channel.port1.onmessage = event => { clearTimeout(timer); resolve(event.data?.build || ''); };
-    try { worker.postMessage({ type: 'GET_VERSION' }, [channel.port2]); }
-    catch (_) { clearTimeout(timer); resolve(''); }
+    let settled = false, timer;
+    const finish = value => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      navigator.serviceWorker.removeEventListener('message', onMessage);
+      resolve(value);
+    };
+    const onMessage = event => { if (event.data?.type === 'VERSION') finish(event.data.build || ''); };
+    timer = setTimeout(() => finish(''), 800);
+    navigator.serviceWorker.addEventListener('message', onMessage);
+    try { worker.postMessage({ type: 'GET_VERSION' }); }
+    catch (_) { finish(''); }
   });
 }
 let noticeCheck = 0;

@@ -35,9 +35,13 @@ test('a hard refresh of the current build does not keep an update toast, and an 
     const dom = new JSDOM(`<!doctype html><html lang="en"><head><meta name="pg-offline" content="enabled"><meta name="content-build-id" content="${pageBuild}"></head><body><nav class="pt-toolbar"></nav><section id="pt-stage"></section></body></html>`, {url:'https://game.test/', runScripts:'outside-only'});
     const w = dom.window, messages = [];
     w.PGShellLocale = {en: JSON.parse(read('assets/playtest/locales/en.json')), es: JSON.parse(read('assets/playtest/locales/es.json'))};
-    const waiting = { postMessage(data, ports) { messages.push(data.type); if (data.type === 'GET_VERSION') ports[0].postMessage({type:'VERSION', build: workerBuild}); } };
-    Object.defineProperty(w.navigator, 'serviceWorker', {configurable:true, value:{register: async()=>({waiting, addEventListener(){}}), addEventListener(){}}});
-    w.MessageChannel = class { constructor() { const ports = [{}, {}]; ports[0].postMessage = data => ports[1].onmessage && ports[1].onmessage({data}); ports[1].postMessage = data => ports[0].onmessage && ports[0].onmessage({data}); this.port1 = ports[0]; this.port2 = ports[1]; } };
+    const listeners = [];
+    const waiting = { postMessage(data) { messages.push(data.type); if (data.type === 'GET_VERSION') listeners.slice().forEach(fn => fn({data:{type:'VERSION', build: workerBuild}})); } };
+    Object.defineProperty(w.navigator, 'serviceWorker', {configurable:true, value:{
+      register: async()=>({waiting, addEventListener(){}}),
+      addEventListener(type, fn) { if (type === 'message') listeners.push(fn); },
+      removeEventListener(type, fn) { const index = listeners.indexOf(fn); if (type === 'message' && index >= 0) listeners.splice(index, 1); }
+    }});
     vm.runInContext(source, dom.getInternalVMContext());
     await settle();
     return {dom, messages, notice: w.document.getElementById('pg-update-notice')};
