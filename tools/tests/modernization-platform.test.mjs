@@ -88,6 +88,13 @@ test('offline worker caches first-party files and preserves explicit voice packs
   assert.equal(w.self.skipped, undefined);
   w.handlers.message({ data: { type: 'SKIP_WAITING' } }); assert.equal(w.self.skipped, true);
 });
+test('a waiting worker can name its build without activating', () => {
+  const w = worker();
+  let reply;
+  w.handlers.message({ data: { type: 'GET_VERSION' }, ports: [{ postMessage(value) { reply = value; } }] });
+  assert.equal(reply.type, 'VERSION'); assert.equal(reply.build, 'test');
+  assert.equal(w.self.skipped, undefined);
+});
 test('heard voice clips stay available offline in their own language cache', async () => {
   const w = worker(), url = 'https://example.test/game/assets/games/community-builders/voice/en/hello.mp3';
   await w.fetchEvent(url); w.offline();

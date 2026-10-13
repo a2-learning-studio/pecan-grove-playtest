@@ -108,11 +108,14 @@ export class HUD {
       const current = steps.findIndex(
         (s) => s.getAttribute("aria-current") === "step",
       );
+      const done = steps.filter(
+        (s) => s.getAttribute("data-s") === "done",
+      ).length;
       if (steps.length)
         node.append(
           h("progress", {
             max: steps.length,
-            value: Math.max(0, current + 1),
+            value: current >= 0 ? current + 1 : done,
             "aria-label": this.i18n.t("stopProgress"),
           }),
         );

@@ -1,12 +1,20 @@
 /* First-party offline files only. Feedback is never cached or queued here. */
-const CACHE = 'pecan-grove-__BUILD__';
+const BUILD = '__BUILD__';
+const CACHE = 'pecan-grove-' + BUILD;
 const PRECACHE = __PRECACHE__;
 self.addEventListener('install', event => event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(PRECACHE))));
 self.addEventListener('activate', event => event.waitUntil((async () => {
   for (const key of await caches.keys()) if (key.startsWith('pecan-grove-') && key !== CACHE && !key.startsWith('pecan-grove-voice-')) await caches.delete(key);
   await self.clients.claim();
 })()));
-self.addEventListener('message', event => { if (event.data?.type === 'SKIP_WAITING') self.skipWaiting(); });
+self.addEventListener('message', event => {
+  if (event.data?.type === 'SKIP_WAITING') self.skipWaiting();
+  if (event.data?.type === 'GET_VERSION') {
+    const reply = { type: 'VERSION', build: BUILD };
+    if (event.ports && event.ports[0]) event.ports[0].postMessage(reply);
+    else if (event.source) event.source.postMessage(reply);
+  }
+});
 self.addEventListener('fetch', event => {
   const request = event.request, url = new URL(request.url);
   if (request.method !== 'GET' || url.origin !== self.location.origin || url.pathname.includes('/macros/')) return;

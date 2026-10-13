@@ -39,6 +39,31 @@ const safeScreen = () => {
   const state = window.CommunityBuilders?.snapshot?.();
   return !state || state.mode !== 'stop';
 };
+function pageBuild() {
+  return document.querySelector('meta[name="content-build-id"]')?.content || '';
+}
+function workerBuild(worker) {
+  return new Promise(resolve => {
+    const channel = new MessageChannel(), timer = setTimeout(() => resolve(''), 800);
+    channel.port1.onmessage = event => { clearTimeout(timer); resolve(event.data?.build || ''); };
+    try { worker.postMessage({ type: 'GET_VERSION' }, [channel.port2]); }
+    catch (_) { clearTimeout(timer); resolve(''); }
+  });
+}
+let noticeCheck = 0;
+async function considerUpdate() {
+  const waiting = registration?.waiting;
+  if (!waiting) return;
+  const token = ++noticeCheck, build = await workerBuild(waiting);
+  if (token !== noticeCheck || registration?.waiting !== waiting) return;
+  const current = pageBuild();
+  if (build && current && build === current) {
+    document.getElementById('pg-update-notice')?.remove();
+    waiting.postMessage({ type: 'SKIP_WAITING' });
+    return;
+  }
+  updateNotice();
+}
 function updateNotice() {
   if (!registration?.waiting || updateDeferred || !safeScreen() || document.getElementById('pg-update-notice')) return;
   const bar = make('aside', '', { id: 'pg-update-notice', class: 'pg-update-notice', 'aria-label': text('pwa_game_update') });
@@ -64,12 +89,12 @@ function connectivity() {
 window.addEventListener('online', connectivity); window.addEventListener('offline', connectivity); connectivity();
 document.addEventListener('pg:language-change', connectivity);
 document.addEventListener('cb:screen', () => {
-  if (!safeScreen()) document.getElementById('pg-update-notice')?.remove(); else updateNotice();
+  if (!safeScreen()) document.getElementById('pg-update-notice')?.remove(); else considerUpdate();
 });
 if ('serviceWorker' in navigator && document.querySelector('meta[name="pg-offline"]')?.content === 'enabled') {
   navigator.serviceWorker.register(trustedWorkerURL(window, new URL('sw.js', document.baseURI))).then(value => {
-    registration = value; updateNotice();
-    value.addEventListener('updatefound', () => value.installing?.addEventListener('statechange', updateNotice));
+    registration = value; considerUpdate();
+    value.addEventListener('updatefound', () => value.installing?.addEventListener('statechange', considerUpdate));
   }).catch(() => {
     chip.hidden = false; chip.textContent = text('pwa_offline_setup_unavailable_play_can_continue');
   });

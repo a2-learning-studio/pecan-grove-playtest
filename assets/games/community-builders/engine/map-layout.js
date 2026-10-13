@@ -50,16 +50,31 @@ export function fitStopPoints(positions, width, height, diameter = 44) {
   }
   return pts;
 }
-export function platePlacement(anchor, size, bounds, obstacles) {
+export function platePlacement(
+  anchor,
+  size,
+  bounds,
+  obstacles,
+  extras = false,
+  plateGap = 36,
+) {
   const gap = 8,
     centerX = (anchor.left + anchor.right) / 2,
     centerY = (anchor.top + anchor.bottom) / 2;
-  const candidates = [
+  const spots = [
     [centerX - size.width / 2, anchor.top - size.height - gap, "above"],
     [centerX - size.width / 2, anchor.bottom + gap, "below"],
     [anchor.left - size.width - gap, centerY - size.height / 2, "left"],
     [anchor.right + gap, centerY - size.height / 2, "right"],
-  ].map(([left, top, side]) => ({
+  ];
+  if (extras)
+    spots.push(
+      [anchor.right + gap, anchor.top - size.height - gap, "above"],
+      [anchor.left - size.width - gap, anchor.top - size.height - gap, "above"],
+      [anchor.right + gap, anchor.bottom + gap, "below"],
+      [anchor.left - size.width - gap, anchor.bottom + gap, "below"],
+    );
+  const candidates = spots.map(([left, top, side]) => ({
     left,
     top,
     right: left + size.width,
@@ -73,7 +88,9 @@ export function platePlacement(anchor, size, bounds, obstacles) {
         box.right <= bounds.right &&
         box.top >= bounds.top &&
         box.bottom <= bounds.bottom &&
-        !obstacles.some((other) => overlap(box, other)),
+        !obstacles.some((other) =>
+          overlap(box, other, other.plate ? plateGap : 4),
+        ),
     ) || null
   );
 }
@@ -340,15 +357,32 @@ export function installMapPresentation(ctx, world, canvas, pan) {
       );
     for (const item of order) {
       if (!item.shown) continue;
-      item.box = platePlacement(discs[item.index], item.size, bounds, [
+      const obstacles = [
         ...discs.filter((_, i) => i !== item.index),
         ...placed,
-      ]);
+      ];
+      item.box =
+        platePlacement(
+          discs[item.index],
+          item.size,
+          bounds,
+          obstacles,
+          true,
+          36,
+        ) ||
+        platePlacement(
+          discs[item.index],
+          item.size,
+          bounds,
+          obstacles,
+          true,
+          14,
+        );
       item.docked =
         !item.box &&
         item.button === priority &&
         (item.button === active || overlap(discs[item.index], bounds, 0));
-      if (item.box) placed.push(item.box);
+      if (item.box) placed.push(Object.assign(item.box, { plate: true }));
     }
     // No geometry reads after this point: all attributes/positions commit together.
     showCaption(priority);

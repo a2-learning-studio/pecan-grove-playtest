@@ -80,7 +80,10 @@
   visibility: visible;
   opacity: 1;
 }
-.cb-map-ready .cb-stops--onmap .cb-stop__plate b {
+.cb-map-ready .cb-stops--onmap .cb-stop .cb-stop__plate {
+  max-width: min(10.5rem, 42cqw);
+}
+.cb-map-ready .cb-stops--onmap .cb-stop .cb-stop__plate b {
   white-space: normal;
   text-wrap: balance;
   font-size: 0.9375rem;

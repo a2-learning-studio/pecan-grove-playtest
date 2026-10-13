@@ -61,11 +61,16 @@ export default function createTitle(ctx) {
             gu,
           ]),
           chapters,
-          ctx.h("small", {
-            class: "cb-hero__build",
-            "data-cb-novoice": "",
-            text: ctx.root.getAttribute("data-build") || "playtest",
-          }),
+          (function () {
+            var build = ctx.root.getAttribute("data-build");
+            return build
+              ? ctx.h("small", {
+                  class: "cb-hero__build",
+                  "data-cb-novoice": "",
+                  text: build,
+                })
+              : null;
+          })(),
         ]),
       ]),
     ]);

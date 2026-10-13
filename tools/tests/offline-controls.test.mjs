@@ -29,6 +29,28 @@ test('voice sizes are shown before consent and no MP3 is fetched until Download 
   h.container.querySelectorAll('section button')[3].click(); await settle();
   assert.deepEqual(h.deleted,['pecan-grove-voice-en']); h.dom.window.close();
 });
+test('a hard refresh of the current build does not keep an update toast, and an older page still offers restart', async()=>{
+  const source = read('assets/playtest/pwa.js').replace(/^import .*;$/m, 'const trustedWorkerURL = () => "/sw.js";');
+  async function boot(workerBuild, pageBuild) {
+    const dom = new JSDOM(`<!doctype html><html lang="en"><head><meta name="pg-offline" content="enabled"><meta name="content-build-id" content="${pageBuild}"></head><body><nav class="pt-toolbar"></nav><section id="pt-stage"></section></body></html>`, {url:'https://game.test/', runScripts:'outside-only'});
+    const w = dom.window, messages = [];
+    w.PGShellLocale = {en: JSON.parse(read('assets/playtest/locales/en.json')), es: JSON.parse(read('assets/playtest/locales/es.json'))};
+    const waiting = { postMessage(data, ports) { messages.push(data.type); if (data.type === 'GET_VERSION') ports[0].postMessage({type:'VERSION', build: workerBuild}); } };
+    Object.defineProperty(w.navigator, 'serviceWorker', {configurable:true, value:{register: async()=>({waiting, addEventListener(){}}), addEventListener(){}}});
+    w.MessageChannel = class { constructor() { const ports = [{}, {}]; ports[0].postMessage = data => ports[1].onmessage && ports[1].onmessage({data}); ports[1].postMessage = data => ports[0].onmessage && ports[0].onmessage({data}); this.port1 = ports[0]; this.port2 = ports[1]; } };
+    vm.runInContext(source, dom.getInternalVMContext());
+    await settle();
+    return {dom, messages, notice: w.document.getElementById('pg-update-notice')};
+  }
+  const same = await boot('build-a', 'build-a');
+  assert.equal(same.notice, null);
+  assert.deepEqual(same.messages, ['GET_VERSION', 'SKIP_WAITING']);
+  same.dom.window.close();
+  const older = await boot('build-b', 'build-a');
+  assert.match(older.notice.textContent, /new version is ready/i);
+  assert.deepEqual(older.messages, ['GET_VERSION']);
+  older.dom.window.close();
+});
 test('live language switching translates offline controls without rebuilding or losing download progress', async()=>{
   const h=setup(); await h.w.PecanGroveOffline.openVoicePacks(h.container); await settle();
   const section=h.container.querySelector('section'), progress=section.querySelector('progress');

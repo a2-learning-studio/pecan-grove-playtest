@@ -70,6 +70,24 @@ test("plate placement tries four directions, never covers another disc, and hide
     null,
   );
 });
+test("a name plate keeps a clear gap from another name plate", () => {
+  const anchor = { left: 200, top: 200, right: 260, bottom: 260 },
+    size = { width: 160, height: 32 },
+    bounds = { left: 0, top: 0, right: 800, bottom: 600 },
+    above = platePlacement(anchor, size, bounds, []);
+  const crowded = {
+    left: above.left,
+    top: above.top - 52,
+    right: above.left + size.width,
+    bottom: above.top - 20,
+    plate: true,
+  };
+  assert.equal(
+    platePlacement(anchor, size, bounds, [crowded]).side,
+    "below",
+    "A plate 20px away is too close to stack above the next disc",
+  );
+});
 test("chapter hulls use the real stop chapter membership and namespace-safe SVG nodes", () => {
   const d = new JSDOM('<svg xmlns="http://www.w3.org/2000/svg"></svg>');
   try {
