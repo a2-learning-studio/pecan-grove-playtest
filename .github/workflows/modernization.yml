@@ -1,0 +1,141 @@
+name: Modernization checks and Pages
+on:
+  push:
+    branches: [main, 'modernization/**']
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: modernization-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - run: npm ci
+      - run: python -m pip install -r tools/requirements-build.txt
+      - run: npm run test:coverage
+        env:
+          PG_BASELINE_ROOT: ${{ github.workspace }}
+      - run: python -B -m unittest discover -s tools/tests -p 'test_*.py' -v
+      - run: npm run lint
+      - run: npm run lint:css
+      - run: npm run format:check
+      - run: npm run check:no-emoji
+      - run: npm run check:fact-sources
+      - run: node tools/readability.mjs
+      - run: npm run images
+      - name: Build playtest with its configured receiver
+        run: |
+          test -n "$PG_FEEDBACK_ENDPOINT"
+          npm run build
+        env:
+          PG_FEEDBACK_ENDPOINT: ${{ vars.PG_FEEDBACK_ENDPOINT }}
+      - run: npm run test:privacy-copy
+      - run: npm run build -- --flavor=family
+      - uses: actions/upload-artifact@v7
+        with:
+          name: checked-builds
+          path: |
+            dist
+            dist-family
+          retention-days: 7
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: source-verification
+          path: |
+            docs/build-receipt*.json
+            docs/readability*
+            docs/privacy-baseline-proof*
+          retention-days: 7
+  browsers:
+    needs: quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        project: [chromium, firefox, webkit, pixel, iphone]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - run: npm ci
+      - uses: actions/download-artifact@v8
+        with:
+          name: checked-builds
+      - run: npx playwright install --with-deps chromium firefox webkit
+      - run: npm run test:e2e -- --project=${{ matrix.project }}
+        env:
+          PG_FAMILY_BASE_URL: http://127.0.0.1:8892
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: browser-${{ matrix.project }}
+          path: |
+            playwright-report
+            test-results
+          retention-days: 7
+  performance:
+    needs: quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - uses: actions/download-artifact@v8
+        with:
+          name: checked-builds
+      - run: npm run test:performance
+      - run: node tools/performance-scenarios.mjs
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: performance
+          path: |
+            test-results/lighthouse
+            .lighthouseci
+          retention-days: 7
+  deploy:
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    needs: [quality, browsers, performance]
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: checked-builds
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4
+

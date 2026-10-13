@@ -6,12 +6,123 @@
     if (!stage) return null;
     var el = function (id) { return document.getElementById('pt-' + id); };
     var intro = el('intro'), game = document.getElementById('community-builders');
+    var startVersion = 0, artWarmed = false;
+    function warmArt() {
+      if (artWarmed || !window.PG_ASSET_MAP) return;
+      artWarmed = true;
+      var idle = window.requestIdleCallback || function (fn) { return window.setTimeout(fn, 0); };
+      idle.call(window, function () {
+        if (!stage.classList.contains('is-playing')) { artWarmed = false; return; }
+        var width = (window.devicePixelRatio || 1) * Math.min(window.innerWidth || 900, 1376) > 1500 ? 2048 : 1376;
+        var name = 'assets/games/community-builders/img/town-map-' + width + '.avif';
+        var href = window.PG_ASSET_MAP[name];
+        if (!href) return;
+        var link = document.createElement('link');
+        link.rel = 'preload'; link.as = 'image'; link.type = 'image/avif'; link.href = href; link.setAttribute('fetchpriority', 'low');
+        document.head.appendChild(link);
+      }, { timeout: 3000 });
+    }
+    function readyToPlay(finish) {
+      if (!window.PGStyles || !window.PGStyles.required) { finish(); warmArt(); return; }
+      var version = ++startVersion;
+      var words = window.PGShellLocale[document.documentElement.lang === 'es' ? 'es' : 'en'];
+      var status = el('play-status');
+      status.textContent = words.shell_loading_styles; game.setAttribute('inert', ''); game.setAttribute('aria-busy', 'true'); el('start').disabled = true;
+      return window.PGStyles.load().then(function () {
+        el('start').disabled = false; game.removeAttribute('inert'); game.removeAttribute('aria-busy');
+        if (version === startVersion) { finish(); warmArt(); }
+      }).catch(function () {
+        el('start').disabled = false; game.removeAttribute('inert'); game.removeAttribute('aria-busy');
+        if (version !== startVersion) return;
+        stage.classList.remove('is-playing', 'is-expanded'); document.body.classList.remove('pt-playing'); intro.hidden = false;
+        var error = el('style-error');
+        if (!error) { error = document.createElement('p'); error.id = 'pt-style-error'; error.setAttribute('role', 'alert'); intro.appendChild(error); }
+        error.textContent = window.PGShellLocale[document.documentElement.lang === 'es' ? 'es' : 'en'].shell_styles_error;
+        el('start').focus();
+        if (document.fullscreenElement === stage && document.exitFullscreen) document.exitFullscreen().catch(function () {});
+      });
+    }
+    var currentLanguage = document.documentElement.lang === 'es' ? 'es' : 'en';
+    var catalogs;
+    function loadCatalogs() {
+      if (window.PGShellLocale) return Promise.resolve([window.PGShellLocale.en, window.PGShellLocale.es]);
+      if (!catalogs) catalogs = Promise.all(['en', 'es'].map(function (language) {
+        var name = 'assets/playtest/locales/' + language + '.json';
+        return window.fetch((window.PG_ASSET_MAP || {})[name] || name).then(function (response) {
+          if (!response.ok) throw new Error('Language file unavailable');
+          return response.json();
+        });
+      }));
+      return catalogs;
+    }
+    document.addEventListener('pg:language-change', function (event) {
+      var language = event.detail && event.detail.language;
+      if ((language !== 'en' && language !== 'es') || language === currentLanguage) return;
+      var previous = currentLanguage; currentLanguage = language;
+      loadCatalogs().then(function (all) {
+        var oldWords = all[previous === 'es' ? 1 : 0], words = all[language === 'es' ? 1 : 0], translations = new Map();
+        Object.keys(oldWords).forEach(function (key) {
+          if (Array.isArray(oldWords[key])) oldWords[key].forEach(function (value, i) { translations.set(value, words[key][i]); });
+          else if (typeof oldWords[key] === 'string') translations.set(oldWords[key], words[key]);
+        });
+        var excluded = '#community-builders, #pt-feedback, .cb-engine-dialog, #pg-update-notice';
+        var walker = document.createTreeWalker(document.body, 4), node;
+        while ((node = walker.nextNode())) {
+          if (node.parentElement && !node.parentElement.closest(excluded)) {
+            var trimmed = node.textContent.trim(), translated = translations.get(trimmed);
+            if (translated) node.textContent = node.textContent.replace(trimmed, translated);
+          }
+        }
+        document.querySelectorAll('[aria-label], [title], [data-expand-label], [data-collapse-label], [data-float-label], [data-popup-label]').forEach(function (element) {
+          if (element.closest(excluded)) return;
+          ['aria-label', 'title', 'data-expand-label', 'data-collapse-label', 'data-float-label', 'data-popup-label'].forEach(function (attribute) {
+            var translated = translations.get(element.getAttribute(attribute));
+            if (translated) element.setAttribute(attribute, translated);
+          });
+        });
+        document.title = words.title;
+        var languageLink = document.querySelector('.pt-lang');
+        if (languageLink) { languageLink.href = words.other; languageLink.hreflang = words.other_lang; languageLink.lang = words.other_lang; }
+        es = language === 'es';
+      }).catch(function () { catalogs = null; });
+    });
+    var languageLink = document.querySelector && document.querySelector('.pt-lang');
+    if (languageLink) languageLink.addEventListener('click', function (event) {
+      var value = window.CommunityBuilders;
+      if (value && value.setLanguage) { event.preventDefault(); value.setLanguage(document.documentElement.lang === 'es' ? 'en' : 'es'); }
+    });
     var panel = el('feedback'), home = el('feedback-home'), slot = el('feedback-window');
+    if (!panel) {
+      var familyStart = function () {
+        intro.hidden = true; stage.classList.add('is-playing', 'is-expanded'); document.body.classList.add('pt-playing');
+        var request = stage.requestFullscreen || stage.webkitRequestFullscreen;
+        if (request) { try { var promise = request.call(stage); if (promise && promise.catch) promise.catch(function () {}); } catch (_) {} }
+        return readyToPlay(function () {
+          var familyCore = window.CommunityBuilders || {};
+          if (familyCore.enterPlay) familyCore.enterPlay({ quiet: !!el('quiet').checked });
+          if (familyCore.suspendVoice) familyCore.suspendVoice(false);
+          game.focus({ preventScroll: true }); stage.scrollTop = 0;
+        });
+      };
+      var familyExit = function () {
+        startVersion += 1;
+        var familyCore = window.CommunityBuilders || {};
+        if (familyCore.suspendVoice) familyCore.suspendVoice(true);
+        game.setAttribute('data-playtest-paused', 'true');
+        if (document.fullscreenElement === stage && document.exitFullscreen) document.exitFullscreen().catch(function () {});
+        stage.classList.remove('is-playing', 'is-expanded'); document.body.classList.remove('pt-playing'); intro.hidden = false; el('h').focus();
+      };
+      el('start').addEventListener('click', familyStart); el('exit').addEventListener('click', familyExit);
+      el('library-tab').addEventListener('click', function () { if (window.CommunityBuilders.openLibraryMode) window.CommunityBuilders.openLibraryMode(el('library-tab')); });
+      el('grownups-tab').addEventListener('click', function () { if (window.CommunityBuilders.openGrownups) window.CommunityBuilders.openGrownups(el('grownups-tab')); });
+      return { start: familyStart, exit: familyExit };
+    }
     var review = el('review-dialog'), tab = el('review-tab'), float = el('review-float');
     var move = el('review-move'), collapse = el('review-collapse'), tools = el('review-tools');
     var dockHeader = el('feedback-dock-header'), dockCollapse = el('feedback-dock-collapse'), dockFloat = el('feedback-dock-float');
     var playing = false, reviewActive = false, opener = tab;
-    var dockCollapsed = false;
+    function narrow() { return window.matchMedia ? window.matchMedia('(max-width: 760px)').matches : window.innerWidth <= 760; }
+    var dockCollapsed = narrow();
     var floatingPosition = null, floatingSize = null, drag = null;
     var es = document.documentElement.lang === 'es';
     function core() { return window.CommunityBuilders || {}; }
@@ -121,17 +232,20 @@
         try { var result = request.call(stage); if (result && result.catch) result.catch(function () {}); } catch (_) { /* Expanded browser view remains available. */ }
       }
     }
-    function start() {
+    function start(options) {
       playing = true; intro.hidden = true;
       stage.classList.add('is-playing', 'is-expanded');
       document.body.classList.add('pt-playing');
       // Request fullscreen within the original user gesture, before async work.
-      requestFS();
-      if (core().enterPlay) core().enterPlay({ quiet: !!el('quiet').checked });
-      suspend(false);
-      el('play-status').textContent = es ? 'Vista de juego abierta. Los comentarios y el modo sin voz están encima del juego.' : 'Play view is open. Feedback and quiet mode are available above the game.';
-      game.setAttribute('tabindex', '-1'); focus(game);
-      stage.scrollTop = 0;
+      if (!options || options.requestFullscreen !== false) requestFS();
+      return readyToPlay(function () {
+        if (core().enterPlay) core().enterPlay({ quiet: !!el('quiet').checked });
+        suspend(false);
+        var words = window.PGShellLocale && window.PGShellLocale[es ? 'es' : 'en'];
+        el('play-status').textContent = words ? words.shell_play_open : '';
+        game.setAttribute('tabindex', '-1'); focus(game);
+        stage.scrollTop = 0;
+      });
     }
     function restore() {
       flush();
@@ -150,6 +264,7 @@
       restore(); focus(opener && opener.isConnected !== false ? opener : tab);
     }
     function openReview(floating) {
+      floating = !!floating && !narrow();
       flush();
       rememberFloat(); endDrag();
       if (review.open) review.close();
@@ -175,6 +290,7 @@
       focus(el('review-close'));
     }
     function exit() {
+      startVersion += 1;
       closeReview(); playing = false;
       game.setAttribute('data-playtest-paused', 'true'); suspend(true);
       var exitFS = document.exitFullscreen || document.webkitExitFullscreen;
@@ -186,6 +302,7 @@
     el('exit').addEventListener('click', exit);
     tab.addEventListener('click', function () { opener = tab; openReview(false); });
     if (dockCollapse) dockCollapse.addEventListener('click', function () {
+      if (narrow() && dockCollapsed) { opener = dockCollapse; openReview(false); return; }
       flush(); dockCollapsed = !dockCollapsed; renderDock(); focus(dockCollapse);
     });
     if (dockFloat) dockFloat.addEventListener('click', function () { opener = dockFloat; openReview(true); });
@@ -213,6 +330,16 @@
     document.addEventListener('fullscreenchange', fullscreenChanged);
     document.addEventListener('webkitfullscreenchange', fullscreenChanged);
     renderDock(); suspend(true);
+    try {
+      var resumeFlag = new window.URL(window.location.href).searchParams.get('resume');
+      var record = resumeFlag && JSON.parse(window.sessionStorage.getItem('pecan-grove-resume') || 'null');
+      if (record && record.v === 1 && Date.now() - record.ts >= 0 && Date.now() - record.ts < 600000) {
+        window.sessionStorage.removeItem('pecan-grove-resume');
+        var started = start({ requestFullscreen: false });
+        if (started && started.then) started.then(function () { if (core().resume && playing) core().resume(record); });
+        else if (core().resume) core().resume(record);
+      }
+    } catch (_) { /* An invalid or expired handoff leaves the normal introduction available. */ }
     return { start: start, exit: exit, openReview: openReview, closeReview: closeReview };
   }
   if (typeof module !== 'undefined' && module.exports) module.exports = { mount: mount };

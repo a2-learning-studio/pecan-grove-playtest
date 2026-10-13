@@ -1,0 +1,46 @@
+{
+  "name": "pecan-grove",
+  "version": "0.2.0",
+  "private": true,
+  "description": "Bilingual civic-skills game and explicit-send playtest",
+  "scripts": {
+    "test": "node tools/run-tests.cjs",
+    "test:unit": "node tools/run-tests.cjs --unit",
+    "test:e2e": "playwright test",
+    "test:a11y": "playwright test --grep accessibility",
+    "build": "node tools/build.mjs",
+    "preview": "vite preview --host 127.0.0.1",
+    "images": "node tools/images.mjs",
+    "lint": "eslint assets/games/community-builders assets/playtest tools/*.mjs",
+    "format:check": "prettier --check assets/games/community-builders/engine",
+    "test:privacy-copy": "node tools/check-privacy-copy.mjs",
+    "check:no-emoji": "node tools/check-no-emoji.mjs",
+    "check:commit": "node tools/check-commit-message.mjs",
+    "precommit": "node tools/pre-commit.mjs",
+    "lint:css": "stylelint assets/games/community-builders/**/*.css assets/playtest/*.css",
+    "test:performance": "lhci autorun",
+    "test:coverage": "node tools/test-engine-coverage.mjs",
+    "check:fact-sources": "node tools/check-fact-sources.mjs"
+  },
+  "browserslist": [
+    "last 2 Chrome versions",
+    "last 2 Firefox versions",
+    "last 2 Safari versions"
+  ],
+  "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
+    "@lhci/cli": "^0.15.1",
+    "@playwright/test": "^1.64.0",
+    "eslint": "^10.12.0",
+    "eslint-plugin-compat": "^7.0.2",
+    "espree": "^11.2.0",
+    "jsdom": "^29.1.1",
+    "postcss": "^8.5.30",
+    "prettier": "^3.9.10",
+    "sharp": "^0.35.5",
+    "size-limit": "^12.1.0",
+    "stylelint": "^17.16.0",
+    "vite": "^8.3.4",
+    "vitest": "^4.1.11"
+  }
+}

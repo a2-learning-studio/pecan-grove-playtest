@@ -1,0 +1,93 @@
+:root {
+  color-scheme: light;
+  font-family: system-ui, sans-serif;
+  color: var(--pg-stage);
+  background: var(--pg-paper);
+}
+body {
+  margin: 0;
+  padding: clamp(16px, 5vw, 60px);
+}
+main {
+  max-width: 960px;
+  margin: auto;
+}
+h1 {
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  line-height: 1.1;
+  margin: 12px 0;
+}
+h2 {
+  font-size: 1.5rem;
+}
+p {
+  font-size: 1.125rem;
+  line-height: 1.6;
+  max-width: 70ch;
+}
+.eyebrow {
+  font-size: 0.875rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.comparison {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+  margin: 32px 0;
+}
+.comparison article {
+  background: white;
+  border: 2px solid var(--pg-line);
+  border-radius: 24px;
+  padding: 24px;
+  text-align: center;
+}
+.large {
+  width: 220px;
+  max-width: 100%;
+  height: 220px;
+}
+.sizes {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 32px;
+  min-height: 90px;
+}
+.sizes img {
+  flex-shrink: 0;
+}
+.note {
+  font-size: 0.875rem;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+}
+th,
+td {
+  text-align: left;
+  padding: 12px;
+  border: 1px solid var(--pg-line);
+}
+@media (max-width: 520px) {
+  .comparison {
+    gap: 12px;
+  }
+  .comparison article {
+    padding: 12px;
+  }
+  .large {
+    height: 160px;
+  }
+}
+@media (forced-colors: active) {
+  .comparison article,
+  th,
+  td {
+    border-color: CanvasText;
+  }
+}

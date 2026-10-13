@@ -1,0 +1,173 @@
+[
+  {
+    "id": "notice-the-signs",
+    "n": 1,
+    "file": "01-notice-the-signs.js",
+    "css": "01-notice-the-signs.css",
+    "steps": [
+      null,
+      null
+    ]
+  },
+  {
+    "id": "ask-a-good-question",
+    "n": 2,
+    "file": "02-ask-a-good-question.js",
+    "css": "02-ask-a-good-question.css",
+    "steps": [
+      null,
+      null,
+      null,
+      null
+    ]
+  },
+  {
+    "id": "listen-to-every-neighbor",
+    "n": 3,
+    "file": "03-listen-to-every-neighbor.js",
+    "css": "03-listen-to-every-neighbor.css",
+    "steps": [
+      null,
+      null,
+      null
+    ]
+  },
+  {
+    "id": "fact-or-rumor",
+    "n": 4,
+    "file": "04-fact-or-rumor.js",
+    "css": "04-fact-or-rumor.css",
+    "steps": [
+      null,
+      null,
+      null,
+      null,
+      null
+    ]
+  },
+  {
+    "id": "map-what-could-change",
+    "n": 5,
+    "file": "05-map-what-could-change.js",
+    "css": "05-map-what-could-change.css",
+    "steps": [
+      null,
+      null,
+      null,
+      null,
+      null
+    ]
+  },
+  {
+    "id": "who-decides",
+    "n": 6,
+    "file": "06-who-decides.js",
+    "css": "06-who-decides.css",
+    "steps": [
+      null,
+      null,
+      null,
+      null,
+      null
+    ]
+  },
+  {
+    "id": "speak-up-kindly",
+    "n": 7,
+    "file": "07-speak-up-kindly.js",
+    "css": "07-speak-up-kindly.css",
+    "steps": [
+      null,
+      null
+    ]
+  },
+  {
+    "id": "disagree-kindly",
+    "n": 8,
+    "file": "08-disagree-kindly.js",
+    "css": "08-disagree-kindly.css",
+    "steps": [
+      null,
+      null
+    ]
+  },
+  {
+    "id": "include-every-voice",
+    "n": 9,
+    "file": "09-include-every-voice.js",
+    "css": "09-include-every-voice.css",
+    "steps": [
+      null,
+      null,
+      null,
+      null,
+      null
+    ]
+  },
+  {
+    "id": "match-a-fix",
+    "n": 10,
+    "file": "10-match-a-fix.js",
+    "css": "10-match-a-fix.css",
+    "steps": [
+      null,
+      null,
+      null,
+      null,
+      null
+    ]
+  },
+  {
+    "id": "weigh-the-tradeoffs",
+    "n": 11,
+    "file": "11-weigh-the-tradeoffs.js",
+    "css": "11-weigh-the-tradeoffs.css",
+    "steps": [
+      null,
+      null,
+      null
+    ]
+  },
+  {
+    "id": "make-a-fair-deal",
+    "n": 12,
+    "file": "12-make-a-fair-deal.js",
+    "css": "12-make-a-fair-deal.css",
+    "steps": [
+      null,
+      null,
+      null
+    ]
+  },
+  {
+    "id": "spread-the-word-right",
+    "n": 13,
+    "file": "13-spread-the-word-right.js",
+    "css": "13-spread-the-word-right.css",
+    "steps": [
+      null,
+      null
+    ]
+  },
+  {
+    "id": "keep-watch",
+    "n": 14,
+    "file": "14-keep-watch.js",
+    "css": "14-keep-watch.css",
+    "steps": [
+      null,
+      null
+    ]
+  },
+  {
+    "id": "build-the-future-together",
+    "n": 15,
+    "file": "15-build-the-future-together.js",
+    "css": "15-build-the-future-together.css",
+    "steps": [
+      null,
+      null,
+      null
+    ]
+  }
+]

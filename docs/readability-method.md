@@ -1,0 +1,15 @@
+# Readability method and review
+
+Run `node tools/readability.mjs`. It reads the authored EN/ES JSON catalogs for core, all fifteen stops, engine controls and feedback. It writes the full machine-readable report and a Markdown table of warnings. The adult `grownText`/`guText` subtrees and separate playtest-instruction catalogs are excluded. Any bilingual story tables still authored directly in JavaScript remain outside this extraction and require a separate copy review; the report does not claim all rendered text has been measured.
+
+English reports the Flesch-Kincaid grade estimate: `0.39 × words/sentences + 11.8 × syllables/words − 15.59`, following the [Navy derivation report](https://doi.org/10.21236/ADA006655). It warns above grade 5. The report also flags sentences longer than 15 words.
+
+Spanish reports Fernández-Huerta reading ease using the explicitly stated scalable convention `206.84 − 60 × syllables/words − 1.02 × words/sentences`. This convention appears in the [2019 IEEE Access research paper held by UNED](https://oai.e-spacio.uned.es/server/api/core/bitstreams/ef31e260-f1d4-4894-81c5-64184ca9db65/content). Published descriptions of the older formula differ in how the last term is normalized; the tool records its exact equation so the result is reproducible. It warns below 70. It does **not** translate this ease score into a school grade or apply the English formula to Spanish.
+
+Both methods use local rule-based syllable counts, not a pronunciation dictionary or a validated Spanish syllabifier. The Spanish rules handle common silent-u patterns, diphthongs, strong-vowel hiatus and stressed weak vowels. Irregular words, borrowed words, abbreviations, names and regional pronunciation need manual checking. Raw scores remain visible, even outside a usual range; no clamping hides difficult text.
+
+UI labels shorter than 20 words are marked as unstable samples. Function-like JSON `$parts` are joined as authored text and marked as templates; variable names and values are omitted, so the full rendered sentence still needs review. A low estimated grade does not prove clarity, accuracy or comprehension. A short, familiar label can also receive an implausibly high estimated grade. These limitations are reasons for review, not automatic waivers.
+
+`docs/readability-exceptions.json` accepts entries with `id`, the exact `text`, a specific `reason`, `status` and `reviewer`. A changed string makes an old exception stale. Only an explicit human approval may use `status: "approved"`; generated or pending notes do not count as approved exceptions. Proper civic names or an adult-only disclosure may justify an exception, but record why and verify the child-facing explanation nearby. Rewrite avoidable long sentences first.
+
+Threshold warnings intentionally do not fail CI, as specified by P1-18. Broken/missing JSON does fail the tool. The generated report includes all fifteen stop namespaces and leaves unresolved warnings visible. Native Spanish sign-off is still pending in [the copy review](engine-copy-review.md); neither the formula nor key parity supplies that approval.

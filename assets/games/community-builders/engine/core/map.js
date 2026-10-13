@@ -41,7 +41,10 @@ export default function createMap(ctx) {
       var stones = ctx.document.createElementNS(ctx.SVGNS, "path");
       stones.setAttribute("d", d);
       stones.setAttribute("class", "cb-stones");
-      stones.setAttribute("data-upcoming", String(!ctx.rec(ctx.STOPS[i].id, pl)));
+      stones.setAttribute(
+        "data-upcoming",
+        String(!ctx.rec(ctx.STOPS[i].id, pl)),
+      );
       svg.appendChild(stones);
       if (ctx.rec(ctx.STOPS[i].id, pl)) {
         var trail = ctx.document.createElementNS(ctx.SVGNS, "path");

@@ -45,6 +45,7 @@ class SourceIntegrationTests(unittest.TestCase):
             integration.apply()
 
     def test_plan_mirrors_game_and_excludes_private_and_release_files(self):
+        self.write(self.work, "tools/requirements-build.txt", "fonttools==4.62.1\n")
         for relative in ["_publish/pecan-grove-playtest/index.html", "dist/index.html",
                          "backend/feedback/deployment.json", "assets/playtest/live-verification.json",
                          "assets/games/community-builders/metadata/private.json", "backups/private.js",
@@ -52,9 +53,9 @@ class SourceIntegrationTests(unittest.TestCase):
             self.write(self.work, relative, "excluded")
         before = (self.original / "assets/games/community-builders/cb.js").read_bytes()
         plan = self.prepare()
-        self.assertEqual(plan["stats"]["changed_files"], 3)
+        self.assertEqual(plan["stats"]["changed_files"], 4)
         self.assertEqual({item["destination"] for item in plan["files"]},
-                         {"package.json", "assets/games/community-builders/cb.js", "docs/assets/games/community-builders/cb.js"})
+                         {"package.json", "tools/requirements-build.txt", "assets/games/community-builders/cb.js", "docs/assets/games/community-builders/cb.js"})
         self.assertEqual((self.original / "assets/games/community-builders/cb.js").read_bytes(), before)
         self.assertEqual([path.name for path in (self.work / "backups").iterdir()], ["private.js"])
 
