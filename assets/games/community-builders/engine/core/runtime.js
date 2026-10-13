@@ -16,10 +16,17 @@ export default function createRuntime(ctx) {
     ctx.feedbackStop = id;
     ctx.feedbackScore = null;
     if (REG[id]) {
-      return fromMap ? transitionScene(ctx, function () { runModule(id); }, "stop") : (runModule(id), Promise.resolve());
+      return fromMap
+        ? transitionScene(
+            ctx,
+            function () {
+              runModule(id);
+            },
+            "stop",
+          )
+        : (runModule(id), Promise.resolve());
     }
-    var descriptor = ctx.moduleManifest[id];
-    if (!descriptor) return Promise.resolve(false);
+    if (!ctx.stopById(id)) return Promise.resolve(false);
     ctx.mode = "stop";
     ctx.inStop = true;
     var loading = ctx.loadingTask(function () {
@@ -29,26 +36,43 @@ export default function createRuntime(ctx) {
       .then(function () {
         loading.set("manifest", 1);
         var descriptor = ctx.moduleManifest[id];
-        var bank = ctx.window.CBLocale.load ? ctx.window.CBLocale.load("stop-" + String(descriptor.n).padStart(2, "0")) : Promise.resolve();
-        return bank.then(function () { return ctx.loadStop(descriptor, function (value) {
-          loading.set("module", value);
-        }); });
+        if (!descriptor) throw new Error("stop_unavailable");
+        var bank = ctx.window.CBLocale.load
+          ? ctx.window.CBLocale.load(
+              "stop-" + String(descriptor.n).padStart(2, "0"),
+            )
+          : Promise.resolve();
+        return bank.then(function () {
+          return ctx.loadStop(descriptor, function (value) {
+            loading.set("module", value);
+          });
+        });
       })
       .then(
         function () {
-          var render = function () { if (ctx.feedbackStop === id && ctx.mode === "stop") runModule(id); };
-          return (fromMap ? transitionScene(ctx, render, "stop") : (render(), Promise.resolve())).then(function () { return Promise.all([
-            loading.art(ctx.main),
-            Promise.resolve(ctx.vOn ? ctx.vLoad(true) : true).then(
-              function (ready) {
-                if (ready === false) throw new Error("voice_unavailable");
-                loading.set("voice", 1);
-              },
-            ),
-          ]); }).then(function () {
-            loading.finish();
-            return true;
-          });
+          var render = function () {
+            if (ctx.feedbackStop === id && ctx.mode === "stop") runModule(id);
+          };
+          return (
+            fromMap
+              ? transitionScene(ctx, render, "stop")
+              : (render(), Promise.resolve())
+          )
+            .then(function () {
+              return Promise.all([
+                loading.art(ctx.main),
+                Promise.resolve(ctx.vOn ? ctx.vLoad(true) : true).then(
+                  function (ready) {
+                    if (ready === false) throw new Error("voice_unavailable");
+                    loading.set("voice", 1);
+                  },
+                ),
+              ]);
+            })
+            .then(function () {
+              loading.finish();
+              return true;
+            });
         },
         function () {
           loading.finish();
@@ -71,14 +95,15 @@ export default function createRuntime(ctx) {
             ]);
           return false;
         },
-      ).catch(function () {
+      )
+      .catch(function () {
         loading.fail();
         return false;
       });
   }
   var REG = {};
   function createLifecycle(definitionOnly) {
-    return ctx.ownedLifecycle({
+    var lifecycle = ctx.ownedLifecycle({
       root: ctx.root,
       document: ctx.document,
       window: ctx.window,
@@ -86,11 +111,15 @@ export default function createRuntime(ctx) {
       isRestoring: function () {
         return ctx.restoring;
       },
-      isReplaying: function () { return !!ctx.replayingActions; },
+      isReplaying: function () {
+        return !!ctx.replayingActions;
+      },
       replayClock: function () {
         return ctx.replayClock;
       },
     });
+    if (ctx.gamePaused) lifecycle.pause();
+    return lifecycle;
   }
   function stopById(id) {
     return (

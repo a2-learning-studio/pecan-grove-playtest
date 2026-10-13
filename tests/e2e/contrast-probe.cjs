@@ -1,0 +1,34 @@
+const sharp = require('sharp');
+function parseColor(value) {
+  const parts=String(value).match(/^rgba?\(\s*([\d.]+)[,\s]+([\d.]+)[,\s]+([\d.]+)(?:\s*[,/]\s*([\d.]+))?\s*\)$/);
+  if(!parts)throw new Error(`Unsupported computed color: ${value}`);
+  return [Number(parts[1]),Number(parts[2]),Number(parts[3]),parts[4]===undefined?1:Number(parts[4])];
+}
+function composite(front,back,opacity=1){const a=(front[3]??1)*opacity;return front.slice(0,3).map((v,i)=>v*a+back[i]*(1-a));}
+function luminance(rgb){return rgb.slice(0,3).map(v=>{v/=255;return v<=.04045?v/12.92:((v+.055)/1.055)**2.4;}).reduce((a,v,i)=>a+v*[.2126,.7152,.0722][i],0);}
+function contrastRatio(a,b){const x=luminance(a),y=luminance(b);return(Math.max(x,y)+.05)/(Math.min(x,y)+.05);}
+async function renderedLabelContrast(page,selector){
+ const labels=page.locator(selector),results=[];
+ for(let index=0;index<await labels.count();index++){
+  const node=labels.nth(index);if(!await node.isVisible())continue;
+  const info=await node.evaluate(el=>{
+   const nodes=[el,...el.querySelectorAll('*')],colors=[];
+   for(const n of nodes)if([...n.childNodes].some(c=>c.nodeType===3&&c.textContent.trim())){let opacity=1;for(let a=n;a;a=a.parentElement)opacity*=Number(getComputedStyle(a).opacity);colors.push({color:getComputedStyle(n).color,opacity});}
+   const s=getComputedStyle(el);return{text:el.textContent.trim(),colors,border:Math.max(...['Top','Right','Bottom','Left'].map(side=>parseFloat(s[`border${side}Width`])||0)),font:parseFloat(s.fontSize),opacity:Number(s.opacity)};
+  });
+  if(!info.colors.length)continue;
+  // Remove only foreground paint to sample the actual composited background.
+  // Geometry, state, solid/transparent fills and ancestor opacity stay unchanged.
+  await node.evaluate(el=>{for(const n of [el,...el.querySelectorAll('*')]){n.__pgContrastStyle={color:n.style.getPropertyValue('color'),priority:n.style.getPropertyPriority('color'),shadow:n.style.getPropertyValue('text-shadow'),shadowPriority:n.style.getPropertyPriority('text-shadow')};n.style.setProperty('color','transparent','important');n.style.setProperty('text-shadow','none','important');}});
+  let pixels;try{pixels=await sharp(await node.screenshot({animations:'disabled'})).ensureAlpha().raw().toBuffer({resolveWithObject:true});}
+  finally{await node.evaluate(el=>{for(const n of [el,...el.querySelectorAll('*')]){const s=n.__pgContrastStyle;if(!s)continue;s.color?n.style.setProperty('color',s.color,s.priority):n.style.removeProperty('color');s.shadow?n.style.setProperty('text-shadow',s.shadow,s.shadowPriority):n.style.removeProperty('text-shadow');delete n.__pgContrastStyle;}});}
+  const {data,info:image}=pixels,inset=Math.min(Math.floor(Math.min(image.width,image.height)/4),Math.ceil(info.border+4));let ratio=Infinity;
+  for(const [px,py]of [[.25,.5],[.5,.5],[.75,.5],[.5,.25],[.5,.75]]){
+   const x=Math.max(inset,Math.min(image.width-inset-1,Math.floor(image.width*px))),y=Math.max(inset,Math.min(image.height-inset-1,Math.floor(image.height*py))),offset=(y*image.width+x)*image.channels,background=[data[offset],data[offset+1],data[offset+2]];
+   for(const foreground of info.colors)ratio=Math.min(ratio,contrastRatio(composite(parseColor(foreground.color),background,foreground.opacity),background));
+  }
+  results.push({...info,ratio});
+ }
+ return results;
+}
+module.exports={parseColor,composite,luminance,contrastRatio,renderedLabelContrast};

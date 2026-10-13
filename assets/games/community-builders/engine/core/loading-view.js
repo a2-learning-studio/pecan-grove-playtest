@@ -11,8 +11,7 @@ export default function createLoadingView(ctx) {
       tips = 0,
       closed = false,
       announced = 0;
-    var labels =
-      ctx.window.CBLocale.read("core",ctx.L).loading;
+    var labels = ctx.window.CBLocale.read("core", ctx.L).loading;
     function percent() {
       var sum = 0,
         total = 0;
@@ -90,22 +89,28 @@ export default function createLoadingView(ctx) {
       art: function (scope) {
         var images = [].slice.call(scope.querySelectorAll("img"));
         function decoded(image) {
-          return (image.decode ? image.decode() : Promise.resolve()).catch(function (error) {
-            // Rerendering the title can abort a decode for an image already replaced.
-            if (!image.isConnected) return;
-            if (image.complete && image.naturalWidth > 0) return;
-            throw error;
-          });
+          return (image.decode ? image.decode() : Promise.resolve()).catch(
+            function (error) {
+              // Rerendering the title can abort a decode for an image already replaced.
+              if (!image.isConnected) return;
+              if (image.complete && image.naturalWidth > 0) return;
+              throw error;
+            },
+          );
         }
-        return Promise.all(
-          images.map(decoded),
-        ).then(function () {
-          var replacements = [].slice.call(scope.querySelectorAll("img")).filter(function(image){return images.indexOf(image) === -1;});
-          return Promise.all(replacements.map(decoded));
-        }).then(function () {
-          done.art = 1;
-          paint();
-        });
+        return Promise.all(images.map(decoded))
+          .then(function () {
+            var replacements = [].slice
+              .call(scope.querySelectorAll("img"))
+              .filter(function (image) {
+                return images.indexOf(image) === -1;
+              });
+            return Promise.all(replacements.map(decoded));
+          })
+          .then(function () {
+            done.art = 1;
+            paint();
+          });
       },
       finish: finish,
       fail: function () {

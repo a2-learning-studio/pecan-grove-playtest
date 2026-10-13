@@ -91,11 +91,12 @@ export class Focus {
     node.addEventListener("blur", () => node.classList.remove("is-kbd-focus"), {
       once: true,
     });
-    node.scrollIntoView?.({
-      block: "nearest",
-      inline: "nearest",
-      behavior: "auto",
-    });
+    if (!node.closest(".cb-world__pan.is-zoomed"))
+      node.scrollIntoView?.({
+        block: "nearest",
+        inline: "nearest",
+        behavior: "auto",
+      });
     return true;
   }
   move(direction) {

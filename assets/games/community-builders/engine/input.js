@@ -175,7 +175,12 @@ export class Input {
     };
   }
   off(action, handler) {
-    this.handlers.set(action, (this.handlers.get(action) || []).filter((item) => item.handler !== handler));
+    this.handlers.set(
+      action,
+      (this.handlers.get(action) || []).filter(
+        (item) => item.handler !== handler,
+      ),
+    );
   }
   emit(action, { repeat = false, device = this.device, event = null } = {}) {
     const scope = this.scope();

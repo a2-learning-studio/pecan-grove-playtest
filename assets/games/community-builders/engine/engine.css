@@ -1,6 +1,6 @@
-@import './map.css';
-@import './input-hints.css';
-@import './presentation.css';
+@import "./map.css";
+@import "./input-hints.css";
+@import "./presentation.css";
 .cb[data-screen="stop"] {
   font-size: calc(var(--pg-type-body) * var(--cb-text-scale));
 }
@@ -486,14 +486,22 @@
     animation: none !important;
     transition-duration: 0ms !important;
   }
-  .cb .cb-stop { transform: translate(-50%, -50%) !important; animation: none !important; transition-duration: 0ms !important; }
+  .cb .cb-stop {
+    transform: translate(-50%, -50%) !important;
+    animation: none !important;
+    transition-duration: 0ms !important;
+  }
 }
 .cb.is-calm :where(.cb-choice, .cb-engine-dialog) {
   transform: none !important;
   animation: none !important;
   transition-duration: 0ms !important;
 }
-.cb.is-calm .cb-stop { transform: translate(-50%, -50%) !important; animation: none !important; transition-duration: 0ms !important; }
+.cb.is-calm .cb-stop {
+  transform: translate(-50%, -50%) !important;
+  animation: none !important;
+  transition-duration: 0ms !important;
+}
 @media (forced-colors: active) {
   .cb :where(button, a, input, select, [tabindex="0"]):focus-visible,
   .cb .is-kbd-focus,

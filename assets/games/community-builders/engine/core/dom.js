@@ -58,11 +58,25 @@ export default function createDom(ctx) {
     if (/^town-map(?:@2x)?$/.test(name)) {
       var widths = [640, 960, 1376, 2048, 2752];
       function sources(format) {
-        return widths.map(function (width) {
-          return ctx.resolveAsset(ctx.BASE + "img/town-map-" + width + "." + format) + " " + width + "w";
-        }).join(", ");
+        return widths
+          .map(function (width) {
+            return (
+              ctx.resolveAsset(
+                ctx.BASE + "img/town-map-" + width + "." + format,
+              ) +
+              " " +
+              width +
+              "w"
+            );
+          })
+          .join(", ");
       }
-      image.style.setProperty("background-image", 'url("' + ctx.resolveAsset(ctx.BASE + "img/town-map-placeholder.webp") + '")');
+      image.style.setProperty(
+        "background-image",
+        'url("' +
+          ctx.resolveAsset(ctx.BASE + "img/town-map-placeholder.webp") +
+          '")',
+      );
       image.style.setProperty("background-size", "cover");
       image.src = ctx.resolveAsset(ctx.BASE + "img/town-map-960.webp");
       image.setAttribute("srcset", sources("webp"));
@@ -71,7 +85,12 @@ export default function createDom(ctx) {
         "(max-width: 940px) calc(100vw - 24px), 900px",
       );
       picture = h("picture", { class: "cb-responsive-art" }, [
-        h("source", { type: "image/avif", srcset: sources("avif"), sizes: image.getAttribute("sizes") }), image,
+        h("source", {
+          type: "image/avif",
+          srcset: sources("avif"),
+          sizes: image.getAttribute("sizes"),
+        }),
+        image,
       ]);
       picture.artImage = image;
     }
@@ -130,8 +149,14 @@ export default function createDom(ctx) {
       "cb-art__map cb-art__map--crop",
       true,
     );
-    var picture = im, image = im.artImage || im;
-    var size = "(max-width: 940px) " + Math.round(k * 100) + "vw, " + Math.round(900 * k) + "px";
+    var picture = im,
+      image = im.artImage || im;
+    var size =
+      "(max-width: 940px) " +
+      Math.round(k * 100) +
+      "vw, " +
+      Math.round(900 * k) +
+      "px";
     image.setAttribute("sizes", size);
     if (picture.artImage) picture.firstElementChild.setAttribute("sizes", size);
     var pos = (ox * 100).toFixed(2) + "% " + (oy * 100).toFixed(2) + "%";
@@ -151,10 +176,12 @@ export default function createDom(ctx) {
       if (measured > 0) {
         var fitted = Math.ceil(measured * k) + "px";
         image.setAttribute("sizes", fitted);
-        if (picture.artImage) picture.firstElementChild.setAttribute("sizes", fitted);
+        if (picture.artImage)
+          picture.firstElementChild.setAttribute("sizes", fitted);
       }
     };
-    if (ctx.window.requestAnimationFrame) ctx.window.requestAnimationFrame(measure);
+    if (ctx.window.requestAnimationFrame)
+      ctx.window.requestAnimationFrame(measure);
     else ctx.window.setTimeout(measure, 0);
     return container;
   }

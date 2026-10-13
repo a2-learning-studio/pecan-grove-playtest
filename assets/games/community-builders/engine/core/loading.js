@@ -4,16 +4,7 @@ export default function createLoading(ctx) {
   var moduleManifest = {},
     moduleLoads = {},
     manifestReady;
-  ctx.STOPS.forEach(function (stop) {
-    var stem = (stop.n < 10 ? "0" : "") + stop.n + "-" + stop.id;
-    moduleManifest[stop.id] = {
-      id: stop.id,
-      n: stop.n,
-      file: stem + ".js",
-      css: stem + ".css",
-    };
-    ctx.PLAYABLE[stop.id] = 1;
-  });
+  ctx.PLAYABLE = {};
   function boot() {
     if (booted) return;
     booted = true;
@@ -31,7 +22,9 @@ export default function createLoading(ctx) {
       .then(function (items) {
         if (!Array.isArray(items) || items.length !== ctx.STOPS.length)
           throw new Error("manifest_invalid");
-        var seen = {};
+        var seen = {},
+          nextManifest = {},
+          playable = {};
         items.forEach(function (item) {
           var stop = item && ctx.stopById(item.id);
           if (
@@ -39,17 +32,24 @@ export default function createLoading(ctx) {
             seen[item.id] ||
             Number(item.n) !== stop.n ||
             !/^\d\d-[a-z-]+\.js$/.test(item.file) ||
-            item.css !== item.file.replace(/\.js$/, ".css")
+            item.css !== item.file.replace(/\.js$/, ".css") ||
+            !Array.isArray(item.steps) ||
+            !item.steps.length
           )
             throw new Error("manifest_invalid");
           seen[item.id] = true;
-          moduleManifest[item.id] = {
+          nextManifest[item.id] = {
             id: item.id,
             n: stop.n,
             file: item.file,
             css: item.css,
+            steps: item.steps.slice(),
           };
+          playable[item.id] = 1;
         });
+        moduleManifest = nextManifest;
+        ctx.PLAYABLE = playable;
+        if (ctx.mode === "map") ctx.showMap();
         return moduleManifest;
       });
   }

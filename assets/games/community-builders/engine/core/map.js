@@ -1,4 +1,4 @@
-import {installMapPresentation} from '../map-layout.js';
+import { installMapPresentation } from "../map-layout.js";
 export default function createMap(ctx) {
   function showMap(msg) {
     if (typeof ctx.activeLifecycle !== "undefined" && ctx.activeLifecycle) {
@@ -41,6 +41,7 @@ export default function createMap(ctx) {
       var stones = ctx.document.createElementNS(ctx.SVGNS, "path");
       stones.setAttribute("d", d);
       stones.setAttribute("class", "cb-stones");
+      stones.setAttribute("data-upcoming", String(!ctx.rec(ctx.STOPS[i].id, pl)));
       svg.appendChild(stones);
       if (ctx.rec(ctx.STOPS[i].id, pl)) {
         var trail = ctx.document.createElementNS(ctx.SVGNS, "path");
@@ -66,8 +67,14 @@ export default function createMap(ctx) {
     canvas.appendChild(svg);
     function token(s, onMap) {
       var r = ctx.rec(s.id, pl),
-        firstUnfinished = ctx.STOPS.find(function (candidate) { return !ctx.rec(candidate.id, pl); }),
-        orderLocked = ctx.CFG.playInOrder && firstUnfinished && s.n > firstUnfinished.n && !r,
+        firstUnfinished = ctx.STOPS.find(function (candidate) {
+          return !ctx.rec(candidate.id, pl);
+        }),
+        orderLocked =
+          ctx.CFG.playInOrder &&
+          firstUnfinished &&
+          s.n > firstUnfinished.n &&
+          !r,
         playable = ctx.PLAYABLE[s.id] && !orderLocked,
         saved = pl.resume && pl.resume.stopId === s.id ? pl.resume : null,
         st = r ? ctx.starsFor(r.best) : 0;
@@ -78,13 +85,17 @@ export default function createMap(ctx) {
           : saved
             ? "started"
             : sug === s.id
-            ? "next"
-            : "open";
+              ? "next"
+              : "open";
       var label = playable
         ? r
           ? ctx.W.stopStars(s.n, s.name, st)
           : ctx.W.stopOpen(s.n, s.name) +
-            (state === "next" ? ", " + ctx.W.next : state === "started" ? ", " + ctx.W.mapKeepGoing : "")
+            (state === "next"
+              ? ", " + ctx.W.next
+              : state === "started"
+                ? ", " + ctx.W.mapKeepGoing
+                : "")
         : ctx.W.stopSoon(s.n, s.name);
       var disc = ctx.h(
         "span",
@@ -104,7 +115,9 @@ export default function createMap(ctx) {
         [
           ctx.h("span", { class: "cb-stop__n", text: ctx.W.stop + " " + s.n }),
           ctx.h("b", { text: s.name }),
-          state === "started" ? ctx.h("span", {class:"cb-state",text:ctx.W.mapKeepGoing}) : null,
+          state === "started"
+            ? ctx.h("span", { class: "cb-state", text: ctx.W.mapKeepGoing })
+            : null,
           playable
             ? r
               ? ctx.starRow(st)
@@ -129,7 +142,10 @@ export default function createMap(ctx) {
           "aria-label": label,
           "aria-disabled": orderLocked ? "true" : null,
           onclick: function () {
-            if (orderLocked) { ctx.say(ctx.W.mapOrderHelp); return; }
+            if (orderLocked) {
+              ctx.say(ctx.W.mapOrderHelp);
+              return;
+            }
             if (saved && playable) ctx.resume(saved);
             else if (playable) ctx.startStop(s.id);
             else ctx.comingSoon(s, b);
@@ -194,14 +210,6 @@ export default function createMap(ctx) {
       ],
     );
     world.appendChild(ctx.h("div", { class: "cb-world__hud" }, [scoreBtn]));
-    canvas.addEventListener("keydown", function (e) {
-      if (
-        e.key === "Escape" &&
-        e.target.classList &&
-        e.target.classList.contains("cb-stop")
-      )
-        e.target.classList.add("is-quiet");
-    });
     canvas.addEventListener("focusout", function (e) {
       if (e.target.classList) e.target.classList.remove("is-quiet");
     });
@@ -274,7 +282,7 @@ export default function createMap(ctx) {
       ]),
     ]);
     ctx.frame(true);
-    installMapPresentation(ctx,world,canvas,pan);
+    installMapPresentation(ctx, world, canvas, pan);
     if (ctx.window.requestIdleCallback && sug && ctx.moduleManifest[sug])
       ctx.window.requestIdleCallback(
         function () {

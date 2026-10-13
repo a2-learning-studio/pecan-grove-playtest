@@ -48,6 +48,14 @@ export function resumable(record, now = Date.now()) {
     now >= Date.parse(record.ts)
   );
 }
+export function isEmptyPlaceholder(player) {
+  return (
+    !!player &&
+    !Object.keys(player.stops || {}).length &&
+    !Object.keys(player.badges || {}).length &&
+    !resumable(player.resume)
+  );
+}
 export class Slots {
   constructor({
     state,
@@ -86,11 +94,7 @@ export class Slots {
     const s = this.store();
     if (s.players[id]) return false;
     const placeholder = s.players.you;
-    const emptyPlaceholder =
-      placeholder &&
-      !Object.keys(placeholder.stops || {}).length &&
-      !Object.keys(placeholder.badges || {}).length &&
-      !placeholder.resume;
+    const emptyPlaceholder = isEmptyPlaceholder(placeholder);
     if (Object.keys(s.players).length - (emptyPlaceholder ? 1 : 0) >= 8)
       return false;
     if (emptyPlaceholder) delete s.players.you;

@@ -136,7 +136,9 @@ export default function createScorecard(ctx) {
           (st ? ctx.W.stars(st) : ctx.W.goodStart),
       }),
       ctx.h("p", { class: "cb-card__can" }, [
-        ctx.h("span", { class: "cb-feedback-badge", "aria-hidden": "true" }, [ctx.ico("check")]),
+        ctx.h("span", { class: "cb-feedback-badge", "aria-hidden": "true" }, [
+          ctx.ico("check"),
+        ]),
         ctx.h("span", { text: can }),
       ]),
       medal,
@@ -146,11 +148,15 @@ export default function createScorecard(ctx) {
             class: "cb-card__stars",
             text: st ? ctx.W.stars(st) : ctx.W.goodStart,
           }),
-          ctx.h("span", { class: "cb-card__best", hidden: !ctx.CFG.numericScore }, [
-            ctx.W.yourBest + " ",
-            ctx.h("b", { text: String(info.best) }),
-            " / 100",
-          ]),
+          ctx.h(
+            "span",
+            { class: "cb-card__best", hidden: !ctx.CFG.numericScore },
+            [
+              ctx.W.yourBest + " ",
+              ctx.h("b", { text: String(info.best) }),
+              " / 100",
+            ],
+          ),
           info.newBest
             ? ctx.h("span", { class: "cb-card__new", text: ctx.W.newBest })
             : null,
@@ -189,11 +195,14 @@ export default function createScorecard(ctx) {
       stars.forEach(function (s) {
         if (v >= +s.getAttribute("data-at") && !s.classList.contains("is-on")) {
           s.classList.add("is-on");
-          var fx = ctx.window.PecanGroveEngine && ctx.window.PecanGroveEngine.fx;
+          var fx =
+            ctx.window.PecanGroveEngine && ctx.window.PecanGroveEngine.fx;
           if (fx && ctx.motionAllowed()) {
             fx.stamp(s);
             var rect = s.getBoundingClientRect();
-            fx.burst(rect.left + rect.width / 2, rect.top + rect.height / 2, { kind: "sparkle" });
+            fx.burst(rect.left + rect.width / 2, rect.top + rect.height / 2, {
+              kind: "sparkle",
+            });
           }
         }
       });
@@ -201,8 +210,17 @@ export default function createScorecard(ctx) {
     function end() {
       paint(to);
       if (rib) rib.classList.add("is-on");
-      var tip = card.querySelector(".cb-tipcard"), fx = ctx.window.PecanGroveEngine && ctx.window.PecanGroveEngine.fx;
-      if (fx && tip) fx.animate(tip, [{ opacity: 0, transform: "translateY(8px)" }, { opacity: 1, transform: "none" }], 200);
+      var tip = card.querySelector(".cb-tipcard"),
+        fx = ctx.window.PecanGroveEngine && ctx.window.PecanGroveEngine.fx;
+      if (fx && tip)
+        fx.animate(
+          tip,
+          [
+            { opacity: 0, transform: "translateY(8px)" },
+            { opacity: 1, transform: "none" },
+          ],
+          200,
+        );
     }
     if (!ctx.motionAllowed() || !ctx.window.requestAnimationFrame) return end();
     var clock = ctx.activeLifecycle || ctx.window;

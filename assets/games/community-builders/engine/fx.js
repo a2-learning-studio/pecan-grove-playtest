@@ -134,7 +134,8 @@ export class FX {
   }
   pause(value) {
     this.paused = value;
-    for (const animation of this.animations) value ? animation.pause() : animation.play();
+    for (const animation of this.animations)
+      value ? animation.pause() : animation.play();
     if (value) {
       if (this.frame) this.win.cancelAnimationFrame(this.frame);
       this.frame = 0;

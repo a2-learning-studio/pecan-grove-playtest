@@ -39,6 +39,7 @@ test("stop lifecycle pauses timers and logical time and disposes subscriptions o
     clicks = 0,
     completed = 0,
     cleaned = 0;
+  const effects = [];
   const pending = new Map();
   const target = new EventTarget();
   const window = Object.assign(new EventTarget(), {
@@ -71,6 +72,11 @@ test("stop lifecycle pauses timers and logical time and disposes subscriptions o
   });
   lifecycle.document.addEventListener("click", () => clicks++);
   lifecycle.cleanup(() => cleaned++);
+  lifecycle.animation({
+    pause: () => effects.push("pause"),
+    play: () => effects.push("play"),
+    cancel: () => effects.push("cancel"),
+  });
   lifecycle.setTimeout(() => completed++, 50);
   time += 20;
   lifecycle.pause();
@@ -92,6 +98,7 @@ test("stop lifecycle pauses timers and logical time and disposes subscriptions o
   lifecycle.dispose();
   lifecycle.dispose();
   assert.equal(cleaned, 1);
+  assert.deepEqual(effects, ["pause", "play", "cancel"]);
   assert.equal(pending.size, 0);
   target.dispatchEvent(new Event("click"));
   assert.equal(clicks, 1);
@@ -593,7 +600,12 @@ test("Continue refuses stale, future or missing step snapshots", () => {
 
 test("empty default player becomes an animal slot and the store stops at eight players", () => {
   const value = migrateStore({
-      players: { you: { stops: {} } },
+      players: {
+        you: {
+          stops: {},
+          resume: { v: 1, mode: "title", ts: new Date().toISOString() },
+        },
+      },
       current: "you",
     }),
     slots = new Slots({ state: () => ({ store: value }), storage: storage() });

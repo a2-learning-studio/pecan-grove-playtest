@@ -46,6 +46,7 @@ export class Gestures {
     root.addEventListener("pointerup", (e) => this.up(e));
     root.addEventListener("pointercancel", (e) => this.cancel(e));
     root.addEventListener("click", (e) => this.click(e), true);
+    root.addEventListener("focusin", (e) => this.reveal(e.target));
   }
   refresh() {
     this.stopCoast();
@@ -93,6 +94,26 @@ export class Gestures {
           ),
         );
     }
+    this.paint();
+  }
+  reveal(node) {
+    if (
+      this.zoom <= 1 ||
+      !this.map?.contains(node) ||
+      !node.matches(".cb-stop")
+    )
+      return;
+    const viewport = this.map.getBoundingClientRect(),
+      box = node.getBoundingClientRect(),
+      pad = 12;
+    if (box.left < viewport.left + pad)
+      this.pan.x += viewport.left + pad - box.left;
+    else if (box.right > viewport.right - pad)
+      this.pan.x -= box.right - viewport.right + pad;
+    if (box.top < viewport.top + pad)
+      this.pan.y += viewport.top + pad - box.top;
+    else if (box.bottom > viewport.bottom - pad)
+      this.pan.y -= box.bottom - viewport.bottom + pad;
     this.paint();
   }
   stopCoast() {

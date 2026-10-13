@@ -55,6 +55,7 @@ test('zoom begins around the focused stop and predecessor, and bounded inertia i
  g.refresh();assert.ok(h.root.querySelector('.cb-map-controls .cb-engine-zoom'));g.toggle();assert.equal(g.zoom,1.8);assert.ok(g.pan.x>0);
  configureMotion(()=>({calm:false}),()=>({matches:false}));g.pan={x:0,y:0};g.velocity={x:0.2,y:0.1};g.coast();assert.equal(frames.size,1);let [key,callback]=frames.entries().next().value;frames.delete(key);callback(h.dom.window.performance.now()+16);assert.ok(g.pan.x>0);
  g.stopCoast();assert.equal(frames.size,0);configureMotion(()=>({calm:true}),()=>({matches:false}));g.velocity={x:1,y:1};g.coast();assert.equal(frames.size,0);
+ const focused=h.root.querySelectorAll('.cb-stop')[1];focused.getBoundingClientRect=()=>({left:550,top:360,right:630,bottom:440,width:80,height:80});g.pan={x:0,y:0};g.reveal(focused);assert.deepEqual(g.pan,{x:-42,y:-52},'Directional focus reveals an offscreen stop within the zoomed viewport');
  g.zoom=1;g.paint();assert.equal(g.map.style.getPropertyValue('touch-action'),'pan-y');
  }finally{configureMotion(()=>({}),()=>({matches:false}));h.close();}
 });

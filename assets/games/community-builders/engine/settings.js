@@ -387,7 +387,14 @@ export class Settings {
               "musicOn",
               "duck",
             ],
-            display: ["cap", "capSize", "textScale", "contrast", "words", "numericScore"],
+            display: [
+              "cap",
+              "capSize",
+              "textScale",
+              "contrast",
+              "words",
+              "numericScore",
+            ],
             controls: [
               "hints",
               "padLayout",

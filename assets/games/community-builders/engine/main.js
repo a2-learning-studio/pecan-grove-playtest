@@ -8,7 +8,7 @@ import { Pause } from "./pause.js";
 import { AudioMixer } from "./audio.js";
 import { FX } from "./fx.js";
 import { Hints } from "./hints.js";
-import { Slots, slotStars, resumable } from "./store.js";
+import { Slots, slotStars, resumable, isEmptyPlaceholder } from "./store.js";
 import { Badges, BADGE_IDS } from "./badges.js";
 import { Gestures } from "./gestures.js";
 import { HUD } from "./hud.js";
@@ -167,11 +167,7 @@ export async function mount(
     let dialog;
     const animals = api().ANIMALS;
     const placeholder = store.players.you;
-    const emptyPlaceholder =
-      placeholder &&
-      !Object.keys(placeholder.stops || {}).length &&
-      !Object.keys(placeholder.badges || {}).length &&
-      !placeholder.resume;
+    const emptyPlaceholder = isEmptyPlaceholder(placeholder);
     const full =
       Object.keys(store.players).length - (emptyPlaceholder ? 1 : 0) >= 8;
     const unused = full
@@ -181,7 +177,9 @@ export async function mount(
       grid.append(h("p", { text: i18n.t("allSlots") }));
     const ids = newOnly
       ? unused.map((animal) => animal.id)
-      : Object.keys(store.players);
+      : Object.keys(store.players).filter(
+          (id) => id !== "you" || !emptyPlaceholder,
+        );
     for (const id of ids) {
       const animal = animals.find((a) => a.id === id),
         player = store.players[id];
@@ -348,12 +346,25 @@ export async function mount(
     gestures.toggle();
     return true;
   });
-  const choices = () => annotateChoices(root, { settings: () => settings.get(), pad: () => pad.pad });
+  const choices = () =>
+    annotateChoices(root, {
+      settings: () => settings.get(),
+      pad: () => pad.pad,
+    });
   document.addEventListener("cb:input-device", choices);
   root.addEventListener("focusin", choices);
   input.bindings.onChange(engine.syncControls);
   function enhanceTitle() {
-    titleMenu({ root, slots, api, core, i18n, resumeCurrent, openSlots, settings });
+    titleMenu({
+      root,
+      slots,
+      api,
+      core,
+      i18n,
+      resumeCurrent,
+      openSlots,
+      settings,
+    });
   }
   let saveTimer;
   let roundBadges = [];
@@ -365,7 +376,8 @@ export async function mount(
     choices();
     gestures.refresh();
     enhanceTitle();
-    if (event?.detail?.phase === "result") showResultBadges(root, roundBadges, i18n);
+    if (event?.detail?.phase === "result")
+      showResultBadges(root, roundBadges, i18n);
     engine.syncControls();
     hints.refresh();
     if (event?.detail?.phase === "playing") {
@@ -394,7 +406,10 @@ export async function mount(
   });
   document.addEventListener("cb:result", (e) => {
     clearTimeout(saveTimer);
-    roundBadges = badge.evaluate({ ...e.detail, quiet: root.classList.contains("is-quiet") });
+    roundBadges = badge.evaluate({
+      ...e.detail,
+      quiet: root.classList.contains("is-quiet"),
+    });
     hud.earned(e.detail?.score || 0, e.detail?.previousBest || 0);
     if (e.detail?.score >= 40) pad.rumble();
     audio.play(e.detail?.newBest ? "star" : "ok");
@@ -427,7 +442,7 @@ export async function mount(
   });
   window.addEventListener("online", () => hud.render());
   window.addEventListener("offline", () => hud.render());
-  document.addEventListener("pg:language-change", async event => {
+  document.addEventListener("pg:language-change", async (event) => {
     await i18n.load(event.detail?.language);
     root.querySelector(".cb-engine-title-actions")?.remove();
     refresh();

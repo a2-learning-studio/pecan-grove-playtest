@@ -113,6 +113,14 @@ export class AudioMixer {
     const now = this.context.currentTime;
     if (now - this.lastSfx < 0.035) return;
     this.lastSfx = now;
+    if (
+      kind === "page" &&
+      this.context.createBuffer &&
+      this.context.createBufferSource
+    ) {
+      this.pageSwish(now);
+      return;
+    }
     const notes = NOTES[kind],
       duration = kind === "ui.move" ? 0.03 : 0.075;
     notes.forEach((frequency, i) => {
@@ -133,5 +141,44 @@ export class AudioMixer {
         level.disconnect();
       };
     });
+  }
+  pageSwish(now) {
+    const context = this.context,
+      duration = 0.18,
+      buffer = context.createBuffer(
+        1,
+        Math.ceil(context.sampleRate * duration),
+        context.sampleRate,
+      ),
+      samples = buffer.getChannelData(0);
+    let seed = 1771;
+    for (let i = 0; i < samples.length; i++) {
+      seed ^= seed << 13;
+      seed ^= seed >>> 17;
+      seed ^= seed << 5;
+      samples[i] = (((seed >>> 0) / 4294967296) * 2 - 1) * 0.4;
+    }
+    const source = context.createBufferSource(),
+      level = context.createGain();
+    source.buffer = buffer;
+    let filter;
+    if (context.createBiquadFilter) {
+      filter = context.createBiquadFilter();
+      filter.type = "lowpass";
+      filter.frequency.value = 1800;
+      source.connect(filter);
+      filter.connect(level);
+    } else source.connect(level);
+    level.connect(this.buses.sfx);
+    level.gain.setValueAtTime(0, now);
+    level.gain.linearRampToValueAtTime(0.08, now + 0.025);
+    level.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+    source.start(now);
+    source.stop(now + duration);
+    source.onended = () => {
+      source.disconnect();
+      filter?.disconnect();
+      level.disconnect();
+    };
   }
 }

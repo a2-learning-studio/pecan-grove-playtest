@@ -1,5 +1,6 @@
 const { test, expect } = require('./fixtures');
 const AxeBuilder = require('@axe-core/playwright').default;
+const {renderedLabelContrast}=require('./contrast-probe.cjs');
 
 const languages = [{lang:'en',file:'index.html'},{lang:'es',file:'espanol.html'}];
 async function audit(page) { const result = await new AxeBuilder({page}).analyze(); expect(result.violations).toEqual([]); }
@@ -228,3 +229,13 @@ for(const {lang,file} of languages) for(const completed of [1,2,15]) {
   noNetwork.assertClean();
  });
 }
+
+for(const {lang,file}of languages)test(`${lang}: rendered map and Stop1/2 label contrast`,async({page})=>{
+ test.setTimeout(120000);await start(page,file);await page.evaluate(()=>window.PecanGroveEngine.settings.update({calm:true}));
+ async function probe(selector){const labels=await renderedLabelContrast(page,selector);expect(labels.length,`Visible labels for ${selector}`).toBeGreaterThan(0);for(const label of labels)expect(label.ratio,`${label.text}: rendered contrast`).toBeGreaterThanOrEqual(4.5);}
+ await page.locator('.cb-stop[data-stop-n="1"]').first().focus();await probe('.cb-stop__plate');
+ await stop(page,1);await page.locator('.cb-s01-intro .cb-btn--go').click();await page.locator('.cb-s01-view[data-view="today"]').click();await probe('.cb-s01-tag');
+ for(const index of [0,5,10]){await page.locator(`.cb-s01-spot[data-spot="${index}"]`).click();await page.locator('.cb-callout .cb-btn').click();await probe('.cb-s01-tag');}
+ await page.evaluate(()=>window.CommunityBuilders.showMap());await stop(page,2);await probe('.cb-s02-nb__name');await page.locator('.cb-s02-intro .cb-btn--go').click();await probe('.cb-s02-nb__name');
+ for(const viewport of [{width:360,height:640},{width:600,height:500}]){await page.setViewportSize(viewport);await probe('.cb-s02-nb__name');}
+});

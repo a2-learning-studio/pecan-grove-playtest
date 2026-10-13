@@ -51,7 +51,8 @@ export default function createDialog(ctx) {
       if (cleaned) return;
       cleaned = true;
       if (
-        !silent && !opt.utility &&
+        !silent &&
+        !opt.utility &&
         ctx.inStop &&
         !ctx.restoring &&
         ctx.actionHistory.length < 1000
@@ -61,25 +62,41 @@ export default function createDialog(ctx) {
       d.remove();
       ctx.guard();
       if (!silent && onClose) onClose();
-      if (!silent && opener && opener.isConnected && opener.focus) opener.focus();
+      if (!silent && opener && opener.isConnected && opener.focus)
+        opener.focus();
     }
-    d.close = function () { cleanup(false); };
-    d.dispose = function () { cleanup(true); };
+    d.close = function () {
+      cleanup(false);
+    };
+    d.dispose = function () {
+      cleanup(true);
+    };
     d.addEventListener("cancel", function (e) {
       e.preventDefault();
       cleanup(false);
     }); // Esc
-    d.addEventListener("close", function () { cleanup(false); }); // backup
+    d.addEventListener("close", function () {
+      cleanup(false);
+    }); // backup
     ctx.root.appendChild(d);
     if (d.showModal) d.showModal();
     else d.setAttribute("open", "");
     if (d.animate && !ctx.restoring) {
       var fullMotion = ctx.motionAllowed(),
-        animation = d.animate(fullMotion
-          ? [{ opacity: 0, transform: "scale(.96)" }, { opacity: 1, transform: "none" }]
-          : [{ opacity: 0 }, { opacity: 1 }],
-          { duration: fullMotion ? 160 : 120, easing: "cubic-bezier(0.16,1,0.3,1)" });
-      if (ctx.activeLifecycle && ctx.activeLifecycle.animation) ctx.activeLifecycle.animation(animation);
+        animation = d.animate(
+          fullMotion
+            ? [
+                { opacity: 0, transform: "scale(.96)" },
+                { opacity: 1, transform: "none" },
+              ]
+            : [{ opacity: 0 }, { opacity: 1 }],
+          {
+            duration: fullMotion ? 160 : 120,
+            easing: "cubic-bezier(0.16,1,0.3,1)",
+          },
+        );
+      if (ctx.activeLifecycle && ctx.activeLifecycle.animation)
+        ctx.activeLifecycle.animation(animation);
     }
     hd.focus();
     return d;

@@ -179,12 +179,21 @@ export default function createScene(ctx) {
     } catch (e) {
       return null;
     }
-    var group = ctx.h("div", { class: "cb-language-group", role: "group", "aria-label": "English / Español", "data-cb-novoice": "" });
+    var group = ctx.h("div", {
+      class: "cb-language-group",
+      role: "group",
+      "aria-label": "English / Español",
+      "data-cb-novoice": "",
+    });
     ["en", "es"].forEach(function (language) {
       var active = language === ctx.L;
-      var b = btn(language.toUpperCase(), "cb-btn cb-btn--onstage cb-language", function () {
-        if (!active) ctx.changeLanguage(language, url);
-      });
+      var b = btn(
+        language.toUpperCase(),
+        "cb-btn cb-btn--onstage cb-language",
+        function () {
+          if (!active) ctx.changeLanguage(language, url);
+        },
+      );
       b.setAttribute("lang", language);
       b.setAttribute("aria-label", language === "en" ? "English" : "Español");
       b.setAttribute("aria-pressed", String(active));
@@ -219,7 +228,11 @@ export default function createScene(ctx) {
       if (f) f.setAttribute("tabindex", "-1");
     }
     if (f && acted) f.focus({ preventScroll: true });
-    animateScene(ctx, main, mode === "stop" && !ctx.actionHistory.length ? "stop" : "step");
+    animateScene(
+      ctx,
+      main,
+      mode === "stop" && !ctx.actionHistory.length ? "stop" : "step",
+    );
     guard();
   }
   function progressEvent() {
@@ -371,10 +384,21 @@ export default function createScene(ctx) {
   }
   function fb(text, ok) {
     return text
-      ? ctx.h("div", { class: "cb-feedback" + (ok ? " is-ok" : ""), "data-cb-feedback": ok ? "ok" : "try" }, [
-          ctx.h("span", { class: "cb-feedback-badge", "aria-hidden": "true" }, [ctx.ico(ok ? "check" : "bulb")]),
-          ctx.h("p", { text: text }),
-        ])
+      ? ctx.h(
+          "div",
+          {
+            class: "cb-feedback" + (ok ? " is-ok" : ""),
+            "data-cb-feedback": ok ? "ok" : "try",
+          },
+          [
+            ctx.h(
+              "span",
+              { class: "cb-feedback-badge", "aria-hidden": "true" },
+              [ctx.ico(ok ? "check" : "bulb")],
+            ),
+            ctx.h("p", { text: text }),
+          ],
+        )
       : null;
   }
   ctx.publish({

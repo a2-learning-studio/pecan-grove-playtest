@@ -12,6 +12,8 @@ for(const language of ['en','es'])for(let n=3;n<=15;n++)test(`${language} Stop $
   capture();await complete(r,n,capture);assert.ok(checkpoints.size>=3,'intro, game and result have native states');
   const store=JSON.stringify(r.core.getState().store);
   for(const [phase,checkpoint] of checkpoints){
+   // Freeze the real lifecycle clock while comparing a legitimately timed phase.
+   r.core.pause();assert.equal(r.core.getState().paused,true);
    assert.equal(await r.core.resume(checkpoint.record),true);await r.tick();
    sameView(view(r),checkpoint.view,'phase '+phase);assert.equal(modal(),checkpoint.modal,'the authored open dialog is restored');
    assert.equal(JSON.stringify(r.core.snapshot().state),JSON.stringify(checkpoint.record.state),'model is restored semantically exactly');
@@ -20,6 +22,7 @@ for(const language of ['en','es'])for(let n=3;n<=15;n++)test(`${language} Stop $
    assert.equal(await r.core.setLanguage(language),true);await r.tick();
    sameView(view(r),checkpoint.view,'bilingual phase '+phase);assert.equal(modal(),checkpoint.modal,'the dialog returns in the original language');
    assert.equal(JSON.stringify(r.core.getState().store),store,'restoring or translating a phase never writes another result');
+   r.core.resumePlay();assert.equal(r.core.getState().paused,false);
   }
   assert.equal(r.errors.length,0,String(r.errors));
  }finally{r.close();}

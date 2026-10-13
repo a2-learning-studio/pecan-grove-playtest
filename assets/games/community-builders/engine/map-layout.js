@@ -160,7 +160,11 @@ export function installMapPresentation(ctx, world, canvas, pan) {
     svg = canvas.querySelector(".cb-path");
   function layout() {
     if (stopped || !canvas.isConnected) return;
-    const bounds = canvas.getBoundingClientRect();
+    const rect = canvas.getBoundingClientRect(),
+      bounds = {
+        width: canvas.clientWidth || rect.width,
+        height: canvas.clientHeight || rect.height,
+      };
     if (!bounds.width || !bounds.height) return;
     const diameter = Math.min(68, Math.max(44, bounds.width * 0.052)),
       pts = fitStopPoints(ctx.POS, bounds.width, bounds.height, diameter);
@@ -209,7 +213,15 @@ export function installMapPresentation(ctx, world, canvas, pan) {
     placeLabels();
   }
   function placeLabels() {
-    const bounds = canvas.getBoundingClientRect(),
+    const rect = canvas.getBoundingClientRect(),
+      viewport = pan.getBoundingClientRect(),
+      bounds = {
+        left: Math.max(rect.left, viewport.left),
+        right: Math.min(rect.right, viewport.right),
+        top: Math.max(rect.top, viewport.top),
+        bottom: Math.min(rect.bottom, viewport.bottom),
+      },
+      scale = rect.width / (canvas.clientWidth || rect.width || 1),
       active = ctx.document.activeElement;
     const discs = controls.map((b) =>
         b.querySelector(".cb-stop__disc").getBoundingClientRect(),
@@ -226,7 +238,7 @@ export function installMapPresentation(ctx, world, canvas, pan) {
     for (const { button, index } of order) {
       const plate = button.querySelector(".cb-stop__plate"),
         shown =
-          bounds.width >= 1100 ||
+          (canvas.clientWidth || rect.width) >= 1100 ||
           button === active ||
           button.matches(":hover") ||
           button.dataset.state === "next";
@@ -243,8 +255,8 @@ export function installMapPresentation(ctx, world, canvas, pan) {
         continue;
       }
       const origin = button.getBoundingClientRect();
-      plate.style.left = box.left - origin.left + "px";
-      plate.style.top = box.top - origin.top + "px";
+      plate.style.left = (box.left - origin.left) / scale + "px";
+      plate.style.top = (box.top - origin.top) / scale + "px";
       plate.dataset.placement = box.side;
       placed.push(box);
     }
@@ -261,8 +273,8 @@ export function installMapPresentation(ctx, world, canvas, pan) {
       if (!box) tag.hidden = true;
       else {
         const origin = next.getBoundingClientRect();
-        tag.style.left = box.left - origin.left + "px";
-        tag.style.top = box.top - origin.top + "px";
+        tag.style.left = (box.left - origin.left) / scale + "px";
+        tag.style.top = (box.top - origin.top) / scale + "px";
       }
     }
   }

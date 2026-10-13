@@ -110,7 +110,10 @@ export function createLifecycle({
       else {
         animations.add(value);
         if (suspended) value.pause?.();
-        value.finished?.then(() => animations.delete(value), () => animations.delete(value));
+        value.finished?.then(
+          () => animations.delete(value),
+          () => animations.delete(value),
+        );
       }
       return value;
     },

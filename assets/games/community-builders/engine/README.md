@@ -1,6 +1,6 @@
 # Game controls and presentation engine
 
-The browser loads `main.js` as an ES module. It mounts against the compatible `window.CommunityBuilders` core after that core is ready. A failed engine load leaves the core's existing controls available. Native Tab and Enter activation remain browser behavior. The module never sends feedback or scores.
+The browser loads the game and presentation engine as ES modules. `boot.js` creates one explicit context per game host and composes the core factories; `main.js` mounts the enhanced controls against its public `window.CommunityBuilders` adapter. The core keeps a usable Start control if enhanced controls cannot load. Native Tab and Enter activation remain browser behavior. Feedback and opt-in sending belong to the separate playtest modules.
 
 ## Action contract
 
@@ -26,7 +26,9 @@ Use `data-cb-choices` on a choice container and `data-cb-choice="1"` through `"9
 
 ## Persistence and motion
 
-The journey key remains `pecan-grove-journey[:session]`. Migration to version 2 preserves existing scores and adds `created`, `updated`, `badges` and an optional complete core `resume:{v:1,session,mode,stopId,slot,state,rng,roundSeed,focusId,ts}` record per animal slot. The store adds an ISO timestamp and preserves the controller state and RNG fields. Screen and `cb:step` events save after 50ms; finishing cancels pending saves and removes the completed stop's resume record. Resume expires after seven days. Slots never offer name entry. Settings migrate to version 2 under their existing key, retaining all earlier preferences. Key bindings use `pecan-grove-bindings-v1`.
+The journey key remains `pecan-grove-journey[:session]`. Migration to version 2 preserves existing scores and adds `created`, `updated`, `badges` and an optional complete core `resume:{v:1,session,mode,stopId,slot,state,rng,roundSeed,roundRecord,resultInfo,voice,focusId,ts}` record per animal slot. All 15 stops serialize their own compact model and phase; restoring renders that model directly in the selected language. The old `actions-v1` adapter remains only for previously saved records. Round baselines and result messages survive restoration without a duplicate score write. Owned listeners, subscriptions, timers and animations are paused and disposed together. Replaced authored dialogs are disposed without invoking callbacks from the old round.
+
+Screen and `cb:step` events save after 50ms; finishing cancels pending saves and removes the completed stop's resume record. Resume expires after seven days. The empty default placeholder does not consume an animal slot or appear as Continue. Slots never offer name entry. Settings migrate to version 2 under their existing key, retaining all earlier preferences. Key bindings use `pecan-grove-bindings-v1`.
 
 Every new effect calls `motion.allowed()` and respects both the player's Calm setting and the device setting. Canvas particles stop when paused and are removed when idle. There is no particle animation under Calm. High contrast and forced-colors use visible outlines instead of depending on shadows. Tokens live in `tokens.css`.
 
@@ -36,7 +38,7 @@ AudioContext starts on a player gesture. Master, voice, music and effects have s
 
 ## Validation
 
-Run `node --experimental-test-coverage --test tools/tests/modernization-engine*.test.mjs`. On 2026-10-12, 38 tests passed and Node measured **87.26% line coverage** across engine JavaScript, **76.09% branch coverage**. This aggregate is a unit and DOM integration measure; it is not a claim that every device or every stop was manually tested.
+Run `npm run test:coverage`. This runs the full authored content, unit, DOM and native game-module test suite under Node/V8. It includes production `engine/**/*.js` and `assets/playtest/**/*.js` in the measured scope and enforces a minimum of **80% line coverage**. Tests, generated catalogs and backend code do not inflate that scope. The current measured percentages and pass/fail status are written to `docs/engine-coverage.json`; `docs/engine-coverage.txt` retains the full receipt. A passing percentage does not excuse a failing behavioral assertion.
 
 Action subscriptions may specify a connected board scope. The board must contain the current focus or event target within the active scope. Modal actions never reach a background board. The deepest matching scope runs before global fallback; return `false` to observe an action without consuming it. The returned unsubscribe function removes only that subscription and is safe when other handlers have already unsubscribed.
 
@@ -46,4 +48,4 @@ All modules stay below 500 physical lines. Engine ESLint passes. New control str
 
 ## Required human review
 
-Spanish copy still needs a native speaker's sign-off. Music needs supplied licensed assets. The revised otter needs the owner and a recognition check with five people. Assistive technology smoke tests with NVDA/Firefox and VoiceOver/Safari are not replaced by automated DOM tests. The compatibility core and its legacy stop content still require their separately tracked extraction and per-stop review; these modules do not imply that those tickets are complete.
+Spanish copy still needs a native speaker's sign-off. Music needs supplied licensed assets. The owner approved the revised otter baseline; the recognition check with five people remains a separate human task. Assistive technology smoke tests with NVDA/Firefox and VoiceOver/Safari and physical gamepad checks are not replaced by automated DOM tests. Review materials record these pending checks explicitly.
