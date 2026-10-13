@@ -1,16 +1,16 @@
 {
-  "build": "8e9e52c34f9d",
+  "build": "1ff0b26ee4d4",
   "flavor": "family",
-  "files": 293,
-  "jsGzipBytes": 76577,
-  "cssGzipBytes": 26143,
-  "criticalCssGzipBytes": 9529,
+  "files": 294,
+  "jsGzipBytes": 78644,
+  "cssGzipBytes": 26925,
+  "criticalCssGzipBytes": 9922,
   "fonts": {
     "fonts": [
       {
         "name": "Inter-var.woff2",
         "sourceBytes": 48256,
-        "subsetBytes": 38848,
+        "subsetBytes": 38844,
         "spanishGlyphs": true,
         "variableAxes": [
           "wght"
@@ -19,14 +19,14 @@
       {
         "name": "Geist-var.woff2",
         "sourceBytes": 69652,
-        "subsetBytes": 35404,
+        "subsetBytes": 35396,
         "spanishGlyphs": true,
         "variableAxes": [
           "wght"
         ]
       }
     ],
-    "totalBytes": 74252
+    "totalBytes": 74240
   },
   "assetMapEntries": 111
 }

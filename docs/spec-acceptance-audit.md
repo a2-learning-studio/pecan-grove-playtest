@@ -7,11 +7,11 @@ Updated 2026-10-12 against all 64 tickets in [the specification](Pecan_Grove_Mod
 ## Remaining requirements and alternatives
 
 - Readability remains incomplete: 1,928 EN and 1,928 ES strings measured, 355 English and 659 Spanish flags, no approved exceptions. Stops 1–2 kid-copy rewrite/exception criteria and Claude's assigned native Spanish/classification sign-offs remain open.
-- Exact differences: incoming stop-scene scale replaces selected-disc zoom1→1.15; chapter labels are in the legend rather than inside hulls; page SFX is tonal rather than a paper-noise swish; offline voice uses its own progress interface rather than the common loading screen.
+- Exact differences: chapter labels are in the legend rather than inside hulls; offline voice uses its own progress interface rather than the common loading screen. Selected-disc zoom1→1.15 and a filtered-noise paper swish are now implemented.
 - Stop files remain lazy classic factories within a native ESM engine instead of literal native ESM imports per stop. Existing vector avatar/neighbor artwork is resolution independent instead of duplicated raster1x/2x portraits.
 - Active language switching is live, but the unused compatibility reload helper remains contrary to the literal removal criterion.
 - Intro is a compact team/privacy card over full-bleed town art before entering the game title. It preserves the owner's earlier team-first flow; title and gated intro remain separate DOM sections.
-- Root owns final idle-art warming, manifest steps and actual Git SHA metadata checks. Reconcile the changing rows against the release commit.
+- Root completed idle larger-AVIF warming after Start, authored-step manifest validation and actual Git SHA metadata, with an independent content hash and build.json commit. Reconcile actual build/CI receipts against the release commit.
 - Browser matrix, rendered contrast, Slow4G timing, physical controllers/screen readers and installed/offline play remain execution/review work. See [the bounded A–O coverage](e2e-coverage.md).
 
 ## Ticket ledger
@@ -28,7 +28,7 @@ Updated 2026-10-12 against all 64 tickets in [the specification](Pecan_Grove_Mod
 | P0-05 external noise | Present | First-party script CSP, automatic browser console/network guard and EN/ES add-on noise note. Clean-profile matrix and Pages/custom-domain environment still need evidence. |
 | P0-06 receiver/frame | Present |64KiB/content bounds, station/global rate limits/scrub, frame guard before game/feedback boot. Actual iframe case authored; no fictional Pages frame-ancestors response header. |
 | P0-07 language/place | Present | Live snapshot/answer/narration-line restore, singleton feedback translation, document/URL update without navigation. All15 native controllers. Obsolete helper removal is P4-02. |
-| P0-08 cold art | Changing | Consumed LQIP/gradient, responsive AVIF/WebP, priority/preload/decode, DPR/crop sizes exist. Root finishing idle warm. <=100ms placeholder and <=2.5s cold Slow4G criteria unmeasured. |
+| P0-08 cold art | Present | Consumed LQIP/gradient, responsive AVIF/WebP, priority/preload/decode, DPR/crop sizes and idle larger-AVIF warming after Start exist. <=100ms placeholder and <=2.5s cold Slow4G criteria unmeasured. |
 | P0-09 first speaker | Present | Stop 2 same seeded speaker/crop/caption; twenty-seed EN/ES browser checks authored. Other character-intro order has native state support; rendered checkG remains pending. |
 | P0-10 collisions | Present | Every visible plate/tag uses four-position obstacle checks, hides if no fit, updates on fonts/resize/focus/hover/zoom. Zoom coordinates/clipping regression passes; six completed-map browser scenarios unrun. |
 | P0-11 top bar | Present | Grid/nowrap tools, compact icons, chapter-key removal, responsive HUD More. Exact320–2560/40px height/clipping sweep remains unauthored/unrun. |
@@ -56,7 +56,7 @@ Updated 2026-10-12 against all 64 tickets in [the specification](Pecan_Grove_Mod
 | P1-11 gestures | Present | Pinch/drag/motion-gated bounded inertia/double-tap fit/touch two-tap/long-press stars preview/Settings swipe/feedback swipe and real tip pager/buttons. Physical touch/scroll pending. |
 | P1-12 slots/title | Present | Natural title New/Load/Settings/grown-ups, saved Continue avatar/next/stars, V1 migration/eight anonymous slots/partial autosave/relative dates/Turtle Undo/shared Library-team list. Real reload Continue authored all 15 EN/ES. |
 | P1-13 badges | Present | Per-slot process rules, distinct24-unit icons, rule-specific locked hints, gallery/polite toast/inline results. Actual gallery/controller accessibility pending. |
-| P1-14 mixer | Partial | Separate buses/routing/fallback/ducking/procedural SFX/quiet/pause/hidden mute. Page remains tonal instead of noise paper swish. Licensed music permitted off; sound/peak review pending. |
+| P1-14 mixer | Present | Separate buses/routing/fallback/ducking/procedural SFX/quiet/pause/hidden mute; page uses seeded, filtered noise for a soft paper swish. Licensed music permitted off; sound/peak review pending. |
 | P1-15 findings | Present | Nonmodal status/avoid targets/retain focus/next-action Escape B/6s after voice. Classic setting consumed, Library enables, forced-colors conservative heuristic. Reliable screen-reader detection is not claimed. |
 | P1-16 map clarity | Present | Adult order lock/default off, started Keep going resume, focused/next plates, selection cursor/chapter regions/legend. Actual replay/completed visual states pending. |
 | P1-17 loading | Partial | Weighted determinate tasks,>300ms,25% announcements, bilingual tips, title handoff/lazy Retry. Voice-download uses separate accessible progress instead of same screen. Slow4G pending. |
@@ -68,7 +68,7 @@ Updated 2026-10-12 against all 64 tickets in [the specification](Pecan_Grove_Mod
 | --- | --- | --- |
 | P2-01 tokens | Present | Shared type/color/space/radius/shadow/motion,18px body. All game/playtest CSS checked; palette hex centralized in tokens.css, forbidden elsewhere. SVG art paint remains art. |
 | P2-02 title | Present with design choice | Full-art gated20s/8px drift, vertical menu, summarized Continue/crest/build/language and compact team/privacy overlay. Intro remains separate gated section. LCP/keyboard/gamepad/touch pending. |
-| P2-03 transitions | Partial | ViewTransition synchronous swap/step16px200ms/Calm120ms. Engine finalizing dialog.96/160ms/disposal. Map entry is incoming scene.985 instead of selected-disc1→1.15. Input/CLS evidence pending. |
+| P2-03 transitions | Present | ViewTransition synchronous swap, selected map-disc1→1.15/320ms, step16px/200ms, dialog.96/160ms, lifecycle disposal and Calm120ms opacity. Input/CLS evidence pending. |
 | P2-04 FX | Present | Reusable burst/stamp/pulse/nudge, strict24 pool/<900ms, pause/Calm and feedback/stars/badge hooks. <2ms/frame timing pending. |
 | P2-05 selection | Present | Shared tint/3px/bold/gated scale/32px check/forced-color state. Actual snapshots/contrast pending. |
 | P2-06 chapters | Partial | Four hulls/corner legend/completed trails/motion-gated upcoming shimmer/state rings. Labels currently legend-only rather than inside regions.10 ring/art sample/browser collision criteria pending. |
@@ -82,8 +82,8 @@ Updated 2026-10-12 against all 64 tickets in [the specification](Pecan_Grove_Mod
 
 | Ticket | Code status | Current implementation and remaining evidence |
 | --- | --- | --- |
-| P3-01 build/CSP | Present | Vite hashes/mapped assets/external boot/styles/tight CSP/Pages workflow. Root finalizing Git SHA; attach final build/CSP/CI/public receipts. |
-| P3-02 lazy stops | Partial alternative | Manifest.json controls PLAYABLE/selected JS CSS content/idle next prefetch; Stops3/4 external. Lazy classic factory scripts, not literal per-stop ESM imports. Root ensuring steps metadata;120KB entry gate enforced. |
+| P3-01 build/CSP | Present | Vite hashes/mapped assets/external boot/styles/tight CSP/Pages workflow. Actual Git SHA meta/build.json plus independent content hash; attach final build/CSP/CI/public receipts. |
+| P3-02 lazy stops | Partial alternative | Manifest.json controls PLAYABLE/selected JS CSS content/idle next prefetch; Stops3/4 external. Lazy classic factory scripts, not literal per-stop ESM imports. Authored steps validated atomically with native loader cases;120KB entry gate enforced. |
 | P3-03 art | Present vector alternative | Five AVIF/WebP widths, consumed LQIP/DPR crops/priority/decode/preload. Existing vector neighbor/animal artwork needs no raster1x2x duplication. Image/LCP browser criteria pending. |
 | P3-04 CSS/fonts | Present | <=15KB critical/game CSS-on-Start split; variable Inter/Geist Latin/Extended-A preload/swap, no built Mono. Root reported~10KB critical/~74KB fonts; final gates authoritative. |
 | P3-05 install | Present | Scoped EN/ES manifests/icons/standalone/maskable/apple, adult explicit Install with no-auto-prompt test. iOS/Android install pending. |
@@ -116,5 +116,6 @@ Real focused local results from this agent:31 native core/map/input cases, two W
 Browser syntax/discovery succeeded:455 combinations. This agent ran no browser, screenshot generation, Lighthouse or physical-device test. Thirty visual scenarios per project remain optional pending actual files/review; family browser check needs its separate flavor server while structural family tests run independently.
 
 A report can comprehensively cover every ticket while clearly retaining unfinished acceptance work. Do not describe the entire specification as complete until these implementation differences, required reviews and actual evidence are resolved or explicitly deferred.
+
 
 
