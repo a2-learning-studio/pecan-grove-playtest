@@ -8,7 +8,7 @@
 .cb-s05-plan { position: absolute; left: 37%; top: 40%; display: grid; justify-items: center; width: 27%; transform: translate(-50%, -50%) rotate(-2.5deg); }
 .cb-s05-plan .cb-story-obj { width: 100%; aspect-ratio: 1; }
 .cb-s05-plan .cb-story-tag { margin-top: -10%; }
-.cb-s05-plan::before { content: ""; position: absolute; z-index: 1; left: 50%; top: 2%; width: 14px; height: 14px; margin-left: -7px; border-radius: 50%; background: #CF5B45; border: 2px solid #47321F; }
+.cb-s05-plan::before { content: ""; position: absolute; z-index: 1; left: 50%; top: 2%; width: 14px; height: 14px; margin-left: -7px; border-radius: 50%; background: var(--pg-color-cf5b45); border: 2px solid var(--pg-color-47321f); }
 .cb-s05-face { position: absolute; width: 12.5%; aspect-ratio: 1; transform: translate(-50%, -50%); border-radius: 50%; overflow: hidden; background: var(--cb-card); border: 3px solid var(--cb-card); box-shadow: var(--cb-shadow-2); }
 .cb-s05-face img { display: block; width: 100%; height: 100%; object-fit: cover; }
 .cb-s05-intro__text { gap: 16px; }
@@ -37,14 +37,14 @@
 .cb-s05-farm__stone { flex: none; width: 60px; height: 60px; }
 .cb-s05-farm.is-drop .cb-s05-farm__stone { animation: cb-s05-drop 0.6s var(--cb-ease) both; }
 @keyframes cb-s05-drop { from { opacity: 0; transform: translateY(-22px) scale(1.18); } }
-.cb-s05-farm__name { padding: 3px 10px 4px; border-radius: 9px; border: 1.5px solid rgba(71, 50, 31, 0.24); background: #FFF8EA; box-shadow: 0 1px 2px rgba(48, 30, 14, 0.22), 0 4px 10px -4px rgba(48, 30, 14, 0.42);
-  font-size: 0.875rem; font-weight: 720; line-height: 1.15; color: #3A2A1C; white-space: nowrap; }
+.cb-s05-farm__name { padding: 3px 10px 4px; border-radius: 9px; border: 1.5px solid rgba(71, 50, 31, 0.24); background: var(--pg-color-fff8ea); box-shadow: 0 1px 2px rgba(48, 30, 14, 0.22), 0 4px 10px -4px rgba(48, 30, 14, 0.42);
+  font-size: 0.875rem; font-weight: 720; line-height: 1.15; color: var(--pg-color-3a2a1c); white-space: nowrap; }
 
 /* small markers for the phone list layout */
 /* phone: each place is a numbered paper marker on the painting; the list below repeats the number with the name */
-.cb-s05-pin { position: absolute; display: none; place-items: center; width: 24px; height: 24px; transform: translate(-50%, -50%); border-radius: 50%; border: 2px solid #47321F; background: #FFF8EA; color: #3A2A1C;
+.cb-s05-pin { position: absolute; display: none; place-items: center; width: 24px; height: 24px; transform: translate(-50%, -50%); border-radius: 50%; border: 2px solid var(--pg-color-47321f); background: var(--pg-color-fff8ea); color: var(--pg-color-3a2a1c);
   box-shadow: 0 2px 4px rgba(48, 30, 14, 0.35); font-family: var(--a2-font-display); font-size: 0.8125rem; font-weight: 780; line-height: 1; }
-.cb-s05-pin.is-lit { border-color: var(--cb-stage-2); background: var(--cb-stage-2); color: var(--cb-on-accent); box-shadow: 0 0 0 3px #FFF8EA, 0 2px 4px rgba(48, 30, 14, 0.35); }
+.cb-s05-pin.is-lit { border-color: var(--cb-stage-2); background: var(--cb-stage-2); color: var(--cb-on-accent); box-shadow: 0 0 0 3px var(--pg-color-fff8ea), 0 2px 4px rgba(48, 30, 14, 0.35); }
 .cb-s05-place__no { display: none; }
 
 /* ── places: plates on the map ── */
@@ -76,7 +76,7 @@ button.cb-s05-place.is-right .cb-s05-place__ic { animation: cb-pop 0.45s var(--c
   .cb-s05-places li { position: absolute; width: 0; height: 0; }
   .cb-s05-places li:has(:hover), .cb-s05-places li:has(:focus-visible) { z-index: 2; }
   .cb-s05-place { position: absolute; left: 0; top: 0; width: max-content; transform: translate(-50%, calc(-100% - 8px)); pointer-events: auto;
-    min-height: 48px; padding: 5px 14px 6px 12px; border-radius: 12px; border: 1.5px solid rgba(71, 50, 31, 0.28); background: #FFF8EA; color: #3A2A1C;
+    min-height: 48px; padding: 5px 14px 6px 12px; border-radius: 12px; border: 1.5px solid rgba(71, 50, 31, 0.28); background: var(--pg-color-fff8ea); color: var(--pg-color-3a2a1c);
     box-shadow: 0 1px 2px rgba(48, 30, 14, 0.22), 0 6px 14px -6px rgba(48, 30, 14, 0.5); }
   .cb-s05-place::after { content: ""; position: absolute; left: 50%; bottom: -7px; width: 12px; height: 12px; margin-left: -6px; transform: rotate(45deg);
     background: inherit; border-right: 1.5px solid rgba(71, 50, 31, 0.28); border-bottom: 1.5px solid rgba(71, 50, 31, 0.28); }
@@ -205,7 +205,7 @@ button.cb-s05-place.is-right .cb-s05-place__ic { animation: cb-pop 0.45s var(--c
   .cb-s05-places.is-passive { display: flex; flex-wrap: wrap; gap: 8px; }
   .cb-s05-places.is-passive li:has(.is-quiet) { display: none; }
   .cb-s05-places.is-passive .cb-s05-place { width: auto; min-height: 44px; padding: 4px 12px 4px 4px; }
-  .cb-s05-place__no { display: grid; place-items: center; flex: none; width: 34px; height: 34px; border-radius: 50%; border: 2px solid #47321F; background: #FFF8EA; color: #3A2A1C; font-size: 0.9375rem; font-weight: 780; }
+  .cb-s05-place__no { display: grid; place-items: center; flex: none; width: 34px; height: 34px; border-radius: 50%; border: 2px solid var(--pg-color-47321f); background: var(--pg-color-fff8ea); color: var(--pg-color-3a2a1c); font-size: 0.9375rem; font-weight: 780; }
   .cb-s05-place.is-right .cb-s05-place__no { border-color: var(--cb-stage-2); background: var(--cb-stage-2); color: var(--cb-on-accent); }
   .cb-s05-place__ic { display: none; }
   .cb-s05-place { width: 100%; height: 100%; padding-right: 10px; box-shadow: none; border-color: var(--cb-line); border-width: 1.5px; }
