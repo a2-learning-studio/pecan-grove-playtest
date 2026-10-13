@@ -64,11 +64,21 @@
   max-width: min(210px, 48cqw);
   min-width: 110px;
   opacity: 1;
-  visibility: visible;
+  /* Unplaced plates stay hidden. A resize must not flash the previous offset over another disc. */
+  visibility: hidden;
   transform: none !important;
   right: auto !important;
   bottom: auto !important;
   pointer-events: none;
+}
+.cb-map-ready
+  .cb-stops--onmap
+  .cb-stop[data-plate-visible="true"][data-plate-hidden="false"]:not(
+    [data-plate-docked="true"]
+  )
+  .cb-stop__plate[data-placement] {
+  visibility: visible;
+  opacity: 1;
 }
 .cb-map-ready .cb-stops--onmap .cb-stop__plate b {
   white-space: normal;
