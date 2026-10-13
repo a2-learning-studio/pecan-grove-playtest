@@ -295,6 +295,40 @@ test("every badge has distinct SVG geometry and a concrete locked hint; results 
   }
 });
 
+test("a finished stop fills the progress bar and the current step fills it partway", () => {
+  const r = fixture(
+    '<div class="cb-stophud"><div class="cb-stophud__tools"><button class="cb-stophud__back">Map</button></div><ol><li class="cb-step" data-s="done"></li><li class="cb-step" data-s="done"></li></ol></div>',
+  );
+  try {
+    const hud = new HUD({
+      root: r.root,
+      core: () => ({ getState: () => ({ stopId: "one" }) }),
+      slots: { current: () => ({ stops: {}, badges: {} }) },
+      pause: { control: () => r.w.document.createElement("button") },
+      i18n: r.i18n,
+      focus: { push() {}, pop() {} },
+      onSlots() {},
+      onBadges() {},
+    });
+    hud.render();
+    const done = r.root.querySelector("progress");
+    assert.equal(Number(done.max), 2);
+    assert.equal(Number(done.value), 2);
+    r.root.querySelectorAll(".cb-step")[1].setAttribute("data-s", "now");
+    r.root.querySelectorAll(".cb-step")[1].setAttribute("aria-current", "step");
+    hud.render();
+    assert.equal(Number(r.root.querySelector("progress").value), 2);
+    r.root.querySelectorAll(".cb-step")[1].setAttribute("data-s", "todo");
+    r.root.querySelectorAll(".cb-step")[1].removeAttribute("aria-current");
+    r.root.querySelector(".cb-step").setAttribute("aria-current", "step");
+    r.root.querySelector(".cb-step").setAttribute("data-s", "now");
+    hud.render();
+    assert.equal(Number(r.root.querySelector("progress").value), 1);
+  } finally {
+    r.close();
+  }
+});
+
 test("HUD More invokes real tool actions and restores focus scope; only newly earned stars are announced", (t) => {
   t.mock.timers.enable({ apis: ["Date", "setTimeout"], now: 1000 });
   const r = fixture(

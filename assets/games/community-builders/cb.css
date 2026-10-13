@@ -153,7 +153,7 @@
 .cb-stops--onmap [data-edge="r"] .cb-stop.is-plate-up .cb-stop__plate { left: auto; right: 0; transform: none; }
 .cb-stop[data-state="next"] .cb-stop__disc { border-width: 5px; border-color: var(--cb-clay); }
 .cb-stop[data-state="next"] .cb-stop__disc::before { content: ""; position: absolute; inset: -10px; border-radius: 50%; border: 3px solid var(--cb-clay); opacity: 0; animation: cb-ping 2.4s var(--cb-ease) infinite; }
-@keyframes cb-ping { 0% { opacity: 0.8; transform: scale(0.86); } 70%, 100% { opacity: 0; transform: scale(1.32); } }
+@keyframes cb-ping { 0% { opacity: 0.9; transform: scale(0.92); } 100% { opacity: 0; transform: scale(1.42); } }
 .cb-stop[data-state="done"] .cb-stop__disc { background: var(--cb-chap); border-color: var(--cb-card); }
 .cb-stop[data-state="done"] .cb-stop__disc .cb-ico { width: 28px; height: 28px; stroke-width: 3.2; }
 .cb-stop.is-stamping .cb-stop__disc { animation: cb-stamp 0.7s var(--cb-ease) 1.2s both; }
@@ -247,7 +247,10 @@
 .cb-stops--list .cb-tag::after { display: none; }
 
 /* ── stop header ── */
-.cb-stophud { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: "back title steps"; align-items: center; gap: 12px 20px; padding: 12px 16px 14px; color: var(--cb-on-stage); }
+.cb-stophud { position: relative; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: "back title hud"; align-items: center; gap: 12px 20px; padding: 12px 16px 14px; color: var(--cb-on-stage); }
+.cb-stophud > .cb-engine-hud { grid-area: hud; width: auto; max-width: 100%; justify-self: end; align-self: center; justify-content: flex-end; padding-block: 0; }
+.cb-stophud:has(> .cb-engine-hud progress) { padding-bottom: 22px; }
+.cb-stophud > .cb-engine-hud progress { position: absolute; left: 16px; right: 16px; bottom: 8px; width: auto; margin: 0; }
 .cb-stophud__tools { grid-area: back; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; min-width: 0; }
 .cb-fs { flex: none; }
 .cb-fs--icon { width: 48px; padding: 0; }
@@ -267,7 +270,7 @@
 @keyframes cb-vbtn { 50% { transform: scale(1.12); } }
 /* read-along: the word being said lights up like a highlighter; the stop's title underlines while its name is said */
 .cb-w { border-radius: 0.2em; transition: background-color 0.1s linear, box-shadow 0.1s linear; }
-.cb-w.is-now { background: var(--pg-color-ffe08a); box-shadow: 0 0 0 0.14em var(--pg-color-ffe08a); color: var(--cb-ink); }
+.cb-w.is-now { background-color: transparent; background-image: linear-gradient(var(--pg-color-ffe08a), var(--pg-color-ffe08a)); background-repeat: no-repeat; background-size: calc(100% + 0.18em) 0.78em; background-position: center 62%; box-shadow: none; border-radius: 0.12em; box-decoration-break: clone; -webkit-box-decoration-break: clone; color: var(--cb-ink); }
 .cb-stophud__h { text-decoration: underline transparent; text-decoration-thickness: 0.09em; text-underline-offset: 0.2em; transition: text-decoration-color 0.2s; }
 .cb-stophud__h.is-now { text-decoration-color: var(--cb-focus-on-stage); }
 @media (forced-colors: active) { .cb-w.is-now { background: Highlight; color: HighlightText; box-shadow: none; } }
@@ -345,7 +348,10 @@
 .cb.is-calm *, .cb.is-calm *::before, .cb.is-calm *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; animation-delay: 0s !important;
   transition-duration: 0.01ms !important; transition-delay: 0s !important; scroll-behavior: auto !important; }
 /* full-screen game */
-.cb.is-fs { width: 100%; max-width: none; height: 100%; margin: 0; border-radius: 0; overflow-y: auto; box-shadow: none; }
+.cb.is-fs { display: flex; flex-direction: column; width: 100%; max-width: none; height: 100%; margin: 0; border-radius: 0; overflow-y: auto; box-shadow: none; }
+.cb.is-fs .cb-main { flex: 1 1 auto; display: flex; flex-direction: column; min-height: 0; }
+.cb.is-fs .cb-main > .cb-board { flex: 1 1 auto; align-content: start; }
+.cb.is-fs .cb-foot { flex: 0 0 auto; }
 .cb.is-fs .cb-world { width: min(100%, calc((100vh - 190px) * 1.79)); margin-inline: auto; }
 .cb:fullscreen::backdrop { background: var(--pg-ink); }
 .cb-stophud__title { grid-area: title; display: flex; align-items: center; gap: 12px; min-width: 0; }
@@ -354,7 +360,7 @@
 .cb-stophud__h { margin: 0; font-family: var(--a2-font-display); font-size: clamp(1.05rem, 0.85rem + 0.7cqi, 1.5rem); font-weight: 680; line-height: 1.15; letter-spacing: -0.022em; color: var(--cb-on-stage); text-wrap: balance; }
 .cb-stophud__h:focus { outline: none; }
 .cb-stophud__title p { margin: 3px 0 0; font-size: 0.875rem; font-weight: 600; color: var(--cb-on-stage-2); }
-.cb-stophud__steps { grid-area: steps; display: grid; justify-items: end; gap: 4px; }
+.cb-stophud__steps { grid-column: 1 / -1; display: grid; justify-items: end; gap: 4px; }
 .cb-steps { display: flex; align-items: center; gap: 6px; margin: 0; padding: 0; list-style: none; }
 .cb-step { display: flex; align-items: center; gap: 8px; font-size: 0.875rem; font-weight: 650; color: var(--cb-on-stage-2); }
 .cb-step + .cb-step::before { content: ""; width: 20px; height: 2px; margin-right: 2px; border-radius: 2px; background: var(--cb-stage-line); }
@@ -368,12 +374,12 @@
 .cb-steps--dots .cb-step + .cb-step::before { width: 12px; }
 .cb-steps__cap { margin: 0; font-size: 0.8125rem; font-weight: 650; color: var(--cb-on-stage-2); font-variant-numeric: tabular-nums; }
 @container cb (max-width: 899.98px) {
-  .cb-stophud { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "title back" "steps steps"; }
+  .cb-stophud { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "title hud" "back back"; }
   .cb-stophud__steps { justify-items: start; }
   .cb-step:not([data-s="now"]) .cb-step__lbl { display: none; }
 }
 @container cb (max-width: 480px) {   /* phones: the buttons get their own row, so the stop's name has the full width; Full screen is in Settings */
-  .cb-stophud { grid-template-columns: minmax(0, 1fr); grid-template-areas: "back" "title" "steps"; gap: 10px; }
+  .cb-stophud { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "back hud" "title title"; gap: 10px; }
   .cb-stophud__back { margin-right: auto; }
   .cb-stophud .cb-fs { display: none; }
 }

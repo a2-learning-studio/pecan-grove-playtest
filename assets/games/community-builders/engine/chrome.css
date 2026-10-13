@@ -146,6 +146,26 @@
 .cb[data-motion="full"]
   .cb-map-ready
   .cb-stop[data-state="next"]
+  .cb-stop__disc {
+  animation: cb-next-pulse 1.8s ease-in-out infinite;
+}
+@keyframes cb-next-pulse {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 0 color-mix(in srgb, var(--cb-clay) 75%, transparent),
+      var(--cb-shadow-2);
+  }
+  55% {
+    box-shadow:
+      0 0 0 14px color-mix(in srgb, var(--cb-clay) 0%, transparent),
+      0 0 0 5px color-mix(in srgb, var(--cb-clay) 55%, transparent),
+      var(--cb-shadow-2);
+  }
+}
+.cb[data-motion="full"]
+  .cb-map-ready
+  .cb-stop[data-state="next"]
   .cb-stop__disc::after {
   box-shadow: 0 0 0 4px color-mix(in srgb, var(--cb-clay) 40%, transparent);
   animation: cb-marker-glow 2.2s var(--pg-ease) infinite;
