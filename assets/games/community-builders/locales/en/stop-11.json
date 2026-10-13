@@ -1,0 +1,216 @@
+{
+  "S": {
+    "title": "Weigh the Trade-offs - Community Builders of Pecan Grove",
+    "intro": [
+      "The hearing is over. Before the Town Council decides, it weighs four paths.",
+      "Every path has good parts and hard parts. Help the town see them all.",
+      "There's no wrong path. Points come from weighing well."
+    ],
+    "start": "Start",
+    "parts": {
+      "good": "Good parts",
+      "hard": "Hard parts"
+    },
+    "kind": {
+      "good": "Good part",
+      "hard": "Hard part"
+    },
+    "changes": "Changes",
+    "bowlN": {
+      "good": {
+        "$args": [
+          "n"
+        ],
+        "$parts": [
+          " good"
+        ]
+      },
+      "hard": {
+        "$args": [
+          "n"
+        ],
+        "$parts": [
+          " hard"
+        ]
+      }
+    },
+    "p1": "Tap each signpost to weigh its good parts and hard parts.",
+    "weighed": "Weighed",
+    "weighedL": "weighed",
+    "weighedN": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Paths weighed: ",
+        " of 4"
+      ]
+    },
+    "choose": "Choose this path",
+    "ask": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "You weighed ",
+        " of 4 paths. Weighing every path helps you see the whole picture."
+      ]
+    },
+    "more": "Weigh more paths",
+    "yours": "Your path",
+    "chose": {
+      "$args": [
+        "p"
+      ],
+      "$parts": [
+        "You chose: ",
+        ". Now look closely at its cards."
+      ]
+    },
+    "q": [
+      "Who does this path help? Tap a neighbor.",
+      "Who could find this path hard? Tap a neighbor."
+    ],
+    "nb": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        ", neighbor"
+      ]
+    },
+    "ok": [
+      {
+        "$args": [
+          "n"
+        ],
+        "$parts": [
+          "Yes! A good part reaches ",
+          "."
+        ]
+      },
+      {
+        "$args": [
+          "n"
+        ],
+        "$parts": [
+          "Yes! A hard part reaches ",
+          "."
+        ]
+      }
+    ],
+    "wrong": [
+      {
+        "$args": [
+          "n"
+        ],
+        "$parts": [
+          "Good thinking. In this round, the good parts don't reach ",
+          " much. Read them again."
+        ]
+      },
+      {
+        "$args": [
+          "n"
+        ],
+        "$parts": [
+          "Good thinking. In this round, the hard parts don't reach ",
+          " much. Read them again."
+        ]
+      }
+    ],
+    "tried": "Tried",
+    "shown": [
+      "Here is who it helps:",
+      "Here is who could find it hard:"
+    ],
+    "p3": "Add one change that makes a hard part easier. Tap a change.",
+    "okChg": "Good change! It makes this hard part easier:",
+    "easier": "Easier now",
+    "idea": [
+      "That's a real idea! It helps a different hard part:",
+      "Look at your path's hard parts and try again."
+    ],
+    "fits": "Here is a change that fits:",
+    "finish": "Finish",
+    "aha": "Every path, even 'don't build' or 'wait', helps someone and is hard for someone.",
+    "see": "See my score",
+    "can": "I can see that every plan has good parts and hard parts.",
+    "tipWeigh": "Next time, weigh all four paths before you choose.",
+    "tipGood": "Next time, read the good parts slowly. Who would be glad?",
+    "tipHard": "Next time, read the hard parts slowly. Who would feel them?",
+    "tipChange": "Next time, pick a change that fits one of your path's hard parts.",
+    "tip100": "Great weighing! Try a new round with a different path.",
+    "real": "Choose something your family is deciding, like a weekend plan. Name one good part and one hard part of each choice.",
+    "askT": "Ask a grown-up",
+    "askQ": "When you make a big choice, how do you weigh the good parts and the hard parts?",
+    "gu": "For grown-ups: about this stop",
+    "guText": "There are four paths: build as planned, build with changes, don't build here, or wait for more information. Each has gains and costs, and each can earn full points. The score rewards exploring every path and naming who gains and who finds it hard. It never rewards the path chosen."
+  },
+  "bank": {
+    "b0001": "Build as planned",
+    "b0002": "Build with changes",
+    "b0003": "Don't build here",
+    "b0004": "Wait for more information",
+    "b0005": "Night nurse at the clinic on Main Street",
+    "b0006": "Farms next door; his well is close by",
+    "b0007": "Builds things; fishes in the creek with her kids",
+    "b0008": "Keeps the town's stories; her grandson needs work",
+    "b0009": "Runs the bakery on Main Street; pays town taxes",
+    "b0010": "Student who loves tech; has a little sister",
+    "b0011": "Cool it with recycled water",
+    "b0012": "Then less well and river water is used.",
+    "b0013": "A wide strip of trees and land near homes",
+    "b0014": "Trees and distance soften light and sound.",
+    "b0015": "Cleaner engines, tested less often",
+    "b0016": "Less smoke near the clinic.",
+    "b0017": "A plan for where workers will live",
+    "b0018": "So rents in town don't jump.",
+    "b0019": "A shorter tax break and a savings fund for the school",
+    "b0020": "The school still gets steady money.",
+    "b0021": "Set a clear date to decide",
+    "b0022": "Everyone knows when the answer comes.",
+    "b0023": "Money saved now to take it down if it closes",
+    "b0024": "No empty building is left behind.",
+    "b0025": "A truck route away from Main Street and the school",
+    "b0026": "Shoppers and school buses keep moving.",
+    "b0027": "An electrician class at the school",
+    "b0028": "Young people can train for good jobs nearby.",
+    "b0029": "Suggest an old factory lot instead of the farm",
+    "b0030": "New business could still come to town.",
+    "b0031": "The company pays for the studies",
+    "b0032": "The town keeps its money for other things.",
+    "b0033": "Lots of building jobs start right away.",
+    "b0034": "Crews buy lunch on Main Street every day.",
+    "b0035": "New tax money could help the school soon.",
+    "b0036": "A fast internet line could reach the clinic.",
+    "b0037": "On hot days, cooling could use a lot of water.",
+    "b0038": "Bright lights and a low hum near homes at night.",
+    "b0039": "Backup engines get tested and make some smoke.",
+    "b0040": "Rents could go up while crews are in town.",
+    "b0041": "Building jobs, with a promise to hire people from here.",
+    "b0042": "A wide strip of trees between the building and the farm next door.",
+    "b0043": "The school gets a class to train electricians.",
+    "b0044": "Lights point down, so nights stay dark.",
+    "b0045": "The changes cost money, so the company asks to pay less tax for a while.",
+    "b0046": "Agreeing on every change takes months, and the work waits.",
+    "b0047": "If it closes someday, the empty building could stay.",
+    "b0048": "Lots of trucks on Main Street while they build.",
+    "b0049": "The farm fields and the creek stay as they are.",
+    "b0050": "Nights stay quiet and dark.",
+    "b0051": "The big pecan trees and the old places stay.",
+    "b0052": "Main Street keeps its usual traffic.",
+    "b0053": "No new building jobs here.",
+    "b0054": "No new tax money for the school.",
+    "b0055": "Main Street doesn't get new lunch customers.",
+    "b0056": "Young people may still move away to find tech jobs.",
+    "b0057": "Time to test the wells and the creek first.",
+    "b0058": "Time to look for old graves before any digging.",
+    "b0059": "Time to plan with the fire station for the big batteries.",
+    "b0060": "Time to study where the trucks would drive.",
+    "b0061": "Families next to the farm wait months to know what's coming.",
+    "b0062": "Building jobs, if they come, start later.",
+    "b0063": "The company could choose another town.",
+    "b0064": "The town pays for the studies."
+  }
+}

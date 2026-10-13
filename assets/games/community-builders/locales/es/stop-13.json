@@ -1,0 +1,145 @@
+{
+  "T": {
+    "title": "Comparte bien la información - Constructores de comunidad de Pecan Grove",
+    "intro": "El pueblo todavía no ha decidido. La biblioteca les pidió a los niños hacer un cartel de 'Lo que sabemos hasta ahora' para su tablero en la escuela. Elige 3 tarjetas de datos. Ponle a cada una su fuente y revisa su fecha. Luego elige un título.",
+    "pickHead": "Luego elige un título.",
+    "boardTag": "Tablero de la biblioteca escolar",
+    "prog": {
+      "$args": [
+        "n",
+        "hd"
+      ],
+      "$parts": [
+        "Tarjetas en el cartel: ",
+        " de 3 · Título: ",
+        "elegido",
+        "todavía no"
+      ]
+    },
+    "start": "Empezar",
+    "step": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Paso ",
+        " de 2"
+      ]
+    },
+    "cards": "Tarjetas de datos",
+    "heads": "Títulos",
+    "slot": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Espacio ",
+        " de 3"
+      ]
+    },
+    "tap": "Toca una tarjeta para ponerla en el cartel.",
+    "hope": "Esperanza",
+    "worry": "Preocupación",
+    "addSrc": "Ponle su fuente",
+    "checkDate": "Revisa la fecha",
+    "takeOff": "Quitarla",
+    "swap": "Cambiar por el dato nuevo",
+    "source": {
+      "$args": [
+        "s"
+      ],
+      "$parts": [
+        "Fuente: "
+      ]
+    },
+    "upToDate": "Está al día. No hay nada más nuevo.",
+    "oldLine": "Noticia vieja, del 2 de junio. Hay noticias más nuevas.",
+    "noSrc": "Sin fuente. Nadie puede mostrar cómo lo sabe.",
+    "noDate": "Sin fecha. Nadie se acuerda.",
+    "rumor": "Esto parece un rumor. Puedes quitar esta tarjeta.",
+    "next": "Siguiente: ponerlo en el tablero",
+    "card": {
+      "$args": [
+        "w",
+        "tag"
+      ],
+      "$parts": [
+        "Tarjeta: ",
+        ", "
+      ]
+    },
+    "at": {
+      "$args": [
+        "b",
+        "n"
+      ],
+      "$parts": [
+        ", espacio "
+      ]
+    },
+    "inSlot": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Tarjeta en el espacio "
+      ]
+    },
+    "srcAdded": "Fuente agregada",
+    "good": "¡Buen título! Dice lo que hay en el cartel.",
+    "sell": "Este título le dice a la gente qué pensar. Un cartel de 'Lo que sabemos' dice lo que tiene adentro, para que cada quien decida.",
+    "ask": "Pregúntale a un adulto: ¿dónde lo podemos compartir?",
+    "aha": "Compartir un dato sin su fuente o su fecha puede esparcir un error.",
+    "see": "Ver mi puntaje",
+    "can": "Puedo compartir datos con su fuente y decir lo que todavía no sabemos.",
+    "tipRumor": "La próxima vez, ponle fuente a cada tarjeta. Si no tiene fuente, es un rumor. Déjalo fuera.",
+    "tipSrc": "La próxima vez, ponle su fuente a cada dato antes de ponerlo en el tablero.",
+    "tipDate": "La próxima vez, revisa la fecha de cada tarjeta. Las noticias viejas se cuelan.",
+    "tipMix": "La próxima vez, muestra una esperanza y una preocupación, para que todos los vecinos se sientan escuchados.",
+    "tipHead": "La próxima vez, elige un título que diga lo que hay adentro, no qué pensar.",
+    "tip100": "¡Gran cartel! Prueba una nueva ronda con tarjetas nuevas.",
+    "real": "Haz un cartel para tu clase o la biblioteca, con permiso. Cada dato lleva su fuente y su fecha. Nada en internet.",
+    "gu": "Para adultos: sobre esta parada",
+    "guText": "Los niños hacen un cartel con fuentes y fechas, muestran una esperanza y una preocupación, y eligen un lugar seguro para compartirlo: la familia, la clase o un tablero de la biblioteca, con permiso. Nada de redes sociales, peticiones ni materiales de campaña."
+  },
+  "bank": {
+    "b0001": "El plan de la empresa, en la biblioteca",
+    "b0002": "3 de septiembre",
+    "b0003": "Notas de la Junta de Planificación",
+    "b0004": "24 de septiembre",
+    "b0005": "Una carta de la Oficina Estatal del Medio Ambiente",
+    "b0006": "2 de octubre",
+    "b0007": "El primer plan de la empresa",
+    "b0008": "2 de junio",
+    "b0009": "El plan de la empresa indica muchos empleos durante la construcción.",
+    "b0010": "El plan de la empresa muestra luces exteriores hacia abajo, sin apuntar a las casas.",
+    "b0011": "Las notas de la Junta describen un edificio propuesto lejos de la vieja capilla.",
+    "b0012": "Las notas de la Junta proponen que una persona experta busque tumbas antiguas antes de excavar.",
+    "b0013": "El plan de la empresa indica solo unos pocos empleos después de abrir.",
+    "b0014": "El plan de la empresa indica un uso diario de agua.",
+    "b0015": "El plan de la empresa dice que los motores de respaldo se prenderían durante cortes de luz y pruebas cortas.",
+    "b0016": "El permiso de calidad del aire todavía no se ha decidido.",
+    "b0017": "Las clases de electricista en la escuela empiezan este otoño.",
+    "b0018": "El nuevo plan propone clases de electricista el próximo año, si el pueblo dice que sí.",
+    "b0019": "El plan conserva algunos de los nogales grandes.",
+    "b0020": "El plan conserva todos los nogales grandes junto al arroyo.",
+    "b0021": "Sacaría agua de los pozos del pueblo.",
+    "b0022": "El nuevo plan propone tomar agua del río Pecan, no de los pozos.",
+    "b0023": "El estudio de ruido va a estar listo en octubre.",
+    "b0024": "El estudio de ruido todavía no está listo. Va a estar listo en la primavera.",
+    "b0025": "No usa nada de agua.",
+    "b0026": "Todos los pozos del pueblo se van a secar el próximo año.",
+    "b0027": "A todos nos va a bajar el recibo de luz.",
+    "b0028": "Se va a ir la luz en todas las casas.",
+    "b0029": "Lo que sabemos hasta ahora y lo que todavía no sabemos",
+    "b0030": "El plan de la granja: datos con fuente y fecha",
+    "b0031": "¡El centro de datos sería genial para Pecan Grove!",
+    "b0032": "¡El centro de datos sería malo para Pecan Grove!",
+    "b0033": "En la mesa con la familia",
+    "b0034": "Tu familia lo lee en la cena y pregunta por las fuentes.",
+    "b0035": "Con mi clase",
+    "b0036": "Tu maestro o maestra lo pone en el salón, y tu clase habla de las fechas.",
+    "b0037": "En el tablero de la biblioteca, con permiso",
+    "b0038": "En la biblioteca te dicen que sí y lo ponen en el tablero."
+  }
+}

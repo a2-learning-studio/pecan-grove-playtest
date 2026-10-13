@@ -1,0 +1,103 @@
+{
+  "T": {
+    "hall": "Town Hall",
+    "intro": "Welcome to Town Hall! The Planning Board met last week. The Town Council hearing is next. Neighbors have questions. Help each one find the right desk.",
+    "start": "Start",
+    "qn": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Question ",
+        " of 5"
+      ]
+    },
+    "who": "Who can help? Tap the desk that decides this.",
+    "desk": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Desk: "
+      ]
+    },
+    "speakAt": "People can speak at:",
+    "howK": "How the farm plan gets decided",
+    "ringAt": {
+      "$args": [
+        "st"
+      ],
+      "$parts": [
+        "This desk's step is circled below: ",
+        "."
+      ]
+    },
+    "boardPast": "People could speak at the Planning Board meeting. It already happened, so the Town Council hearing is next.",
+    "written": "a written comment (with a grown-up)",
+    "yes": "Yes! This desk can help.",
+    "wrong": "Not this desk. Try another one.",
+    "tried": "Tried",
+    "hereIs": "Here is the desk for this question.",
+    "nextQ": "Next question",
+    "finish": "Finish",
+    "rightDesk": "Right desk",
+    "notThis": "Not this desk",
+    "canSpeak": "People can speak",
+    "here": "We are here",
+    "aha": "Different helpers decide different parts. The Town Council decides what can be built on the farm, after a public hearing. That is where neighbors' voices count most.",
+    "see": "See my score",
+    "can": "I can find out who decides, and when people can speak.",
+    "tipCouncil": "Next time, remember: the Town Council decides what can be built, after a hearing.",
+    "tipDesk": "Next time, remember this desk:",
+    "tip100": "Great job finding who decides! Try a new round.",
+    "real": "Ask a grown-up: 'Who decides big building plans where we live?' Find out together at the library or on your city or county website.",
+    "gu": "For grown-ups: how it works in Georgia",
+    "guText": "In Fulton County, each city decides zoning inside its limits after a public hearing, and the county decides in the few unincorporated areas left. If land is already zoned for a use, there may be no hearing. Development authorities decide local tax breaks. Large projects also get a regional review that only gives advice. State bodies handle other parts. The Georgia Public Service Commission sets power rates but does not pick sites. Georgia EPD issues air permits for backup generators and permits for large water use. The game uses made-up boards so it stays clear of elections."
+  },
+  "bank": {
+    "b0001": "Decides what can be built",
+    "b0002": "Studies plans and gives advice",
+    "b0003": "Decides on tax breaks",
+    "b0004": "Comments for nearby towns",
+    "b0005": "Sets power prices",
+    "b0006": "Gives smoke and water permits",
+    "b0007": "Decides together at home",
+    "b0008": "Town Council",
+    "b0009": "Decides what can be built on land in town, after a public hearing. Neighbors' voices count most here.",
+    "b0010": "the Town Council hearing",
+    "b0011": "Planning Board",
+    "b0012": "Studies the plan first and gives the Town Council advice.",
+    "b0013": "the Planning Board meeting",
+    "b0014": "Development Board",
+    "b0015": "Decides if a new business can pay less tax for some years.",
+    "b0016": "Regional Review",
+    "b0017": "Looks at how a big project could affect nearby towns, and shares comments. It does not decide.",
+    "b0018": "State Power Board",
+    "b0019": "Sets the price of power. It does not pick where buildings go.",
+    "b0020": "State Environment Office",
+    "b0021": "Gives permits for smoke from engines and for using lots of water.",
+    "b0022": "Your family",
+    "b0023": "You decide together at home what you think and what you do.",
+    "b0024": "a family talk at home",
+    "b0025": "Can the old Miller farm be used for a data center?",
+    "b0026": "Can the town ask for rules, like quiet nights and a row of trees?",
+    "b0027": "Who studies the plan first and gives advice?",
+    "b0028": "Who checks if the plan fits our town's land map?",
+    "b0029": "Will the company get a tax break?",
+    "b0030": "Could the company pay less tax if it brings jobs?",
+    "b0031": "Will more trucks on the road affect the next town too?",
+    "b0032": "Who looks at how this could change the towns around us?",
+    "b0033": "Who sets the price of my power bill?",
+    "b0034": "Who decides what big new buildings pay for power?",
+    "b0035": "Who checks the smoke from the backup engines?",
+    "b0036": "Who says if they can take lots of water from Pecan River?",
+    "b0037": "Should our family save water this summer?",
+    "b0038": "What does our family think about the plan?",
+    "b0039": "Sign",
+    "b0040": "Board meeting",
+    "b0041": "Hearing",
+    "b0042": "Permits",
+    "b0043": "Decision",
+    "b0044": "Promises"
+  }
+}

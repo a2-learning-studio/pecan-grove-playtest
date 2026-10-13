@@ -1,0 +1,170 @@
+{
+  "WORDS": {
+    "title": "Haz un trato justo - Constructores de comunidad de Pecan Grove",
+    "crew": "Por el equipo de la obra",
+    "intro1": "El pueblo todavía no ha decidido. Hoy, los vecinos y los constructores prueban un camino: construir, con cambios. No construir, o esperar más datos, también son caminos justos.",
+    "intro2": "Elige 4 promesas para el trato. Ana responde por el equipo de la obra, y ella también vive aquí.",
+    "start": "Empezar",
+    "step": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Paso ",
+        " de 3"
+      ]
+    },
+    "s1": "Elige 4 promesas que respondan a todas las preocupaciones que puedas.",
+    "onDeal": "En el trato",
+    "full": "El trato tiene 4 promesas. Quita una primero.",
+    "onDealN": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Promesas en el trato: ",
+        " de 4"
+      ]
+    },
+    "show": "Mostrarles el trato a los vecinos",
+    "answers": "¡Eso responde a mi preocupación!",
+    "notYet": "Mi preocupación todavía no está en el trato.",
+    "noOne": "Es una buena promesa, pero esta vez nadie aquí se preocupaba por eso.",
+    "helped": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Vecinos ayudados: ",
+        " de 6"
+      ]
+    },
+    "wow": "¡Muy bien! Es lo máximo que pueden ayudar 4 promesas.",
+    "ask": "Preguntar a los constructores",
+    "cardLabel": {
+      "$args": [
+        "name",
+        "on"
+      ],
+      "$parts": [
+        ", promesa, ",
+        "en el trato",
+        "fuera del trato"
+      ]
+    },
+    "s2": "Ana responde por el equipo de la obra.",
+    "promiseN": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Promesa ",
+        " de 4"
+      ]
+    },
+    "can": "Sí podemos cumplirlo.",
+    "hard": "Esa es difícil. ¿La cambiamos?",
+    "pickChange": "Elige un cambio, o déjala como estaba.",
+    "keep": "Dejarla como estaba",
+    "changed": "Cambiada",
+    "cant": "Queremos ayudar, pero esa no la podemos prometer.",
+    "note": "Una promesa que nadie puede cumplir no protege a nadie. Una promesa cambiada todavía puede responder a la preocupación.",
+    "tooHard": "Todavía es difícil",
+    "s3h": "Hazla clara",
+    "s3": "Toca cada parte que no está clara para aclararla: quién, qué y cuándo se revisa.",
+    "who": "Quién:",
+    "somebody": "Alguien",
+    "whoOpts": [
+      "Los constructores",
+      "Los constructores, con un ayudante que elija el pueblo"
+    ],
+    "what": "Qué:",
+    "tryHelp": "Tratar de ayudar",
+    "when": "Se revisa:",
+    "someday": "Algún día",
+    "whenOpts": [
+      "El 1 de junio, cada año",
+      "El primer día de cada estación"
+    ],
+    "clear": "¡Clara!",
+    "clearN": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Promesas claras: ",
+        " de 4"
+      ]
+    },
+    "sign": "Firmar el trato",
+    "signed1": "El trato está por escrito. Ahora todos saben quién hace qué y cuándo revisar.",
+    "signed2": "Un trato justo es uno que tanto los vecinos como los constructores pueden cumplir, por escrito y con una fecha para revisarlo.",
+    "see": "Ver mi puntaje",
+    "takeaway": "Puedo ayudar a que las promesas sean claras, justas y por escrito.",
+    "tipName": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "La próxima vez, busca también una promesa para ",
+        "."
+      ]
+    },
+    "tipKeep": "La próxima vez, cuando Ana diga que una promesa es difícil, elige un cambio. Todavía puede responder a la preocupación.",
+    "tipClear": "La próxima vez, haz clara cada promesa: quién, qué y cuándo se revisa.",
+    "tip100": "¡Un trato justo! Prueba una nueva ronda con otras preocupaciones.",
+    "real": "Haz un trato justo en casa, como repartir las tareas. Escríbelo y agrega un día para revisarlo.",
+    "askGrown": "Pregúntale a un adulto",
+    "askGrownText": "¿Qué promesa te gustaría tener por escrito, y quién debería revisarla?",
+    "gu": "Para adultos: sobre esta parada",
+    "guText": "Los niños eligen promesas para un acuerdo por escrito, y los constructores deben poder decir 'sí podemos cumplirlo'. Las comunidades reales usan condiciones en los permisos y acuerdos de beneficios comunitarios; qué tan obligatorios son varía, así que pregunten quién los revisa y qué pasa si no se cumple una promesa. Esta parada practica un camino, construir con cambios; no construir y esperar más información también son decisiones justas."
+  },
+  "bank": {
+    "b0001": "Me preocupa que los grandes motores de respaldo echen humo. Quiero saber cada cuánto los prenden.",
+    "b0002": "Me preocupa que el lodo llegue al arroyo y a mi pozo.",
+    "b0003": "Me preocupa que los empleos se acaben cuando terminen de construir.",
+    "b0004": "Me preocupa que haya tumbas antiguas escondidas en la granja. Quiero que alguien las busque antes de excavar.",
+    "b0005": "Me preocupa que los camiones grandes llenen la calle principal por meses.",
+    "b0006": "Me preocupa que los jóvenes se vayan a buscar trabajo a otro lado.",
+    "b0007": "Me preocupa que las luces fuertes toda la noche alumbren los cuartos.",
+    "b0008": "Me preocupa que nadie revise mi pozo antes de excavar.",
+    "b0009": "Me preocupa que el arroyo se llene de lodo. Ahí pesco con mis hijos.",
+    "b0010": "Me preocupa que suba mi recibo de luz.",
+    "b0011": "Me preocupa que suba la renta de mi local mientras construyen.",
+    "b0012": "Me preocupa que un zumbido de noche no deje dormir a mi hermanita.",
+    "b0013": "Pruebas de agua",
+    "b0014": "revisar los pozos y el arroyo antes de excavar y cada mes después",
+    "b0015": "revisar antes de excavar y luego cada 3 meses",
+    "b0016": "revisar cada mes el arroyo y los pozos cerca de la granja",
+    "b0017": "Horario tranquilo para camiones",
+    "b0018": "mantener los camiones grandes fuera de la calle principal, y no hacer ruido con camiones ni máquinas de noche",
+    "b0019": "usar la calle principal solo de 10 de la mañana a 2 de la tarde, y no hacer ruido de noche",
+    "b0020": "mandar casi todos los camiones por el camino de la granja, y poner un muro contra el ruido junto a las casas",
+    "b0021": "Luces hacia abajo",
+    "b0022": "apuntar todas las luces de afuera hacia abajo, y apagar casi todas de noche",
+    "b0023": "apuntar todas las luces hacia abajo, y alumbrar solo donde camina la gente",
+    "b0024": "apuntar todas las luces hacia abajo, y sembrar árboles del lado de las casas",
+    "b0025": "Empleo y capacitación local",
+    "b0026": "contratar primero a gente de Pecan Grove, y pagar clases de oficios en la escuela",
+    "b0027": "Los trabajadores de aquí ya tienen casa, así que menos gente necesita rentar.",
+    "b0028": "guardar la mitad de los empleos para gente de aquí, y capacitarla en el trabajo",
+    "b0029": "contratar primero a gente de aquí, y ayudar a la escuela a abrir una clase",
+    "b0030": "Buscar tumbas primero",
+    "b0031": "pedir a expertos que busquen tumbas antiguas en toda la granja antes de excavar",
+    "b0032": "buscar primero donde van a excavar, y el resto en un año",
+    "b0033": "revisar los mapas viejos del pueblo con la abuela Ruth, y que expertos busquen donde marcan los mapas",
+    "b0034": "Pagar su parte justa",
+    "b0035": "pagar todos sus impuestos al pueblo y a la escuela, y pagar sus propias líneas de luz nuevas",
+    "b0036": "Así las líneas nuevas no se suman a mi recibo de luz.",
+    "b0037": "pagar sus propias líneas de luz, y pagar todos sus impuestos después de 3 años",
+    "b0038": "pagar todos sus impuestos, y pagar sus líneas de luz en 10 años",
+    "b0039": "Dinero para limpiar después",
+    "b0040": "guardar dinero ahora para arreglar daños a la tierra o al agua, y para limpiar si algún día cierra",
+    "b0041": "guardar el dinero poco a poco en 5 años",
+    "b0042": "guardar ya dinero para el arroyo y los pozos, y más adelante para limpiar",
+    "b0043": "Un informe cada año",
+    "b0044": "compartir un informe corto cada año: cuántas veces prendieron los motores de respaldo, cuánta agua usaron, empleos y arreglos",
+    "b0045": "compartir el informe cada dos años",
+    "b0046": "compartir cada año cuántas veces prendieron los motores, y lo demás cada dos años"
+  }
+}

@@ -1,0 +1,120 @@
+{
+  "T": {
+    "title": "Listen to Every Neighbor",
+    "p1": "Tap each neighbor to hear what they hope and what they worry about.",
+    "hope": "Hope",
+    "worry": "Worry",
+    "listened": "Listened",
+    "p2": "Find two neighbors who want the same thing. Read each hope and each worry: a worry shows what someone wants, too. Tap one neighbor, then another.",
+    "picked": "Picked. Now tap one more neighbor.",
+    "shared": "Shared wish!",
+    "already": "You already found that one.",
+    "toFind": "Shared wishes to find",
+    "noplan": "These two don't share one of the 4 wishes here. Do you see something else they share? Talk about it with someone. Then try another pair.",
+    "found": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Shared wishes found: ",
+        " of 4"
+      ]
+    },
+    "done": "I'm done looking",
+    "all": "And one wish everyone shares: to be heard.",
+    "p3t": "Who said this?",
+    "p3": "Tap the neighbor who said it.",
+    "line": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Line ",
+        " of 4"
+      ]
+    },
+    "right": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Yes! ",
+        " said that."
+      ]
+    },
+    "wrong": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Good try. ",
+        " said that."
+      ]
+    },
+    "can": "I can listen to every neighbor before I make up my mind.",
+    "tipSkip": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Next time, listen to ",
+        " too!"
+      ]
+    },
+    "tipPairs": "Next time, read each neighbor's hope and worry before you tap.",
+    "tipWish": "Next time, try more pairs. Most neighbors share something.",
+    "tipLine": "Next time, read each hope and worry slowly.",
+    "tip100": "Great listening! Try a new round.",
+    "real": "Ask someone at home: 'What do you hope for our neighborhood?' Listen to the whole answer.",
+    "listenedN": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        " of 6 neighbors listened"
+      ]
+    }
+  },
+  "bank": {
+    "b0001": "I hope ambulances can always reach the clinic fast.",
+    "b0002": "I worry the big backup engines could make smoky air. I want to know how often they run.",
+    "b0003": "I hope my grandkids can farm this land too.",
+    "b0004": "I worry mud could reach the creek and my well.",
+    "b0005": "I hope there are good jobs here for people who live here.",
+    "b0006": "I worry the jobs will end when the building is done.",
+    "b0007": "I hope my grandson can find good work here.",
+    "b0008": "I worry old graves could be hidden on the farm. I want someone to look before digging.",
+    "b0009": "I hope new workers come to my bakery, so I can hire more people.",
+    "b0010": "I worry big trucks will crowd Main Street for months.",
+    "b0011": "I hope our school gets tech classes, so students can work in tech here someday.",
+    "b0012": "I worry young people will move away to find work.",
+    "b0013": "I hope the clinic always has power, even in big storms.",
+    "b0014": "I worry bright lights all night could shine into bedrooms.",
+    "b0015": "I hope my cows and fields stay healthy.",
+    "b0016": "I worry no one will test my well before they dig.",
+    "b0017": "I hope I can teach young people here to be electricians.",
+    "b0018": "I worry the creek could get muddy. I fish there with my kids.",
+    "b0019": "I hope we keep the old chapel and the stories of this land.",
+    "b0020": "I worry my power bill will go up.",
+    "b0021": "I hope new workers come to eat on Main Street.",
+    "b0022": "I worry the rent for my shop will go up while they build.",
+    "b0023": "I hope we keep the big pecan trees where we play.",
+    "b0024": "I worry a hum at night could keep my little sister awake.",
+    "b0025": "Take care of the land, water and air",
+    "b0026": "Good jobs for people who live here",
+    "b0027": "Safe, open roads",
+    "b0028": "Kids can grow up and stay in Pecan Grove",
+    "b0029": "Clean water in the creek and our wells",
+    "b0030": "Quiet, dark nights for sleeping",
+    "b0031": "Fair costs for families and shops",
+    "b0032": "Keep the trees, fields and old places",
+    "b0033": "Land, water and air?",
+    "b0034": "Jobs?",
+    "b0035": "Roads?",
+    "b0036": "Kids' future here?",
+    "b0037": "Water?",
+    "b0038": "Nights?",
+    "b0039": "Costs?",
+    "b0040": "Trees and old places?"
+  }
+}

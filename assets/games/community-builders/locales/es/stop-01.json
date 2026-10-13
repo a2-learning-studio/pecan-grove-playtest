@@ -1,0 +1,124 @@
+{
+  "T": {
+    "lead": "Los cambios grandes muchas veces empiezan con señales pequeñas.",
+    "start": "Empezar a buscar",
+    "story": "La familia Miller quiere vender su vieja granja junto al arroyo. Una empresa quiere construir ahí un centro de datos.",
+    "todayMore": "Algunas son señales del proyecto. Otras son solo cambios comunes.",
+    "aboutH": "Sobre este módulo",
+    "about": "Fíjate en las señales es la parada 1 de Constructores de comunidad de Pecan Grove, un juego gratis y bilingüe para niños de 8 a 14 años. Los jugadores comparan un camino el mes pasado y hoy, y encuentran señales pequeñas de que puede venir un proyecto grande. Aprenden que no todo cambio tiene que ver con el proyecto.",
+    "past": "El mes pasado",
+    "today": "Hoy",
+    "pastLine": "Así estaba el camino el mes pasado. Ahora toca Hoy.",
+    "todayLine": "Toca solo las cosas nuevas que podrían tener que ver con el proyecto de la granja.",
+    "done": "Ya terminé de buscar",
+    "signT": "¡Una señal de cambio!",
+    "askLine": "Pregúntale a un adulto: ¿qué podría significar?",
+    "found": "Encontrada",
+    "not": "No es del proyecto",
+    "missed": "No encontrada",
+    "keep": "Sigue buscando",
+    "every": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Es ",
+        "."
+      ]
+    },
+    "everyRest": "Buen ojo, pero no tiene que ver con la granja. No todo cambio es por el proyecto.",
+    "aFound": ", encontrada",
+    "aNot": ", no es del proyecto",
+    "aMissed": ", no encontrada",
+    "foundN": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Señales encontradas: ",
+        " de 6"
+      ]
+    },
+    "all6": "¡Encontraste las 6 señales!",
+    "review": "Estas son las señales que no encontraste. Toca una para leerla.",
+    "seeScore": "Ver mi puntaje",
+    "can": "Puedo darme cuenta cuando algo cambia en mi pueblo.",
+    "everyN": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Cambios comunes que tocaste: "
+      ]
+    },
+    "tipMiss": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "La próxima vez, busca también ",
+        "."
+      ]
+    },
+    "tipEvery": "La próxima vez, pregúntate: ¿esto nuevo tiene que ver con el terreno de la granja?",
+    "tip100": "¡Qué buen ojo! Prueba una nueva ronda.",
+    "real": "Con un adulto, busca esta semana una señal de cambio en tu calle o en las noticias locales. Hablen de lo que podría significar.",
+    "ask": "Pregúntale a un adulto",
+    "guText": "Los niños practican notar cambios sin sacar conclusiones apresuradas. En Georgia, un cambio de zonificación casi siempre trae un aviso público en el periódico y, a menudo, un letrero en el terreno antes de la audiencia pública. Pregunten juntos: ¿qué está cambiando y dónde podemos leer más?"
+  },
+  "bank": {
+    "b0001": "un letrero nuevo en un poste",
+    "b0002": "Letrero en un poste",
+    "b0003": "Solicitud de cambio de zonificación. Audiencia pública: 12 de nov.",
+    "b0004": "Un letrero de cambio de zonificación. Alguien pidió usar este terreno de otra forma.",
+    "b0005": "banderitas anaranjadas en el pasto",
+    "b0006": "Banderitas",
+    "b0007": "Banderitas de topografía. Alguien midió este terreno.",
+    "b0008": "marcas de pintura anaranjada en el suelo",
+    "b0009": "Marcas de pintura",
+    "b0010": "Marcas para excavar. Muestran dónde hay tubos y cables antes de excavar.",
+    "b0011": "un aviso nuevo en un tablero",
+    "b0012": "Tablero de avisos",
+    "b0013": "Un aviso de la biblioteca sobre una reunión acerca de la granja.",
+    "b0014": "una camioneta de topógrafos con un trípode",
+    "b0015": "Camioneta de topógrafos",
+    "b0016": "Los topógrafos miden terrenos, muchas veces antes de que se vendan o se construya en ellos.",
+    "b0017": "una perforadora pequeña que prueba el suelo",
+    "b0018": "Perforadora",
+    "b0019": "Los constructores revisan si el suelo aguanta un edificio grande.",
+    "b0020": "un periódico abierto en la página de avisos",
+    "b0021": "Periódico",
+    "b0022": "Los pueblos publican un aviso en el periódico antes de una audiencia pública.",
+    "b0023": "un papel que dice Proyecto Bellota",
+    "b0024": "Un papel",
+    "b0025": "Proyecto Bellota",
+    "b0026": "Un nombre clave. A veces los proyectos grandes usan uno al principio.",
+    "b0027": "una carta sobre una reunión en un buzón",
+    "b0028": "Carta en el buzón",
+    "b0029": "Algunos pueblos mandan cartas a los vecinos que viven cerca del terreno.",
+    "b0030": "un letrero de Venta pendiente",
+    "b0031": "Letrero de venta",
+    "b0032": "Venta pendiente",
+    "b0033": "Una venta de terreno puede pasar antes de que alguien sepa del proyecto.",
+    "b0034": "un mural nuevo en una pared bajita",
+    "b0035": "Mural nuevo",
+    "b0036": "un carrito de helados",
+    "b0037": "Carrito de helados",
+    "b0038": "una rama caída",
+    "b0039": "Rama caída",
+    "b0040": "un cartel de gato perdido",
+    "b0041": "Cartel de gato perdido",
+    "b0042": "una calabaza grande",
+    "b0043": "Calabaza grande",
+    "b0044": "un estacionamiento nuevo para bicis",
+    "b0045": "Lugar para bicis",
+    "b0046": "una mesa de venta de garaje",
+    "b0047": "Venta de garaje",
+    "b0048": "un balón de fútbol en el pasto",
+    "b0049": "Balón de fútbol",
+    "b0050": "un montón grande de hojas",
+    "b0051": "Montón de hojas",
+    "b0052": "un comedero nuevo para pájaros",
+    "b0053": "Comedero de pájaros"
+  }
+}

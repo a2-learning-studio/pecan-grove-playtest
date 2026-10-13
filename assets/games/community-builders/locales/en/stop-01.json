@@ -1,0 +1,124 @@
+{
+  "T": {
+    "lead": "Big changes often start with small signs.",
+    "start": "Start looking",
+    "story": "The Miller family wants to sell their old farm by the creek. A company wants to build a data center there.",
+    "todayMore": "Some are signs of the project. Some are just everyday changes.",
+    "aboutH": "About this module",
+    "about": "Notice the Signs is stop 1 of Community Builders of Pecan Grove, a free bilingual game for ages 8-14. Players compare a road last month and today and find small signs that a big project may be coming. They learn that not every change is about the project.",
+    "past": "Last month",
+    "today": "Today",
+    "pastLine": "This is the road last month. Now tap Today.",
+    "todayLine": "Tap only the new things that could be about the farm project.",
+    "done": "I'm done looking",
+    "signT": "A sign of change!",
+    "askLine": "Ask a grown-up: what could this mean?",
+    "found": "Found",
+    "not": "Not the project",
+    "missed": "Missed",
+    "keep": "Keep looking",
+    "every": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "That's ",
+        "."
+      ]
+    },
+    "everyRest": "Good eyes, but it isn't about the farm. Not every change is about the project.",
+    "aFound": ", found",
+    "aNot": ", not the project",
+    "aMissed": ", missed",
+    "foundN": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Signs found: ",
+        " of 6"
+      ]
+    },
+    "all6": "You found all 6 signs!",
+    "review": "Here are the signs you didn't find. Tap one to read it.",
+    "seeScore": "See my score",
+    "can": "I can notice when something in my town is changing.",
+    "everyN": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Everyday changes tapped: "
+      ]
+    },
+    "tipMiss": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Next time, look for ",
+        " too!"
+      ]
+    },
+    "tipEvery": "Next time, ask yourself: is this new thing about the farm's land?",
+    "tip100": "Sharp eyes! Try a new round.",
+    "real": "With a grown-up, look for one sign of change on your street or in the local news this week. Talk about what it might mean.",
+    "ask": "Ask a grown-up",
+    "guText": "Kids practice noticing change without jumping to conclusions. In Georgia, a rezoning usually comes with a public notice in the newspaper, and often a sign on the land, before the public hearing. Ask together: what is changing, and where can we read more?"
+  },
+  "bank": {
+    "b0001": "a new sign on a post",
+    "b0002": "Sign on a post",
+    "b0003": "Rezoning request. Public hearing: Nov. 12",
+    "b0004": "A rezoning sign. Someone asked to use this land in a new way.",
+    "b0005": "small orange flags in the grass",
+    "b0006": "Orange flags",
+    "b0007": "Survey flags. Someone measured this land.",
+    "b0008": "orange paint marks on the ground",
+    "b0009": "Paint marks",
+    "b0010": "Dig marks. They show where pipes and wires are before digging.",
+    "b0011": "a new notice on a board",
+    "b0012": "Notice board",
+    "b0013": "A library notice about a meeting on the farm.",
+    "b0014": "a surveyor's truck with a tripod",
+    "b0015": "Surveyor's truck",
+    "b0016": "Surveyors measure land, often before it is sold or built on.",
+    "b0017": "a small drill testing the soil",
+    "b0018": "Soil drill",
+    "b0019": "Builders check if the ground can hold a big building.",
+    "b0020": "a newspaper open to a notice",
+    "b0021": "Newspaper",
+    "b0022": "Towns print a notice in the newspaper before a public hearing.",
+    "b0023": "a paper that says Project Acorn",
+    "b0024": "A paper",
+    "b0025": "Project Acorn",
+    "b0026": "A code name. Big projects sometimes use one at first.",
+    "b0027": "a letter about a meeting in a mailbox",
+    "b0028": "Letter in a mailbox",
+    "b0029": "Some towns mail letters to neighbors near the land.",
+    "b0030": "a Sale pending sign",
+    "b0031": "Sale sign",
+    "b0032": "Sale pending",
+    "b0033": "A land sale can come before anyone hears about a project.",
+    "b0034": "a new mural on a little wall",
+    "b0035": "New mural",
+    "b0036": "an ice-cream cart",
+    "b0037": "Ice-cream cart",
+    "b0038": "a fallen branch",
+    "b0039": "Fallen branch",
+    "b0040": "a lost-cat poster",
+    "b0041": "Lost-cat poster",
+    "b0042": "a big pumpkin",
+    "b0043": "Big pumpkin",
+    "b0044": "a new bike rack",
+    "b0045": "Bike rack",
+    "b0046": "a yard-sale table",
+    "b0047": "Yard-sale table",
+    "b0048": "a soccer ball in the grass",
+    "b0049": "Soccer ball",
+    "b0050": "a big pile of leaves",
+    "b0051": "Pile of leaves",
+    "b0052": "a new bird feeder",
+    "b0053": "Bird feeder"
+  }
+}

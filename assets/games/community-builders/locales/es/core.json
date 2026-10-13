@@ -1,0 +1,322 @@
+{
+  "W": {
+    "series": "Constructores de comunidad de Pecan Grove",
+    "town": "Pecan Grove, Georgia",
+    "intro1": "Vives en Pecan Grove. La familia Miller quiere vender su vieja granja junto al arroyo. Una empresa quiere construir ahí un centro de datos. Aprende 15 formas de ser buen vecino mientras tu pueblo decide.",
+    "intro2": "No hay una sola respuesta correcta. Ganas puntos por lo bien que escuchas, revisas los datos y hablas con respeto.",
+    "start": "Empezar el camino",
+    "grownups": "Para adultos",
+    "close": "Cerrar",
+    "townmap": "Mapa del pueblo",
+    "grownText": "Tu partida se guarda en este dispositivo. Solo enviamos notas si eliges Enviar. Compartir puntajes empieza desactivado. Un adulto puede activarlo.",
+    "stop": "Parada",
+    "next": "Siguiente",
+    "soon": "Próximamente",
+    "back": "Volver al mapa",
+    "nextStop": "Siguiente parada",
+    "moreSoon": "¡Pronto habrá más paradas!",
+    "journey": "Puntaje del camino",
+    "open": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Paradas abiertas: ",
+        " de 15"
+      ]
+    },
+    "allStops": "Elige una parada: nombres y avance",
+    "mapHelp": "Mapa del pueblo. Usa las flechas para desplazarte o elige una parada de la lista de abajo.",
+    "journeyHelp": "El puntaje del camino suma tu mejor puntaje de cada parada. Puedes mejorarlo al volver a jugar; un puntaje menor nunca te quita puntos.",
+    "perfect": "¡Puntaje perfecto guardado! Prueba otra ronda para practicar con ejemplos diferentes.",
+    "language": "English",
+    "languageTitle": "¿Cambiar de idioma?",
+    "languageNote": "Seguirás en el mismo lugar de esta parada.",
+    "languageGo": "Continuar en English",
+    "last5": "Últimos 5 intentos",
+    "best": "Mejor",
+    "library": "Modo biblioteca / clase",
+    "who": "¿Quién juega?",
+    "scoreboard": "Tabla de puntajes",
+    "team": "Desafío en equipo",
+    "leave": "Salir del modo biblioteca",
+    "playing": {
+      "$args": [
+        "a"
+      ],
+      "$parts": [
+        "Jugando: "
+      ]
+    },
+    "you": "Tú",
+    "total": "Total",
+    "starsWord": "Estrellas",
+    "pbest": "Récord personal",
+    "improved": "¡Mayor mejora!",
+    "noImproved": "¡Juega otra vez una parada para ganar Mayor mejora!",
+    "everyone": "Todos mejoran cuando vuelven a jugar.",
+    "clear": "Borrar tabla",
+    "tapTurtle": "Para borrar, toca la Tortuga.",
+    "sure": "¿Seguro? Esto borra todos los puntajes de este dispositivo.",
+    "yesErase": "Sí, borrar",
+    "noKeep": "No, conservarlos",
+    "erased": "Puntajes borrados.",
+    "undo": "Deshacer",
+    "team1": "Equipo 1, elige tu animal.",
+    "team2": "Equipo 2, elige tu animal.",
+    "pickStop": "Elige una parada.",
+    "pass": "Pasa la tableta al Equipo 2.",
+    "bothTeams": "¡Muy bien, los dos equipos! Jueguen otra vez y cambien quién empieza.",
+    "teamLabel": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Equipo "
+      ]
+    },
+    "score": "Tu puntaje",
+    "yourBest": "Tu mejor puntaje",
+    "first": "¡Primer puntaje guardado! Juega otra vez para superarlo.",
+    "newBest": "¡Nuevo récord personal!",
+    "goodStart": "¡Buen comienzo! Cada ronda es práctica.",
+    "stars": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        " de 3 estrellas"
+      ]
+    },
+    "tryReal": "Hazlo de verdad (con un adulto)",
+    "again": "Jugar otra vez (nueva ronda)",
+    "stopStars": {
+      "$args": [
+        "n",
+        "name",
+        "s"
+      ],
+      "$parts": [
+        "Parada ",
+        ", ",
+        ", ",
+        " de 3 estrellas"
+      ]
+    },
+    "stopSoon": {
+      "$args": [
+        "n",
+        "name"
+      ],
+      "$parts": [
+        "Parada ",
+        ", ",
+        ", próximamente"
+      ]
+    },
+    "stopOpen": {
+      "$args": [
+        "n",
+        "name"
+      ],
+      "$parts": [
+        "Parada ",
+        ", ",
+        ", sin jugar"
+      ]
+    },
+    "chapters": [
+      "Observa y entiende",
+      "Habla bien",
+      "Busca soluciones",
+      "Sigue participando"
+    ],
+    "footer": "Hecho con ayuda de herramientas de IA. Voces hechas con IA de ElevenLabs. Ideas de investigación en construcción de Kennesaw State University. v0.1",
+    "part": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Parte ",
+        " de 3"
+      ]
+    },
+    "mapLegend": "Clave del mapa",
+    "mapList": "Lista",
+    "mapMap": "Mapa",
+    "mapKeepGoing": "Sigue jugando",
+    "mapPlayInOrder": "Jugar las paradas en orden",
+    "mapOrderHelp": "Termina una parada para abrir la siguiente.",
+    "installGame": "Instalar el juego",
+    "consentHeading": "Compartir durante la prueba",
+    "consentScores": "Compartir puntajes con el equipo de prueba",
+    "consentDetails": "Envía el número de parada, puntaje, idioma y un código aleatorio. Nunca nombres. Puedes desactivarlo cuando quieras.",
+    "consentAutoScores": "Enviar también los puntajes al terminar una parada"
+  },
+  "X": {
+    "parts3": [
+      "Escucha",
+      "Deseos compartidos",
+      "¿Quién dijo esto?"
+    ],
+    "of": {
+      "$args": [
+        "a",
+        "b"
+      ],
+      "$parts": [
+        " de "
+      ]
+    },
+    "fsOn": "Pantalla completa",
+    "fsOff": "Salir de pantalla completa",
+    "restored": "Los puntajes volvieron.",
+    "voice": "Voz",
+    "voiceOn": "La voz está activada",
+    "voiceOff": "La voz está desactivada",
+    "replay": "Escuchar otra vez",
+    "settings": "Ajustes",
+    "setSub": "Cómo suena y se ve el juego. Este dispositivo lo recuerda.",
+    "keepPlaying": "Seguir jugando",
+    "on": "Sí",
+    "off": "No",
+    "secVoice": "Sonido",
+    "auto": "Leer sola cada línea nueva",
+    "autoHint": "Si esto está apagado, toca el botón de la bocina al final de una línea para escucharla.",
+    "vol": "Volumen",
+    "speed": "Velocidad",
+    "speeds": [
+      "Más lenta",
+      "Normal",
+      "Más rápida"
+    ],
+    "sample": "Escuchar un ejemplo",
+    "sampleStop": "Detener el ejemplo",
+    "secCap": "Subtítulos",
+    "words": "Iluminar cada palabra mientras se lee",
+    "capBar": "Barra de subtítulos",
+    "capHint": "Muestra quién habla y lo que dice, abajo del juego.",
+    "capSize": "Tamaño de los subtítulos",
+    "sizes": [
+      "Pequeño",
+      "Mediano",
+      "Grande"
+    ],
+    "capOn": "Los subtítulos están activados",
+    "capOff": "Los subtítulos están desactivados",
+    "secHelp": "Pantalla y ayudas",
+    "circles": "Encerrar en un círculo lo que hay que tocar",
+    "circlesHint": "Cuando la voz dice qué tocar, un círculo de marcador muestra dónde está.",
+    "calm": "Movimiento tranquilo",
+    "calmHint": "Menos cosas se mueven y se deslizan.",
+    "calmSys": "Tu dispositivo pide menos movimiento, así que esto queda activado.",
+    "secKeys": "Teclas",
+    "keysNote": "En una computadora, estas teclas funcionan mientras juegas.",
+    "keys": [
+      [
+        "Esc",
+        "Abrir Ajustes (la voz espera)"
+      ],
+      [
+        "M",
+        "Activar o desactivar la voz"
+      ],
+      [
+        "R",
+        "Escuchar otra vez"
+      ],
+      [
+        "S",
+        "Detener la voz"
+      ],
+      [
+        "C",
+        "Activar o desactivar los subtítulos"
+      ],
+      [
+        "F",
+        "Pantalla completa"
+      ],
+      [
+        "?",
+        "Mostrar estas teclas"
+      ],
+      [
+        "Tab",
+        "Ir al siguiente botón"
+      ],
+      [
+        "Enter|Espacio",
+        "Elegir"
+      ]
+    ],
+    "reset": "Volver a los ajustes de siempre",
+    "resetDone": "Los ajustes volvieron a los de siempre.",
+    "guide": "Lucía",
+    "guide2": "Theo",
+    "librarySub": "Prepara este dispositivo para un aula o una biblioteca tranquila.",
+    "libraryQuiet": "Usar modo silencioso · sin voz",
+    "libraryNote": "El modo silencioso desactiva la narración y los botones de voz. Todas las instrucciones siguen en pantalla. Este dispositivo recuerda el ajuste de sonido.",
+    "libraryActive": "El modo silencioso está activado. Puedes seguir jugando sin sonido.",
+    "libraryGroups": "Jugadores, equipos y puntajes",
+    "libraryGroupsNote": "Los perfiles de animales y los puntajes de equipos pertenecen a esta sesión. Usa Nuevo jugador para los comentarios privados de otra persona.",
+    "librarySettings": "Ajustes de sonido y subtítulos",
+    "libraryReady": "Seguir jugando en silencio"
+  },
+  "bank": {
+    "b0001": "Fíjate en las señales",
+    "b0002": "Haz una buena pregunta",
+    "b0003": "Escucha a cada vecino",
+    "b0004": "¿Dato o rumor?",
+    "b0005": "Mapa de lo que puede cambiar",
+    "b0006": "¿Quién decide?",
+    "b0007": "Habla con respeto",
+    "b0008": "Desacuerdo con respeto",
+    "b0009": "Incluye todas las voces",
+    "b0010": "Une problema y solución",
+    "b0011": "Pesa lo bueno y lo difícil",
+    "b0012": "Haz un trato justo",
+    "b0013": "Comparte bien la información",
+    "b0014": "Vigila las promesas",
+    "b0015": "Construyamos el futuro juntos",
+    "b0016": "la Sra. Lee",
+    "b0017": "Enfermera de la clínica",
+    "b0018": "Enfermera",
+    "b0019": "el Sr. Johnson",
+    "b0020": "Agricultor de tercera generación",
+    "b0021": "Agricultor",
+    "b0022": "Ana",
+    "b0023": "Electricista maestra",
+    "b0024": "Electricista",
+    "b0025": "la abuela Ruth",
+    "b0026": "Historiadora del pueblo",
+    "b0027": "Guarda las historias del pueblo",
+    "b0028": "el Sr. Patel",
+    "b0029": "Comerciante de la calle principal",
+    "b0030": "Dueño de la panadería",
+    "b0031": "Jayden",
+    "b0032": "Líder de tecnología de la escuela",
+    "b0033": "Estudiante",
+    "b0034": "Zorro",
+    "b0035": "Búho",
+    "b0036": "Tortuga",
+    "b0037": "Conejo",
+    "b0038": "Venado",
+    "b0039": "Garza",
+    "b0040": "Abeja",
+    "b0041": "Nutria",
+    "b0042": "No se pudo cargar esta parada. Revisa la conexión e inténtalo de nuevo.",
+    "b0043": "Intentar de nuevo"
+  },
+  "loading": {
+    "title": "Preparando tu juego",
+    "progress": "Carga del juego",
+    "fail": "Algo no se pudo cargar. Inténtalo de nuevo.",
+    "retry": "Intentar de nuevo",
+    "tips": [
+      "Consejo: abre Pausa para descansar.",
+      "Consejo: puedes escuchar una línea otra vez.",
+      "Consejo: cada voz del pueblo cuenta."
+    ]
+  }
+}

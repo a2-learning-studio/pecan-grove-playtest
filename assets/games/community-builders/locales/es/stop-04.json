@@ -1,0 +1,127 @@
+{
+  "T": {
+    "title": "¿Dato o rumor?",
+    "intro": "La Junta de Planificación se reúne la próxima semana. En el pueblo se dicen muchas cosas. Algunas son datos revisados. Otras son rumores. Y otras, nadie las sabe todavía.",
+    "start": "Empezar a clasificar",
+    "claim": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Frase ",
+        " de 5"
+      ]
+    },
+    "peek": "Mira la fuente",
+    "how": "Toca 'Mira la fuente' para ver quién lo dijo y cómo lo sabe. Luego toca la caja donde va.",
+    "flyerTag": "Volante",
+    "chatTag": "Chat de la familia",
+    "whoT": "¿Quién te lo dijo?",
+    "howT": "¿Cómo lo sabe?",
+    "whenT": "¿Cuándo?",
+    "b": {
+      "fact": "Dato revisado",
+      "rumor": "Rumor",
+      "dontknow": "Todavía no sabemos"
+    },
+    "put": {
+      "$args": [
+        "b"
+      ],
+      "$parts": [
+        "Poner en "
+      ]
+    },
+    "ok": {
+      "fact": "¡Sí! Revisamos lo que dice la propuesta con fecha. Una propuesta no es una promesa de que eso sucederá.",
+      "rumor": "¡Sí! Nadie puede mostrar cómo lo sabe. Los rumores vienen de gente con esperanza y de gente preocupada.",
+      "dontknow": "¡Sí! Todavía no se ha estudiado ni decidido. 'Todavía no sabemos' es una respuesta honesta."
+    },
+    "notQuite": {
+      "$args": [
+        "h"
+      ],
+      "$parts": [
+        "Buen intento. La fuente dice: "
+      ]
+    },
+    "nextClaim": "Siguiente frase",
+    "sorted": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Frase ",
+        " de 5 clasificada."
+      ]
+    },
+    "at": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        ", en el mostrador"
+      ]
+    },
+    "flyer": "Un volante en el tablero",
+    "chat": "Un mensaje en el chat de la familia",
+    "can": "Puedo revisar quién lo dijo y cómo lo sabe.",
+    "your5": "Tus 5 frases",
+    "tipNb": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "La próxima vez, mira la fuente primero, aunque te lo diga ",
+        "."
+      ]
+    },
+    "tipPeek": "La próxima vez, toca 'Mira la fuente' antes de clasificar.",
+    "tipRumor": "La próxima vez, si nadie puede mostrar cómo lo sabe, elige Rumor.",
+    "tipDk": "La próxima vez, fíjate si hay un estudio o una decisión que todavía no termina.",
+    "tipFact": "La próxima vez, revisa qué demuestra la fuente. Una propuesta con fecha dice qué se propone, no qué sucederá.",
+    "tip100": "¡Revisaste muy bien! Prueba una nueva ronda con frases nuevas.",
+    "real": "La próxima vez que oigas 'Todos dicen…', pregúntale a un adulto: '¿Quién lo dijo? ¿Cómo lo sabe?'",
+    "gu": "Para adultos: esta parada",
+    "guText": "Los niños revisan la fuente de una afirmación antes de clasificarla como dato revisado, rumor o 'todavía no sabemos'. En el juego, los rumores vienen de los dos lados, por ejemplo 'se va a ir la luz' y 'no usa nada de agua'. Los efectos en la salud de un sitio que aún no existe son 'todavía no sabemos'.",
+    "sourceExcerptTitle": "Lee la propuesta del cuento",
+    "sourceFiction": "Este documento se inventó para Pecan Grove. No es el plan de una empresa real.",
+    "planExcerpt": [
+      "Propuesta de la empresa — 3 de septiembre",
+      "Agua: Este plan espera usar agua cada día. La propuesta incluye una cantidad estimada.",
+      "Empleos: El plan indica muchos empleos durante la construcción y menos después de abrir.",
+      "Motores de respaldo: El plan dice que se prenderían durante cortes de luz y pruebas cortas.",
+      "Es una propuesta, no una aprobación ni una promesa sobre lo que pasará."
+    ]
+  },
+  "bank": {
+    "b0001": "Está escrito en el plan que la empresa mandó a la Revisión Regional. Cualquiera lo puede leer en la biblioteca.",
+    "b0002": "El plan tiene fecha del 3 de septiembre.",
+    "b0003": "La Oficina Estatal del Medio Ambiente todavía está revisando el permiso de calidad del aire.",
+    "b0004": "Todavía no ha terminado.",
+    "b0005": "El estudio de ruido todavía no está listo.",
+    "b0006": "Va a estar listo en la primavera.",
+    "b0007": "La Junta de Desarrollo todavía no ha decidido sobre las reducciones de impuestos.",
+    "b0008": "Se reúne en noviembre.",
+    "b0009": "Se lo contó un amigo de un amigo.",
+    "b0010": "Lo oyó en un partido. Nadie lo revisó.",
+    "b0011": "Mucha gente lo fue pasando. Nadie sabe quién lo dijo primero.",
+    "b0012": "Alguien lo vio en internet y ya no lo encuentra.",
+    "b0013": "Sin fecha. Nadie se acuerda.",
+    "b0014": "No usa nada de agua.",
+    "b0015": "Todos los pozos del pueblo se van a secar el próximo año.",
+    "b0016": "La propuesta de la empresa del 3 de septiembre indica una cantidad estimada de agua por día.",
+    "b0017": "Todos en Pecan Grove van a conseguir trabajo ahí.",
+    "b0018": "Ni un solo trabajo va a ser para gente de aquí.",
+    "b0019": "La propuesta de la empresa del 3 de septiembre indica muchos empleos de construcción y menos después de abrir.",
+    "b0020": "Se va a ir la luz en todas las casas.",
+    "b0021": "A todos nos va a bajar el recibo de luz.",
+    "b0022": "Los motores de respaldo van a estar prendidos todo el día, todos los días.",
+    "b0023": "La propuesta de la empresa del 3 de septiembre dice que los motores de respaldo se prenderían durante cortes de luz y pruebas cortas.",
+    "b0024": "Todos los estudiantes van a recibir una laptop nueva el próximo mes.",
+    "b0025": "La escuela va a recibir mucho dinero nuevo.",
+    "b0026": "Desde la cerca de la granja no se va a oír ningún zumbido.",
+    "b0027": "El zumbido no va a dejar dormir a los niños en la noche.",
+    "b0028": "El humo de los motores de respaldo va a llegar a la clínica."
+  }
+}

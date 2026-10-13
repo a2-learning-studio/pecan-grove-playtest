@@ -1,0 +1,216 @@
+{
+  "S": {
+    "title": "Pesa lo bueno y lo difícil - Constructores de comunidad de Pecan Grove",
+    "intro": [
+      "La audiencia ya terminó. Antes de decidir, el Concejo del pueblo pesa cuatro caminos.",
+      "Cada camino tiene partes buenas y partes difíciles. Ayuda al pueblo a verlas todas.",
+      "No hay un camino equivocado. Los puntos vienen de pesar bien."
+    ],
+    "start": "Empezar",
+    "parts": {
+      "good": "Partes buenas",
+      "hard": "Partes difíciles"
+    },
+    "kind": {
+      "good": "Parte buena",
+      "hard": "Parte difícil"
+    },
+    "changes": "Cambios",
+    "bowlN": {
+      "good": {
+        "$args": [
+          "n"
+        ],
+        "$parts": [
+          " buenas"
+        ]
+      },
+      "hard": {
+        "$args": [
+          "n"
+        ],
+        "$parts": [
+          " difíciles"
+        ]
+      }
+    },
+    "p1": "Toca cada letrero para pesar sus partes buenas y sus partes difíciles.",
+    "weighed": "Ya lo pesaste",
+    "weighedL": "ya lo pesaste",
+    "weighedN": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Caminos que pesaste: ",
+        " de 4"
+      ]
+    },
+    "choose": "Elegir este camino",
+    "ask": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Pesaste ",
+        " de 4 caminos. Pesar todos los caminos te ayuda a ver el panorama completo."
+      ]
+    },
+    "more": "Pesar más caminos",
+    "yours": "Tu camino",
+    "chose": {
+      "$args": [
+        "p"
+      ],
+      "$parts": [
+        "Elegiste: ",
+        ". Ahora mira de cerca sus tarjetas."
+      ]
+    },
+    "q": [
+      "¿A quién ayuda este camino? Toca a un vecino.",
+      "¿A quién se le podría hacer difícil este camino? Toca a un vecino."
+    ],
+    "nb": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        ", vecino"
+      ]
+    },
+    "ok": [
+      {
+        "$args": [
+          "n"
+        ],
+        "$parts": [
+          "¡Sí! Una parte buena le llega a ",
+          "."
+        ]
+      },
+      {
+        "$args": [
+          "n"
+        ],
+        "$parts": [
+          "¡Sí! Una parte difícil le llega a ",
+          "."
+        ]
+      }
+    ],
+    "wrong": [
+      {
+        "$args": [
+          "n"
+        ],
+        "$parts": [
+          "Buena idea. En esta ronda, las partes buenas casi no le llegan a ",
+          ". Vuelve a leerlas."
+        ]
+      },
+      {
+        "$args": [
+          "n"
+        ],
+        "$parts": [
+          "Buena idea. En esta ronda, las partes difíciles casi no le llegan a ",
+          ". Vuelve a leerlas."
+        ]
+      }
+    ],
+    "tried": "Ya probaste",
+    "shown": [
+      "Mira a quién ayuda:",
+      "Mira a quién se le podría hacer difícil:"
+    ],
+    "p3": "Agrega un cambio que haga más fácil una parte difícil. Toca un cambio.",
+    "okChg": "¡Buen cambio! Hace más fácil esta parte difícil:",
+    "easier": "Ahora es más fácil",
+    "idea": [
+      "¡Es una idea real! Ayuda con otra parte difícil:",
+      "Mira las partes difíciles de tu camino y prueba otra vez."
+    ],
+    "fits": "Este cambio sí encaja:",
+    "finish": "Terminar",
+    "aha": "Cada camino, incluso 'no construir' o 'esperar', ayuda a alguien y a alguien se le hace difícil.",
+    "see": "Ver mi puntaje",
+    "can": "Puedo ver que cada plan tiene partes buenas y partes difíciles.",
+    "tipWeigh": "La próxima vez, pesa los cuatro caminos antes de elegir.",
+    "tipGood": "La próxima vez, lee despacio las partes buenas. ¿Quién se alegraría?",
+    "tipHard": "La próxima vez, lee despacio las partes difíciles. ¿Quién las sentiría?",
+    "tipChange": "La próxima vez, elige un cambio que encaje con una parte difícil de tu camino.",
+    "tip100": "¡Muy bien pesado! Prueba una nueva ronda con otro camino.",
+    "real": "Elige algo que tu familia esté decidiendo, como un plan de fin de semana. Di una parte buena y una difícil de cada opción.",
+    "askT": "Pregúntale a un adulto",
+    "askQ": "Cuando tomas una decisión grande, ¿cómo pesas las partes buenas y las difíciles?",
+    "gu": "Para adultos: sobre esta parada",
+    "guText": "Cuatro caminos: construir como se planeó, construir con cambios, no construir aquí o esperar más información. Cada uno tiene beneficios y costos, y cada uno puede ganar todos los puntos. El puntaje premia explorar cada camino y nombrar a quién ayuda y a quién se le hace difícil, nunca el camino elegido."
+  },
+  "bank": {
+    "b0001": "Construir como se planeó",
+    "b0002": "Construir con cambios",
+    "b0003": "No construir aquí",
+    "b0004": "Esperar más información",
+    "b0005": "Enfermera de noche en la clínica de la calle principal",
+    "b0006": "Siembra al lado; su pozo está cerca",
+    "b0007": "Construye cosas; pesca en el arroyo con sus hijos",
+    "b0008": "Guarda las historias del pueblo; su nieto busca trabajo",
+    "b0009": "Tiene la panadería en la calle principal; paga impuestos",
+    "b0010": "Estudiante, le encanta la tecnología; tiene una hermanita",
+    "b0011": "Enfriar con agua reciclada",
+    "b0012": "Así se usa menos agua de los pozos y del río.",
+    "b0013": "Una franja ancha de árboles y terreno cerca de las casas",
+    "b0014": "Los árboles y la distancia suavizan la luz y el sonido.",
+    "b0015": "Motores más limpios, que se prueban menos",
+    "b0016": "Menos humo cerca de la clínica.",
+    "b0017": "Un plan de dónde vivirán los trabajadores",
+    "b0018": "Para que las rentas del pueblo no suban de golpe.",
+    "b0019": "Una reducción de impuestos más corta y un fondo de ahorro para la escuela",
+    "b0020": "La escuela sigue recibiendo dinero estable.",
+    "b0021": "Poner una fecha clara para decidir",
+    "b0022": "Todos saben cuándo llega la respuesta.",
+    "b0023": "Dinero guardado desde ahora para quitarlo si cierra",
+    "b0024": "No se queda un edificio vacío.",
+    "b0025": "Una ruta de camiones lejos de la calle principal y de la escuela",
+    "b0026": "Los clientes y los autobuses escolares siguen avanzando.",
+    "b0027": "Una clase de electricistas en la escuela",
+    "b0028": "Los jóvenes pueden prepararse para buenos trabajos cerca.",
+    "b0029": "Proponer el terreno de una fábrica vieja en vez de la granja",
+    "b0030": "Igual podría llegar un negocio nuevo al pueblo.",
+    "b0031": "La empresa paga los estudios",
+    "b0032": "El pueblo guarda su dinero para otras cosas.",
+    "b0033": "Muchos trabajos de construcción empiezan enseguida.",
+    "b0034": "Los equipos de la obra compran comida en la calle principal todos los días.",
+    "b0035": "El dinero nuevo de impuestos podría ayudar pronto a la escuela.",
+    "b0036": "Una línea rápida de internet podría llegar a la clínica.",
+    "b0037": "En días de calor, el enfriamiento podría usar mucha agua.",
+    "b0038": "Luces fuertes y un zumbido grave cerca de las casas de noche.",
+    "b0039": "Los motores de respaldo se prenden para pruebas y echan algo de humo.",
+    "b0040": "Las rentas podrían subir mientras los equipos de la obra están en el pueblo.",
+    "b0041": "Trabajos de construcción, con la promesa de contratar a gente de aquí.",
+    "b0042": "Una franja ancha de árboles entre el edificio y la granja de al lado.",
+    "b0043": "La escuela tiene una clase para formar electricistas.",
+    "b0044": "Las luces apuntan hacia abajo, y las noches siguen oscuras.",
+    "b0045": "Los cambios cuestan dinero, así que la empresa pide pagar menos impuestos por un tiempo.",
+    "b0046": "Ponerse de acuerdo en cada cambio toma meses, y la obra espera.",
+    "b0047": "Si algún día cierra, el edificio vacío podría quedarse ahí.",
+    "b0048": "Muchos camiones en la calle principal mientras construyen.",
+    "b0049": "Los campos de la granja y el arroyo se quedan como están.",
+    "b0050": "Las noches siguen tranquilas y oscuras.",
+    "b0051": "Los nogales grandes y los lugares antiguos se quedan.",
+    "b0052": "La calle principal sigue con su tráfico de siempre.",
+    "b0053": "No hay trabajos nuevos de construcción aquí.",
+    "b0054": "No llega dinero nuevo de impuestos para la escuela.",
+    "b0055": "La calle principal no recibe clientes nuevos a la hora de comer.",
+    "b0056": "Los jóvenes podrían seguir yéndose a buscar trabajos de tecnología.",
+    "b0057": "Hay tiempo para revisar primero los pozos y el arroyo.",
+    "b0058": "Hay tiempo para buscar tumbas antiguas antes de excavar.",
+    "b0059": "Hay tiempo para planear con los bomberos qué hacer con las baterías grandes.",
+    "b0060": "Hay tiempo para estudiar por dónde pasarían los camiones.",
+    "b0061": "Las familias junto a la granja esperan meses para saber qué viene.",
+    "b0062": "Los trabajos de construcción, si llegan, empiezan más tarde.",
+    "b0063": "La empresa podría elegir otro pueblo.",
+    "b0064": "El pueblo paga los estudios."
+  }
+}

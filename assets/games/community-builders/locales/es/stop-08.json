@@ -1,0 +1,173 @@
+{
+  "WORDS": {
+    "intro": "La Junta de Planificación se reunió anoche. Ahora dos vecinos no están de acuerdo sobre una parte del plan. El pueblo todavía no ha decidido. ¿Puedes ayudarlos a encontrar algo que les sirva a los dos?",
+    "go": "¡Vamos!",
+    "park": "Parque",
+    "step1": "Paso 1 de 2: Escucha",
+    "step2": "Paso 2 de 2: Busca algo para los dos",
+    "coach1": "Toca a cada vecino para escuchar lo que quiere. Luego pregúntale por qué.",
+    "coach2": "Busca algo que les sirva a los dos. Toca 'Pruébalo' en una tarjeta.",
+    "want": "Lo que quiero",
+    "ask": "Pregunta por qué",
+    "whyK": "Por qué me importa",
+    "heard": "Ya sé por qué",
+    "tryIt": "Pruébalo",
+    "can": "Eso me parece bien.",
+    "hard": {
+      "$args": [
+        "why"
+      ],
+      "$parts": [
+        "Eso se me hace difícil porque ",
+        "."
+      ]
+    },
+    "works": "¡Les sirve a los dos!",
+    "foundOne": "¡Encontraste una! ¿Puedes encontrar otra?",
+    "tried": "Ya la probaste",
+    "hardFor": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Difícil para "
+      ]
+    },
+    "tray": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Opciones que les sirven a los dos: ",
+        " de 2"
+      ]
+    },
+    "end": "¡Los dos vecinos están bien con estas dos ideas!",
+    "see": "Ver mi puntaje",
+    "aha": "Cuando escuchas el porqué, muchas veces puedes encontrar una opción que les sirva a los dos.",
+    "takeaway": "Puedo no estar de acuerdo con respeto y buscar algo que sirva a los dos.",
+    "tipNone": "La próxima vez, pregúntales a los dos vecinos por qué antes de probar una tarjeta.",
+    "tipOne": {
+      "$args": [
+        "aName"
+      ],
+      "$parts": [
+        "La próxima vez, pregúntale también ",
+        " por qué, antes de probar una tarjeta."
+      ]
+    },
+    "tipCareful": "La próxima vez, vuelve a leer los dos porqués antes de probar otra tarjeta.",
+    "tip100": "¡Escuchaste muy bien y tuviste buenas ideas! Prueba una nueva ronda.",
+    "real": "Cuando no estés de acuerdo en casa o en la escuela, prueba: 'Te escucho. ¿Buscamos algo que nos sirva a los dos?'",
+    "askGrown": "Pregúntale a un adulto",
+    "askGrownText": "'Cuéntame de una vez que encontraste algo que les sirvió a los dos.'",
+    "gu": "Para adultos",
+    "guText": "Los niños escuchan la razón de cada vecino antes de buscar opciones que los dos acepten, como el paso de '¿hay un plan con el que todos podamos vivir?' de los juegos de deliberación. Estar en desacuerdo es normal; la habilidad es seguir con respeto y curiosidad. Cada ronda trata de una parte pequeña de un plan, para que a los dos vecinos les pueda ir bien. Las tarjetas se parecen a opciones que pueblos reales han usado o discutido: horarios y rutas para camiones, luces que apuntan hacia abajo, franjas de árboles, medir el ruido antes de construir, revisar pozos y buscar tumbas antiguas antes de excavar, y capacitar a trabajadores locales. Pecan Grove es inventado, y el juego no dice si se debe construir un centro de datos.",
+    "nbLabel": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        ", lo que quiero"
+      ]
+    },
+    "askLabel": {
+      "$args": [
+        "aName"
+      ],
+      "$parts": [
+        "Pregúntale ",
+        " por qué"
+      ]
+    },
+    "tryLabel": {
+      "$args": [
+        "c"
+      ],
+      "$parts": [
+        "Pruébalo: "
+      ]
+    }
+  },
+  "bank": {
+    "b0001": "Horario de los camiones",
+    "b0002": "Quiero que los camiones vengan todo el día, para que la obra termine antes.",
+    "b0003": "Quiero menos camiones en la calle principal.",
+    "b0004": "cuanto antes termine la obra, antes vuelve la calma al pueblo",
+    "b0005": "alguien de mi familia maneja un camión y le pagan por viaje",
+    "b0006": "los niños caminan a la escuela por la calle principal",
+    "b0007": "mi casa está en la calle principal y los camiones grandes hacen temblar mis ventanas",
+    "b0008": "Los camiones vienen a cualquier hora, de día o de noche.",
+    "b0009": "Solo vienen unos pocos camiones al día.",
+    "b0010": "Los camiones vienen todo el día, pero paran mientras los niños van y vuelven de la escuela.",
+    "b0011": "Hay guardias de cruce para los niños, y los camiones van despacio cerca de la escuela.",
+    "b0012": "Los camiones toman el camino largo de la granja, alrededor del pueblo. La obra tarda unas semanas más.",
+    "b0013": "Los camiones van despacio por la calle principal, para que no tiemblen las ventanas. La obra tarda un poco más.",
+    "b0014": "Luces de noche",
+    "b0015": "Quiero luces fuertes alrededor del edificio toda la noche.",
+    "b0016": "Quiero noches oscuras en mi casa.",
+    "b0017": "los guardias de noche necesitan ver todo el lugar para cuidarlo",
+    "b0018": "camino a casa junto a la granja cuando ya está oscuro, y me gusta que el camino tenga luz",
+    "b0019": "la luz entra a mi cuarto y no puedo dormir",
+    "b0020": "los búhos y las luciérnagas de la granja necesitan noches oscuras",
+    "b0021": "Las luces fuertes se quedan prendidas toda la noche, por todos lados.",
+    "b0022": "Nada de luces en la noche.",
+    "b0023": "Las luces apuntan hacia abajo, con tapas, para que no alumbren las casas.",
+    "b0024": "Una fila tupida de árboles tapa la luz hacia las casas.",
+    "b0025": "Las luces se prenden solo cuando alguien pasa.",
+    "b0026": "Luces suaves y cálidas solo junto al camino. Lo demás queda oscuro.",
+    "b0027": "Gente de aquí o una obra más rápida",
+    "b0028": "Quiero trabajos para gente de Pecan Grove, aunque primero necesiten capacitación.",
+    "b0029": "Quiero equipos expertos, aunque vengan de lejos, para que la obra avance rápido.",
+    "b0030": "los jóvenes de aquí necesitan aprender un oficio para poder quedarse",
+    "b0031": "las familias de aquí necesitan sueldos ya",
+    "b0032": "una obra larga significa más meses de camiones y ruido",
+    "b0033": "el trabajo eléctrico tiene que ser seguro, por eso necesita expertos",
+    "b0034": "Contratar solo a gente de aquí y capacitar a todos primero.",
+    "b0035": "Contratar solo equipos expertos de otros lugares.",
+    "b0036": "Los equipos expertos construyen rápido. La escuela abre una clase para aprender el oficio.",
+    "b0037": "Los equipos expertos construyen rápido. Después, gente de aquí se capacita para los trabajos que se quedan.",
+    "b0038": "Gente de aquí trabaja ya como ayudante con sueldo, junto a los expertos. Tarda unos meses más.",
+    "b0039": "Gente de aquí cobra ya por trabajos sencillos. Los expertos hacen lo eléctrico. Tarda un poco más.",
+    "b0040": "Árboles o estacionamiento",
+    "b0041": "Quiero un estacionamiento grande junto a la entrada para los trabajadores.",
+    "b0042": "Quiero que se queden los nogales grandes junto al camino.",
+    "b0043": "los carros de los trabajadores ocupan toda la calle principal",
+    "b0044": "el equipo de noche necesita estacionarse cerca de la entrada",
+    "b0045": "los árboles tapan el edificio para que no se vea desde las casas",
+    "b0046": "los niños juegan y trepan en esos árboles viejos",
+    "b0047": "Cortar los árboles y hacer un estacionamiento grande junto a la entrada.",
+    "b0048": "Dejar todos los árboles y no hacer estacionamiento.",
+    "b0049": "Los trabajadores se estacionan en la orilla del pueblo y llegan en un autobús pequeño.",
+    "b0050": "Hacer el estacionamiento al fondo de la granja, detrás de los árboles.",
+    "b0051": "Un estacionamiento pequeño junto a la entrada, en un lugar sin árboles. Todos los árboles se quedan.",
+    "b0052": "Cortar unos árboles jóvenes para hacer un estacionamiento junto a la entrada. Los nogales viejos se quedan.",
+    "b0053": "Pruebas de los motores",
+    "b0054": "Los grandes motores de respaldo necesitan una prueba corta de vez en cuando.",
+    "b0055": "Quiero que las pruebas de los motores sean de noche.",
+    "b0056": "Quiero que no haya pruebas de motores de noche.",
+    "b0057": "los niños juegan afuera después de la escuela, y los motores hacen mucho ruido",
+    "b0058": "la clínica tiene mucho trabajo todo el día, y los pacientes necesitan silencio",
+    "b0059": "la gente necesita dormir de noche",
+    "b0060": "a los animales de las granjas los asustan los ruidos fuertes de noche",
+    "b0061": "Probar los motores siempre tarde en la noche.",
+    "b0062": "Probar los motores siempre en la tarde.",
+    "b0063": "Probar los motores en las mañanas de escuela, cuando los niños están adentro.",
+    "b0064": "Primero medir el ruido cerca de las casas. Luego probar un ratito en las mañanas de escuela.",
+    "b0065": "Probar los domingos en la tarde, cuando la clínica está cerrada.",
+    "b0066": "Probar justo cuando cierra la clínica, antes de la hora de dormir.",
+    "b0067": "Excavar ya o revisar primero",
+    "b0068": "Quiero que la excavación empiece este mes.",
+    "b0069": "Quiero que alguien revise el terreno antes de que empiecen a excavar.",
+    "b0070": "el tiempo seco se acaba pronto, y con la lluvia la granja se vuelve puro lodo",
+    "b0071": "el equipo ya está listo, y cada semana de espera cuesta dinero",
+    "b0072": "puede haber tumbas antiguas en la granja",
+    "b0073": "nuestro pozo está cerca de la granja, y nadie lo ha revisado todavía",
+    "b0074": "Empezar a excavar en todo el terreno este mes.",
+    "b0075": "Esperar un año entero y revisar todo.",
+    "b0076": "Un equipo de historia recorre el terreno esta semana. Se excava donde no encuentren nada.",
+    "b0077": "El equipo de historia revisa el terreno por partes. La excavación va justo detrás.",
+    "b0078": "Revisar los pozos cercanos esta semana. Mientras, el equipo hace cercas y caminos.",
+    "b0079": "Revisar los pozos y poner cercas contra el lodo primero. Luego excavar."
+  }
+}

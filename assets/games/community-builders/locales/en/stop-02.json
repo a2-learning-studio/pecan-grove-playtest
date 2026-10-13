@@ -1,0 +1,188 @@
+{
+  "T": {
+    "intro1": "The neighbors are going to the Planning Board meeting. Help them turn each worry into a clear question.",
+    "ex": [
+      [
+        "'Will it be big?'",
+        " just gets a 'yes'."
+      ],
+      [
+        "'How much water will it use on the hottest day?'",
+        " gets an answer you can use."
+      ]
+    ],
+    "start": "Let's start",
+    "coach": "Tap one tile in each row. Then tap Ask it.",
+    "ask": "Ask it",
+    "over": "Start over",
+    "yourQ": "Your question:",
+    "coachFor": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Turn ",
+        "'s worry into a clear question. Tap one tile in each row, then tap Ask it."
+      ]
+    },
+    "boardK": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Your questions for the Planning Board: ",
+        " of 4"
+      ]
+    },
+    "slotNow": "Your question goes here when you tap Ask it.",
+    "rows": {
+      "start": "1. Start: how you ask",
+      "topic": "2. Topic: what it's about",
+      "detail": "3. Detail: when or where"
+    },
+    "worryN": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Worry ",
+        " of 4"
+      ]
+    },
+    "ans3": "I can really use that question. Thank you!",
+    "ans12": "Good try. Let's make the question fit my worry:",
+    "ans0": "Thanks for trying! Here's how to fix it:",
+    "topicOk": "Topic: yes, that's my worry.",
+    "topicNo": {
+      "$args": [
+        "t"
+      ],
+      "$parts": [
+        "Topic: my worry is about ",
+        "."
+      ]
+    },
+    "startOk": "Start: an open question asks for information, not just yes or no.",
+    "startWill": "Start: 'Will...' just gets a yes or a no. Try How, When, Who or What happens if.",
+    "detOk": "Detail: now it's specific.",
+    "detNone": "Detail: add when or where to make it specific.",
+    "detTopic": "Detail: choose my worry's topic first, then add a detail that fits.",
+    "detNo": {
+      "$args": [
+        "d"
+      ],
+      "$parts": [
+        "Detail: that one doesn't fit my worry. Try '",
+        "'."
+      ]
+    },
+    "next": "Next worry",
+    "see": "See my score",
+    "fix": "Fix my question",
+    "fixCoach": "Use the tips to change your question. The tile with the dashed ring is one to try. Then tap Ask it.",
+    "can": "I can turn a worry into a clear question.",
+    "tipTopic": "Next time, read the worry again and pick its topic.",
+    "tipWill": "Next time, choose a start that asks for information, not just yes or no.",
+    "tipDetail": "Next time, add a detail that fits: when or where.",
+    "tip100": "Great questions! Try a new round.",
+    "real": "Write one good question about your town on paper. Ask a grown-up to help you find who could answer it.",
+    "gu": "Ask a grown-up",
+    "guText": "Open, specific questions ('How much water on the hottest, driest day, and from where?') get more useful answers than yes/no ones. The hub's '30 questions to ask' list has more examples you can take to a public meeting."
+  },
+  "bank": {
+    "b0001": "How...",
+    "b0002": "When...",
+    "b0003": "Who...",
+    "b0004": "What happens if...",
+    "b0005": "Will...",
+    "b0006": "the water",
+    "b0007": "How much water will it use",
+    "b0008": "the trucks",
+    "b0009": "How many trucks will there be",
+    "b0010": "the noise and lights at night",
+    "b0011": "How much noise and light will there be at night",
+    "b0012": "the jobs",
+    "b0013": "How many jobs will there be",
+    "b0014": "power bills and rent",
+    "b0015": "How could power bills and rent change",
+    "b0016": "the old graves",
+    "b0017": "How much land will they check for old graves",
+    "b0018": "the backup engines",
+    "b0019": "How much smoke will the backup engines make",
+    "b0020": "on the hottest day",
+    "b0021": "after it opens",
+    "b0022": "for people who live here",
+    "b0023": "near the school",
+    "b0024": "before digging",
+    "b0025": "on Main Street",
+    "b0026": "during construction",
+    "b0027": "When will we know more about {t}{d}?",
+    "b0028": "Who will check {t}{d}?",
+    "b0029": "What happens if there is a problem with {t}{d}?",
+    "b0030": "Will everything be OK with {t}{d}?",
+    "b0031": "How often will the backup engines be tested{d}?",
+    "b0032": "When will the backup engines run for testing, and how often will that happen{d}?",
+    "b0033": "Who will share the backup engines' testing schedule{d}?",
+    "b0034": "What happens if the backup engines run more often than planned{d}?",
+    "b0035": "How will mud be kept out of the creek and nearby wells{d}?",
+    "b0036": "When will the creek and nearby wells be checked for mud{d}?",
+    "b0037": "Who will check that mud stays out of the creek and nearby wells{d}?",
+    "b0038": "What happens if mud reaches the creek or nearby wells{d}?",
+    "b0039": "How many jobs will last beyond construction{d}?",
+    "b0040": "When will jobs that continue after construction be listed{d}?",
+    "b0041": "Who can explain which jobs will continue after construction{d}?",
+    "b0042": "What happens if construction jobs end and workers need another job{d}?",
+    "b0043": "How will the land be checked for old graves{d}?",
+    "b0044": "When will a search for old graves be completed{d}?",
+    "b0045": "Who will search the land for old graves{d}?",
+    "b0046": "What happens if someone finds an old grave{d}?",
+    "b0047": "How many construction trucks will travel{d}?",
+    "b0048": "When will construction trucks be allowed to travel{d}?",
+    "b0049": "Who will plan safe routes for construction trucks{d}?",
+    "b0050": "What happens if construction trucks block traffic{d}?",
+    "b0051": "How will young people get training for jobs that stay in town{d}?",
+    "b0052": "When can young people apply for training and jobs in town{d}?",
+    "b0053": "Who will help young people find training and jobs in town{d}?",
+    "b0054": "What happens if young people cannot get the training they need for local jobs{d}?",
+    "b0055": "How will bright outdoor lights be kept out of bedrooms{d}?",
+    "b0056": "When will outdoor lights be dimmed at night{d}?",
+    "b0057": "Who will check that outdoor lights stay out of bedrooms{d}?",
+    "b0058": "What happens if outdoor lights shine into bedrooms{d}?",
+    "b0059": "How will nearby wells be tested and the results shared{d}?",
+    "b0060": "When will nearby wells be tested{d}?",
+    "b0061": "Who will test nearby wells and share the results{d}?",
+    "b0062": "What happens if a well has not been tested{d}?",
+    "b0063": "How will mud be kept out of the creek where families fish{d}?",
+    "b0064": "When will the creek be checked for mud{d}?",
+    "b0065": "Who will check the creek for mud and tell families if it is safe to fish{d}?",
+    "b0066": "What happens if mud reaches the creek where families fish{d}?",
+    "b0067": "How much could the project change household power bills{d}?",
+    "b0068": "When will households learn whether the project could change their power bills{d}?",
+    "b0069": "Who can explain whether the project could change household power bills{d}?",
+    "b0070": "What happens if household power bills rise because of the project{d}?",
+    "b0071": "How could construction affect shop rents{d}?",
+    "b0072": "When will shop owners learn about possible rent changes{d}?",
+    "b0073": "Who can help shop owners understand possible rent changes{d}?",
+    "b0074": "What happens if shop rents rise{d}?",
+    "b0075": "How will nighttime noise be measured and kept low enough for sleep{d}?",
+    "b0076": "When will nighttime noise be measured{d}?",
+    "b0077": "Who will check nighttime noise and respond to neighbors{d}?",
+    "b0078": "What happens if a nighttime hum keeps neighbors awake{d}?",
+    "b0079": "How often...",
+    "b0080": "How many...",
+    "b0081": "How much...",
+    "b0082": "I worry the big backup engines could make smoky air. I want to know how often they run.",
+    "b0083": "I worry mud could reach the creek and my well.",
+    "b0084": "I worry the jobs will end when the building is done.",
+    "b0085": "I worry old graves could be hidden on the farm. I want someone to look before digging.",
+    "b0086": "I worry big trucks will crowd Main Street for months.",
+    "b0087": "I worry young people will move away to find work.",
+    "b0088": "I worry bright lights all night could shine into bedrooms.",
+    "b0089": "I worry no one will test my well before they dig.",
+    "b0090": "I worry the creek could get muddy. I fish there with my kids.",
+    "b0091": "I worry my power bill will go up.",
+    "b0092": "I worry the rent for my shop will go up while they build.",
+    "b0093": "I worry a hum at night could keep my little sister awake.",
+    "b0094": "First up: "
+  }
+}

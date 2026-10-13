@@ -1,0 +1,145 @@
+{
+  "T": {
+    "title": "Spread the Word Right - Community Builders of Pecan Grove",
+    "intro": "The town hasn't decided yet. The library asked kids to make a 'What we know so far' poster for its board at school. Pick 3 fact cards. Give each one its source and check its date. Then pick a headline.",
+    "pickHead": "Then pick a headline.",
+    "boardTag": "School library board",
+    "prog": {
+      "$args": [
+        "n",
+        "hd"
+      ],
+      "$parts": [
+        "Cards on the poster: ",
+        " of 3 · Headline: ",
+        "picked",
+        "not yet"
+      ]
+    },
+    "start": "Start",
+    "step": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Step ",
+        " of 2"
+      ]
+    },
+    "cards": "Fact cards",
+    "heads": "Headlines",
+    "slot": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Slot ",
+        " of 3"
+      ]
+    },
+    "tap": "Tap a card to put it on the poster.",
+    "hope": "Hope",
+    "worry": "Worry",
+    "addSrc": "Add its source",
+    "checkDate": "Check the date",
+    "takeOff": "Take it off",
+    "swap": "Swap for the new fact",
+    "source": {
+      "$args": [
+        "s"
+      ],
+      "$parts": [
+        "Source: "
+      ]
+    },
+    "upToDate": "Up to date. Nothing newer.",
+    "oldLine": "Old news from June 2. There is newer news.",
+    "noSrc": "No source. Nobody can show how they know.",
+    "noDate": "No date. Nobody remembers.",
+    "rumor": "This sounds like a rumor. You can take it off.",
+    "next": "Next: pin it up",
+    "card": {
+      "$args": [
+        "w",
+        "tag"
+      ],
+      "$parts": [
+        "Card: ",
+        ", "
+      ]
+    },
+    "at": {
+      "$args": [
+        "b",
+        "n"
+      ],
+      "$parts": [
+        ", slot "
+      ]
+    },
+    "inSlot": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Card in slot "
+      ]
+    },
+    "srcAdded": "Source added",
+    "good": "Good headline! It tells what's on the poster.",
+    "sell": "This headline tells people what to think. A 'What we know' poster tells what's inside, so everyone can make up their own mind.",
+    "ask": "Ask a grown-up: where can we share it?",
+    "aha": "Sharing a fact without its source or date can spread a mistake.",
+    "see": "See my score",
+    "can": "I can share facts with their sources and say what we don't know yet.",
+    "tipRumor": "Next time, add a source to every card. If it has no source, it's a rumor. Leave it off.",
+    "tipSrc": "Next time, add the source to every fact before you pin it up.",
+    "tipDate": "Next time, check the date on every card. Old news can sneak in.",
+    "tipMix": "Next time, show a hope and a worry, so every neighbor feels heard.",
+    "tipHead": "Next time, pick a headline that tells what's inside, not what to think.",
+    "tip100": "Great poster! Try a new round with new cards.",
+    "real": "Make a poster for your class or library, with permission. Every fact gets its source and date. No posting online.",
+    "gu": "For grown-ups: about this stop",
+    "guText": "Kids make a poster with sources and dates, show a hope and a worry, and choose a safe place to share it: family, class, or a library board with permission. No social media, petitions or campaign materials."
+  },
+  "bank": {
+    "b0001": "The company's plan, at the library",
+    "b0002": "September 3",
+    "b0003": "Planning Board notes",
+    "b0004": "September 24",
+    "b0005": "A letter from the State Environment Office",
+    "b0006": "October 2",
+    "b0007": "The company's first plan",
+    "b0008": "June 2",
+    "b0009": "The company's plan lists many jobs during building.",
+    "b0010": "The company's plan shows outdoor lights pointing down, away from homes.",
+    "b0011": "The Board notes describe a proposed building far from the old chapel.",
+    "b0012": "The Board notes propose an expert search for old graves before digging.",
+    "b0013": "The company's plan lists only a few jobs after opening.",
+    "b0014": "The company's plan lists daily water use.",
+    "b0015": "The company's plan says backup engines would run during power cuts and short tests.",
+    "b0016": "The air permit isn't decided yet.",
+    "b0017": "Electrician classes at the school start this fall.",
+    "b0018": "The new plan proposes electrician classes next year, if the town says yes.",
+    "b0019": "The plan keeps some of the big pecan trees.",
+    "b0020": "The plan keeps all the big pecan trees by the creek.",
+    "b0021": "It would take water from the town's wells.",
+    "b0022": "The new plan proposes water from Pecan River, not from wells.",
+    "b0023": "The sound study will be done in October.",
+    "b0024": "The sound study isn't done yet. It's due in the spring.",
+    "b0025": "It uses no water at all.",
+    "b0026": "Every well in town will dry up next year.",
+    "b0027": "Everyone's power bill will go down.",
+    "b0028": "The lights will go out in every house.",
+    "b0029": "What we know so far, and what we don't know yet",
+    "b0030": "The farm plan: facts with sources and dates",
+    "b0031": "The data center would be great for Pecan Grove!",
+    "b0032": "The data center would be bad for Pecan Grove!",
+    "b0033": "At the family table",
+    "b0034": "Your family reads it at dinner and asks about the sources.",
+    "b0035": "With my class",
+    "b0036": "Your teacher puts it up, and your class talks about the dates.",
+    "b0037": "On the library board, with permission",
+    "b0038": "The library says yes and puts it on the board."
+  }
+}

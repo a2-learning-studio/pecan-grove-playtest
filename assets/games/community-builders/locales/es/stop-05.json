@@ -1,0 +1,143 @@
+{
+  "S": {
+    "title": "Mapa de lo que puede cambiar - Constructores de comunidad de Pecan Grove",
+    "intro1": "Ya publicaron el plano de la granja. La Junta de Planificación se reúne pronto.",
+    "intro2": "Cada cambio hace ondas, como una piedra en un estanque. Síguelas, cerca y lejos.",
+    "start": "Empezar",
+    "change": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Cambio ",
+        " de 5"
+      ]
+    },
+    "step": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Paso ",
+        " de 2"
+      ]
+    },
+    "kind": {
+      "help": "Cambio que ayuda",
+      "hard": "Cambio difícil"
+    },
+    "q": [
+      "¿Adónde llega primero? Toca un lugar.",
+      "¿Quién podría sentirlo después? Toca a un vecino."
+    ],
+    "ok": [
+      "¡Sí! Puede llegar ahí.",
+      "¡Sí! Le puede llegar."
+    ],
+    "wrong": [
+      "Buena idea. Puede llegar ahí después, pero busca adónde llega primero. Prueba otra vez.",
+      "Buena idea. Puede que le llegue un poco, pero busca a quién le llega más. Prueba otra vez."
+    ],
+    "shown": [
+      "Mira adónde puede llegar.",
+      "Mira a quién le puede llegar."
+    ],
+    "tried": "Ya probaste",
+    "also": "También está bien:",
+    "planTag": "Plano de la granja",
+    "end": "¡Mira qué lejos llegaron los cambios!",
+    "see": "Ver mi puntaje",
+    "live": {
+      "$args": [
+        "n",
+        "s"
+      ],
+      "$parts": [
+        "Cambio ",
+        " de 5, paso ",
+        " de 2"
+      ]
+    },
+    "place": {
+      "$args": [
+        "p"
+      ],
+      "$parts": [
+        ", lugar"
+      ]
+    },
+    "can": "Puedo buscar cambios lejos del edificio también.",
+    "tip100": "¡Gran mapa! Prueba una nueva ronda con cambios nuevos.",
+    "tipHelp": "La próxima vez, sigue los cambios que ayudan tan lejos como los difíciles.",
+    "tipHard": "La próxima vez, sigue los cambios difíciles tan lejos como los que ayudan.",
+    "tipCard": {
+      "$args": [
+        "c"
+      ],
+      "$parts": [
+        "La próxima vez, sigue '",
+        "' hasta el final: dónde llega primero y quién vive o trabaja ahí."
+      ]
+    },
+    "landed": {
+      "$args": [
+        "p"
+      ],
+      "$parts": [
+        "Llegó a: "
+      ]
+    },
+    "tipStep2": "La próxima vez, pregúntate: ¿quién vive, trabaja o juega cerca de ese lugar?",
+    "tipPaths": "La próxima vez, sigue los caminos punteados lejos de la granja.",
+    "real": "Con un adulto, dibuja un mapa de tu vecindario. Marca los lugares que un edificio grande podría cambiar, para bien o con dificultades.",
+    "gu": "Para adultos: sobre esta parada",
+    "guText": "Algunos efectos llegan lejos del terreno: recibos de luz, rentas, presupuestos escolares, un arroyo río abajo o las calles por donde pasan los autobuses escolares. Los niños siguen cada cambio hasta donde llega, ya sea que ayude o que sea difícil. Los cambios buenos y los difíciles valen los mismos puntos."
+  },
+  "bank": {
+    "b0001": "Vieja granja Miller",
+    "b0002": "Capilla histórica",
+    "b0003": "Clínica",
+    "b0004": "Panadería y tienda",
+    "b0005": "Escuela",
+    "b0006": "Río Pecan",
+    "b0007": "Comunidad",
+    "b0008": "Pozos",
+    "b0009": "Casas",
+    "b0010": "Dinero nuevo de impuestos",
+    "b0011": "Los impuestos del edificio pueden ayudar a pagar la escuela y el pueblo.",
+    "b0012": "Jayden podría tener clases nuevas, y la abuela Ruth podría pagar menos impuestos por su casa.",
+    "b0013": "Los trabajadores compran comida en el pueblo",
+    "b0014": "Los equipos de la obra comen y compran en la calle principal.",
+    "b0015": "El Sr. Patel tiene más clientes y podría contratar a más gente.",
+    "b0016": "Trabajos en la obra por uno o dos años",
+    "b0017": "Los sueldos de la obra llegan a familias de Pecan Grove.",
+    "b0018": "Ana podría tener más trabajo, y el nieto de la abuela Ruth podría encontrar empleo.",
+    "b0019": "Clases para formar electricistas",
+    "b0020": "La escuela podría tener clases para trabajos de construcción y electricidad.",
+    "b0021": "Ana podría enseñar, y Jayden podría aprender un oficio y trabajar aquí algún día.",
+    "b0022": "Llega una línea rápida de internet",
+    "b0023": "La línea de fibra del edificio también podría llegar a la clínica y a las casas.",
+    "b0024": "La Sra. Lee podría dar consultas por video, y la abuela Ruth podría hacer videollamadas con su familia.",
+    "b0025": "El plan arregla el camino de la granja",
+    "b0026": "Un camino mejor va de la granja a la calle principal y a la clínica.",
+    "b0027": "Las cosechas del Sr. Johnson llegan fácil a la tienda, y las ambulancias llegan rápido a la clínica de la Sra. Lee.",
+    "b0028": "Mucho uso de agua en días de calor",
+    "b0029": "En días de calor, enfriar las computadoras puede usar mucha agua de los pozos y del río.",
+    "b0030": "Las vacas y el pozo del Sr. Johnson, y la clínica de la Sra. Lee, también necesitan agua.",
+    "b0031": "Lodo de la excavación",
+    "b0032": "Cuando llueve sobre la tierra pelada, el lodo puede llegar al arroyo, al río Pecan y a pozos cercanos.",
+    "b0033": "El pozo del Sr. Johnson y el lugar donde pesca Ana están río abajo.",
+    "b0034": "Muchos camiones",
+    "b0035": "Los camiones llenan la calle principal y las calles que usan los autobuses escolares y las ambulancias.",
+    "b0036": "Los clientes del Sr. Patel, el autobús de Jayden y las ambulancias de la Sra. Lee podrían tardar más por meses.",
+    "b0037": "Luces fuertes de noche",
+    "b0038": "Las luces prendidas toda la noche pueden alumbrar las casas cercanas.",
+    "b0039": "El Sr. Johnson vive al lado, y la Sra. Lee y la hermanita de Jayden quieren noches oscuras.",
+    "b0040": "Muchos trabajadores necesitan dónde vivir",
+    "b0041": "Las rentas de casas y locales cerca de la calle principal pueden subir por un tiempo.",
+    "b0042": "El Sr. Patel renta su local, y Ana renta su casa.",
+    "b0043": "El edificio necesita mucha electricidad",
+    "b0044": "Las nuevas líneas de luz cuestan dinero, y los recibos de luz de casas y negocios pueden cambiar.",
+    "b0045": "La abuela Ruth y el Sr. Patel cuidan mucho sus recibos de luz."
+  }
+}

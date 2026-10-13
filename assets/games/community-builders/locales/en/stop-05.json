@@ -1,0 +1,143 @@
+{
+  "S": {
+    "title": "Map What Could Change - Community Builders of Pecan Grove",
+    "intro1": "The plan for the farm is posted. The Planning Board meets soon.",
+    "intro2": "Each change makes ripples, like a stone in a pond. Follow them, near and far.",
+    "start": "Start",
+    "change": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Change ",
+        " of 5"
+      ]
+    },
+    "step": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Step ",
+        " of 2"
+      ]
+    },
+    "kind": {
+      "help": "Helpful change",
+      "hard": "Hard change"
+    },
+    "q": [
+      "Where does it land first? Tap a place.",
+      "Who could feel it next? Tap a neighbor."
+    ],
+    "ok": [
+      "Yes! It can land there.",
+      "Yes! It can reach them."
+    ],
+    "wrong": [
+      "Good thinking. It may get there later, but look for where it lands first. Try once more.",
+      "Good thinking. It may reach them a little, but look for who feels it most. Try once more."
+    ],
+    "shown": [
+      "Here is where it can land.",
+      "Here is who it can reach."
+    ],
+    "tried": "Tried",
+    "also": "Also right:",
+    "planTag": "Farm plan",
+    "end": "Look how far the changes went!",
+    "see": "See my score",
+    "live": {
+      "$args": [
+        "n",
+        "s"
+      ],
+      "$parts": [
+        "Change ",
+        " of 5, step ",
+        " of 2"
+      ]
+    },
+    "place": {
+      "$args": [
+        "p"
+      ],
+      "$parts": [
+        ", place"
+      ]
+    },
+    "can": "I can look for changes far from the building, too.",
+    "tip100": "Great map! Try a new round with new changes.",
+    "tipHelp": "Next time, follow the helpful changes as far as the hard ones.",
+    "tipHard": "Next time, follow the hard changes as far as the helpful ones.",
+    "tipCard": {
+      "$args": [
+        "c"
+      ],
+      "$parts": [
+        "Next time, follow '",
+        "' all the way: where it lands first, and who lives or works there."
+      ]
+    },
+    "landed": {
+      "$args": [
+        "p"
+      ],
+      "$parts": [
+        "Landed at: "
+      ]
+    },
+    "tipStep2": "Next time, ask: who lives, works or plays near that place?",
+    "tipPaths": "Next time, follow the dotted paths far from the farm.",
+    "real": "With a grown-up, draw a map of your neighborhood. Mark places a big new building could change, both helpful and hard.",
+    "gu": "For grown-ups: about this stop",
+    "guText": "Some effects land far from the site: power bills, rents, school budgets, a creek downstream, or the roads school buses use. Kids follow each change to where it lands, whether it helps or is hard. Helpful and hard changes are worth the same points, which keeps the game balanced."
+  },
+  "bank": {
+    "b0001": "Old Miller Farm",
+    "b0002": "Historic Chapel",
+    "b0003": "Clinic",
+    "b0004": "Bakery & Store",
+    "b0005": "School",
+    "b0006": "Pecan River",
+    "b0007": "Community",
+    "b0008": "Wells",
+    "b0009": "Homes",
+    "b0010": "New tax money",
+    "b0011": "Taxes from the building can help pay for the school and the town.",
+    "b0012": "Jayden could get new classes, and Grandma Ruth could pay less tax on her home.",
+    "b0013": "Workers buy lunch in town",
+    "b0014": "Building crews eat and shop on Main Street.",
+    "b0015": "Mr. Patel gets more customers and could hire more people.",
+    "b0016": "Building jobs for a year or two",
+    "b0017": "Paychecks from the building crew come home to Pecan Grove families.",
+    "b0018": "Ana could get more work, and Grandma Ruth's grandson could find a job.",
+    "b0019": "Classes to train electricians",
+    "b0020": "The school could add classes for building and power jobs.",
+    "b0021": "Ana could teach, and Jayden could learn a trade and work here someday.",
+    "b0022": "A fast internet line comes to town",
+    "b0023": "The fiber line to the building could also reach the clinic and homes.",
+    "b0024": "Ms. Lee could do video visits, and Grandma Ruth could video-call her family.",
+    "b0025": "The plan fixes the farm road",
+    "b0026": "A smoother road leads from the farm to Main Street and the clinic.",
+    "b0027": "Mr. Johnson's crops get to the store easily, and ambulances reach Ms. Lee's clinic fast.",
+    "b0028": "Big water use on hot days",
+    "b0029": "On hot days, keeping the computers cool can use a lot of water from wells and the river.",
+    "b0030": "Mr. Johnson's cows and well, and Ms. Lee's clinic, need water too.",
+    "b0031": "Mud from digging",
+    "b0032": "When rain hits bare dirt, mud can wash into the creek, the Pecan River and nearby wells.",
+    "b0033": "Mr. Johnson's well and Ana's fishing spot are downstream.",
+    "b0034": "Lots of trucks",
+    "b0035": "Trucks fill Main Street and the roads that school buses and ambulances use.",
+    "b0036": "Mr. Patel's shoppers, Jayden's bus and Ms. Lee's ambulances could all take longer for months.",
+    "b0037": "Bright lights at night",
+    "b0038": "Lights that stay on all night can shine into nearby homes.",
+    "b0039": "Mr. Johnson lives next door, and Ms. Lee and Jayden's little sister want dark nights.",
+    "b0040": "Many workers need places to live",
+    "b0041": "Rents for homes and shops near Main Street can go up for a while.",
+    "b0042": "Mr. Patel rents his shop, and Ana rents her home.",
+    "b0043": "The building needs lots of power",
+    "b0044": "New power lines cost money, and power bills for homes and shops can change.",
+    "b0045": "Grandma Ruth and Mr. Patel keep a close eye on their power bills."
+  }
+}

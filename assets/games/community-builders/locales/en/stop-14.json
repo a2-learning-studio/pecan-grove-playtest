@@ -1,0 +1,178 @@
+{
+  "T": {
+    "pageTitle": "Keep Watch - Community Builders of Pecan Grove",
+    "introBuilt": "It's spring, one year later. The town said yes to the data center, with changes.",
+    "introStudying": "It's spring, one year later. The town said not now. It's still studying and writing rules.",
+    "fair": "Saying yes with changes and saying not now, to study more, are both fair choices. Either way, people made promises. Let's check them, kindly.",
+    "start": "Start",
+    "step": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Step ",
+        " of 2"
+      ]
+    },
+    "noClue": "No clue found",
+    "notebook": "Promise notebook",
+    "siteTag": "Data center",
+    "clueAria": {
+      "$args": [
+        "l"
+      ],
+      "$parts": [
+        "Clue: "
+      ]
+    },
+    "notChecked": "Not checked yet",
+    "promiseN": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Promise ",
+        " of 5"
+      ]
+    },
+    "s1": "Read the promise. Tap its clue in town, or tap 'No clue found'.",
+    "see": "What you see:",
+    "rightNone": "Right. There's no clue for this one in town.",
+    "other": "That clue goes with another promise.",
+    "hereIs": "Here is this one's clue.",
+    "noneHere": "There's no clue for this one in town.",
+    "lookClue": "Look again: there is a clue for this one. Here it is.",
+    "how": "How is this promise doing?",
+    "st": {
+      "kept": "Kept",
+      "notyet": "Not yet",
+      "ask": "Need to ask"
+    },
+    "stAria": {
+      "$args": [
+        "l"
+      ],
+      "$parts": [
+        ", status"
+      ]
+    },
+    "ok": {
+      "kept": "Yes! This promise was kept.",
+      "notyet": "Yes. It's started, but it's not done yet.",
+      "ask": "Yes. We can't tell yet, so we'll ask."
+    },
+    "wrong": {
+      "kept": "Look again: the clue shows it's done. This promise was kept.",
+      "notyet": "Look again: it's started, but not done yet. It's late, not broken.",
+      "ask": "Look again: we can't tell from this. No clue doesn't mean a broken promise. We just need to ask."
+    },
+    "nextPromise": "Next promise",
+    "followUp": "Follow up",
+    "s2": "Pick a kind follow-up for each late or unclear promise. It goes in your notebook, to ask with a grown-up.",
+    "fu": {
+      "thanks": "Say thank you",
+      "why": "Ask why",
+      "when": "Ask when"
+    },
+    "fuLine": {
+      "notyet": {
+        "thanks": "Thank you for starting. We'll check again soon.",
+        "why": "What's making it take longer?",
+        "when": "When do you think it will be done?"
+      },
+      "ask": {
+        "thanks": "Thank you for this promise. Where can we see how it's going?",
+        "why": "Why is it hard to tell if it's done?",
+        "when": "When can we see how it's going?"
+      }
+    },
+    "reply": "Thanks for asking kindly. You'll get an answer at the next town meeting.",
+    "fuN": {
+      "$args": [
+        "n",
+        "t"
+      ],
+      "$parts": [
+        "Follow-ups: ",
+        " of "
+      ]
+    },
+    "closeNb": "Close the notebook",
+    "still": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "1 promise still needs a follow-up.",
+        " promises still need a follow-up."
+      ]
+    },
+    "goBack": "Go back",
+    "closeAnyway": "Close anyway",
+    "closing": "Some promises are kept, some are late, and some just need a question. Checking kindly works better than blaming.",
+    "seeScore": "See my score",
+    "can": "I can check, kindly, if promises were kept.",
+    "tipFollow": "Next time, give every late or unclear promise a kind follow-up.",
+    "tipAsk": "Next time, remember: no clue doesn't mean a broken promise. Ask first.",
+    "tipStatus": "Next time, read each clue slowly. Is it done, started or not clear?",
+    "tipClue": "Next time, look all over town for each promise's clue.",
+    "tip100": "Great watching! Try a new round. The town may take the other path.",
+    "real": "With a grown-up, keep a 'listen and look' notebook at home. Write down changes in sounds, lights or water you notice. Never go near a building site.",
+    "askH": "Ask a grown-up",
+    "ask": "What promise in our town would you like to check on, and who could we ask?",
+    "gu": "For grown-ups: about this stop",
+    "guText": "Promises come from the town, the builders and the neighbors. Kids match each promise to a clue a year later and choose a kind follow-up. Real checking is an adult job: ask for yearly reports and meeting minutes, and find out who enforces each promise. Each round, the town has taken one of two fair paths: building with changes, or not building while it studies."
+  },
+  "bank": {
+    "b0001": "From the builders",
+    "b0002": "From the Town Council",
+    "b0003": "From Ana",
+    "b0004": "From Jayden",
+    "b0005": "From Mr. Patel",
+    "b0006": "Lights",
+    "b0007": "Well-test letter",
+    "b0008": "Truck sign",
+    "b0009": "School class",
+    "b0010": "Meeting poster",
+    "b0011": "Study stakes",
+    "b0012": "Town Hall meeting",
+    "b0013": "The letter says the wells were tested. The creek tests start next month.",
+    "b0014": "The van drives by sometimes, but no letter has come. We can't tell.",
+    "b0015": "We'll test the wells and the creek every month.",
+    "b0016": "A letter came to every farm. The wells and the creek were tested every month.",
+    "b0017": "We'll point every outside light down.",
+    "b0018": "Every outside light points down. You can see the stars over the farm.",
+    "b0019": "Half the lights point down. A box of new lamps waits by the fence.",
+    "b0020": "The lights point down, but some stay on all night. Was that part of the promise?",
+    "b0021": "We'll keep big trucks off Main Street.",
+    "b0022": "The truck sign points to the farm road. Main Street is calm.",
+    "b0023": "The farm road isn't finished. Some trucks still use Main Street.",
+    "b0024": "The sign shows a clock and a truck. Which hours does it mean?",
+    "b0025": "I'll teach a class for young electricians at the school.",
+    "b0026": "Ana's class meets every Tuesday. Jayden is in it!",
+    "b0027": "The classroom is ready, but the class starts in the fall.",
+    "b0028": "There's a class at the school. Is it Ana's class?",
+    "b0029": "We'll hold a meeting every spring to share the yearly report.",
+    "b0030": "The poster in the bakery window shows the date of the spring meeting.",
+    "b0031": "The poster is up, but the meeting has no date yet.",
+    "b0032": "The poster shows a meeting. Will they share the report there?",
+    "b0033": "We'll test the wells and the creek before we decide.",
+    "b0034": "A letter with the test results came to every farm.",
+    "b0035": "We'll pay for every study the town asks for.",
+    "b0036": "Study teams are measuring the field. The builders paid for every study.",
+    "b0037": "One study has started. The others start in the summer.",
+    "b0038": "Little flags stand in the field, but no one is there. Is the study still going?",
+    "b0039": "We'll write the new rules in open meetings.",
+    "b0040": "Neighbors fill Town Hall. Anyone can come and speak.",
+    "b0041": "The meetings were planned for winter. The first one is next month.",
+    "b0042": "Town Hall's lights are on. Is the meeting open to everyone?",
+    "b0043": "I'll start a tech club at the school.",
+    "b0044": "Jayden's tech club meets every Friday after school.",
+    "b0045": "Jayden found a room, but the club starts after the summer.",
+    "b0046": "Some kids meet after school. Is it Jayden's club?",
+    "b0047": "I'll put a poster for every town meeting in my bakery window.",
+    "b0048": "The bakery window shows a poster for the next meeting.",
+    "b0049": "Mr. Patel made the poster, but it's not in the window yet.",
+    "b0050": "The bakery poster is from last month. Is a new one coming?"
+  }
+}

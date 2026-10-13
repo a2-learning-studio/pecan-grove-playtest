@@ -1,0 +1,173 @@
+{
+  "T": {
+    "title": "Habla con respeto - Constructores de comunidad de Pecan Grove",
+    "intro": "Pronto será la audiencia del Concejo del pueblo. Antes, un adulto puede enviar un comentario por escrito a los grupos que deciden. Arma una tarjeta corta y respetuosa. No se envía nada. Se la muestras a un adulto.",
+    "start": "Empezar",
+    "home": "Tu casa",
+    "step": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Paso ",
+        " de 2"
+      ]
+    },
+    "lead": "¿Y tú qué quieres decir? Arma tu propia tarjeta sobre un tema, el que tú quieras.",
+    "tap": "Toca una ficha en cada fila, todas sobre ese tema. Puedes cambiar de idea.",
+    "rows": {
+      "n": "Me di cuenta de que…",
+      "w": "Me pregunto…",
+      "i": "Una idea…"
+    },
+    "stem": {
+      "n": "Me di cuenta de que",
+      "w": "Me pregunto",
+      "i": "Una idea:"
+    },
+    "topicIs": {
+      "$args": [
+        "t"
+      ],
+      "$parts": [
+        "Tema: "
+      ]
+    },
+    "hello": "¡Hola!",
+    "thanks": "Gracias por escuchar.",
+    "from": "De: un niño o una niña de Pecan Grove",
+    "ready": "Mi tarjeta está lista",
+    "who": "¿Quién decide sobre tu idea? Toca para quién es tu tarjeta.",
+    "cardFor": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Tarjeta para: "
+      ]
+    },
+    "right": "¡Sí! Este grupo decide sobre tu idea.",
+    "not": "Este no.",
+    "another": "Prueba otro.",
+    "tried": "Ya lo probaste",
+    "here": "Este es el grupo que decide sobre tu idea.",
+    "liveRight": "Grupo correcto",
+    "liveNot": "Este no",
+    "to": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Para: "
+      ]
+    },
+    "parts": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Tu tarjeta tiene ",
+        " de 3 partes. Las tres partes ayudan a que te entiendan."
+      ]
+    },
+    "topics": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Tu tarjeta tiene ",
+        " temas. Una tarjeta sobre un solo tema se escucha mejor."
+      ]
+    },
+    "aha": "Una tarjeta corta sobre un solo tema, para el grupo que lo decide, se escucha mejor que una lista larga.",
+    "sent": "No se envió nada. Tu tarjeta se queda en esta pantalla.",
+    "print": "Imprimir",
+    "show": "Muéstraselo a un adulto",
+    "see": "Ver mi puntaje",
+    "guTitle": "Para adultos",
+    "guText": "Los niños arman un comentario de tres partes (me di cuenta, me pregunto, una idea) y eligen quién decide ese tema. El juego no envía nada. Si usted está de acuerdo con la tarjeta de su hijo o hija, puede enviarla como carta o comentario público por escrito. Para saber cómo se reciben los comentarios por escrito antes de una audiencia pública, pregunte en la secretaría de su ciudad o condado.",
+    "can": "Puedo decir lo que noté, preguntar y compartir una idea, con respeto.",
+    "tipParts": "La próxima vez, completa las tres partes: me di cuenta, me pregunto y una idea.",
+    "tipTopic": "La próxima vez, usa un solo tema en las tres partes. Un solo tema se escucha mejor.",
+    "tipWho": "La próxima vez, pregúntate: ¿quién decide sobre mi idea?",
+    "tip100": "¡Gran tarjeta! Prueba una nueva ronda con otro tema.",
+    "real": "Imprime tu tarjeta y muéstrasela a un adulto. Si está de acuerdo, puede enviar tu idea en una carta o un comentario escrito antes de una reunión.",
+    "gu": "Para adultos: sobre esta parada"
+  },
+  "bank": {
+    "b0001": "Agua",
+    "b0002": "Camiones",
+    "b0003": "Empleos",
+    "b0004": "Historia",
+    "b0005": "Luces de noche",
+    "b0006": "Me preocupa que el centro de datos saque mucha agua del río Pecan. Mis vacas también la necesitan.",
+    "b0007": "Me preocupa que los camiones grandes llenen la calle principal por meses.",
+    "b0008": "Me preocupa que los empleos se acaben cuando terminen de construir.",
+    "b0009": "Me preocupa que los jóvenes se vayan a buscar trabajo a otro lado.",
+    "b0010": "Me preocupa que haya tumbas antiguas escondidas en la granja. Quiero que alguien las busque antes de excavar.",
+    "b0011": "Me preocupa que las luces fuertes toda la noche alumbren los cuartos.",
+    "b0012": "el río Pecan baja mucho en los días de calor.",
+    "b0013": "muchas granjas de aquí usan agua del río Pecan.",
+    "b0014": "todos compartimos el agua del río Pecan.",
+    "b0015": "la calle principal se llena en la mañana antes de la escuela.",
+    "b0016": "los autobuses escolares usan el camino de la granja todos los días.",
+    "b0017": "los niños caminan a la escuela por la calle principal.",
+    "b0018": "mucha gente de aquí maneja lejos para ir a trabajar.",
+    "b0019": "los jóvenes se van a buscar trabajo a otro lado.",
+    "b0020": "la gente de Pecan Grove sabe construir y arreglar cosas.",
+    "b0021": "la vieja capilla es más antigua que cualquier persona del pueblo.",
+    "b0022": "la abuela Ruth sabe muchas historias de la vieja granja.",
+    "b0023": "hay tumbas antiguas de familias cerca de la capilla.",
+    "b0024": "aquí se ven muchas estrellas de noche.",
+    "b0025": "nuestra calle es oscura y tranquila de noche.",
+    "b0026": "las luciérnagas salen en las noches oscuras de verano.",
+    "b0027": "cuánta agua sacaría el centro de datos del río Pecan.",
+    "b0028": "cuánta agua necesitaría el edificio en los días más calurosos.",
+    "b0029": "si alcanzaría el agua también para las granjas.",
+    "b0030": "cuántos camiones pasarían cada día.",
+    "b0031": "por qué calles pasarían los camiones.",
+    "b0032": "si pasarían camiones a la hora en que los niños caminan a la escuela.",
+    "b0033": "cuántos empleos serían para la gente de aquí.",
+    "b0034": "si los empleos durarían después de terminar la obra.",
+    "b0035": "qué capacitación necesitaría la gente de aquí para esos empleos.",
+    "b0036": "si alguien va a buscar tumbas antiguas antes de excavar.",
+    "b0037": "cómo se van a guardar las historias antiguas de la granja.",
+    "b0038": "qué tan cerca de la vieja capilla quedaría el edificio.",
+    "b0039": "qué luces quedarían prendidas toda la noche.",
+    "b0040": "si todavía podríamos ver las estrellas.",
+    "b0041": "qué tan fuertes serían las luces cerca de las casas.",
+    "b0042": "la empresa podría sacar menos agua del río Pecan en los días de calor.",
+    "b0043": "la empresa podría decir cuánta agua del río usa cada mes.",
+    "b0044": "la empresa podría volver a usar su agua en vez de sacar más del río.",
+    "b0045": "los camiones podrían usar un camino lejos de la escuela.",
+    "b0046": "los camiones podrían esperar a que pasen los autobuses escolares.",
+    "b0047": "el pueblo podría pedir un plan para los camiones antes de decidir.",
+    "b0048": "la empresa podría contratar primero a gente de aquí.",
+    "b0049": "la empresa podría capacitar a gente de Pecan Grove para esos empleos.",
+    "b0050": "si la empresa paga menos impuestos, podría prometer empleos para la gente de aquí.",
+    "b0051": "una persona experta podría buscar tumbas antiguas antes de excavar.",
+    "b0052": "el pueblo podría dejar un espacio amplio con árboles alrededor de las tumbas antiguas.",
+    "b0053": "el edificio podría quedar lejos de la vieja capilla.",
+    "b0054": "las luces podrían apuntar hacia abajo, no hacia las casas.",
+    "b0055": "el pueblo podría pedir ver un plan de luces antes de decidir.",
+    "b0056": "las luces que no se necesiten podrían apagarse de noche.",
+    "b0057": "Concejo del pueblo",
+    "b0058": "Decide qué se puede construir, después de una audiencia pública. Puede poner reglas para los camiones, las luces y las tumbas antiguas.",
+    "b0059": "Junta de Planificación",
+    "b0060": "Estudió el plan primero y le dio consejos al Concejo del pueblo. Su reunión ya pasó.",
+    "b0061": "Junta de Desarrollo",
+    "b0062": "Decide si la empresa puede pagar menos impuestos por unos años. A cambio, puede pedir empleos para la gente de aquí.",
+    "b0063": "Revisión Regional",
+    "b0064": "Revisa cómo un proyecto grande podría afectar a los pueblos cercanos y da su opinión. No decide.",
+    "b0065": "Junta Estatal de Electricidad",
+    "b0066": "Fija el precio de la luz. No elige dónde se construye.",
+    "b0067": "Oficina Estatal del Medio Ambiente",
+    "b0068": "Da permisos para el humo de los motores y para sacar mucha agua del río Pecan.",
+    "b0069": "Decide qué se puede construir",
+    "b0070": "Dio consejos; su reunión ya pasó",
+    "b0071": "Decide si pagan menos impuestos",
+    "b0072": "Opina por los pueblos cercanos",
+    "b0073": "Fija el precio de la luz",
+    "b0074": "Da permisos de humo y de agua"
+  }
+}
