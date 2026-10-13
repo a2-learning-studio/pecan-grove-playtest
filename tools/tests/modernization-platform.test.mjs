@@ -137,6 +137,42 @@ test('a failed optional cache write cannot turn a valid network image into a rej
   await w.settle();
 });
 
+test('a ranged voice request plays a 206 slice of the cached whole clip', async () => {
+  const url = 'https://example.test/game/assets/games/community-builders/voice/en/hello.mp3';
+  const w = worker();
+  w.stores.set('pecan-grove-voice-en', new Map([[url, new Response(Uint8Array.from([0, 1, 2, 3, 4, 5, 6, 7]), { headers: { 'Content-Type': 'audio/mpeg' } })]]));
+  const response = await w.fetchEvent(url, { destination: 'audio', headers: new Headers({ range: 'bytes=2-5' }) });
+  assert.equal(response.status, 206);
+  assert.equal(response.headers.get('Content-Type'), 'audio/mpeg');
+  assert.equal(response.headers.get('Content-Range'), 'bytes 2-5/8');
+  assert.equal(response.headers.get('Content-Length'), '4');
+  assert.deepEqual([...(new Uint8Array(await response.arrayBuffer()))], [2, 3, 4, 5]);
+  assert.equal(w.network.length, 0);
+});
+
+test('a ranged voice request is buffered and never stored as a partial clip', async () => {
+  const url = 'https://example.test/game/assets/games/community-builders/voice/en/hello.mp3';
+  const w = worker({ fetcher: async () => new Response('partial', { status: 206, headers: { 'Content-Type': 'audio/mpeg', 'Content-Range': 'bytes 0-6/20' } }) });
+  const response = await w.fetchEvent(url, { destination: 'audio', headers: new Headers({ range: 'bytes=0-6' }) });
+  assert.equal(response.status, 206);
+  assert.equal(response.headers.get('Content-Range'), 'bytes 0-6/20');
+  assert.equal(await response.text(), 'partial');
+  await w.settle();
+  assert.equal(w.stores.get('pecan-grove-voice-en')?.has(url), false);
+});
+
+test('a range request whose server sends the whole clip is cached whole and answered as 206', async () => {
+  const url = 'https://example.test/game/assets/games/community-builders/voice/en/hello.mp3';
+  const w = worker({ fetcher: async () => new Response('abcdefgh', { status: 200, headers: { 'Content-Type': 'audio/mpeg' } }) });
+  const response = await w.fetchEvent(url, { destination: 'audio', headers: new Headers({ range: 'bytes=1-3' }) });
+  assert.equal(response.status, 206);
+  assert.equal(response.headers.get('Content-Range'), 'bytes 1-3/8');
+  assert.equal(await response.text(), 'bcd');
+  await w.settle();
+  assert.equal(await w.stores.get('pecan-grove-voice-en').get(url).text(), 'abcdefgh');
+  assert.equal(w.stores.get('pecan-grove-voice-en').get(url).status, 200);
+});
+
 test('partial voice responses are returned without attempting an invalid Cache.put', async () => {
   const w = worker({ fetcher: async () => new Response('partial clip', { status: 206, headers: { 'Content-Range': 'bytes 0-11/100' } }) });
   const url = 'https://example.test/game/assets/games/community-builders/voice/en/hello.mp3';

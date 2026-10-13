@@ -286,6 +286,9 @@ export default function createApi(ctx) {
       ctx.vStop();
       ctx.vInkClear();
     },
+    resumeLockedVoice: function () {
+      if (typeof ctx.resumeLockedVoice === "function") ctx.resumeLockedVoice();
+    },
     suspendVoice: ctx.suspendVoice,
     openLibraryMode: ctx.openLibraryMode,
     openGrownups: ctx.openGrownups,

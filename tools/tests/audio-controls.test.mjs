@@ -78,6 +78,32 @@ test('Rejected play promise cleans up without throwing', async () => {
   assert.equal(c.vAudio, null); assert.equal(line.speaking, false);
 });
 
+test('A browser playback block keeps the clip and asks for a tap', async () => {
+  const { c, el } = harness();
+  const locked = [];
+  c.emit = (type, detail) => locked.push({ type, detail });
+  c.Audio.prototype.play = function () { const error = new Error('blocked'); error.name = 'NotAllowedError'; return Promise.reject(error); };
+  const line = el(); c.vPlay({ f: 'en/one.mp3', k: 'guide' }, line);
+  await Promise.resolve(); await Promise.resolve();
+  assert.equal(c.vAudio.src, 'game/voice/en/one.mp3');
+  assert.equal(line.speaking, true);
+  const blocked = locked.find(event => event.type === 'cb:voice-locked');
+  assert.equal(blocked.detail.audio, c.vAudio);
+});
+
+test('Android playback fetches the whole clip instead of letting the element request a range', async () => {
+  const { c, el } = harness();
+  const fetched = [];
+  c.window.navigator = { userAgent: 'Mozilla/5.0 (Linux; Android 14; Pixel 7) AppleWebKit/537.36 Chrome/129.0.0.0 Mobile' };
+  c.window.fetch = async url => { fetched.push(url); return { ok: true, blob: async () => 'clip-bytes' }; };
+  c.window.URL = { createObjectURL: () => 'blob:clip', revokeObjectURL() {} };
+  c.vPlay({ f: 'en/one.mp3', k: 'guide' }, el());
+  assert.equal(c.vAudio.src, undefined);
+  await new Promise(resolve => setImmediate(resolve));
+  assert.deepEqual(fetched, ['game/voice/en/one.mp3']);
+  assert.equal(c.vAudio.src, 'blob:clip');
+});
+
 test('Voice off stops playback and updates persisted state and controls', () => {
   const { c, el, events, button } = harness();
   c.vPlay({ f: 'es/one.mp3', k: 'guide' }, el());

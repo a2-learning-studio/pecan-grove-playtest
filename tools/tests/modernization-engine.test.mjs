@@ -783,6 +783,63 @@ test("audio context waits for gesture and all mixer buses are independent", () =
   mixer.mute(true);
   assert.equal(mixer.buses.master.gain.value, 0);
 });
+test("a suspended audio context leaves voice on the element until it is running", async () => {
+  const created = [];
+  class Gain {
+    constructor() {
+      this.gain = {
+        value: 0,
+        setTargetAtTime(value) {
+          this.value = value;
+        },
+        setValueAtTime(value) {
+          this.value = value;
+        },
+      };
+    }
+    connect() {}
+  }
+  class Context {
+    constructor() {
+      this.state = "suspended";
+      this.currentTime = 0;
+      this.sampleRate = 8000;
+      this.destination = {};
+    }
+    createGain() {
+      return new Gain();
+    }
+    createMediaElementSource(element) {
+      created.push(element);
+      return { connect() {} };
+    }
+    createBuffer() {
+      return {};
+    }
+    createBufferSource() {
+      return { buffer: null, connect() {}, start() {} };
+    }
+    resume() {
+      return Promise.resolve().then(() => {
+        this.state = "running";
+      });
+    }
+  }
+  const mixer = new AudioMixer({ window: { AudioContext: Context } });
+  const element = { volume: 0, paused: true, addEventListener() {} };
+  const playing = { volume: 0.5, paused: false, addEventListener() {} };
+  assert.equal(mixer.unlock(), true);
+  mixer.attachVoice(element);
+  mixer.attachVoice(playing);
+  assert.equal(created.length, 0);
+  assert.ok(element.volume > 0);
+  assert.ok(playing.volume > 0 && playing.volume < 1);
+  await Promise.resolve();
+  await Promise.resolve();
+  assert.deepEqual(created, [element]);
+  assert.equal(element.volume, 1);
+  assert.ok(playing.volume > 0 && playing.volume < 1);
+});
 test("Calm hard gate follows both device and player preference", () => {
   let calm = false,
     system = false;
