@@ -6,7 +6,8 @@ const languages = [{lang:'en',file:'index.html'},{lang:'es',file:'espanol.html'}
 async function audit(page) { const result = await new AxeBuilder({page}).analyze(); expect(result.violations).toEqual([]); }
 async function startStage(page,file='index.html',seed=42) {
   await page.goto(`/${file}?seed=${seed}`);
-  await page.locator('#community-builders').waitFor();
+  // The team intro intentionally keeps the mounted game hidden until Start.
+  await page.locator('#community-builders').waitFor({state:'attached'});
   await expect(page.locator('#community-builders')).toHaveAttribute('data-engine-mounted','true');
   await page.locator('#pt-feedback-save-draft').waitFor({state:'attached'});
   await page.locator('#pt-quiet').check();
