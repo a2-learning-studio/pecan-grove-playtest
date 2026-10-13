@@ -8,7 +8,7 @@ test('All 16 bilingual game JSON namespaces have matching keys, formatter argume
 });
 test('Generated catalog matches the authored JSON and formats dynamic game copy without evaluation',()=>{
  const c=vm.createContext({window:{},Intl});vm.runInContext(fs.readFileSync(path.join(directory,'catalog.js'),'utf8'),c);
- for(const lang of ['en','es'])for(const file of fs.readdirSync(path.join(directory,lang))){assert.deepEqual(JSON.parse(JSON.stringify(c.window.CB_LOCALES[lang][file.slice(0,-5)])),JSON.parse(fs.readFileSync(path.join(directory,lang,file))),lang+'/'+file);}
+ for(const lang of ['en','es'])for(const file of fs.readdirSync(path.join(directory,lang)).filter(name=>name.endsWith('.json'))){assert.deepEqual(JSON.parse(JSON.stringify(c.window.CB_LOCALES[lang][file.slice(0,-5)])),JSON.parse(fs.readFileSync(path.join(directory,lang,file))),lang+'/'+file);}
  assert.equal(c.window.CBLocale.list(['A','B'],'en'),'A and B');
  assert.equal(c.window.CBLocale.list(['A','B'],'es'),'A y B');
 });
