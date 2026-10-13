@@ -45,6 +45,13 @@ test("performance stage readiness waits for the actual screen and completed defe
     );
     root.dataset.sceneLayout = "ready";
     assert.equal(stageReady({ mode: "map" }), true);
+    root.dataset.slotTransition = "pending";
+    assert.equal(
+      stageReady({ mode: "map" }),
+      false,
+      "native dialog teardown and asynchronous slot resume stay inside the measured interaction",
+    );
+    delete root.dataset.slotTransition;
     state = { mode: "stop", stopId: "notice-the-signs" };
     assert.equal(
       stageReady({ mode: "stop", stopId: "ask-a-good-question" }),

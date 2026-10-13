@@ -74,11 +74,11 @@ export class Focus {
       element.querySelector("[data-cb-nav-entry]") || focusables(element)[0],
     );
   }
-  pop(element) {
+  pop(element, restore = true) {
     const i = this.stack.findIndex((item) => item.element === element);
     if (i < 0) return;
     const item = this.stack.splice(i, 1)[0];
-    if (item.opener?.isConnected) this.focus(item.opener);
+    if (restore && item.opener?.isConnected) this.focus(item.opener);
   }
   focus(node) {
     if (!node) return false;

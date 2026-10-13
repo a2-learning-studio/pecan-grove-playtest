@@ -15,6 +15,14 @@ self.addEventListener('fetch', event => {
   // to the worker, so cancellation of the old display request cannot abort it.
   const resource = () => fetch(request, request.destination === 'image'
     ? { signal: new AbortController().signal } : undefined);
+  const completeImage = async response => {
+    if (request.destination !== 'image' || !response.ok || response.status === 206 || response.type === 'opaque' || response.type === 'opaqueredirect') return response;
+    // A cached response still has a storage-backed stream. Finish reading that
+    // stream in the worker before a replaced image candidate can cancel delivery.
+    const bytes = await response.arrayBuffer(), headers = new Headers(response.headers);
+    headers.delete('Content-Encoding'); headers.delete('Content-Length');
+    return new Response(bytes, { status: response.status, statusText: response.statusText, headers });
+  };
   const remember = (cache, response) => {
     // Cache storage is optional. A full disk or aborted clone must not reject a
     // valid network response; partial audio is not a complete offline recording.
@@ -37,8 +45,12 @@ self.addEventListener('fetch', event => {
       const old = await voice.match(request, { ignoreSearch: true }); if (old) return old;
       try { return remember(voice, await resource()); } catch (_) { return Response.error(); }
     }
-    const cached = await cache.match(request, { ignoreSearch: true });
-    const fresh = async () => { try { return remember(cache, await resource()); } catch (_) { return cached || Response.error(); } };
+    let cached = await cache.match(request, { ignoreSearch: true });
+    if (cached && request.destination === 'image') {
+      try { return await completeImage(cached); }
+      catch (_) { cached = undefined; /* Recover an unreadable image body once from the network. */ }
+    }
+    const fresh = async () => { try { return remember(cache, await completeImage(await resource())); } catch (_) { return cached || Response.error(); } };
     if (/\/voice\/index\.[a-z0-9]+\.js$/.test(url.pathname)) { if (cached) { event.waitUntil(fresh().catch(() => {})); return cached; } return fresh(); }
     return cached || fresh();
   })());

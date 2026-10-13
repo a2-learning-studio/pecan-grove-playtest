@@ -69,6 +69,46 @@ test('Stop1 classic finding cards retain pointer protection when a dialog closes
   }finally{r.close();}
 });
 
+for(const lang of ['en','es'])test(`Stop1 ${lang}: persistent Map navigation works during each scene handoff`,async()=>{
+  for(const screen of ['look','review','result']){
+    const r=await fullCore(lang,42,false,{key:'pecan-grove-settings',value:JSON.stringify({calm:true})});try{
+      let clock=1000;r.w.Date.now=()=>clock;
+      await r.core.startStop('notice-the-signs');
+      r.main().querySelector('.cb-s01-intro .cb-btn--go').click();
+      if(screen!=='look'){
+        r.main().querySelector('.cb-actions .cb-btn--go').click();
+        assert.equal(r.core.snapshot().state.screenKey,'review');
+        if(screen==='result')r.main().querySelector('.cb-actions .cb-btn--go').click();
+      }
+      assert.equal(r.core.snapshot().state.screenKey,screen);
+      const back=r.main().querySelector('.cb-stophud__back');
+      // This is an intentional click on the persistent HUD, not a second tap
+      // falling through the action that replaced the scene underneath it.
+      back.dispatchEvent(new r.w.MouseEvent('pointerdown',{bubbles:true,detail:1}));
+      back.dispatchEvent(new r.w.MouseEvent('click',{bubbles:true,detail:1}));
+      assert.equal(r.core.getState().mode,'map',`${screen}: the HUD must never share the scene's pointer lock`);
+      assert.ok(r.main().querySelector('.cb-stop[data-stop-n="2"]'));
+    }finally{r.close();}
+  }
+});
+
+test('Stop1 result actions still reject a second tap falling through the replaced scene',async()=>{
+  const r=await fullCore('en',42);try{
+    let clock=1000;r.w.Date.now=()=>clock;
+    await r.core.startStop('notice-the-signs');
+    r.main().querySelector('.cb-s01-intro .cb-btn--go').click();
+    r.main().querySelector('.cb-actions .cb-btn--go').click();
+    r.main().querySelector('.cb-actions .cb-btn--go').click();
+    assert.equal(r.core.snapshot().state.screenKey,'result');
+    const back=r.main().querySelector('.cb-card__btns .cb-btn--quiet');
+    back.dispatchEvent(new r.w.MouseEvent('click',{bubbles:true,detail:1}));
+    assert.equal(r.core.getState().mode,'stop','a duplicate tap cannot skip the result');
+    clock+=400;
+    back.dispatchEvent(new r.w.MouseEvent('click',{bubbles:true,detail:1}));
+    assert.equal(r.core.getState().mode,'map','a later deliberate result action remains available');
+  }finally{r.close();}
+});
+
 test('Stop 2 accepts an immediate keyboard choice while rejecting the second pointer tap', async()=>{
   const r=await fullCore('en',42);try{
     let clock=1000;r.w.Date.now=()=>clock;

@@ -72,7 +72,7 @@ export function showCallout(ctx, anchor, content, options = {}) {
   panel.lastElementChild.setAttribute("data-cb-novoice", "");
   ctx.root.appendChild(panel);
   panel.dismiss = close;
-  // Prefer beside the chosen item, then either edge. Avoid every remaining item.
+  // Prefer beside the chosen item, then either edge. Keep all actions reachable.
   function schedulePlace() {
     // Scroll handlers only schedule work. Geometry and position writes happen
     // once per frame, outside native asynchronous scrolling dispatch.
@@ -113,11 +113,23 @@ export function showCallout(ctx, anchor, content, options = {}) {
       width: p.width,
       height: p.height,
     }));
-    const obstacles = [
-      ...ctx.main.querySelectorAll(".cb-s01-spot:not(.is-found):not(.is-not)"),
-    ]
-      .filter((node) => node !== anchor)
-      .map((node) => node.getBoundingClientRect());
+    const controls =
+        'button, a[href], input:not([type="hidden"]), select, textarea, summary, [role="button"]',
+      toolbar = ctx.root
+        .closest("[data-playtest-stage]")
+        ?.querySelector(".pt-toolbar"),
+      obstacles = [
+        ...ctx.root.querySelectorAll(controls),
+        ...(toolbar?.querySelectorAll(controls) || []),
+      ]
+        .filter(
+          (node) =>
+            node !== anchor &&
+            !panel.contains(node) &&
+            !node.closest("[hidden], [inert]"),
+        )
+        .map((node) => node.getBoundingClientRect())
+        .filter((rect) => rect.width > 0 && rect.height > 0);
     const area = (a, b) =>
       Math.max(
         0,
@@ -133,7 +145,7 @@ export function showCallout(ctx, anchor, content, options = {}) {
       score(next) < score(best) ? next : best,
     );
     // When a dense small scene has no free rectangle, place the callout beside
-    // the board in the normal flow instead of obscuring an unfound target.
+    // the board in normal flow instead of obscuring an action or navigation.
     const inline = score(chosen) > 0;
     panel.classList.toggle("is-flow", inline);
     if (inline) {

@@ -41,3 +41,53 @@ test('dismissing a callout cancels its pending position frame and detaches scrol
   panel.dismiss();assert.equal(r.frames.size,0);r.anchor.dispatchEvent(new r.w.Event('scroll',{bubbles:true}));assert.equal(r.frames.size,0);r.frame();assert.equal(panel.isConnected,false);
  }finally{r.close();}
 });
+
+function rect(left,top,width,height){return{left,top,right:left+width,bottom:top+height,width,height};}
+function panelSize(r,width=350,height=205){
+ const native=r.w.HTMLElement.prototype.getBoundingClientRect;
+ r.w.HTMLElement.prototype.getBoundingClientRect=function(){return this.classList.contains('cb-callout')?rect(0,0,width,height):native.call(this);};
+}
+function panelBox(panel){return rect(Number.parseFloat(panel.style.left),Number.parseFloat(panel.style.top),350,205);}
+function overlaps(a,b){return a.left<b.right&&a.right>b.left&&a.top<b.bottom&&a.bottom>b.top;}
+
+for(const label of ['I am done looking','Ya terminé de mirar'])test(`a final finding leaves the ${label} action reachable`,()=>{
+ const r=setup();try{
+  Object.defineProperties(r.w,{innerWidth:{value:1280},innerHeight:{value:720}});panelSize(r);
+  r.anchor.classList.add('is-not');r.anchor.getBoundingClientRect=()=>rect(918,450,44,44);
+  const actions=r.ctx.h('div',{class:'cb-actions'}),finish=r.ctx.btn(label,'cb-btn--go',()=>{}),bounds=rect(850,620,380,50);
+  finish.getBoundingClientRect=()=>bounds;actions.append(finish);r.ctx.main.append(actions);
+  const panel=showCallout(r.ctx,r.anchor,r.ctx.h('p',{text:'A yard-sale table.'}));
+  assert.equal(r.ctx.main.querySelectorAll('.cb-s01-spot:not(.is-found):not(.is-not)').length,0,'Every discovery has been classified');
+  assert.ok(panel.classList.contains('is-flow')||!overlaps(panelBox(panel),bounds),'A nonmodal final finding must not cover Finish');
+  assert.equal(r.w.document.activeElement,r.anchor,'Reading a finding retains the selected object');
+  panel.dismiss();assert.equal(r.tasks.size,0);assert.equal(panel.isConnected,false);
+ }finally{r.close();}
+});
+
+test('persistent play toolbar is protected and a callout never treats its own controls as obstacles',()=>{
+ const r=setup();try{
+  Object.defineProperties(r.w,{innerWidth:{value:1280},innerHeight:{value:720}});panelSize(r);
+  const stage=r.ctx.h('section',{'data-playtest-stage':''}),tools=r.ctx.h('div',{class:'pt-toolbar'}),review=r.ctx.btn('Review','pt-tool',()=>{}),bounds=rect(900,500,350,80);
+  r.ctx.root.before(stage);stage.append(tools,r.ctx.root);tools.append(review);review.getBoundingClientRect=()=>bounds;
+  r.anchor.getBoundingClientRect=()=>rect(918,450,44,44);
+  const panel=showCallout(r.ctx,r.anchor,r.ctx.h('p',{text:'A sign.'}));
+  assert.ok(panel.classList.contains('is-flow')||!overlaps(panelBox(panel),bounds),'The review/navigation toolbar remains reachable');
+  panel.querySelector('button').getBoundingClientRect=()=>rect(0,0,1280,720);
+  r.w.dispatchEvent(new r.w.Event('resize'));r.frame();
+  assert.equal(panel.classList.contains('is-flow'),false,'The callout never blocks itself from a free placement');
+ }finally{r.close();}
+});
+
+test('a dense short viewport uses in-flow findings instead of covering visible HUD or action controls',()=>{
+ const r=setup();try{
+  Object.defineProperties(r.w,{innerWidth:{value:360},innerHeight:{value:300}});panelSize(r,336,205);
+  r.anchor.classList.add('is-found');r.anchor.getBoundingClientRect=()=>rect(170,140,44,44);
+  const hud=r.ctx.h('div',{class:'cb-stophud'}),back=r.ctx.btn('Map','cb-stophud__back',()=>{}),actions=r.ctx.h('div',{class:'cb-actions'}),finish=r.ctx.btn('Finish','cb-btn--go',()=>{});
+  back.getBoundingClientRect=()=>rect(0,0,360,150);finish.getBoundingClientRect=()=>rect(0,150,360,150);
+  hud.append(back);actions.append(finish);r.ctx.main.append(hud,actions);
+  const panel=showCallout(r.ctx,r.anchor,r.ctx.h('p',{text:'A sign.'}));
+  assert.equal(panel.classList.contains('is-flow'),true);assert.equal(panel.parentNode,r.ctx.main);
+  assert.equal(r.w.document.activeElement,r.anchor);
+  r.advance(6000);assert.equal(panel.isConnected,false,'The six-second quiet dismissal contract remains unchanged');
+ }finally{r.close();}
+});

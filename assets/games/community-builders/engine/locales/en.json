@@ -183,5 +183,6 @@
   "hintPickCount": "Pick 1–{count}",
   "tipPrevious": "Previous tip",
   "tipNext": "Next tip",
-  "tipPageCount": "Tip {current} of {count}"
+  "tipPageCount": "Tip {current} of {count}",
+  "openGameFailed": "The game could not open. Your saved progress is still here. Try opening it again."
 }

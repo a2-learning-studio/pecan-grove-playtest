@@ -157,13 +157,14 @@
 
   /* a double tap must count once. Without this, the second tap of "Keep looking" lands on the spot under it (and scores it),
      and the second tap of "I'm done looking" lands on "See my score" (skipping the review) or on a score-card button.
-     Only pointer taps are held back (a key press gives detail 0), and only this stop sets quietUntil, so the guard is idle elsewhere. */
+     Only pointer taps in replaced scene content are held back (a key press gives detail 0).
+     Persistent navigation stays usable even when Calm makes the replacement instant. */
   var quietUntil = 0;
   function quiet() { quietUntil = Date.now() + 350; }
   document.addEventListener("click", function (e) {
     if (!e.detail || Date.now() >= quietUntil) return;
     var t = e.target;
-    if (t && t.closest && t.closest('[data-game="community-builders"]')) { e.stopPropagation(); e.preventDefault(); }
+    if (t && t.closest && t.closest('.cb-s01-board, .cb-s01-dlg, .cb-board--result') && t.closest('[data-game="community-builders"]')) { e.stopPropagation(); e.preventDefault(); }
   }, true);
 
   CB.register({

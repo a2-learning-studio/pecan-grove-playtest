@@ -1,9 +1,9 @@
 {
-  "build": "ccdbbd236d88",
+  "build": "d1bac3ee2340",
   "flavor": "playtest",
   "files": 299,
-  "jsGzipBytes": 93678,
-  "cssGzipBytes": 27657,
+  "jsGzipBytes": 95479,
+  "cssGzipBytes": 27884,
   "criticalCssGzipBytes": 10668,
   "fonts": {
     "fonts": [

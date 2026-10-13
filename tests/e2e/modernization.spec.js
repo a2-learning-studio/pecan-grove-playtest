@@ -64,7 +64,10 @@ async function startStop1Today(page) {
 async function completeStop1(page,check=async()=>{}) {
   await stop(page,1); await check();
   await startStop1Today(page); await check();
-  for(let i=0;i<12;i++) {
+  await findStop1Items(page,0,12,check);await finishStop1(page,check);
+}
+async function findStop1Items(page,first,end,check=async()=>{}) {
+  for(let i=first;i<end;i++) {
     // Pointer actions have a 350 ms double-tap guard. Let each deliberate tap
     // finish, then prove this particular object was actually processed.
     await page.waitForTimeout(400);
@@ -73,16 +76,24 @@ async function completeStop1(page,check=async()=>{}) {
     // The modernization requires inline callouts, not a blocking dialog after each tap.
     await expect(page.locator('dialog[open]')).toHaveCount(0); await check();
   }
+}
+async function finishStop1(page,check=async()=>{}) {
   await page.waitForTimeout(400);
   await primary(page); await expect(page.locator('.cb-card__can')).toBeVisible(); await check();
 }
 async function backToMap(page) { await page.locator('.cb-stophud__back').click(); await expect(page.locator('.cb-stop[data-stop-n="2"]:visible').first()).toBeVisible(); }
 async function completeStop2(page,check=async()=>{}) {
+  await beginStop2(page,check);await answerStop2Rounds(page,4,check);
+  await expect(page.locator('.cb-card__can')).toBeVisible(); await check();
+}
+async function beginStop2(page,check=async()=>{}) {
   await stop(page,2); await check();
   const first=(await page.locator('.cb-s02-first').innerText()).replace(/^[^:]+:\s*/,'');
   await page.locator('.cb-s02-intro .cb-btn--go').click();
   await expect(page.locator('.cb-s02-nb[data-i="0"] .cb-s02-nb__name')).toHaveText(first); await check();
-  for(let round=0;round<4;round++) {
+}
+async function answerStop2Rounds(page,count,check=async()=>{}) {
+  for(let round=0;round<count;round++) {
     await check();
     for(const row of ['start','topic','detail']) await page.locator(`.cb-s02-row[data-row="${row}"] .cb-s02-tile`).first().click();
     await page.locator('.cb-s02-ask').click(); await expect(page.locator('[data-s02="answer"]')).toBeVisible(); await check();
@@ -90,7 +101,39 @@ async function completeStop2(page,check=async()=>{}) {
     await page.waitForTimeout(450);
     await page.locator('.cb-s02-strip.is-done .cb-btn--go').click();
   }
-  await expect(page.locator('.cb-card__can')).toBeVisible(); await check();
+}
+
+async function assertLocalOnly(page,noNetwork){const consent=await page.evaluate(()=>window.PecanGroveFeedback.getConsent());expect(consent.scores).toBe(false);expect(consent.autoScores).toBe(false);expect(noNetwork.receiverRequests).toHaveLength(0);noNetwork.assertClean();expect(noNetwork.consoleProblems).toEqual([]);}
+async function saveReferenceDraft(page,lang){
+  await page.locator('#pt-review-tab').click();await page.locator('#pt-feedback-worked').fill('a'.repeat(200));await page.locator('#pt-feedback-fix').fill('b'.repeat(200));await page.locator('#pt-feedback-save-draft').click();await expect(page.locator('#pt-feedback-status')).toContainText(lang==='en'?'device':'dispositivo');await page.locator('#pt-review-close').click();
+}
+async function captureJourneyCheckpoint(page,completedStop=null){
+  const snapshot=await page.evaluate(()=>window.CommunityBuilders.snapshot());
+  // Observe real autosave. Never manufacture progress or invoke save/resume to
+  // make a missing checkpoint appear; a production autosave gap must fail here.
+  await expect.poll(async()=>{
+    const saved=await page.evaluate(()=>{const state=window.CommunityBuilders.getState(),stored=JSON.parse(localStorage.getItem(state.storageKey)||'null');return stored?.players?.[state.store.current]?.resume||null;});
+    return completedStop?saved:stableRound(saved||{});
+  },'Actual persisted journey must match the pointer-played checkpoint').toEqual(completedStop?null:stableRound(snapshot));
+  const checkpoint=await page.evaluate(()=>{
+    const core=window.CommunityBuilders,state=core.getState(),feedback=window.PecanGroveFeedback;
+    const stored=JSON.parse(localStorage.getItem(state.storageKey)||'null');
+    return{origin:location.origin,entries:Object.entries(localStorage),snapshot:core.snapshot(),player:state.store.current,playerStops:stored?.players?.[state.store.current]?.stops,session:feedback.model.active(),consent:feedback.getConsent(),drafts:feedback.model.entries().filter(entry=>entry.worked||entry.fix).map(entry=>({sessionId:entry.sessionId,entryId:entry.entryId,worked:entry.worked,fix:entry.fix}))};
+  });
+  expect(checkpoint.playerStops,'The checkpoint must come from real persisted storage').toBeTruthy();
+  if(completedStop)expect(checkpoint.playerStops[completedStop],'The completed stop must be genuinely earned').toBeTruthy();
+  expect(checkpoint.consent.scores).toBe(false);expect(checkpoint.consent.autoScores).toBe(false);
+  return{...checkpoint,completed:!!completedStop};
+}
+async function continueJourneyCheckpoint(page,file,checkpoint){
+  expect(checkpoint,'A real earlier pointer-played checkpoint is required; absent checkpoints are failures').toBeTruthy();
+  await page.addInitScript(checkpoint=>{if(location.origin===checkpoint.origin)for(const [key,value]of checkpoint.entries)localStorage.setItem(key,value);},checkpoint);
+  await startStage(page,file);await page.locator('.cb-engine-title-actions .cb-continue').click();
+  await waitStageReady(page,checkpoint.completed?'map':'stop');
+  const restored=await page.evaluate(()=>{const core=window.CommunityBuilders,state=core.getState(),feedback=window.PecanGroveFeedback;return{snapshot:core.snapshot(),player:state.store.current,playerStops:state.store.players[state.store.current].stops,session:feedback.model.active(),consent:feedback.getConsent(),drafts:feedback.model.entries()};});
+  expect(restored.player).toBe(checkpoint.player);expect(restored.session).toBe(checkpoint.session);expect(restored.playerStops).toEqual(checkpoint.playerStops);expect(restored.consent.scores).toBe(false);expect(restored.consent.autoScores).toBe(false);
+  if(!checkpoint.completed)expect(stableRound(restored.snapshot)).toEqual(stableRound(checkpoint.snapshot));
+  for(const draft of checkpoint.drafts){const retained=restored.drafts.find(entry=>entry.sessionId===draft.sessionId&&entry.entryId===draft.entryId);expect(retained,'Saved feedback must stay with the same anonymous player').toBeTruthy();expect(retained.worked).toBe(draft.worked);expect(retained.fix).toBe(draft.fix);}
 }
 
 function stableRound(record) {
@@ -191,20 +234,40 @@ for(const {lang,file} of languages) for(const firstSeed of [0,5,10,15]) test(`${
 });
 
 for(const {lang,file} of languages) {
-  test(`${lang}: privacy and complete Stops 1–2 with local drafts`,async({page,noNetwork})=>{
-    await start(page,file); await completeStop1(page); await backToMap(page); await completeStop2(page);
-    await page.locator('#pt-review-tab').click();
-    await page.locator('#pt-feedback-worked').fill('a'.repeat(200)); await page.locator('#pt-feedback-fix').fill('b'.repeat(200));
-    await page.locator('#pt-feedback-save-draft').click();
-    await expect(page.locator('#pt-feedback-status')).toContainText(lang==='en'?'device':'dispositivo');
-    expect(noNetwork.receiverRequests).toHaveLength(0); noNetwork.assertClean(); expect(noNetwork.consoleProblems).toEqual([]);
+  test.describe.serial(`${lang}: private persisted reference journey`,()=>{
+    let checkpoint;
+    test('Stop1 pointer completion and local draft',async({page,noNetwork})=>{
+      checkpoint=null;await start(page,file);await completeStop1(page);await saveReferenceDraft(page,lang);await backToMap(page);checkpoint=await captureJourneyCheckpoint(page,'notice-the-signs');await assertLocalOnly(page,noNetwork);
+    });
+    test('Continue to Stop2 pointer completion and retained local drafts',async({page,noNetwork})=>{
+      await continueJourneyCheckpoint(page,file,checkpoint);await completeStop2(page);await saveReferenceDraft(page,lang);await assertLocalOnly(page,noNetwork);
+    });
   });
-  test(`${lang}: accessibility on intro, map and every Stops 1–2 screen`,async({page})=>{
+  // f745 Pixel trace reached Stop2's second answer at44s after auditing the
+  // complete Stop1 route; the global45s cap, not the1.25s animation, expired.
+  // Preserve the same audits and real journey in bounded scene cases.
+  test(`${lang}: accessibility on intro, title and map`,async({page})=>{
     await page.goto(`/${file}?seed=42`); await expect(page.locator('#community-builders')).toHaveAttribute('data-engine-mounted','true'); await audit(page);
     await page.locator('#pt-quiet').check(); await page.locator('#pt-start').click(); await audit(page);
     await newGame(page);await audit(page);
-    await completeStop1(page,()=>audit(page)); await backToMap(page); await completeStop2(page,()=>audit(page));
-    await page.locator('#pt-review-tab').click(); await audit(page);
+  });
+  // WebKit's original trace spent~3s per finding audit and reached item8 at44s.
+  // Serial groups stay on one shard and retry from the beginning, recapturing
+  // every checkpoint from real actions. Each case still gets a fresh context.
+  test.describe.serial(`${lang}: accessible persisted reference journey`,()=>{
+    let checkpoint;
+    test('Stop1 intro, Today and findings0-5',async({page,noNetwork})=>{
+      checkpoint=null;await start(page,file);await stop(page,1);await audit(page);await startStop1Today(page);await audit(page);await findStop1Items(page,0,6,()=>audit(page));checkpoint=await captureJourneyCheckpoint(page);await assertLocalOnly(page,noNetwork);
+    });
+    test('Continue Stop1 findings6-11 and result',async({page,noNetwork})=>{
+      await continueJourneyCheckpoint(page,file,checkpoint);await findStop1Items(page,6,12,()=>audit(page));await finishStop1(page,()=>audit(page));await backToMap(page);checkpoint=await captureJourneyCheckpoint(page,'notice-the-signs');await assertLocalOnly(page,noNetwork);
+    });
+    test('Continue to Stop2 intro and questions0-1',async({page,noNetwork})=>{
+      await continueJourneyCheckpoint(page,file,checkpoint);await beginStop2(page,()=>audit(page));await answerStop2Rounds(page,2,()=>audit(page));checkpoint=await captureJourneyCheckpoint(page);await assertLocalOnly(page,noNetwork);
+    });
+    test('Continue Stop2 questions2-3, result and feedback',async({page,noNetwork})=>{
+      await continueJourneyCheckpoint(page,file,checkpoint);await answerStop2Rounds(page,2,()=>audit(page));await expect(page.locator('.cb-card__can')).toBeVisible();await audit(page);await page.locator('#pt-review-tab').click();await audit(page);await assertLocalOnly(page,noNetwork);
+    });
   });
   for(const viewport of [{width:360,height:640},{width:600,height:500},{width:600,height:800},{width:1280,height:800},{width:1920,height:1080}]) {
     test(`${lang}: layout ${viewport.width}x${viewport.height} keeps map and Stop2 choices reachable`,async({page})=>{

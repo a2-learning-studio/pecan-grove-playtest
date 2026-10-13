@@ -172,8 +172,17 @@ try {
           path.join(output, language + "-" + run + ".html"),
           await flow.generateReport(),
         );
-        for (const step of result.steps)
-          records.push(inspectStep(step, { language, run }));
+        const flowRecords = result.steps.map((step) =>
+          inspectStep(step, { language, run }),
+        );
+        records.push(...flowRecords);
+        // The trace already exists in Lighthouse's gathered artifacts. Persist
+        // failed flows after measurement, without running extra browser work.
+        if (flowRecords.some((record) => record.failures.length))
+          await fs.writeFile(
+            path.join(output, language + "-" + run + "-artifacts.json"),
+            JSON.stringify(flow.createArtifactsJson()),
+          );
         if (problems.length)
           records.push({ language, run, failures: problems });
       } catch (error) {

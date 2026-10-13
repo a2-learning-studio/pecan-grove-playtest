@@ -1,5 +1,6 @@
 import { animateScene } from "../transitions.js";
 import { createSceneLayout } from "../scene-layout.js";
+import { captureActionSave, saveAcceptedAction } from "../action-autosave.js";
 export default function createScene(ctx) {
   var sceneLayout = createSceneLayout(ctx);
   var live = ctx.h("p", { class: "cb-live", "aria-live": "polite" });
@@ -325,7 +326,9 @@ export default function createScene(ctx) {
       scope = node && node.closest("dialog");
     if (
       !node ||
-      node.closest(".cb-stophud, .cb-vbtn, .pg-hints, .pg-hud") ||
+      node.closest(
+        ".cb-stophud, .cb-vbtn, .pg-hints, .pg-hud, .cb-engine-dialog",
+      ) ||
       (scope && scope.hasAttribute("data-cb-utility")) ||
       (!scope && !main.contains(node))
     )
@@ -342,6 +345,7 @@ export default function createScene(ctx) {
         );
       });
     var before = ctx.root.outerHTML,
+      visit = captureActionSave(ctx),
       action = {
         type: event.type,
         dialog: scope !== main,
@@ -353,13 +357,14 @@ export default function createScene(ctx) {
         checked: !!node.checked,
       };
     ctx.actionHistory.push(action);
-    if (event.type === "click")
-      Promise.resolve().then(function () {
-        if (ctx.root.outerHTML === before) {
-          var index = ctx.actionHistory.indexOf(action);
-          if (index >= 0) ctx.actionHistory.splice(index, 1);
-        }
-      });
+    Promise.resolve().then(function () {
+      var domChanged = ctx.root.outerHTML !== before;
+      if (event.type === "click" && !domChanged) {
+        var index = ctx.actionHistory.indexOf(action);
+        if (index >= 0) ctx.actionHistory.splice(index, 1);
+      }
+      saveAcceptedAction(ctx, visit, event, domChanged);
+    });
   }
   ["click", "change", "input"].forEach(function (type) {
     ctx.root.addEventListener(type, recordAction, true);

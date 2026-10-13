@@ -52,14 +52,14 @@ function worker({ fetcher, putError, putWait } = {}) {
     open: async name => {
       if (!stores.has(name)) stores.set(name, new Map()); const store = stores.get(name);
       return { addAll: async urls => urls.forEach(url => store.set(url, new Response('cached'))),
-        match: async (request, options) => store.get(key(request)) || (options?.ignoreSearch ? [...store].find(([url]) => url.split('?')[0] === key(request).split('?')[0])?.[1] : undefined),
+        match: async (request, options) => (store.get(key(request)) || (options?.ignoreSearch ? [...store].find(([url]) => url.split('?')[0] === key(request).split('?')[0])?.[1] : undefined))?.clone(),
         put: async (request, response) => { if (putError) throw putError; if (putWait) await putWait; if (response.status === 206) throw new TypeError("Partial responses cannot be cached"); store.set(key(request), response); } };
     } };
   const self = { location: { origin: 'https://example.test' }, registration: { scope: 'https://example.test/game/' },
     clients: { claim: async () => {} }, skipWaiting() { self.skipped = true; }, addEventListener: (name, handler) => { handlers[name] = handler; } };
   let offline = false;
   const source = fs.readFileSync(new URL('tools/sw-template.js', root), 'utf8').replace('__BUILD__', 'test').replace('__PRECACHE__', JSON.stringify(['index.html', 'espanol.html', 'assets/map.webp']));
-  vm.runInNewContext(source, { self, caches, URL, Response, AbortController, setTimeout, clearTimeout,
+  vm.runInNewContext(source, { self, caches, URL, Response, Headers, AbortController, setTimeout, clearTimeout,
     fetch: async (request, options) => { network.push(key(request)); if (offline) throw new Error('offline'); return fetcher ? fetcher(request, options) : new Response('fresh'); } });
   async function fetchEvent(url, options = {}) {
     let response;
@@ -145,6 +145,54 @@ test('a genuine uncached network failure produces an explicit error response wit
   assert.equal(response.type, 'error');
   assert.equal(response.status, 0);
   assert.equal(w.stores.get('pecan-grove-test').size, 0);
+});
+
+test('a cancelled cached image body is replaced by complete network bytes instead of rejecting the intercepted image stream', async () => {
+  const url = 'https://example.test/game/assets/town-map-2752.abcd.avif';
+  const w = worker({ fetcher: async () => new Response('complete replacement', { headers: { 'Content-Type': 'image/avif' } }) });
+  w.stores.set('pecan-grove-test', new Map([[url, new Response(new ReadableStream({
+    start(controller) { controller.error(new DOMException('Cached image delivery was cancelled', 'AbortError')); }
+  }), { headers: { 'Content-Type': 'image/avif' } })]]));
+  const response = await w.fetchEvent(url, { destination: 'image' });
+  assert.equal(await response.text(), 'complete replacement');
+  assert.equal(response.status, 200);
+  assert.equal(response.headers.get('Content-Type'), 'image/avif');
+  assert.equal(w.network.length, 1, 'only the unreadable cached body is refetched');
+  await w.settle(); w.offline();
+  assert.equal(await (await w.fetchEvent(url, { destination: 'image' })).text(), 'complete replacement');
+  assert.equal(w.network.length, 1, 'the replacement remains available offline');
+});
+
+test('image interception waits for owned complete bytes, preserving MIME and status without stale transfer encoding', async () => {
+  let finish, answered = false;
+  const w = worker({ fetcher: async () => new Response(new ReadableStream({
+    start(controller) {
+      controller.enqueue(new TextEncoder().encode('first chunk'));
+      finish = () => { controller.enqueue(new TextEncoder().encode(' and final chunk')); controller.close(); };
+    }
+  }), { status: 200, headers: { 'Content-Type': 'image/avif', 'Content-Encoding': 'gzip', 'Content-Length': '999' } }) });
+  const pending = w.fetchEvent('https://example.test/game/assets/map.avif', { destination: 'image' }).then(response => { answered = true; return response; });
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(answered, false, 'a client never receives the storage/network-owned partial image stream');
+  finish();
+  const response = await pending;
+  assert.equal(await response.text(), 'first chunk and final chunk');
+  assert.equal(response.status, 200);
+  assert.equal(response.headers.get('Content-Type'), 'image/avif');
+  assert.equal(response.headers.has('Content-Encoding'), false, 'decoded bytes are not described as compressed');
+  assert.equal(response.headers.has('Content-Length'), false, 'the original transfer length does not describe the rebuilt body');
+  await w.settle();
+});
+
+test('a cancelled cached image and failed fresh transfer produce a real error response, never a corrupt cached stream', async () => {
+  const url = 'https://example.test/game/assets/map.webp', w = worker();
+  w.stores.set('pecan-grove-test', new Map([[url, new Response(new ReadableStream({
+    start(controller) { controller.error(new DOMException('Unreadable cache body', 'AbortError')); }
+  }))]]));
+  w.offline();
+  const response = await w.fetchEvent(url, { destination: 'image' });
+  assert.equal(response.type, 'error');
+  assert.equal(response.status, 0);
 });
 
 

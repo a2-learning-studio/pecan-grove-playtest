@@ -64,6 +64,7 @@ jobs:
             docs/engine-coverage.txt
           retention-days: 7
   browsers:
+    name: browsers (${{ matrix.project }}, ${{ matrix.shard }})
     needs: quality
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -71,6 +72,7 @@ jobs:
       fail-fast: false
       matrix:
         project: [chromium, firefox, webkit, pixel, iphone]
+        shard: [1, 2]
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
@@ -88,21 +90,21 @@ jobs:
       - name: Prepare CSP-compatible WebKit screenshots
         run: node tools/prepare-browser-screenshots.mjs
       - name: Isolate native WebKit dropdown CSP behavior
-        if: matrix.project == 'webkit'
+        if: matrix.project == 'webkit' && matrix.shard == 1
         run: node tools/webkit-csp-probe.mjs
       - uses: actions/upload-artifact@v7
-        if: always() && matrix.project == 'webkit'
+        if: always() && matrix.project == 'webkit' && matrix.shard == 1
         with:
           name: webkit-csp-probe
           path: test-results/webkit-csp-probe.json
           retention-days: 7
-      - run: npm run test:e2e -- --project=${{ matrix.project }}
+      - run: npm run test:e2e -- --project=${{ matrix.project }} --shard=${{ matrix.shard }}/2
         env:
           PG_FAMILY_BASE_URL: http://127.0.0.1:8892
       - uses: actions/upload-artifact@v7
         if: always()
         with:
-          name: browser-${{ matrix.project }}
+          name: browser-${{ matrix.project }}-shard-${{ matrix.shard }}
           path: |
             playwright-report
             test-results
