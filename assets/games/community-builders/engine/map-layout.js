@@ -284,6 +284,13 @@ export function installMapPresentation(ctx, world, canvas, pan) {
   }
   function scheduleLayout() {
     if (stopped || frame !== null) return;
+    // Drop the previous placement before the next paint. A resize moves the
+    // discs immediately, and the old pixel offsets can cover a neighbor until
+    // the coalesced frame measures them again.
+    for (const button of controls) {
+      const plate = button.querySelector(".cb-stop__plate");
+      if (plate && plate.dataset.placement) delete plate.dataset.placement;
+    }
     frame = requestFrame(() => {
       frame = null;
       layout();
@@ -354,7 +361,10 @@ export function installMapPresentation(ctx, world, canvas, pan) {
         button.dataset.plateHidden = hidden;
       if (button.dataset.plateDocked !== String(!!docked))
         button.dataset.plateDocked = String(!!docked);
-      if (!box) continue;
+      if (!box) {
+        if (plate && plate.dataset.placement) delete plate.dataset.placement;
+        continue;
+      }
       const left = (box.left - origin.left) / scale + "px",
         top = (box.top - origin.top) / scale + "px";
       if (plate.style.left !== left) plate.style.left = left;
