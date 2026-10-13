@@ -234,10 +234,18 @@ for(const {lang,file} of languages) for(const firstSeed of [0,5,10,15]) test(`${
 });
 
 for(const {lang,file} of languages) {
+  // 8d2 WebKit ES advances all twelve objects: item5 ends at33.098s,
+  // item11 at44.366s and Finish starts44.823s against the unchanged45s cap.
+  // Its retry finishes at42.694s and reaches Save draft at44.792s. Preserve
+  // that real work in bounded phases; capture only genuinely durable progress.
   test.describe.serial(`${lang}: private persisted reference journey`,()=>{
     let checkpoint;
-    test('Stop1 pointer completion and local draft',async({page,noNetwork})=>{
-      checkpoint=null;await start(page,file);await completeStop1(page);await saveReferenceDraft(page,lang);await backToMap(page);checkpoint=await captureJourneyCheckpoint(page,'notice-the-signs');await assertLocalOnly(page,noNetwork);
+    test('Stop1 intro, Today and pointer findings0-5',async({page,noNetwork})=>{
+      checkpoint=null;await start(page,file);await stop(page,1);await startStop1Today(page);await findStop1Items(page,0,6);
+      checkpoint=await captureJourneyCheckpoint(page);expect([...checkpoint.snapshot.state.found,...checkpoint.snapshot.state.tapped]).toHaveLength(6);await assertLocalOnly(page,noNetwork);
+    });
+    test('Continue Stop1 pointer findings6-11, result and local draft',async({page,noNetwork})=>{
+      await continueJourneyCheckpoint(page,file,checkpoint);await findStop1Items(page,6,12);await finishStop1(page);await saveReferenceDraft(page,lang);await backToMap(page);checkpoint=await captureJourneyCheckpoint(page,'notice-the-signs');await assertLocalOnly(page,noNetwork);
     });
     test('Continue to Stop2 pointer completion and retained local drafts',async({page,noNetwork})=>{
       await continueJourneyCheckpoint(page,file,checkpoint);await completeStop2(page);await saveReferenceDraft(page,lang);await assertLocalOnly(page,noNetwork);
@@ -256,8 +264,14 @@ for(const {lang,file} of languages) {
   // every checkpoint from real actions. Each case still gets a fresh context.
   test.describe.serial(`${lang}: accessible persisted reference journey`,()=>{
     let checkpoint;
-    test('Stop1 intro, Today and findings0-5',async({page,noNetwork})=>{
-      checkpoint=null;await start(page,file);await stop(page,1);await audit(page);await startStop1Today(page);await audit(page);await findStop1Items(page,0,6,()=>audit(page));checkpoint=await captureJourneyCheckpoint(page);await assertLocalOnly(page,noNetwork);
+    // 8d2 WebKit ES advances through item5 at41.365s and starts its final
+    // axe.finishRun at44.859s. Bound that real audit work with another actual
+    // partial checkpoint instead of dropping a screen audit or raising45s.
+    test('Stop1 intro, Today and findings0-2',async({page,noNetwork})=>{
+      checkpoint=null;await start(page,file);await stop(page,1);await audit(page);await startStop1Today(page);await audit(page);await findStop1Items(page,0,3,()=>audit(page));checkpoint=await captureJourneyCheckpoint(page);expect([...checkpoint.snapshot.state.found,...checkpoint.snapshot.state.tapped]).toHaveLength(3);await assertLocalOnly(page,noNetwork);
+    });
+    test('Continue Stop1 findings3-5',async({page,noNetwork})=>{
+      await continueJourneyCheckpoint(page,file,checkpoint);await findStop1Items(page,3,6,()=>audit(page));checkpoint=await captureJourneyCheckpoint(page);expect([...checkpoint.snapshot.state.found,...checkpoint.snapshot.state.tapped]).toHaveLength(6);await assertLocalOnly(page,noNetwork);
     });
     test('Continue Stop1 findings6-11 and result',async({page,noNetwork})=>{
       await continueJourneyCheckpoint(page,file,checkpoint);await findStop1Items(page,6,12,()=>audit(page));await finishStop1(page,()=>audit(page));await backToMap(page);checkpoint=await captureJourneyCheckpoint(page,'notice-the-signs');await assertLocalOnly(page,noNetwork);

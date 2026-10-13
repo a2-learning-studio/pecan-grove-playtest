@@ -226,7 +226,7 @@ test("same-stop native restore invalidates an old debounce during and after rest
   }
 });
 
-test("the actual recorder waits for the Stop2 handler and ignores its blocked pointer edge", async () => {
+test("the actual recorder waits for the accepted first Stop2 pointer handler", async () => {
   const r = await fixture.fullCore("en", 42);
   try {
     r.w.Date.now = () => 1000;
@@ -245,9 +245,6 @@ test("the actual recorder waits for the Stop2 handler and ignores its blocked po
         detail: 1,
       }),
     );
-    await r.tick();
-    assert.equal(events.length, 0, "a blocked pointer edge must not save");
-    tile.click();
     assert.equal(
       events.length,
       0,

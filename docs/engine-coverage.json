@@ -1,5 +1,5 @@
 {
-  "at": "2026-10-13T05:54:54.014Z",
+  "at": "2026-10-13T06:34:53.493Z",
   "minimumLineCoverage": 80,
   "scope": [
     "assets/games/community-builders/engine/**/*.js",
@@ -7,9 +7,9 @@
   ],
   "method": "Native Node/V8 test coverage; real ES-module boot and gameplay tests plus unit and DOM integration tests",
   "command": "npm run test:coverage",
-  "files": 56,
-  "linePercent": 85.69,
-  "branchPercent": 80.35,
+  "files": 57,
+  "linePercent": 85.64,
+  "branchPercent": 80.41,
   "functionPercent": 76.81,
   "passed": true
 }

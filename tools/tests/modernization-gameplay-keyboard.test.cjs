@@ -109,18 +109,18 @@ test('Stop1 result actions still reject a second tap falling through the replace
   }finally{r.close();}
 });
 
-test('Stop 2 accepts an immediate keyboard choice while rejecting the second pointer tap', async()=>{
+test('Stop 2 accepts deliberate pointer and keyboard choices without a blanket delay', async()=>{
   const r=await fullCore('en',42);try{
     let clock=1000;r.w.Date.now=()=>clock;
     await r.core.startStop('ask-a-good-question');r.main().querySelector('.cb-btn--go').click();
     const tile=r.main().querySelector('.cb-s02-tile[data-row="start"]');assert.ok(tile);
     tile.dispatchEvent(new r.w.MouseEvent('click',{bubbles:true,detail:1}));
-    assert.equal(tile.getAttribute('aria-pressed'),'false','a second pointer tap on the newly opened screen is ignored');
+    assert.equal(tile.getAttribute('aria-pressed'),'true','a deliberate initial choice is immediately available');
     tile.click();
-    assert.equal(tile.getAttribute('aria-pressed'),'true','native keyboard/gamepad activation does not wait for the pointer guard');
-    assert.equal(r.core.snapshot().state.sel.start,tile.dataset.id);
-    clock+=301;tile.dispatchEvent(new r.w.MouseEvent('click',{bubbles:true,detail:1}));
-    assert.equal(tile.getAttribute('aria-pressed'),'false','pointer activation works after its deterministic 300ms guard');
+    assert.equal(tile.getAttribute('aria-pressed'),'false','native keyboard/gamepad activation toggles the choice immediately');
+    assert.equal(r.core.snapshot().state.sel.start,null);
+    tile.dispatchEvent(new r.w.MouseEvent('click',{bubbles:true,detail:1}));
+    assert.equal(tile.getAttribute('aria-pressed'),'true','the next deliberate pointer has no artificial wait');
   }finally{r.close();}
 });
 

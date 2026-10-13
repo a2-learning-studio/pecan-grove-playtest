@@ -37,6 +37,7 @@ async function fullCore(lang = 'en', seed = 42, paused = false, saved = null, op
   };
   w.eval(fs.readFileSync(path.join(base,'locales/catalog.js'),'utf8'));
   const { bootGame } = await import(pathToFileURL(path.join(base,'engine/boot.js')).href);
+  if (options.beforeBoot) options.beforeBoot(w);
   bootGame(w);
   await new Promise(r=>setTimeout(r,15));
   const root=w.document.querySelector('[data-game]');
