@@ -232,7 +232,7 @@ test("the actual recorder waits for the Stop2 handler and ignores its blocked po
     r.w.Date.now = () => 1000;
     await r.core.startStop("ask-a-good-question");
     r.main().querySelector(".cb-btn--go").click();
-    await Promise.resolve();
+    await r.tick(); // Let the earlier Start event finish before observing tiles.
     const events = [];
     r.w.document.addEventListener("cb:step", (event) =>
       events.push(event.detail.snapshot),
@@ -245,7 +245,7 @@ test("the actual recorder waits for the Stop2 handler and ignores its blocked po
         detail: 1,
       }),
     );
-    await Promise.resolve();
+    await r.tick();
     assert.equal(events.length, 0, "a blocked pointer edge must not save");
     tile.click();
     assert.equal(
@@ -253,7 +253,7 @@ test("the actual recorder waits for the Stop2 handler and ignores its blocked po
       0,
       "capture must not save before the target handler",
     );
-    await Promise.resolve();
+    await r.tick();
     assert.equal(events.length, 1);
     assert.equal(events[0].state.sel.start, tile.dataset.id);
     assert.equal(r.errors.length, 0);
@@ -270,7 +270,7 @@ test("the actual recorder ignores utility dialogs and repeated Stop1 findings", 
     r.main().querySelector('[data-view="today"]').click();
     const spot = r.main().querySelector('[data-spot="0"]');
     spot.click();
-    await Promise.resolve();
+    await r.tick();
     const events = [];
     r.w.document.addEventListener("cb:step", (event) =>
       events.push(event.detail.snapshot),
@@ -285,7 +285,7 @@ test("the actual recorder ignores utility dialogs and repeated Stop1 findings", 
     d.append(b);
     r.root.append(d);
     b.click();
-    await Promise.resolve();
+    await r.tick();
     assert.equal(events.length, 0);
     assert.equal(r.errors.length, 0);
   } finally {

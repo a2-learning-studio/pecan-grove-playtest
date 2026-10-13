@@ -9,6 +9,7 @@ export function stageReady({ mode, stopId = null }) {
     root.getAttribute("aria-busy") === "true" ||
     root.dataset.sceneLayout === "pending" ||
     root.dataset.slotTransition === "pending" ||
+    root.dataset.mapCommit === "pending" ||
     root.hasAttribute("inert")
   )
     return false;

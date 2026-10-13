@@ -91,3 +91,39 @@ test('a dense short viewport uses in-flow findings instead of covering visible H
   r.advance(6000);assert.equal(panel.isConnected,false,'The six-second quiet dismissal contract remains unchanged');
  }finally{r.close();}
 });
+
+for(const label of ['I am done looking','Ya terminé de buscar'])test(`an in-flow finding stays put through pointerup before the ${label} click`,()=>{
+ const r=setup();try{
+  Object.defineProperties(r.w,{innerWidth:{value:360},innerHeight:{value:300}});panelSize(r,336,205);
+  r.anchor.getBoundingClientRect=()=>rect(170,140,44,44);
+  let scrollTop=852,closed=0,activated=0;
+  const obstacle=r.ctx.btn('Map','cb-stophud__back',()=>{});obstacle.getBoundingClientRect=()=>rect(0,0,360,150);r.ctx.main.append(obstacle);
+  let panel;const finish=r.ctx.btn(label,'cb-btn--go',()=>{
+   assert.equal(panel.isConnected,false,'Capture-click dismissal precedes the native target handler');
+   assert.equal(scrollTop,765);activated++;
+  });finish.getBoundingClientRect=()=>rect(0,150,360,150);r.ctx.main.append(finish);
+  panel=showCallout(r.ctx,r.anchor,r.ctx.h('p',{text:'A yard-sale table.'}),{onClose:()=>closed++});
+  assert.equal(panel.classList.contains('is-flow'),true);
+  const remove=panel.remove.bind(panel);panel.remove=()=>{scrollTop=765;remove();};
+  finish.dispatchEvent(new r.w.MouseEvent('pointerdown',{bubbles:true,cancelable:true}));
+  assert.equal(panel.isConnected,true,'Removing flow content during pointerdown can clamp the scroller and retarget pointerup');assert.equal(scrollTop,852);
+  finish.dispatchEvent(new r.w.MouseEvent('pointerup',{bubbles:true,cancelable:true}));
+  assert.equal(panel.isConnected,true);assert.equal(scrollTop,852);
+  finish.dispatchEvent(new r.w.MouseEvent('click',{bubbles:true,cancelable:true,detail:1}));
+  assert.equal(activated,1);assert.equal(closed,1);assert.equal(r.tasks.size,0);
+  r.cleanups.forEach(fn=>fn());assert.equal(closed,1);
+ }finally{r.close();}
+});
+
+test('the next finding click dismisses its predecessor before opening the new finding',()=>{
+ const r=setup();try{
+  const next=r.ctx.btn('Another sign','cb-s01-spot',()=>{
+   assert.equal(first.isConnected,false);second=showCallout(r.ctx,next,r.ctx.h('p',{text:'The next finding.'}));
+  });r.ctx.main.append(next);let second;
+  const first=showCallout(r.ctx,r.anchor,r.ctx.h('p',{text:'The previous finding.'}));
+  next.dispatchEvent(new r.w.MouseEvent('pointerdown',{bubbles:true,cancelable:true}));assert.equal(first.isConnected,true);
+  next.dispatchEvent(new r.w.MouseEvent('pointerup',{bubbles:true,cancelable:true}));assert.equal(first.isConnected,true);
+  next.dispatchEvent(new r.w.MouseEvent('click',{bubbles:true,cancelable:true,detail:1}));
+  assert.equal(first.isConnected,false);assert.equal(second.isConnected,true);assert.equal(r.ctx.root.querySelectorAll('.cb-callout').length,1);assert.equal(r.w.document.activeElement,next);
+ }finally{r.close();}
+});

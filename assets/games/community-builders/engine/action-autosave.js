@@ -1,5 +1,5 @@
 // Capture the visit before the target handler runs. The recorder is a capture
-// listener, so model changes are accepted only in the following microtask.
+// listener, so model changes are accepted only in a post-dispatch event task.
 export function captureActionSave(ctx) {
   if (!playing(ctx)) return null;
   const controller = ctx.activeController;

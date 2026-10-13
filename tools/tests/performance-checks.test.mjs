@@ -52,6 +52,13 @@ test("performance stage readiness waits for the actual screen and completed defe
       "native dialog teardown and asynchronous slot resume stay inside the measured interaction",
     );
     delete root.dataset.slotTransition;
+    root.dataset.mapCommit = "pending";
+    assert.equal(
+      stageReady({ mode: "map" }),
+      false,
+      "detached construction and its connected commit remain in the measured interaction",
+    );
+    delete root.dataset.mapCommit;
     state = { mode: "stop", stopId: "notice-the-signs" };
     assert.equal(
       stageReady({ mode: "stop", stopId: "ask-a-good-question" }),

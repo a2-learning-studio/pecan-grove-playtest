@@ -346,6 +346,7 @@ export default function createScene(ctx) {
       });
     var before = ctx.root.outerHTML,
       visit = captureActionSave(ctx),
+      taskOwner = ctx.activeLifecycle || ctx,
       action = {
         type: event.type,
         dialog: scope !== main,
@@ -357,14 +358,16 @@ export default function createScene(ctx) {
         checked: !!node.checked,
       };
     ctx.actionHistory.push(action);
-    Promise.resolve().then(function () {
+    // Trusted browser dispatch may run a microtask between capture and the
+    // target handler. A visit-owned task observes the completed event instead.
+    taskOwner.setTimeout(function () {
       var domChanged = ctx.root.outerHTML !== before;
       if (event.type === "click" && !domChanged) {
         var index = ctx.actionHistory.indexOf(action);
         if (index >= 0) ctx.actionHistory.splice(index, 1);
       }
       saveAcceptedAction(ctx, visit, event, domChanged);
-    });
+    }, 0);
   }
   ["click", "change", "input"].forEach(function (type) {
     ctx.root.addEventListener(type, recordAction, true);

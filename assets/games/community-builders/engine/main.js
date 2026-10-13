@@ -211,7 +211,7 @@ export async function mount(
             ({ id, record }) =>
               resumable(record)
                 ? core().resume?.({ ...record, slot: id })
-                : core().showMap?.(),
+                : core().showMap?.(null, { defer: true }),
           );
         },
         { class: "cb-btn cb-engine-slot-pick" },

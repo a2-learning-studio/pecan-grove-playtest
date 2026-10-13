@@ -36,7 +36,7 @@ export function showCallout(ctx, anchor, content, options = {}) {
     clock.clearTimeout(tick);
     if (positionFrame !== null) ctx.window.cancelAnimationFrame(positionFrame);
     positionFrame = null;
-    ctx.document.removeEventListener("pointerdown", outside, true);
+    ctx.document.removeEventListener("click", outside, true);
     ctx.document.removeEventListener("keydown", escape, true);
     ctx.window.removeEventListener("resize", schedulePlace);
     ctx.document.removeEventListener("scroll", schedulePlace, true);
@@ -167,7 +167,10 @@ export function showCallout(ctx, anchor, content, options = {}) {
     }
     tick = clock.setTimeout(pulse, 100);
   }
-  ctx.document.addEventListener("pointerdown", outside, true);
+  // Removing an in-flow finding on pointerdown can clamp its scroller and move
+  // the intended button before pointerup. Capture click keeps the native target
+  // fixed while still dismissing before that target's own action handler.
+  ctx.document.addEventListener("click", outside, true);
   ctx.document.addEventListener("keydown", escape, true);
   ctx.window.addEventListener("resize", schedulePlace);
   ctx.document.addEventListener("scroll", schedulePlace, {
