@@ -7,167 +7,90 @@
    Words, cards, scoring and tips are exact from "11 - weigh-the-tradeoffs.md" (11A-11G). No network, no inputs. */
 (function () {
   "use strict";
-  var CB = window.CommunityBuilders; if (!CB) return;
+  var host = window.CommunityBuilders; if (!host) return;
+  function factory(lifecycle) {
+    var document = lifecycle.document, window = lifecycle.window, Date = lifecycle.Date;
+    var setTimeout = lifecycle.setTimeout, clearTimeout = lifecycle.clearTimeout;
+    var requestAnimationFrame = lifecycle.requestAnimationFrame, cancelAnimationFrame = lifecycle.cancelAnimationFrame;
+    var definition = null, CB = { register: function (value) { definition = value; } };
+
+  "use strict";
+
   var LANG = (document.documentElement.lang || "en").slice(0, 2) === "es" ? "es" : "en";
   var NS = "http://www.w3.org/2000/svg";
   var RUN = 0;                                                   // one live round at a time (resize listener)
 
   /* ── words (exact, from the spec) ──────────────────────────────────── */
-  var S = {
-    en: {
-      title: "Weigh the Trade-offs - Community Builders of Pecan Grove",
-      intro: ["The hearing is over. Before the Town Council decides, it weighs four paths.",
-        "Every path has good parts and hard parts. Help the town see them all.",
-        "There's no wrong path. Points come from weighing well."],
-      start: "Start",
-      parts: { good: "Good parts", hard: "Hard parts" }, kind: { good: "Good part", hard: "Hard part" }, changes: "Changes",
-      bowlN: { good: function (n) { return n + " good"; }, hard: function (n) { return n + " hard"; } },
-      p1: "Tap each signpost to weigh its good parts and hard parts.",
-      weighed: "Weighed", weighedL: "weighed",
-      weighedN: function (n) { return "Paths weighed: " + n + " of 4"; },
-      choose: "Choose this path",
-      ask: function (n) { return "You weighed " + n + " of 4 paths. Weighing every path helps you see the whole picture."; },
-      more: "Weigh more paths",
-      yours: "Your path",
-      chose: function (p) { return "You chose: " + p + ". Now look closely at its cards."; },
-      q: ["Who does this path help? Tap a neighbor.", "Who could find this path hard? Tap a neighbor."],
-      nb: function (n) { return n + ", neighbor"; },
-      ok: [function (n) { return "Yes! A good part reaches " + n + "."; }, function (n) { return "Yes! A hard part reaches " + n + "."; }],
-      wrong: [function (n) { return "Good thinking. In this round, the good parts don't reach " + n + " much. Read them again."; },
-        function (n) { return "Good thinking. In this round, the hard parts don't reach " + n + " much. Read them again."; }],
-      tried: "Tried",
-      shown: ["Here is who it helps:", "Here is who could find it hard:"],
-      p3: "Add one change that makes a hard part easier. Tap a change.",
-      okChg: "Good change! It makes this hard part easier:",
-      easier: "Easier now",
-      idea: ["That's a real idea! It helps a different hard part:", "Look at your path's hard parts and try again."],
-      fits: "Here is a change that fits:",
-      finish: "Finish",
-      aha: "Every path, even 'don't build' or 'wait', helps someone and is hard for someone.",
-      see: "See my score",
-      can: "I can see that every plan has good parts and hard parts.",
-      tipWeigh: "Next time, weigh all four paths before you choose.",
-      tipGood: "Next time, read the good parts slowly. Who would be glad?",
-      tipHard: "Next time, read the hard parts slowly. Who would feel them?",
-      tipChange: "Next time, pick a change that fits one of your path's hard parts.",
-      tip100: "Great weighing! Try a new round with a different path.",
-      real: "Choose something your family is deciding, like a weekend plan. Name one good part and one hard part of each choice.",
-      askT: "Ask a grown-up", askQ: "When you make a big choice, how do you weigh the good parts and the hard parts?",
-      gu: "For grown-ups: about this stop",
-      guText: "There are four paths: build as planned, build with changes, don't build here, or wait for more information. Each has gains and costs, and each can earn full points. The score rewards exploring every path and naming who gains and who finds it hard. It never rewards the path chosen."
-    },
-    es: {
-      title: "Pesa lo bueno y lo difícil - Constructores de comunidad de Pecan Grove",
-      intro: ["La audiencia ya terminó. Antes de decidir, el Concejo del pueblo pesa cuatro caminos.",
-        "Cada camino tiene partes buenas y partes difíciles. Ayuda al pueblo a verlas todas.",
-        "No hay un camino equivocado. Los puntos vienen de pesar bien."],
-      start: "Empezar",
-      parts: { good: "Partes buenas", hard: "Partes difíciles" }, kind: { good: "Parte buena", hard: "Parte difícil" }, changes: "Cambios",
-      bowlN: { good: function (n) { return n + " buenas"; }, hard: function (n) { return n + " difíciles"; } },
-      p1: "Toca cada letrero para pesar sus partes buenas y sus partes difíciles.",
-      weighed: "Ya lo pesaste", weighedL: "ya lo pesaste",
-      weighedN: function (n) { return "Caminos que pesaste: " + n + " de 4"; },
-      choose: "Elegir este camino",
-      ask: function (n) { return "Pesaste " + n + " de 4 caminos. Pesar todos los caminos te ayuda a ver el panorama completo."; },
-      more: "Pesar más caminos",
-      yours: "Tu camino",
-      chose: function (p) { return "Elegiste: " + p + ". Ahora mira de cerca sus tarjetas."; },
-      q: ["¿A quién ayuda este camino? Toca a un vecino.", "¿A quién se le podría hacer difícil este camino? Toca a un vecino."],
-      nb: function (n) { return n + ", vecino"; },
-      ok: [function (n) { return "¡Sí! Una parte buena le llega a " + n + "."; }, function (n) { return "¡Sí! Una parte difícil le llega a " + n + "."; }],
-      wrong: [function (n) { return "Buena idea. En esta ronda, las partes buenas casi no le llegan a " + n + ". Vuelve a leerlas."; },
-        function (n) { return "Buena idea. En esta ronda, las partes difíciles casi no le llegan a " + n + ". Vuelve a leerlas."; }],
-      tried: "Ya probaste",
-      shown: ["Mira a quién ayuda:", "Mira a quién se le podría hacer difícil:"],
-      p3: "Agrega un cambio que haga más fácil una parte difícil. Toca un cambio.",
-      okChg: "¡Buen cambio! Hace más fácil esta parte difícil:",
-      easier: "Ahora es más fácil",
-      idea: ["¡Es una idea real! Ayuda con otra parte difícil:", "Mira las partes difíciles de tu camino y prueba otra vez."],
-      fits: "Este cambio sí encaja:",
-      finish: "Terminar",
-      aha: "Cada camino, incluso 'no construir' o 'esperar', ayuda a alguien y a alguien se le hace difícil.",
-      see: "Ver mi puntaje",
-      can: "Puedo ver que cada plan tiene partes buenas y partes difíciles.",
-      tipWeigh: "La próxima vez, pesa los cuatro caminos antes de elegir.",
-      tipGood: "La próxima vez, lee despacio las partes buenas. ¿Quién se alegraría?",
-      tipHard: "La próxima vez, lee despacio las partes difíciles. ¿Quién las sentiría?",
-      tipChange: "La próxima vez, elige un cambio que encaje con una parte difícil de tu camino.",
-      tip100: "¡Muy bien pesado! Prueba una nueva ronda con otro camino.",
-      real: "Elige algo que tu familia esté decidiendo, como un plan de fin de semana. Di una parte buena y una difícil de cada opción.",
-      askT: "Pregúntale a un adulto", askQ: "Cuando tomas una decisión grande, ¿cómo pesas las partes buenas y las difíciles?",
-      gu: "Para adultos: sobre esta parada",
-      guText: "Cuatro caminos: construir como se planeó, construir con cambios, no construir aquí o esperar más información. Cada uno tiene beneficios y costos, y cada uno puede ganar todos los puntos. El puntaje premia explorar cada camino y nombrar a quién ayuda y a quién se le hace difícil, nunca el camino elegido."
-    }
-  }[LANG];
+  var S = window.CBLocale.read("stop-11", LANG, {en:{"S.bowlN.good":function (n) { return n + window.CBLocale.part("stop-11", "en", "S.bowlN.good", 0); },"S.bowlN.hard":function (n) { return n + window.CBLocale.part("stop-11", "en", "S.bowlN.hard", 0); },"S.weighedN":function (n) { return window.CBLocale.part("stop-11", "en", "S.weighedN", 0) + n + window.CBLocale.part("stop-11", "en", "S.weighedN", 1); },"S.ask":function (n) { return window.CBLocale.part("stop-11", "en", "S.ask", 0) + n + window.CBLocale.part("stop-11", "en", "S.ask", 1); },"S.chose":function (p) { return window.CBLocale.part("stop-11", "en", "S.chose", 0) + p + window.CBLocale.part("stop-11", "en", "S.chose", 1); },"S.nb":function (n) { return n + window.CBLocale.part("stop-11", "en", "S.nb", 0); },"S.ok.0":function (n) { return window.CBLocale.part("stop-11", "en", "S.ok.0", 0) + n + window.CBLocale.part("stop-11", "en", "S.ok.0", 1); },"S.ok.1":function (n) { return window.CBLocale.part("stop-11", "en", "S.ok.1", 0) + n + window.CBLocale.part("stop-11", "en", "S.ok.1", 1); },"S.wrong.0":function (n) { return window.CBLocale.part("stop-11", "en", "S.wrong.0", 0) + n + window.CBLocale.part("stop-11", "en", "S.wrong.0", 1); },"S.wrong.1":function (n) { return window.CBLocale.part("stop-11", "en", "S.wrong.1", 0) + n + window.CBLocale.part("stop-11", "en", "S.wrong.1", 1); }},es:{"S.bowlN.good":function (n) { return n + window.CBLocale.part("stop-11", "es", "S.bowlN.good", 0); },"S.bowlN.hard":function (n) { return n + window.CBLocale.part("stop-11", "es", "S.bowlN.hard", 0); },"S.weighedN":function (n) { return window.CBLocale.part("stop-11", "es", "S.weighedN", 0) + n + window.CBLocale.part("stop-11", "es", "S.weighedN", 1); },"S.ask":function (n) { return window.CBLocale.part("stop-11", "es", "S.ask", 0) + n + window.CBLocale.part("stop-11", "es", "S.ask", 1); },"S.chose":function (p) { return window.CBLocale.part("stop-11", "es", "S.chose", 0) + p + window.CBLocale.part("stop-11", "es", "S.chose", 1); },"S.nb":function (n) { return n + window.CBLocale.part("stop-11", "es", "S.nb", 0); },"S.ok.0":function (n) { return window.CBLocale.part("stop-11", "es", "S.ok.0", 0) + n + window.CBLocale.part("stop-11", "es", "S.ok.0", 1); },"S.ok.1":function (n) { return window.CBLocale.part("stop-11", "es", "S.ok.1", 0) + n + window.CBLocale.part("stop-11", "es", "S.ok.1", 1); },"S.wrong.0":function (n) { return window.CBLocale.part("stop-11", "es", "S.wrong.0", 0) + n + window.CBLocale.part("stop-11", "es", "S.wrong.0", 1); },"S.wrong.1":function (n) { return window.CBLocale.part("stop-11", "es", "S.wrong.1", 0) + n + window.CBLocale.part("stop-11", "es", "S.wrong.1", 1); }}}).S;
   /* Spanish: "a" + "el Sr. ..." contracts to "al Sr. ..." (natural Spanish; the article stays) */
   function al(s) { return LANG === "es" ? s.replace(/ a el /g, " al ") : s; }
 
   /* ── the 32 path cards (11C, 11D): icon, line, the neighbors it reaches, and the change that fits a hard part ── */
   function K(ic, en, es, who, fix) { return { ic: ic, t: [en, es], who: who, fix: fix || null }; }
   var PATHS = {
-    plan: { ic: "building", n: ["Build as planned", "Construir como se planeó"],
-      g: [K("hardhat", "Lots of building jobs start right away.", "Muchos trabajos de construcción empiezan enseguida.", ["ana", "ruth"]),
-        K("bread", "Crews buy lunch on Main Street every day.", "Los equipos de la obra compran comida en la calle principal todos los días.", ["patel"]),
-        K("coin", "New tax money could help the school soon.", "El dinero nuevo de impuestos podría ayudar pronto a la escuela.", ["jayden"]),
-        K("signal", "A fast internet line could reach the clinic.", "Una línea rápida de internet podría llegar a la clínica.", ["lee"])],
-      h: [K("droplet", "On hot days, cooling could use a lot of water.", "En días de calor, el enfriamiento podría usar mucha agua.", ["johnson", "lee"], "water"),
-        K("moon", "Bright lights and a low hum near homes at night.", "Luces fuertes y un zumbido grave cerca de las casas de noche.", ["jayden", "johnson", "lee"], "trees"),
-        K("engine", "Backup engines get tested and make some smoke.", "Los motores de respaldo se prenden para pruebas y echan algo de humo.", ["lee"], "engines"),
-        K("key", "Rents could go up while crews are in town.", "Las rentas podrían subir mientras los equipos de la obra están en el pueblo.", ["patel", "ana"], "housing")] },
-    changes: { ic: "buildwrench", n: ["Build with changes", "Construir con cambios"],
-      g: [K("hardhat", "Building jobs, with a promise to hire people from here.", "Trabajos de construcción, con la promesa de contratar a gente de aquí.", ["ana", "ruth"]),
-        K("tree", "A wide strip of trees between the building and the farm next door.", "Una franja ancha de árboles entre el edificio y la granja de al lado.", ["johnson"]),
-        K("book", "The school gets a class to train electricians.", "La escuela tiene una clase para formar electricistas.", ["jayden", "ana"]),
-        K("moon", "Lights point down, so nights stay dark.", "Las luces apuntan hacia abajo, y las noches siguen oscuras.", ["lee", "jayden"])],
-      h: [K("coin", "The changes cost money, so the company asks to pay less tax for a while.", "Los cambios cuestan dinero, así que la empresa pide pagar menos impuestos por un tiempo.", ["jayden", "ruth"], "taxfund"),
-        K("hourglass", "Agreeing on every change takes months, and the work waits.", "Ponerse de acuerdo en cada cambio toma meses, y la obra espera.", ["ana", "patel"], "date"),
-        K("emptybuild", "If it closes someday, the empty building could stay.", "Si algún día cierra, el edificio vacío podría quedarse ahí.", ["johnson", "ruth"], "bond"),
-        K("truck", "Lots of trucks on Main Street while they build.", "Muchos camiones en la calle principal mientras construyen.", ["patel", "lee"], "route")] },
-    no: { ic: "field", n: ["Don't build here", "No construir aquí"],
-      g: [K("droplet", "The farm fields and the creek stay as they are.", "Los campos de la granja y el arroyo se quedan como están.", ["johnson", "ana"]),
-        K("moon", "Nights stay quiet and dark.", "Las noches siguen tranquilas y oscuras.", ["jayden", "lee", "johnson"]),
-        K("tree", "The big pecan trees and the old places stay.", "Los nogales grandes y los lugares antiguos se quedan.", ["ruth", "jayden"]),
-        K("road", "Main Street keeps its usual traffic.", "La calle principal sigue con su tráfico de siempre.", ["patel", "lee"])],
-      h: [K("hardhat", "No new building jobs here.", "No hay trabajos nuevos de construcción aquí.", ["ana", "ruth"], "class"),
-        K("coin", "No new tax money for the school.", "No llega dinero nuevo de impuestos para la escuela.", ["jayden"], "lot"),
-        K("bread", "Main Street doesn't get new lunch customers.", "La calle principal no recibe clientes nuevos a la hora de comer.", ["patel"], "lot"),
-        K("book", "Young people may still move away to find tech jobs.", "Los jóvenes podrían seguir yéndose a buscar trabajos de tecnología.", ["jayden", "ruth"], "class")] },
-    wait: { ic: "waitlens", n: ["Wait for more information", "Esperar más información"],
-      g: [K("lens", "Time to test the wells and the creek first.", "Hay tiempo para revisar primero los pozos y el arroyo.", ["johnson", "ana"]),
-        K("shovel", "Time to look for old graves before any digging.", "Hay tiempo para buscar tumbas antiguas antes de excavar.", ["ruth"]),
-        K("helmet", "Time to plan with the fire station for the big batteries.", "Hay tiempo para planear con los bomberos qué hacer con las baterías grandes.", ["lee"]),
-        K("truck", "Time to study where the trucks would drive.", "Hay tiempo para estudiar por dónde pasarían los camiones.", ["patel", "jayden"])],
-      h: [K("hourglass", "Families next to the farm wait months to know what's coming.", "Las familias junto a la granja esperan meses para saber qué viene.", ["johnson"], "date"),
-        K("hardhat", "Building jobs, if they come, start later.", "Los trabajos de construcción, si llegan, empiezan más tarde.", ["ana", "ruth"], "class"),
-        K("road", "The company could choose another town.", "La empresa podría elegir otro pueblo.", ["patel", "jayden", "ana"], "date"),
-        K("coin", "The town pays for the studies.", "El pueblo paga los estudios.", ["ruth", "patel"], "studies")] }
+    plan: { ic: "building", n: window.CBLocale.pair("stop-11","bank.b0001"),
+      g: [K("hardhat", ...window.CBLocale.pair("stop-11","bank.b0033"), ["ana", "ruth"]),
+        K("bread", ...window.CBLocale.pair("stop-11","bank.b0034"), ["patel"]),
+        K("coin", ...window.CBLocale.pair("stop-11","bank.b0035"), ["jayden"]),
+        K("signal", ...window.CBLocale.pair("stop-11","bank.b0036"), ["lee"])],
+      h: [K("droplet", ...window.CBLocale.pair("stop-11","bank.b0037"), ["johnson", "lee"], "water"),
+        K("moon", ...window.CBLocale.pair("stop-11","bank.b0038"), ["jayden", "johnson", "lee"], "trees"),
+        K("engine", ...window.CBLocale.pair("stop-11","bank.b0039"), ["lee"], "engines"),
+        K("key", ...window.CBLocale.pair("stop-11","bank.b0040"), ["patel", "ana"], "housing")] },
+    changes: { ic: "buildwrench", n: window.CBLocale.pair("stop-11","bank.b0002"),
+      g: [K("hardhat", ...window.CBLocale.pair("stop-11","bank.b0041"), ["ana", "ruth"]),
+        K("tree", ...window.CBLocale.pair("stop-11","bank.b0042"), ["johnson"]),
+        K("book", ...window.CBLocale.pair("stop-11","bank.b0043"), ["jayden", "ana"]),
+        K("moon", ...window.CBLocale.pair("stop-11","bank.b0044"), ["lee", "jayden"])],
+      h: [K("coin", ...window.CBLocale.pair("stop-11","bank.b0045"), ["jayden", "ruth"], "taxfund"),
+        K("hourglass", ...window.CBLocale.pair("stop-11","bank.b0046"), ["ana", "patel"], "date"),
+        K("emptybuild", ...window.CBLocale.pair("stop-11","bank.b0047"), ["johnson", "ruth"], "bond"),
+        K("truck", ...window.CBLocale.pair("stop-11","bank.b0048"), ["patel", "lee"], "route")] },
+    no: { ic: "field", n: window.CBLocale.pair("stop-11","bank.b0003"),
+      g: [K("droplet", ...window.CBLocale.pair("stop-11","bank.b0049"), ["johnson", "ana"]),
+        K("moon", ...window.CBLocale.pair("stop-11","bank.b0050"), ["jayden", "lee", "johnson"]),
+        K("tree", ...window.CBLocale.pair("stop-11","bank.b0051"), ["ruth", "jayden"]),
+        K("road", ...window.CBLocale.pair("stop-11","bank.b0052"), ["patel", "lee"])],
+      h: [K("hardhat", ...window.CBLocale.pair("stop-11","bank.b0053"), ["ana", "ruth"], "class"),
+        K("coin", ...window.CBLocale.pair("stop-11","bank.b0054"), ["jayden"], "lot"),
+        K("bread", ...window.CBLocale.pair("stop-11","bank.b0055"), ["patel"], "lot"),
+        K("book", ...window.CBLocale.pair("stop-11","bank.b0056"), ["jayden", "ruth"], "class")] },
+    wait: { ic: "waitlens", n: window.CBLocale.pair("stop-11","bank.b0004"),
+      g: [K("lens", ...window.CBLocale.pair("stop-11","bank.b0057"), ["johnson", "ana"]),
+        K("shovel", ...window.CBLocale.pair("stop-11","bank.b0058"), ["ruth"]),
+        K("helmet", ...window.CBLocale.pair("stop-11","bank.b0059"), ["lee"]),
+        K("truck", ...window.CBLocale.pair("stop-11","bank.b0060"), ["patel", "jayden"])],
+      h: [K("hourglass", ...window.CBLocale.pair("stop-11","bank.b0061"), ["johnson"], "date"),
+        K("hardhat", ...window.CBLocale.pair("stop-11","bank.b0062"), ["ana", "ruth"], "class"),
+        K("road", ...window.CBLocale.pair("stop-11","bank.b0063"), ["patel", "jayden", "ana"], "date"),
+        K("coin", ...window.CBLocale.pair("stop-11","bank.b0064"), ["ruth", "patel"], "studies")] }
   };
   var ORDER = ["plan", "changes", "no", "wait"];                 // the spec's order; each round shuffles it
   /* part 2 asks who a path helps or makes things hard for. The [names] on each card stay code-only (spec), so each neighbor
      plate says what matters to them, using facts from earlier stops; a player can then reason their way to every right answer */
   var CARES = {
-    lee: ["Night nurse at the clinic on Main Street", "Enfermera de noche en la clínica de la calle principal"],
-    johnson: ["Farms next door; his well is close by", "Siembra al lado; su pozo está cerca"],
-    ana: ["Builds things; fishes in the creek with her kids", "Construye cosas; pesca en el arroyo con sus hijos"],
-    ruth: ["Keeps the town's stories; her grandson needs work", "Guarda las historias del pueblo; su nieto busca trabajo"],
-    patel: ["Runs the bakery on Main Street; pays town taxes", "Tiene la panadería en la calle principal; paga impuestos"],
-    jayden: ["Student who loves tech; has a little sister", "Estudiante, le encanta la tecnología; tiene una hermanita"]
+    lee: window.CBLocale.pair("stop-11","bank.b0005"),
+    johnson: window.CBLocale.pair("stop-11","bank.b0006"),
+    ana: window.CBLocale.pair("stop-11","bank.b0007"),
+    ruth: window.CBLocale.pair("stop-11","bank.b0008"),
+    patel: window.CBLocale.pair("stop-11","bank.b0009"),
+    jayden: window.CBLocale.pair("stop-11","bank.b0010")
   };
 
   /* ── the 11 change cards (11E): icon, name, the line that shows after a tap ── */
   function F(ic, n, line) { return { ic: ic, n: n, line: line }; }
   var FIX = {
-    water: F("recycle", ["Cool it with recycled water", "Enfriar con agua reciclada"], ["Then less well and river water is used.", "Así se usa menos agua de los pozos y del río."]),
-    trees: F("tree", ["A wide strip of trees and land near homes", "Una franja ancha de árboles y terreno cerca de las casas"], ["Trees and distance soften light and sound.", "Los árboles y la distancia suavizan la luz y el sonido."]),
-    engines: F("engine", ["Cleaner engines, tested less often", "Motores más limpios, que se prueban menos"], ["Less smoke near the clinic.", "Menos humo cerca de la clínica."]),
-    housing: F("key", ["A plan for where workers will live", "Un plan de dónde vivirán los trabajadores"], ["So rents in town don't jump.", "Para que las rentas del pueblo no suban de golpe."]),
-    taxfund: F("coinjar", ["A shorter tax break and a savings fund for the school", "Una reducción de impuestos más corta y un fondo de ahorro para la escuela"], ["The school still gets steady money.", "La escuela sigue recibiendo dinero estable."]),
-    date: F("calendar", ["Set a clear date to decide", "Poner una fecha clara para decidir"], ["Everyone knows when the answer comes.", "Todos saben cuándo llega la respuesta."]),
-    bond: F("piggy", ["Money saved now to take it down if it closes", "Dinero guardado desde ahora para quitarlo si cierra"], ["No empty building is left behind.", "No se queda un edificio vacío."]),
-    route: F("road", ["A truck route away from Main Street and the school", "Una ruta de camiones lejos de la calle principal y de la escuela"], ["Shoppers and school buses keep moving.", "Los clientes y los autobuses escolares siguen avanzando."]),
-    "class": F("book", ["An electrician class at the school", "Una clase de electricistas en la escuela"], ["Young people can train for good jobs nearby.", "Los jóvenes pueden prepararse para buenos trabajos cerca."]),
-    lot: F("factory", ["Suggest an old factory lot instead of the farm", "Proponer el terreno de una fábrica vieja en vez de la granja"], ["New business could still come to town.", "Igual podría llegar un negocio nuevo al pueblo."]),
-    studies: F("lens", ["The company pays for the studies", "La empresa paga los estudios"], ["The town keeps its money for other things.", "El pueblo guarda su dinero para otras cosas."])
+    water: F("recycle", window.CBLocale.pair("stop-11","bank.b0011"), window.CBLocale.pair("stop-11","bank.b0012")),
+    trees: F("tree", window.CBLocale.pair("stop-11","bank.b0013"), window.CBLocale.pair("stop-11","bank.b0014")),
+    engines: F("engine", window.CBLocale.pair("stop-11","bank.b0015"), window.CBLocale.pair("stop-11","bank.b0016")),
+    housing: F("key", window.CBLocale.pair("stop-11","bank.b0017"), window.CBLocale.pair("stop-11","bank.b0018")),
+    taxfund: F("coinjar", window.CBLocale.pair("stop-11","bank.b0019"), window.CBLocale.pair("stop-11","bank.b0020")),
+    date: F("calendar", window.CBLocale.pair("stop-11","bank.b0021"), window.CBLocale.pair("stop-11","bank.b0022")),
+    bond: F("piggy", window.CBLocale.pair("stop-11","bank.b0023"), window.CBLocale.pair("stop-11","bank.b0024")),
+    route: F("road", window.CBLocale.pair("stop-11","bank.b0025"), window.CBLocale.pair("stop-11","bank.b0026")),
+    "class": F("book", window.CBLocale.pair("stop-11","bank.b0027"), window.CBLocale.pair("stop-11","bank.b0028")),
+    lot: F("factory", window.CBLocale.pair("stop-11","bank.b0029"), window.CBLocale.pair("stop-11","bank.b0030")),
+    studies: F("lens", window.CBLocale.pair("stop-11","bank.b0031"), window.CBLocale.pair("stop-11","bank.b0032"))
   };
 
   /* ── authored icons: 24-unit grid, one 2px round stroke (the shell's api.IC family; series icons as in Stop 5) ── */
@@ -208,7 +131,8 @@
   CB.register({ id: "weigh-the-tradeoffs", steps: [null, null, null], css: "11-weigh-the-tradeoffs.css", run: run });
 
   function run(api, stop) {
-    var h = api.h, t2 = api.t2, NB = api.NB, REDUCED = api.REDUCED, myRun = ++RUN;
+    function reduced() { return api.motionAllowed ? !api.motionAllowed() : api.REDUCED; }
+    var h = api.h, t2 = api.t2, NB = api.NB, myRun = ++RUN;
     document.title = S.title;                                  // the spec's exact page title (the shell's separator is " · ")
     var DOTS = [null, null, null];
 
@@ -216,7 +140,7 @@
       var s = document.createElementNS(NS, "svg");
       s.setAttribute("viewBox", "0 0 24 24"); s.setAttribute("aria-hidden", "true"); s.setAttribute("focusable", "false");
       s.setAttribute("class", "cb-ico" + (cls ? " " + cls : ""));
-      s.innerHTML = ICONS[name] || api.IC[name];               // constant, authored markup only
+      host.setAuthoredMarkup(s, ICONS[name] || api.IC[name]);               // constant, authored markup only
       return s;
     }
     function sv(tag, attrs) { var e = document.createElementNS(NS, tag); for (var k in attrs) e.setAttribute(k, attrs[k]); return e; }
@@ -243,7 +167,7 @@
       if (k.top - d < 12) d = k.top - 12;
       if (Math.abs(d) < 4) return;
       var sc = scroller();
-      try { sc.scrollBy({ top: d, behavior: REDUCED ? "auto" : "smooth" }); } catch (e) { sc.scrollBy(0, d); }
+      try { sc.scrollBy({ top: d, behavior: reduced() ? "auto" : "smooth" }); } catch (e) { sc.scrollBy(0, d); }
     }
     function disc(name, cls) { return h("span", { "class": cls, "aria-hidden": "true" }, [icon(name)]); }
     function nbOf(id) { return api.nbById(id); }
@@ -276,6 +200,7 @@
     var part = 0, showing = null, weighed = {}, asking = false, chosen = null, nWeighed = 0;
     var steps = [{ tried: [], res: null, pick: null }, { tried: [], res: null, pick: null }], step = 0;
     var p3 = { tried: [], res: null, pick: null, seen: {} }, tray = null;
+    var hadFeedback = false, displayedMotion = null;
     var stickers = {}, links = [], linksNew = false, motion = null, swing = 1;
     var PTS = { first: 20, second: 10, shown: 0 };
 
@@ -311,7 +236,7 @@
     function art(rect, cls) { var a = api.crop(rect || [0.40, 0.27, 0.78], "cb-s11-art" + (cls ? " " + cls : "")); a.setAttribute("aria-hidden", "true"); return a; }
 
     function signs() {
-      return h("ul", { "class": "cb-s11-signs" }, order.map(function (id) {
+      return h("ul", { "class": "cb-s11-signs", "data-cb-choices": "" }, order.map(function (id) {
         var P = PATHS[id], w = !!weighed[id], on = showing === id, name = t2(P.n);
         var b = h("button", { type: "button", "class": "cb-s11-sign" + (on ? " is-on" : "") + (w ? " is-weighed" : ""), "data-path": id,
           "aria-pressed": on ? "true" : "false", "aria-label": name + (w ? ", " + S.weighedL : ""), onclick: function (e) { weigh(id, e); } }, [
@@ -385,7 +310,7 @@
 
     function trayEl() {
       var id = "cb-s11-tray-" + myRun, fits = fitIds();
-      return h("section", { "class": "cb-s11-tray", "aria-labelledby": id }, [h("h3", { "class": "cb-s11-tray__h", id: id }, [icon("scale"), h("span", { text: S.changes })]),
+      return h("section", { "class": "cb-s11-tray", "data-cb-choices": "", "aria-labelledby": id }, [h("h3", { "class": "cb-s11-tray__h", id: id }, [icon("scale"), h("span", { text: S.changes })]),
         h("ul", { "class": "cb-s11-chgs" }, tray.map(function (fid) {
           var f = FIX[fid], tried = p3.tried.indexOf(fid) >= 0, isR = p3.res && p3.pick === fid, seen = p3.seen[fid], name = t2(f.n);
           var b = h("button", { type: "button", "class": "cb-s11-chg" + (tried ? " is-tried" : "") + (isR ? " is-right" : ""), "data-chg": fid,
@@ -424,7 +349,7 @@
           var bar = h("div", { "class": "cb-actions cb-s11-askbar" }, [h("div", { "class": "cb-actions__info" }, [api.fb(S.ask(n), false)]),
             h("div", { "class": "cb-row cb-s11-askbtns" }, [api.btn(S.more, "cb-btn--big cb-s11-big cb-s11-more", weighMore),
               api.btn(S.choose, "cb-btn--go cb-btn--big cb-s11-big cb-s11-choose", function (e) { choose(true, e); }, "go", true)])]);
-          bar.addEventListener("keydown", function (e) { if (e.key === "Escape") { e.preventDefault(); weighMore(); } });   // Esc closes the question
+          if (api.input && api.input.on) api.input.on("back", function () { if (!bar.isConnected) return false; weighMore(); return true; }, { scope: bar });
           return bar;
         }
         info.push(h("ul", { "class": "cb-s11-dots", "aria-hidden": "true" }, order.map(function (pid) { return h("li", { "class": weighed[pid] ? "is-on" : null }, [icon(PATHS[pid].ic)]); })));
@@ -444,10 +369,11 @@
 
     /* ── the one scene: parts 1 to 3 ── */
     function render(fb, focusSel, view) {
+      hadFeedback = !!fb; displayedMotion = motion;
       var linkSvg = sv("svg", { "class": "cb-s11-links", "aria-hidden": "true", focusable: "false" });
       var scene = h("div", { "class": "cb-s11-scene" }, [art(), linkSvg, part === 1 ? signs() : null, balance(), part === 3 ? trayEl() : null, nbrs()]);
       var board = h("div", { "class": "cb-board cb-s11", "data-part": String(part) }, [coachEl(), scene, actions(fb)]);
-      if (motion && !REDUCED) { board.classList.add("is-" + motion); if (swing < 0) board.classList.add("is-swing-b"); }
+      if (motion && !reduced()) { board.classList.add("is-" + motion); if (swing < 0) board.classList.add("is-swing-b"); }
       api.screen([api.stopHud(stop, DOTS, part - 1, api.W.part(part)), board], focusSel || null);
       motion = null;
       requestAnimationFrame(function () { drawLinks(); if (view) view(); });
@@ -463,7 +389,7 @@
       var svg = document.querySelector(".cb-s11 .cb-s11-links"); if (!svg) return;
       while (svg.firstChild) svg.removeChild(svg.firstChild);
       if (!links.length || getComputedStyle(svg).display === "none") return;
-      var box = svg.getBoundingClientRect(), fresh = linksNew && !REDUCED; linksNew = false;
+      var box = svg.getBoundingClientRect(), fresh = linksNew && !reduced(); linksNew = false;
       if (!box.width) return;
       svg.setAttribute("viewBox", "0 0 " + box.width.toFixed(1) + " " + box.height.toFixed(1));
       links.forEach(function (lk, i) {
@@ -620,7 +546,7 @@
         return li;
       }));
       var see = api.btn(S.see, "cb-btn--go cb-btn--big cb-s11-big cb-s11-see", finish, "go", true);
-      var board = h("div", { "class": "cb-board cb-s11 cb-s11--aha" + (REDUCED ? "" : " is-aha") }, [
+      var board = h("div", { "class": "cb-board cb-s11 cb-s11--aha" + (reduced() ? "" : " is-aha") }, [
         h("div", { "class": "cb-s11-scene cb-s11-aha" }, [art([0.33, 0.30, 0.71]), tiles]),
         h("div", { "class": "cb-s11-aha__foot" }, [h("p", { "class": "cb-s11-aha__line" }, [disc("scale", "cb-s11-aha__lic"), h("span", { text: S.aha })]), see])]);
       api.screen([api.stopHud(stop, DOTS, 3), board], ".cb-s11-see");
@@ -634,7 +560,7 @@
       part = 5;
       var score = 10 * nWeighed + PTS[steps[0].res] + PTS[steps[1].res] + PTS[p3.res];
       var tip = nWeighed < 4 ? S.tipWeigh : steps[0].res !== "first" ? S.tipGood : steps[1].res !== "first" ? S.tipHard : p3.res !== "first" ? S.tipChange : S.tip100;
-      var info = api.saveRound(stop.id, score, { lastRound: dealKey(), lastOrder: order.slice() });
+      var info = api.saveRound(stop.id, score, { processBadge: nWeighed === 4 ? "process-11" : null, lastRound: dealKey(), lastOrder: order.slice() });
       api.endPlay();
       var ask = h("div", { "class": "cb-tipcard cb-s11-ask" }, [api.ico("family"), h("div", null, [h("strong", { text: S.askT }), h("p", { text: S.askQ })])]);
       var gu = api.btn(S.gu, "cb-btn--quiet cb-s11-gu", function () { api.dialog(S.gu, [h("p", { text: S.guText })], gu); }, "family");
@@ -645,6 +571,39 @@
       api.say(api.W.score + " " + score + " / 100");
     }
 
+    // Feedback is derived from the authored IDs and assessments, never saved DOM or another language's text.
+    function restoredFeedback() {
+      if (!hadFeedback) return null;
+      if (part === 2) { var st = steps[step], id = st.pick || st.tried[st.tried.length - 1], right = rightNbs(step);
+        if (st.res === "shown") return fbo(false, [S.shown[step], chips(right)], S.shown[step] + " " + right.map(function (r) { return api.nmCap(nbOf(r)); }).join(", ") + ".");
+        return fbo(!!st.res, [al(st.res ? S.ok[step](api.nm(nbOf(id))) : S.wrong[step](api.nm(nbOf(id))))]);
+      }
+      if (part === 3) { var fid = p3.pick || p3.tried[p3.tried.length - 1];
+        if (p3.res === "shown") return fbo(false, [S.fits, nameChange(fid), miniChange(fid)], S.fits + " " + t2(FIX[fid].n) + ". " + t2(FIX[fid].line));
+        if (p3.res) { var hc = cardsOf(chosen, "hard").filter(function (c) { return c.fix === fid; })[0];
+          return fbo(true, [S.okChg, miniCard(hc, "hard"), miniChange(fid)], S.okChg + " " + t2(hc.t) + " " + t2(FIX[fid].line)); }
+        var oh = otherHard(fid); return fbo(false, [S.idea[0], miniCard(oh, "hard"), S.idea[1]], S.idea[0] + " " + t2(oh.t) + " " + S.idea[1]);
+      }
+      return null;
+    }
+    if (api.setController) api.setController({
+      snapshot: function () { return { v: 2, phase: part, showing: showing, weighed: weighed, asking: asking, chosen: chosen, nWeighed: nWeighed,
+        steps: steps, step: step, p3: p3, tray: tray, stickers: stickers, links: links, hadFeedback: hadFeedback, swing: swing, displayedMotion: displayedMotion }; },
+      restore: function (saved) {
+        if (!saved || saved.v !== 2) return false;
+        part = saved.phase; showing = saved.showing; weighed = saved.weighed; asking = saved.asking; chosen = saved.chosen; nWeighed = saved.nWeighed;
+        steps = saved.steps; step = saved.step; p3 = saved.p3; tray = saved.tray; stickers = saved.stickers; links = saved.links; hadFeedback = !!saved.hadFeedback; swing = saved.swing;
+        motion = saved.displayedMotion; displayedMotion = saved.displayedMotion; linksNew = false;
+        if (part === 5) { part = 4; finish(); } else if (part === 4) { part = 3; aha(); } else if (part === 0) intro(); else render(restoredFeedback());
+        return true;
+      }
+    });
+
     intro();
   }
+
+    return definition;
+  }
+  if (host.defineStop) host.defineStop(factory);
+  else host.register(factory({ document: document, window: window, Date: Date, setTimeout: setTimeout, clearTimeout: clearTimeout, requestAnimationFrame: requestAnimationFrame, cancelAnimationFrame: typeof cancelAnimationFrame === "function" ? cancelAnimationFrame : function () {} }));
 })();
