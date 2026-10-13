@@ -1,0 +1,110 @@
+{
+  "WORDS": {
+    "library": "Biblioteca",
+    "intro": "El pueblo está planeando otra reunión sobre la granja, aquí en la biblioteca. La última vez, la reunión fue a las 2 de la tarde, en el piso de arriba y solo en inglés. Cinco sillas quedaron vacías. ¿Quién faltó? Ayuda a que todos puedan participar.",
+    "start": "Empezar",
+    "noteK": "Última reunión:",
+    "note": [
+      "2 de la tarde",
+      "piso de arriba",
+      "solo en inglés"
+    ],
+    "filled": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Sillas ocupadas: ",
+        " de 5"
+      ]
+    },
+    "chair": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Silla vacía ",
+        " de 5"
+      ]
+    },
+    "empty": "Silla vacía",
+    "instr": "Toca una silla vacía para ver quién falta.",
+    "ask": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "¿Cómo puede participar ",
+        "? Toca una forma."
+      ]
+    },
+    "way": {
+      "$args": [
+        "w"
+      ],
+      "$parts": [
+        "Forma: "
+      ]
+    },
+    "finishPlan": "Terminar el plan",
+    "missing": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Falta "
+      ]
+    },
+    "joined": "Ya participa",
+    "right": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "¡Sí! Así ",
+        " puede participar."
+      ]
+    },
+    "wrong1": {
+      "$args": [
+        "hint"
+      ],
+      "$parts": [
+        "Eso puede ayudar a otras personas. "
+      ]
+    },
+    "tried": "Ya probaste",
+    "shown": "Mira una forma que ayuda.",
+    "also": "También ayuda:",
+    "done": "Listo",
+    "all": "¡Todas las sillas están ocupadas!",
+    "confirm": "Todavía hay sillas vacías. ¿Terminar de todos modos?",
+    "keep": "Seguir buscando",
+    "finish": "Terminar",
+    "aha": "Una reunión a las 2 de la tarde, en el piso de arriba y solo en inglés deja a gente afuera: enfermeras que duermen de día, niños en la escuela, familias que hablan español. Con cambios pequeños, todos pueden participar.",
+    "see": "Ver mi puntaje",
+    "can": "Puedo notar quién falta y ayudarle a participar.",
+    "tipOpen": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "La próxima vez, abre todas las sillas vacías. ¡Ahí estaba esperando ",
+        "!"
+      ]
+    },
+    "tipRead": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "La próxima vez, lee por qué falta ",
+        " y elige una forma que lo resuelva."
+      ]
+    },
+    "tip100": "¡Muy bien! Todos pueden participar. Prueba una nueva ronda.",
+    "real": "Piensa en alguien a quien casi nunca le preguntan, en la escuela o en casa. Con un adulto, busca cómo preguntarle qué piensa.",
+    "gu": "Para adultos: sobre esta parada",
+    "guText": "Los niños notan quién falta en una reunión y eligen una forma de incluirlo: horarios en la tarde, intérpretes, transporte, una rampa, una grabación o un rincón para niños. En las audiencias reales, los intérpretes y los comentarios por escrito permiten que participe más gente."
+  }
+}

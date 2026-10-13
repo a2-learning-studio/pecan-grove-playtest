@@ -1,0 +1,71 @@
+{
+  "S": {
+    "title": "Une problema y solución - Constructores de comunidad de Pecan Grove",
+    "intro1": "Antes de decidir, el Concejo del pueblo les pide a los vecinos ideas para resolver problemas.",
+    "intro2": "Otros lugares ya probaron algunas soluciones. Une cada problema con una solución que ayude. Luego revisa: ¿funcionó?",
+    "start": "Empezar",
+    "problems": "Problemas",
+    "fixes": "Soluciones de lugares reales",
+    "check": "¿Funcionó?",
+    "matched": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Problemas unidos: ",
+        " de 5"
+      ]
+    },
+    "coach1": "Toca un problema.",
+    "coach2": "Ahora toca una solución que podría ayudar.",
+    "coach2Down": "Ahora baja hasta 'Soluciones de lugares reales' y toca una que podría ayudar.",
+    "openChip": "Aún no hay solución probada · Toca para compartir una idea",
+    "oneOpen": "Un problema todavía no tiene una solución probada. Puedes compartir tu propia idea.",
+    "link": "Unirlos",
+    "other": "Elegir otra solución",
+    "linked": "Unido",
+    "linkN": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Unión "
+      ]
+    },
+    "good": "¡Buena unión! Esta solución se probó para este problema.",
+    "miss": {
+      "$args": [
+        "place",
+        "prob"
+      ],
+      "$parts": [
+        "del c",
+        "de ",
+        "cerca ",
+        "Es una solución real ",
+        ", pero se probó para otro problema: ",
+        ". Prueba otra solución."
+      ]
+    },
+    "tried": "Ya probaste",
+    "shown": "Mira la solución que se probó para este problema.",
+    "openQ": "Nadie lo ha resuelto todavía. ¿Cuál es tu idea?",
+    "nice": "¡Buena idea! Las ideas como esta todavía hay que probarlas. ¿Quién podría ayudar a probarla?",
+    "badge": "Insignia de idea",
+    "openLink": "Ninguna solución de aquí se probó para este problema. Toca la tarjeta para compartir una idea.",
+    "look": "Mira tu tablero:",
+    "aha": "Algunas soluciones funcionaron, otras solo en parte, de otras es muy pronto para saber, y algunos problemas todavía no tienen una solución probada.",
+    "see": "Ver mi puntaje",
+    "chosen": "Elegido",
+    "probL": "Problema: ",
+    "fixL": "Solución: ",
+    "can": "Puedo unir un problema con una solución y revisar si funcionó.",
+    "tipIdea": "¡Muy bien! Prueba una nueva ronda con problemas nuevos.",
+    "tip100": "¡Tablero perfecto! La próxima vez, comparte también tu idea en el problema abierto.",
+    "tipCheck": "La próxima vez, toca '¿Funcionó?' antes de unir.",
+    "tipRead": "La próxima vez, lee otra vez el problema y busca la solución hecha para él.",
+    "real": "Elige un problema de tu escuela o de tu vecindario. Con un adulto, busca un lugar que haya probado una solución. ¿Funcionó?",
+    "gu": "Para adultos: sobre esta parada",
+    "guText": "Cada tarjeta de solución nombra un lugar real y trae una nota honesta de '¿Funcionó?', por ejemplo revisar los pozos antes y después de excavar, o medir el agua de la obra. Algunos problemas, como el aumento de la renta, el tráfico de camiones y la ruta de las líneas eléctricas, todavía no tienen una solución probada."
+  }
+}

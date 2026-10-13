@@ -1,0 +1,57 @@
+{
+  "T": {
+    "hall": "Ayuntamiento",
+    "intro": "¡Te damos la bienvenida al Ayuntamiento! La Junta de Planificación ya se reunió. Ahora sigue la audiencia del Concejo del pueblo. Los vecinos tienen preguntas. Ayuda a cada uno a encontrar el escritorio correcto.",
+    "start": "Empezar",
+    "qn": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Pregunta ",
+        " de 5"
+      ]
+    },
+    "who": "¿Quién puede ayudar? Toca el escritorio que decide esto.",
+    "desk": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Escritorio: "
+      ]
+    },
+    "speakAt": "La gente puede opinar en:",
+    "howK": "Cómo se decide el plan de la granja",
+    "ringAt": {
+      "$args": [
+        "st"
+      ],
+      "$parts": [
+        "El paso de este escritorio está marcado abajo: ",
+        "."
+      ]
+    },
+    "boardPast": "La gente podía opinar en la reunión de la Junta de Planificación. Ya pasó, así que lo que sigue es la audiencia del Concejo del pueblo.",
+    "written": "un comentario por escrito (con un adulto)",
+    "yes": "¡Sí! Este escritorio puede ayudar.",
+    "wrong": "Este escritorio no. Prueba otro.",
+    "tried": "Ya lo probaste",
+    "hereIs": "Este es el escritorio para esta pregunta.",
+    "nextQ": "Siguiente pregunta",
+    "finish": "Terminar",
+    "rightDesk": "Escritorio correcto",
+    "notThis": "Este escritorio no",
+    "canSpeak": "Se puede opinar",
+    "here": "Estamos aquí",
+    "aha": "Cada grupo decide una parte distinta. El Concejo del pueblo decide qué se puede construir en la granja, después de una audiencia pública. Ahí es donde más cuenta la voz de los vecinos.",
+    "see": "Ver mi puntaje",
+    "can": "Puedo averiguar quién decide y cuándo se puede opinar.",
+    "tipCouncil": "La próxima vez, recuerda: el Concejo del pueblo decide qué se puede construir, después de una audiencia.",
+    "tipDesk": "La próxima vez, recuerda este escritorio:",
+    "tip100": "¡Muy bien! Encontraste quién decide. Prueba una nueva ronda.",
+    "real": "Pregúntale a un adulto: '¿Quién decide los grandes proyectos de construcción donde vivimos?' Averigüen juntos en la biblioteca o en el sitio web de su ciudad o condado.",
+    "gu": "Para adultos: cómo funciona en Georgia",
+    "guText": "En el condado de Fulton, cada ciudad decide la zonificación dentro de sus límites después de una audiencia pública, y el condado decide en las pocas zonas no incorporadas que quedan. Si el terreno ya tiene la zonificación para ese uso, puede que no haya audiencia. Las autoridades de desarrollo deciden las reducciones de impuestos locales. Los proyectos grandes también pasan por una revisión regional que solo da recomendaciones. Otras partes las manejan agencias estatales: la Comisión de Servicio Público de Georgia fija las tarifas de electricidad pero no elige los sitios, y la EPD de Georgia otorga permisos de aire para los generadores de respaldo y permisos para usar mucha agua. El juego usa juntas inventadas para mantenerse lejos de las elecciones."
+  }
+}

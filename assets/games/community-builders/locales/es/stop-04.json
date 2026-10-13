@@ -1,0 +1,88 @@
+{
+  "T": {
+    "title": "¿Dato o rumor?",
+    "intro": "La Junta de Planificación se reúne la próxima semana. En el pueblo se dicen muchas cosas. Algunas son datos revisados. Otras son rumores. Y otras, nadie las sabe todavía.",
+    "start": "Empezar a clasificar",
+    "claim": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Frase ",
+        " de 5"
+      ]
+    },
+    "peek": "Mira la fuente",
+    "how": "Toca 'Mira la fuente' para ver quién lo dijo y cómo lo sabe. Luego toca la caja donde va.",
+    "flyerTag": "Volante",
+    "chatTag": "Chat de la familia",
+    "whoT": "¿Quién te lo dijo?",
+    "howT": "¿Cómo lo sabe?",
+    "whenT": "¿Cuándo?",
+    "b": {
+      "fact": "Dato revisado",
+      "rumor": "Rumor",
+      "dontknow": "Todavía no sabemos"
+    },
+    "put": {
+      "$args": [
+        "b"
+      ],
+      "$parts": [
+        "Poner en "
+      ]
+    },
+    "ok": {
+      "fact": "¡Sí! Revisamos lo que dice la propuesta con fecha. Una propuesta no es una promesa de que eso sucederá.",
+      "rumor": "¡Sí! Nadie puede mostrar cómo lo sabe. Los rumores vienen de gente con esperanza y de gente preocupada.",
+      "dontknow": "¡Sí! Todavía no se ha estudiado ni decidido. 'Todavía no sabemos' es una respuesta honesta."
+    },
+    "notQuite": {
+      "$args": [
+        "h"
+      ],
+      "$parts": [
+        "Buen intento. La fuente dice: "
+      ]
+    },
+    "nextClaim": "Siguiente frase",
+    "sorted": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Frase ",
+        " de 5 clasificada."
+      ]
+    },
+    "at": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        ", en el mostrador"
+      ]
+    },
+    "flyer": "Un volante en el tablero",
+    "chat": "Un mensaje en el chat de la familia",
+    "can": "Puedo revisar quién lo dijo y cómo lo sabe.",
+    "your5": "Tus 5 frases",
+    "tipNb": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "La próxima vez, mira la fuente primero, aunque te lo diga ",
+        "."
+      ]
+    },
+    "tipPeek": "La próxima vez, toca 'Mira la fuente' antes de clasificar.",
+    "tipRumor": "La próxima vez, si nadie puede mostrar cómo lo sabe, elige Rumor.",
+    "tipDk": "La próxima vez, fíjate si hay un estudio o una decisión que todavía no termina.",
+    "tipFact": "La próxima vez, revisa qué demuestra la fuente. Una propuesta con fecha dice qué se propone, no qué sucederá.",
+    "tip100": "¡Revisaste muy bien! Prueba una nueva ronda con frases nuevas.",
+    "real": "La próxima vez que oigas 'Todos dicen…', pregúntale a un adulto: '¿Quién lo dijo? ¿Cómo lo sabe?'",
+    "gu": "Para adultos: esta parada",
+    "guText": "Los niños revisan la fuente de una afirmación antes de clasificarla como dato revisado, rumor o 'todavía no sabemos'. En el juego, los rumores vienen de los dos lados, por ejemplo 'se va a ir la luz' y 'no usa nada de agua'. Los efectos en la salud de un sitio que aún no existe son 'todavía no sabemos'."
+  }
+}

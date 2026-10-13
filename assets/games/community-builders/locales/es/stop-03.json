@@ -1,0 +1,80 @@
+{
+  "T": {
+    "title": "Escucha a cada vecino",
+    "p1": "Toca a cada vecino para escuchar lo que espera y lo que le preocupa.",
+    "hope": "Espera",
+    "worry": "Le preocupa",
+    "listened": "Escuchado",
+    "p2": "Busca a dos vecinos que quieran lo mismo. Lee cada esperanza y cada preocupación: una preocupación también muestra lo que alguien quiere. Toca a un vecino y luego a otro.",
+    "picked": "Ya elegiste. Ahora toca a otro vecino.",
+    "shared": "¡Deseo compartido!",
+    "already": "Ya encontraste ese.",
+    "toFind": "Deseos compartidos por encontrar",
+    "noplan": "Estos dos no comparten uno de los 4 deseos de aquí. ¿Ves otra cosa que compartan? Coméntalo con alguien. Luego prueba otra pareja.",
+    "found": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Deseos compartidos: ",
+        " de 4"
+      ]
+    },
+    "done": "Ya terminé de buscar",
+    "all": "Y un deseo que todos comparten: que los escuchen.",
+    "p3t": "¿Quién dijo esto?",
+    "p3": "Toca al vecino que lo dijo.",
+    "line": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Frase ",
+        " de 4"
+      ]
+    },
+    "right": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "¡Sí! Lo dijo ",
+        "."
+      ]
+    },
+    "wrong": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Buen intento. Lo dijo ",
+        "."
+      ]
+    },
+    "can": "Puedo escuchar a cada vecino antes de formarme una opinión.",
+    "tipSkip": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "La próxima vez, escucha también a ",
+        ".",
+        " a el ",
+        " al "
+      ]
+    },
+    "tipPairs": "La próxima vez, lee lo que espera y lo que le preocupa a cada vecino antes de tocar.",
+    "tipWish": "La próxima vez, prueba más parejas. Casi todos los vecinos comparten algo.",
+    "tipLine": "La próxima vez, lee despacio cada esperanza y cada preocupación.",
+    "tip100": "¡Escuchaste muy bien! Prueba una nueva ronda.",
+    "real": "Pregúntale a alguien en casa: '¿Qué te gustaría para nuestra comunidad?' Escucha toda la respuesta.",
+    "listenedN": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        " de 6 vecinos escuchados"
+      ]
+    }
+  }
+}

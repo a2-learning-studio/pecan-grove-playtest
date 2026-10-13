@@ -1,0 +1,69 @@
+{
+  "T": {
+    "lead": "Los cambios grandes muchas veces empiezan con señales pequeñas.",
+    "start": "Empezar a buscar",
+    "story": "La familia Miller quiere vender su vieja granja junto al arroyo. Una empresa quiere construir ahí un centro de datos.",
+    "todayMore": "Algunas son señales del proyecto. Otras son solo cambios comunes.",
+    "aboutH": "Sobre este módulo",
+    "about": "Fíjate en las señales es la parada 1 de Constructores de comunidad de Pecan Grove, un juego gratis y bilingüe para niños de 8 a 14 años. Los jugadores comparan un camino el mes pasado y hoy, y encuentran señales pequeñas de que puede venir un proyecto grande. Aprenden que no todo cambio tiene que ver con el proyecto.",
+    "past": "El mes pasado",
+    "today": "Hoy",
+    "pastLine": "Así estaba el camino el mes pasado. Ahora toca Hoy.",
+    "todayLine": "Toca solo las cosas nuevas que podrían tener que ver con el proyecto de la granja.",
+    "done": "Ya terminé de buscar",
+    "signT": "¡Una señal de cambio!",
+    "askLine": "Pregúntale a un adulto: ¿qué podría significar?",
+    "found": "Encontrada",
+    "not": "No es del proyecto",
+    "missed": "No encontrada",
+    "keep": "Sigue buscando",
+    "every": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Es ",
+        "."
+      ]
+    },
+    "everyRest": "Buen ojo, pero no tiene que ver con la granja. No todo cambio es por el proyecto.",
+    "aFound": ", encontrada",
+    "aNot": ", no es del proyecto",
+    "aMissed": ", no encontrada",
+    "foundN": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Señales encontradas: ",
+        " de 6"
+      ]
+    },
+    "all6": "¡Encontraste las 6 señales!",
+    "review": "Estas son las señales que no encontraste. Toca una para leerla.",
+    "seeScore": "Ver mi puntaje",
+    "can": "Puedo darme cuenta cuando algo cambia en mi pueblo.",
+    "everyN": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Cambios comunes que tocaste: "
+      ]
+    },
+    "tipMiss": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "La próxima vez, busca también ",
+        "."
+      ]
+    },
+    "tipEvery": "La próxima vez, pregúntate: ¿esto nuevo tiene que ver con el terreno de la granja?",
+    "tip100": "¡Qué buen ojo! Prueba una nueva ronda.",
+    "real": "Con un adulto, busca esta semana una señal de cambio en tu calle o en las noticias locales. Hablen de lo que podría significar.",
+    "ask": "Pregúntale a un adulto",
+    "guText": "Los niños practican notar cambios sin sacar conclusiones apresuradas. En Georgia, un cambio de zonificación casi siempre trae un aviso público en el periódico y, a menudo, un letrero en el terreno antes de la audiencia pública. Pregunten juntos: ¿qué está cambiando y dónde podemos leer más?"
+  }
+}

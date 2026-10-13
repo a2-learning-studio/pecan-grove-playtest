@@ -1,0 +1,78 @@
+{
+  "T": {
+    "title": "Listen to Every Neighbor",
+    "p1": "Tap each neighbor to hear what they hope and what they worry about.",
+    "hope": "Hope",
+    "worry": "Worry",
+    "listened": "Listened",
+    "p2": "Find two neighbors who want the same thing. Read each hope and each worry: a worry shows what someone wants, too. Tap one neighbor, then another.",
+    "picked": "Picked. Now tap one more neighbor.",
+    "shared": "Shared wish!",
+    "already": "You already found that one.",
+    "toFind": "Shared wishes to find",
+    "noplan": "These two don't share one of the 4 wishes here. Do you see something else they share? Talk about it with someone. Then try another pair.",
+    "found": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Shared wishes found: ",
+        " of 4"
+      ]
+    },
+    "done": "I'm done looking",
+    "all": "And one wish everyone shares: to be heard.",
+    "p3t": "Who said this?",
+    "p3": "Tap the neighbor who said it.",
+    "line": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Line ",
+        " of 4"
+      ]
+    },
+    "right": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Yes! ",
+        " said that."
+      ]
+    },
+    "wrong": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Good try. ",
+        " said that."
+      ]
+    },
+    "can": "I can listen to every neighbor before I make up my mind.",
+    "tipSkip": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Next time, listen to ",
+        " too!"
+      ]
+    },
+    "tipPairs": "Next time, read each neighbor's hope and worry before you tap.",
+    "tipWish": "Next time, try more pairs. Most neighbors share something.",
+    "tipLine": "Next time, read each hope and worry slowly.",
+    "tip100": "Great listening! Try a new round.",
+    "real": "Ask someone at home: 'What do you hope for our neighborhood?' Listen to the whole answer.",
+    "listenedN": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        " of 6 neighbors listened"
+      ]
+    }
+  }
+}

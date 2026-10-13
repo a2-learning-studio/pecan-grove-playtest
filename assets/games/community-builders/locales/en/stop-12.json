@@ -1,0 +1,122 @@
+{
+  "WORDS": {
+    "title": "Make a Fair Deal - Community Builders of Pecan Grove",
+    "crew": "For the building crew",
+    "intro1": "The town has not decided yet. Today, neighbors and builders try out one path: building, with changes. Not building, or waiting for more facts, are fair paths too.",
+    "intro2": "Pick 4 promises for the deal. Ana answers for the building crew, and she lives here too.",
+    "start": "Start",
+    "step": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Step ",
+        " of 3"
+      ]
+    },
+    "s1": "Pick 4 promises that answer as many worries as you can.",
+    "onDeal": "On the deal",
+    "full": "The deal has 4 promises. Take one off first.",
+    "onDealN": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Promises on the deal: ",
+        " of 4"
+      ]
+    },
+    "show": "Show the neighbors",
+    "answers": "That answers my worry!",
+    "notYet": "My worry isn't in the deal yet.",
+    "noOne": "A good promise, but no one here worried about that this time.",
+    "helped": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Neighbors helped: ",
+        " of 6"
+      ]
+    },
+    "wow": "Wow! That's the most 4 promises can help.",
+    "ask": "Ask the builders",
+    "cardLabel": {
+      "$args": [
+        "name",
+        "on"
+      ],
+      "$parts": [
+        ", promise, ",
+        "on the deal",
+        "not on the deal"
+      ]
+    },
+    "s2": "Ana answers for the building crew.",
+    "promiseN": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Promise ",
+        " of 4"
+      ]
+    },
+    "can": "We can do this.",
+    "hard": "That one is hard. Can we change it?",
+    "pickChange": "Pick a change, or keep it as it was.",
+    "keep": "Keep it as it was",
+    "changed": "Changed",
+    "cant": "We want to help, but we can't promise that one.",
+    "note": "A promise no one can keep doesn't protect anyone. A changed promise can still answer the worry.",
+    "tooHard": "Still too hard",
+    "s3h": "Make it clear",
+    "s3": "Tap each fuzzy part to make it clear: who, what and when we check.",
+    "who": "Who:",
+    "somebody": "Somebody",
+    "whoOpts": [
+      "The builders",
+      "The builders, with a helper the town picks"
+    ],
+    "what": "What:",
+    "tryHelp": "Try to help",
+    "when": "Check on:",
+    "someday": "Someday",
+    "whenOpts": [
+      "June 1, every year",
+      "The first day of each season"
+    ],
+    "clear": "Clear!",
+    "clearN": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Clear promises: ",
+        " of 4"
+      ]
+    },
+    "sign": "Sign the deal",
+    "signed1": "The deal is written down. Now everyone knows who does what, and when to check.",
+    "signed2": "A fair deal is one that neighbors and builders can both keep, written down with a date to check it.",
+    "see": "See my score",
+    "takeaway": "I can help make promises clear, fair and written down.",
+    "tipName": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Next time, find a promise for ",
+        " too."
+      ]
+    },
+    "tipKeep": "Next time, when Ana says a promise is hard, pick a change. It can still answer the worry.",
+    "tipClear": "Next time, make every promise clear: who, what and when we check.",
+    "tip100": "A fair deal! Try a new round with new worries.",
+    "real": "Make a fair deal at home, like sharing chores. Write it down and add a day to check it.",
+    "askGrown": "Ask a grown-up",
+    "askGrownText": "Which promise would you want in writing, and who should check it?",
+    "gu": "For grown-ups: about this stop",
+    "guText": "Kids choose promises for a written deal, and the builders must be able to say 'we can do this'. Real communities use permit conditions and community benefit agreements. How binding these are varies, so ask who checks them and what happens if a promise is missed. This stop practices one path, building with changes; not building and waiting for more information are fair choices too."
+  }
+}

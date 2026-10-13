@@ -1,0 +1,94 @@
+{
+  "T": {
+    "intro1": "Los vecinos van a ir a la reunión de la Junta de Planificación. Ayúdalos a convertir cada preocupación en una pregunta clara.",
+    "ex": [
+      [
+        "'¿Va a ser grande?'",
+        " solo recibe un 'sí'."
+      ],
+      [
+        "'¿Cuánta agua va a usar en el día más caluroso?'",
+        " recibe una respuesta que te sirve."
+      ]
+    ],
+    "start": "¡Empecemos!",
+    "coach": "Toca una ficha en cada fila. Luego toca Pregúntalo.",
+    "ask": "Pregúntalo",
+    "over": "Volver a empezar",
+    "yourQ": "Tu pregunta:",
+    "coachFor": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Convierte la preocupación de ",
+        " en una pregunta clara. Toca una ficha en cada fila y luego toca Pregúntalo.",
+        " de el ",
+        " del "
+      ]
+    },
+    "boardK": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Tus preguntas para la Junta de Planificación: ",
+        " de 4"
+      ]
+    },
+    "slotNow": "Tu pregunta va aquí cuando tocas Pregúntalo.",
+    "rows": {
+      "start": "1. Inicio: cómo preguntas",
+      "topic": "2. Tema: de qué se trata",
+      "detail": "3. Detalle: cuándo o dónde"
+    },
+    "worryN": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Preocupación ",
+        " de 4"
+      ]
+    },
+    "ans3": "Esa pregunta de verdad me sirve. ¡Gracias!",
+    "ans12": "Buen intento. Hagamos que la pregunta vaya con mi preocupación:",
+    "ans0": "¡Gracias por intentarlo! Así la puedes arreglar:",
+    "topicOk": "Tema: sí, eso es lo que me preocupa.",
+    "topicNo": {
+      "$args": [
+        "t"
+      ],
+      "$parts": [
+        "Tema: mi preocupación tiene que ver con ",
+        "."
+      ]
+    },
+    "startOk": "Inicio: una pregunta abierta pide información, no solo sí o no.",
+    "startWill": "Inicio: '¿Va a...?' solo recibe un sí o un no. Prueba con ¿Cómo?, ¿Cuánto?, ¿Cuándo?, ¿Quién? o ¿Qué pasa si?",
+    "detOk": "Detalle: ahora es concreta.",
+    "detNone": "Detalle: agrega cuándo o dónde para que sea concreta.",
+    "detTopic": "Detalle: primero elige el tema de mi preocupación y luego agrega un detalle que vaya con ella.",
+    "detNo": {
+      "$args": [
+        "d"
+      ],
+      "$parts": [
+        "Detalle: ese no va con mi preocupación. Prueba con '",
+        "'."
+      ]
+    },
+    "next": "Siguiente preocupación",
+    "see": "Ver mi puntaje",
+    "fix": "Arreglar mi pregunta",
+    "fixCoach": "Usa los consejos para cambiar tu pregunta. La ficha con el borde punteado es una para probar. Luego toca Pregúntalo.",
+    "can": "Puedo convertir una preocupación en una pregunta clara.",
+    "tipTopic": "La próxima vez, vuelve a leer la preocupación y elige su tema.",
+    "tipWill": "La próxima vez, elige un inicio que pida información, no solo sí o no.",
+    "tipDetail": "La próxima vez, agrega un detalle que vaya con la preocupación: cuándo o dónde.",
+    "tip100": "¡Muy buenas preguntas! Prueba una nueva ronda.",
+    "real": "Escribe en papel una buena pregunta sobre tu pueblo. Pídele a un adulto que te ayude a encontrar quién podría responderla.",
+    "gu": "Pregúntale a un adulto",
+    "guText": "Las preguntas abiertas y concretas ('¿Cuánta agua en el día más caluroso y seco, y de dónde?') reciben respuestas más útiles que las de sí o no. La lista de '30 preguntas para hacer' del sitio tiene más ejemplos para llevar a una reunión pública."
+  }
+}

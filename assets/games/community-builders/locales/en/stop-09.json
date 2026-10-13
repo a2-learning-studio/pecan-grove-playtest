@@ -1,0 +1,110 @@
+{
+  "WORDS": {
+    "library": "Library",
+    "intro": "The town is planning another meeting about the farm, here at the library. Last time, the meeting was at 2 pm, upstairs, and only in English. Five chairs stayed empty. Who was missing? Help everyone join.",
+    "start": "Start",
+    "noteK": "Last meeting:",
+    "note": [
+      "2 pm",
+      "upstairs",
+      "English only"
+    ],
+    "filled": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Chairs filled: ",
+        " of 5"
+      ]
+    },
+    "chair": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Empty chair ",
+        " of 5"
+      ]
+    },
+    "empty": "Empty chair",
+    "instr": "Tap an empty chair to see who is missing.",
+    "ask": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "How can ",
+        " join? Tap a way."
+      ]
+    },
+    "way": {
+      "$args": [
+        "w"
+      ],
+      "$parts": [
+        "Way: "
+      ]
+    },
+    "finishPlan": "Finish the plan",
+    "missing": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        " is missing"
+      ]
+    },
+    "joined": "Joined",
+    "right": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Yes! Now ",
+        " can join."
+      ]
+    },
+    "wrong1": {
+      "$args": [
+        "hint"
+      ],
+      "$parts": [
+        "That can help other people. "
+      ]
+    },
+    "tried": "Tried",
+    "shown": "Here is a way that helps.",
+    "also": "Also helps:",
+    "done": "Done",
+    "all": "Every chair is filled!",
+    "confirm": "Some chairs are still empty. Finish anyway?",
+    "keep": "Keep looking",
+    "finish": "Finish",
+    "aha": "A meeting at 2 pm, upstairs and only in English leaves people out: nurses who sleep in the day, kids in school, families who speak Spanish. Small changes can bring everyone in.",
+    "see": "See my score",
+    "can": "I can notice who is missing and help them join.",
+    "tipOpen": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Next time, open every empty chair. ",
+        " was waiting!"
+      ]
+    },
+    "tipRead": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Next time, read why ",
+        " is missing, then pick a way that fixes that."
+      ]
+    },
+    "tip100": "Great job! Everyone can join. Try a new round.",
+    "real": "Think of someone who doesn't usually get asked, at school or at home. With a grown-up, find a way to ask what they think.",
+    "gu": "For grown-ups: about this stop",
+    "guText": "Kids notice who is missing from a meeting and match a way to include them: evening times, interpreters, a ride, a ramp, a recording, a kids' corner. At real hearings, interpreters and written comments let more people take part."
+  }
+}

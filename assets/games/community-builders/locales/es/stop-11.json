@@ -1,0 +1,150 @@
+{
+  "S": {
+    "title": "Pesa lo bueno y lo difícil - Constructores de comunidad de Pecan Grove",
+    "intro": [
+      "La audiencia ya terminó. Antes de decidir, el Concejo del pueblo pesa cuatro caminos.",
+      "Cada camino tiene partes buenas y partes difíciles. Ayuda al pueblo a verlas todas.",
+      "No hay un camino equivocado. Los puntos vienen de pesar bien."
+    ],
+    "start": "Empezar",
+    "parts": {
+      "good": "Partes buenas",
+      "hard": "Partes difíciles"
+    },
+    "kind": {
+      "good": "Parte buena",
+      "hard": "Parte difícil"
+    },
+    "changes": "Cambios",
+    "bowlN": {
+      "good": {
+        "$args": [
+          "n"
+        ],
+        "$parts": [
+          " buenas"
+        ]
+      },
+      "hard": {
+        "$args": [
+          "n"
+        ],
+        "$parts": [
+          " difíciles"
+        ]
+      }
+    },
+    "p1": "Toca cada letrero para pesar sus partes buenas y sus partes difíciles.",
+    "weighed": "Ya lo pesaste",
+    "weighedL": "ya lo pesaste",
+    "weighedN": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Caminos que pesaste: ",
+        " de 4"
+      ]
+    },
+    "choose": "Elegir este camino",
+    "ask": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Pesaste ",
+        " de 4 caminos. Pesar todos los caminos te ayuda a ver el panorama completo."
+      ]
+    },
+    "more": "Pesar más caminos",
+    "yours": "Tu camino",
+    "chose": {
+      "$args": [
+        "p"
+      ],
+      "$parts": [
+        "Elegiste: ",
+        ". Ahora mira de cerca sus tarjetas."
+      ]
+    },
+    "q": [
+      "¿A quién ayuda este camino? Toca a un vecino.",
+      "¿A quién se le podría hacer difícil este camino? Toca a un vecino."
+    ],
+    "nb": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        ", vecino"
+      ]
+    },
+    "ok": [
+      {
+        "$args": [
+          "n"
+        ],
+        "$parts": [
+          "¡Sí! Una parte buena le llega a ",
+          "."
+        ]
+      },
+      {
+        "$args": [
+          "n"
+        ],
+        "$parts": [
+          "¡Sí! Una parte difícil le llega a ",
+          "."
+        ]
+      }
+    ],
+    "wrong": [
+      {
+        "$args": [
+          "n"
+        ],
+        "$parts": [
+          "Buena idea. En esta ronda, las partes buenas casi no le llegan a ",
+          ". Vuelve a leerlas."
+        ]
+      },
+      {
+        "$args": [
+          "n"
+        ],
+        "$parts": [
+          "Buena idea. En esta ronda, las partes difíciles casi no le llegan a ",
+          ". Vuelve a leerlas."
+        ]
+      }
+    ],
+    "tried": "Ya probaste",
+    "shown": [
+      "Mira a quién ayuda:",
+      "Mira a quién se le podría hacer difícil:"
+    ],
+    "p3": "Agrega un cambio que haga más fácil una parte difícil. Toca un cambio.",
+    "okChg": "¡Buen cambio! Hace más fácil esta parte difícil:",
+    "easier": "Ahora es más fácil",
+    "idea": [
+      "¡Es una idea real! Ayuda con otra parte difícil:",
+      "Mira las partes difíciles de tu camino y prueba otra vez."
+    ],
+    "fits": "Este cambio sí encaja:",
+    "finish": "Terminar",
+    "aha": "Cada camino, incluso 'no construir' o 'esperar', ayuda a alguien y a alguien se le hace difícil.",
+    "see": "Ver mi puntaje",
+    "can": "Puedo ver que cada plan tiene partes buenas y partes difíciles.",
+    "tipWeigh": "La próxima vez, pesa los cuatro caminos antes de elegir.",
+    "tipGood": "La próxima vez, lee despacio las partes buenas. ¿Quién se alegraría?",
+    "tipHard": "La próxima vez, lee despacio las partes difíciles. ¿Quién las sentiría?",
+    "tipChange": "La próxima vez, elige un cambio que encaje con una parte difícil de tu camino.",
+    "tip100": "¡Muy bien pesado! Prueba una nueva ronda con otro camino.",
+    "real": "Elige algo que tu familia esté decidiendo, como un plan de fin de semana. Di una parte buena y una difícil de cada opción.",
+    "askT": "Pregúntale a un adulto",
+    "askQ": "Cuando tomas una decisión grande, ¿cómo pesas las partes buenas y las difíciles?",
+    "gu": "Para adultos: sobre esta parada",
+    "guText": "Cuatro caminos: construir como se planeó, construir con cambios, no construir aquí o esperar más información. Cada uno tiene beneficios y costos, y cada uno puede ganar todos los puntos. El puntaje premia explorar cada camino y nombrar a quién ayuda y a quién se le hace difícil, nunca el camino elegido."
+  }
+}

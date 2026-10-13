@@ -1,0 +1,122 @@
+{
+  "WORDS": {
+    "title": "Haz un trato justo - Constructores de comunidad de Pecan Grove",
+    "crew": "Por el equipo de la obra",
+    "intro1": "El pueblo todavía no ha decidido. Hoy, los vecinos y los constructores prueban un camino: construir, con cambios. No construir, o esperar más datos, también son caminos justos.",
+    "intro2": "Elige 4 promesas para el trato. Ana responde por el equipo de la obra, y ella también vive aquí.",
+    "start": "Empezar",
+    "step": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Paso ",
+        " de 3"
+      ]
+    },
+    "s1": "Elige 4 promesas que respondan a todas las preocupaciones que puedas.",
+    "onDeal": "En el trato",
+    "full": "El trato tiene 4 promesas. Quita una primero.",
+    "onDealN": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Promesas en el trato: ",
+        " de 4"
+      ]
+    },
+    "show": "Mostrarles el trato a los vecinos",
+    "answers": "¡Eso responde a mi preocupación!",
+    "notYet": "Mi preocupación todavía no está en el trato.",
+    "noOne": "Es una buena promesa, pero esta vez nadie aquí se preocupaba por eso.",
+    "helped": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Vecinos ayudados: ",
+        " de 6"
+      ]
+    },
+    "wow": "¡Muy bien! Es lo máximo que pueden ayudar 4 promesas.",
+    "ask": "Preguntar a los constructores",
+    "cardLabel": {
+      "$args": [
+        "name",
+        "on"
+      ],
+      "$parts": [
+        ", promesa, ",
+        "en el trato",
+        "fuera del trato"
+      ]
+    },
+    "s2": "Ana responde por el equipo de la obra.",
+    "promiseN": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Promesa ",
+        " de 4"
+      ]
+    },
+    "can": "Sí podemos cumplirlo.",
+    "hard": "Esa es difícil. ¿La cambiamos?",
+    "pickChange": "Elige un cambio, o déjala como estaba.",
+    "keep": "Dejarla como estaba",
+    "changed": "Cambiada",
+    "cant": "Queremos ayudar, pero esa no la podemos prometer.",
+    "note": "Una promesa que nadie puede cumplir no protege a nadie. Una promesa cambiada todavía puede responder a la preocupación.",
+    "tooHard": "Todavía es difícil",
+    "s3h": "Hazla clara",
+    "s3": "Toca cada parte que no está clara para aclararla: quién, qué y cuándo se revisa.",
+    "who": "Quién:",
+    "somebody": "Alguien",
+    "whoOpts": [
+      "Los constructores",
+      "Los constructores, con un ayudante que elija el pueblo"
+    ],
+    "what": "Qué:",
+    "tryHelp": "Tratar de ayudar",
+    "when": "Se revisa:",
+    "someday": "Algún día",
+    "whenOpts": [
+      "El 1 de junio, cada año",
+      "El primer día de cada estación"
+    ],
+    "clear": "¡Clara!",
+    "clearN": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Promesas claras: ",
+        " de 4"
+      ]
+    },
+    "sign": "Firmar el trato",
+    "signed1": "El trato está por escrito. Ahora todos saben quién hace qué y cuándo revisar.",
+    "signed2": "Un trato justo es uno que tanto los vecinos como los constructores pueden cumplir, por escrito y con una fecha para revisarlo.",
+    "see": "Ver mi puntaje",
+    "takeaway": "Puedo ayudar a que las promesas sean claras, justas y por escrito.",
+    "tipName": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "La próxima vez, busca también una promesa para ",
+        "."
+      ]
+    },
+    "tipKeep": "La próxima vez, cuando Ana diga que una promesa es difícil, elige un cambio. Todavía puede responder a la preocupación.",
+    "tipClear": "La próxima vez, haz clara cada promesa: quién, qué y cuándo se revisa.",
+    "tip100": "¡Un trato justo! Prueba una nueva ronda con otras preocupaciones.",
+    "real": "Haz un trato justo en casa, como repartir las tareas. Escríbelo y agrega un día para revisarlo.",
+    "askGrown": "Pregúntale a un adulto",
+    "askGrownText": "¿Qué promesa te gustaría tener por escrito, y quién debería revisarla?",
+    "gu": "Para adultos: sobre esta parada",
+    "guText": "Los niños eligen promesas para un acuerdo por escrito, y los constructores deben poder decir 'sí podemos cumplirlo'. Las comunidades reales usan condiciones en los permisos y acuerdos de beneficios comunitarios; qué tan obligatorios son varía, así que pregunten quién los revisa y qué pasa si no se cumple una promesa. Esta parada practica un camino, construir con cambios; no construir y esperar más información también son decisiones justas."
+  }
+}

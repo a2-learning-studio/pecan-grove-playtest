@@ -1,0 +1,69 @@
+{
+  "S": {
+    "title": "Match a Fix - Community Builders of Pecan Grove",
+    "intro1": "Before the Town Council decides, it asks neighbors for ideas to fix problems.",
+    "intro2": "Other places already tried some fixes. Match each problem to a fix that helps. Then check: did it work?",
+    "start": "Start",
+    "problems": "Problems",
+    "fixes": "Fixes from real places",
+    "check": "Did it work?",
+    "matched": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Problems matched: ",
+        " of 5"
+      ]
+    },
+    "coach1": "Tap a problem.",
+    "coach2": "Now tap a fix that could help it.",
+    "coach2Down": "Now scroll down to 'Fixes from real places' and tap one that could help it.",
+    "openChip": "No tested fix yet · Tap to share an idea",
+    "oneOpen": "One problem has no tested fix yet. You can share your own idea for it.",
+    "link": "Link them",
+    "other": "Pick another fix",
+    "linked": "Linked",
+    "linkN": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Link "
+      ]
+    },
+    "good": "Good match! This fix was tried for this problem.",
+    "miss": {
+      "$args": [
+        "place",
+        "prob"
+      ],
+      "$parts": [
+        "That's a real fix from ",
+        "near ",
+        ", but it was tried for a different problem: ",
+        ". Try another fix."
+      ]
+    },
+    "tried": "Tried",
+    "shown": "Here is the fix that was tried for it.",
+    "openQ": "Nobody has solved this yet. What's your idea?",
+    "nice": "Nice idea! Ideas like this still need testing. Who could help test it?",
+    "badge": "Idea badge",
+    "openLink": "No fix here was tested for this problem. Tap the card to share an idea.",
+    "look": "Look at your board:",
+    "aha": "Some fixes worked, some only partly, some are too early to tell, and some problems have no tested fix yet.",
+    "see": "See my score",
+    "chosen": "Chosen",
+    "probL": "Problem: ",
+    "fixL": "Fix: ",
+    "can": "I can match a problem with a fix and check if it worked.",
+    "tipIdea": "Great fixing! Try a new round with new problems.",
+    "tip100": "Perfect board! Next time, share your idea on the open problem too.",
+    "tipCheck": "Next time, tap 'Did it work?' before you link.",
+    "tipRead": "Next time, read the problem again, then look for the fix made for it.",
+    "real": "Pick one problem at your school or in your neighborhood. With a grown-up, look for one place that tried a fix. Did it work?",
+    "gu": "For grown-ups: about this stop",
+    "guText": "Each solution card names a real place and gives an honest 'Did it work?' note, for example testing wells before and after digging, or metering construction water. Some problems, like rent rises, truck traffic and power-line routes, have no tested fix yet."
+  }
+}

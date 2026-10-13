@@ -1,0 +1,92 @@
+{
+  "WORDS": {
+    "intro": "The Planning Board met last night. Now two neighbors don't agree about one part of the plan. The town has not decided yet. Can you help them find a way that works for both?",
+    "go": "Let's go",
+    "park": "Park",
+    "step1": "Step 1 of 2: Listen",
+    "step2": "Step 2 of 2: Find a way for both",
+    "coach1": "Tap each neighbor to hear what they want. Then ask why.",
+    "coach2": "Find a way both can live with. Tap 'Try it' on a card.",
+    "want": "What I want",
+    "ask": "Ask why",
+    "whyK": "Why it matters to me",
+    "heard": "Heard why",
+    "tryIt": "Try it",
+    "can": "I can live with that.",
+    "hard": {
+      "$args": [
+        "why"
+      ],
+      "$parts": [
+        "That's hard for me because ",
+        "."
+      ]
+    },
+    "works": "Works for both!",
+    "foundOne": "You found one! Can you find one more?",
+    "tried": "Tried",
+    "hardFor": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Hard for "
+      ]
+    },
+    "tray": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Ways that work for both: ",
+        " of 2"
+      ]
+    },
+    "end": "Both neighbors can live with these two ideas!",
+    "see": "See my score",
+    "aha": "When you hear the 'why', you can often find an option both people can live with.",
+    "takeaway": "I can disagree kindly and look for a way that works for both.",
+    "tipNone": "Next time, ask both neighbors why before you try a card.",
+    "tipOne": {
+      "$args": [
+        "aName"
+      ],
+      "$parts": [
+        "Next time, ask ",
+        " why too, before you try a card."
+      ]
+    },
+    "tipCareful": "Next time, read both whys again before you try another card.",
+    "tip100": "Great listening and great ideas! Try a new round.",
+    "real": "When you disagree at home or at school, try: 'I hear you. Can we find a way that works for both of us?'",
+    "askGrown": "Ask a grown-up",
+    "askGrownText": "'Tell me about a time you found a way that worked for both of you.'",
+    "gu": "For grown-ups",
+    "guText": "Kids hear each neighbor's reason before looking for options both can accept, like the 'Is there a plan we can all live with?' step in deliberation games. Disagreeing is normal. The skill is staying respectful and curious. Each round is about one small part of a plan, so both neighbors can come out okay. The cards echo options real towns have used or discussed: truck hours and routes, lights that point down, tree buffers, measuring noise before building, testing wells and looking for old graves before digging, and training local workers. Pecan Grove is made up, and the game does not say whether a data center should be built.",
+    "nbLabel": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        ", what I want"
+      ]
+    },
+    "askLabel": {
+      "$args": [
+        "aName"
+      ],
+      "$parts": [
+        "Ask ",
+        " why"
+      ]
+    },
+    "tryLabel": {
+      "$args": [
+        "c"
+      ],
+      "$parts": [
+        "Try it: "
+      ]
+    }
+  }
+}

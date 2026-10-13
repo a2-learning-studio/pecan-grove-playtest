@@ -1,0 +1,96 @@
+{
+  "S": {
+    "title": "Map What Could Change - Community Builders of Pecan Grove",
+    "intro1": "The plan for the farm is posted. The Planning Board meets soon.",
+    "intro2": "Each change makes ripples, like a stone in a pond. Follow them, near and far.",
+    "start": "Start",
+    "change": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Change ",
+        " of 5"
+      ]
+    },
+    "step": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Step ",
+        " of 2"
+      ]
+    },
+    "kind": {
+      "help": "Helpful change",
+      "hard": "Hard change"
+    },
+    "q": [
+      "Where does it land first? Tap a place.",
+      "Who could feel it next? Tap a neighbor."
+    ],
+    "ok": [
+      "Yes! It can land there.",
+      "Yes! It can reach them."
+    ],
+    "wrong": [
+      "Good thinking. It may get there later, but look for where it lands first. Try once more.",
+      "Good thinking. It may reach them a little, but look for who feels it most. Try once more."
+    ],
+    "shown": [
+      "Here is where it can land.",
+      "Here is who it can reach."
+    ],
+    "tried": "Tried",
+    "also": "Also right:",
+    "planTag": "Farm plan",
+    "end": "Look how far the changes went!",
+    "see": "See my score",
+    "live": {
+      "$args": [
+        "n",
+        "s"
+      ],
+      "$parts": [
+        "Change ",
+        " of 5, step ",
+        " of 2"
+      ]
+    },
+    "place": {
+      "$args": [
+        "p"
+      ],
+      "$parts": [
+        ", place"
+      ]
+    },
+    "can": "I can look for changes far from the building, too.",
+    "tip100": "Great map! Try a new round with new changes.",
+    "tipHelp": "Next time, follow the helpful changes as far as the hard ones.",
+    "tipHard": "Next time, follow the hard changes as far as the helpful ones.",
+    "tipCard": {
+      "$args": [
+        "c"
+      ],
+      "$parts": [
+        "Next time, follow '",
+        "' all the way: where it lands first, and who lives or works there."
+      ]
+    },
+    "landed": {
+      "$args": [
+        "p"
+      ],
+      "$parts": [
+        "Landed at: "
+      ]
+    },
+    "tipStep2": "Next time, ask: who lives, works or plays near that place?",
+    "tipPaths": "Next time, follow the dotted paths far from the farm.",
+    "real": "With a grown-up, draw a map of your neighborhood. Mark places a big new building could change, both helpful and hard.",
+    "gu": "For grown-ups: about this stop",
+    "guText": "Some effects land far from the site: power bills, rents, school budgets, a creek downstream, or the roads school buses use. Kids follow each change to where it lands, whether it helps or is hard. Helpful and hard changes are worth the same points, which keeps the game balanced."
+  }
+}

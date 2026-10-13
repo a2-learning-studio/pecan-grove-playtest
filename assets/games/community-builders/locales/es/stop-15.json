@@ -1,0 +1,130 @@
+{
+  "WORDS": {
+    "lucia1": "Imagina Pecan Grove en 2035. Jayden ya es adulto, ¡y tú también!",
+    "theo1": "Hoy el pueblo dibuja un plan para 2035. Cada vecino comparte un deseo.",
+    "plan": "Planea 5 lugares para que el deseo de cada vecino esté en el plan. Usa todas tus habilidades: escuchar, pesar, incluir y revisar. Para la vieja granja no hay una opción equivocada.",
+    "start": "Empezar",
+    "step": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Paso ",
+        " de 3"
+      ]
+    },
+    "s1": "Toca un lugar y elige una ficha para él.",
+    "tray": {
+      "$args": [
+        "p"
+      ],
+      "$parts": [
+        ": elige una ficha"
+      ]
+    },
+    "see": "Ver lo bueno y lo difícil",
+    "good": "Lo bueno:",
+    "hard": "Lo difícil:",
+    "put": "Ponerla en el plan",
+    "inPlan": "En el plan",
+    "notYet": "Sin planear",
+    "lblNot": {
+      "$args": [
+        "p"
+      ],
+      "$parts": [
+        ", sin planear"
+      ]
+    },
+    "lblOn": {
+      "$args": [
+        "p",
+        "t"
+      ],
+      "$parts": [
+        ", planeado: "
+      ]
+    },
+    "placesN": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Lugares planeados: ",
+        " de 5"
+      ]
+    },
+    "wishesN": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Deseos en el plan: ",
+        " de 6"
+      ]
+    },
+    "myWish": "Mi deseo para 2035",
+    "forHere": "Deseos para este lugar",
+    "theo2": "Un plan necesita cuidado con el tiempo. Agrega una revisión cada año.",
+    "added": "¡Revisión agregada!",
+    "lucia3": "¿Quién todavía no está en la mesa? Invita a una persona.",
+    "table": "En la mesa del plan",
+    "who": "¿Quién más vive en Pecan Grove?",
+    "great": {
+      "$args": [
+        "p"
+      ],
+      "$parts": [
+        "¡Qué bueno! Un lugar nuevo en la mesa: ",
+        "."
+      ]
+    },
+    "look": {
+      "$args": [
+        "p"
+      ],
+      "$parts": [
+        "Mira otra vez. Ya está en la mesa: ",
+        "."
+      ]
+    },
+    "tried": "Ya probaste",
+    "finishPlan": "Terminar el plan",
+    "yes": "Mi deseo está en el plan. ¡Gracias por escucharme!",
+    "notYetWish": "Mi deseo todavía no está en el plan. ¿Tal vez la próxima vez?",
+    "luciaFarm": {
+      "$args": [
+        "t"
+      ],
+      "$parts": [
+        "Para la vieja granja elegimos: ",
+        ". Como cada opción, tiene partes buenas y partes difíciles."
+      ]
+    },
+    "theoCheck": "¡Y vamos a revisar el plan cada año!",
+    "thanks": "¡Gracias por invitarme!",
+    "picnic": "¡Hora del pícnic!",
+    "aha": "Un buen plan responde un poco al deseo de cada vecino, en vez de responder por completo al deseo de uno solo.",
+    "seeScore": "Ver mi puntaje",
+    "can": "Puedo usar todas mis habilidades para ayudar a planear el futuro de mi pueblo.",
+    "tipWish": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "La próxima vez, busca también una ficha para ",
+        "."
+      ]
+    },
+    "tipTrade": "La próxima vez, mira lo bueno y lo difícil de cada ficha antes de ponerla.",
+    "tipCheck": "La próxima vez, agrega una revisión cada año, para que el plan se revise con el tiempo.",
+    "tipInvite": "La próxima vez, mira quién ya está en la mesa y luego invita a alguien que falte.",
+    "tip100": "¡Un plan para todos! Prueba una nueva ronda con otros deseos.",
+    "real": "Dibuja tu pueblo en 2035 y compártelo con tu familia o tu clase. Cuando estés en la preparatoria, podrás postularte a una comisión juvenil. Pregúntale a un adulto.",
+    "askK": "Pregúntale a un adulto",
+    "ask": "¿Cómo te gustaría que fuera nuestro pueblo cuando yo sea grande?",
+    "journeyDone": "¡Terminaste el camino! Juega cualquier parada otra vez para una nueva ronda.",
+    "gu": "Para adultos: sobre esta parada",
+    "guText": "Los niños planean Pecan Grove en 2035 usando todas sus habilidades. En la vieja granja puede haber un centro de datos como se planeó o con cambios, puede seguir siendo granja o se puede esperar un estudio, y cualquier opción puede ganar todos los puntos si se escucha a todos los vecinos. En el condado de Fulton, los estudiantes de preparatoria pueden postularse a la Comisión Juvenil del condado. En Georgia, los planes de los condados suelen mirar unos 20 años hacia adelante y se actualizan cada cinco años."
+  }
+}

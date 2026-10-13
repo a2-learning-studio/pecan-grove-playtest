@@ -1,0 +1,127 @@
+{
+  "T": {
+    "pageTitle": "Vigila las promesas - Constructores de comunidad de Pecan Grove",
+    "introBuilt": "Es primavera, un año después. El pueblo dijo que sí al centro de datos, con cambios.",
+    "introStudying": "Es primavera, un año después. El pueblo dijo que por ahora no. Todavía está estudiando y escribiendo reglas.",
+    "fair": "Decir que sí con cambios y decir que por ahora no, para estudiar más, son decisiones justas. De cualquier forma, la gente hizo promesas. Vamos a revisarlas, con respeto.",
+    "start": "Empezar",
+    "step": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Paso ",
+        " de 2"
+      ]
+    },
+    "noClue": "No encontré pista",
+    "notebook": "Cuaderno de promesas",
+    "siteTag": "Centro de datos",
+    "clueAria": {
+      "$args": [
+        "l"
+      ],
+      "$parts": [
+        "Pista: "
+      ]
+    },
+    "notChecked": "Sin revisar",
+    "promiseN": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Promesa ",
+        " de 5"
+      ]
+    },
+    "s1": "Lee la promesa. Toca su pista en el pueblo, o toca 'No encontré pista'.",
+    "see": "Lo que ves:",
+    "rightNone": "Así es. De esta no hay ninguna pista en el pueblo.",
+    "other": "Esa pista es de otra promesa.",
+    "hereIs": "Aquí está la pista de esta.",
+    "noneHere": "De esta no hay ninguna pista en el pueblo.",
+    "lookClue": "Mira otra vez: sí hay una pista para esta. Aquí está.",
+    "how": "¿Cómo va esta promesa?",
+    "st": {
+      "kept": "Cumplida",
+      "notyet": "Todavía no",
+      "ask": "Hay que preguntar"
+    },
+    "stAria": {
+      "$args": [
+        "l"
+      ],
+      "$parts": [
+        ", estado"
+      ]
+    },
+    "ok": {
+      "kept": "¡Sí! Esta promesa se cumplió.",
+      "notyet": "Sí. Ya empezó, pero todavía no termina.",
+      "ask": "Sí. Todavía no se sabe, así que vamos a preguntar."
+    },
+    "wrong": {
+      "kept": "Mira otra vez: la pista muestra que ya está hecho. Esta promesa se cumplió.",
+      "notyet": "Mira otra vez: ya empezó, pero todavía no termina. Va atrasada, pero no se rompió.",
+      "ask": "Mira otra vez: con esto no se puede saber. Que no haya pista no quiere decir que se rompió la promesa. Solo hay que preguntar."
+    },
+    "nextPromise": "Siguiente promesa",
+    "followUp": "Hacer seguimiento",
+    "s2": "Elige un seguimiento amable para cada promesa atrasada o que no está clara. Se anota en tu cuaderno, para preguntarlo con un adulto.",
+    "fu": {
+      "thanks": "Dar las gracias",
+      "why": "Preguntar por qué",
+      "when": "Preguntar cuándo"
+    },
+    "fuLine": {
+      "notyet": {
+        "thanks": "Gracias por empezar. Volveremos a revisar pronto.",
+        "why": "¿Qué lo está atrasando?",
+        "when": "¿Cuándo crees que estará terminado?"
+      },
+      "ask": {
+        "thanks": "Gracias por esta promesa. ¿Dónde podemos ver cómo va?",
+        "why": "¿Por qué cuesta saber si ya está hecho?",
+        "when": "¿Cuándo podremos ver cómo va?"
+      }
+    },
+    "reply": "Gracias por preguntar con respeto. Tendrás una respuesta en la próxima reunión del pueblo.",
+    "fuN": {
+      "$args": [
+        "n",
+        "t"
+      ],
+      "$parts": [
+        "Seguimientos: ",
+        " de "
+      ]
+    },
+    "closeNb": "Cerrar el cuaderno",
+    "still": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Todavía falta el seguimiento de 1 promesa.",
+        "Todavía faltan seguimientos para ",
+        " promesas."
+      ]
+    },
+    "goBack": "Regresar",
+    "closeAnyway": "Cerrar de todos modos",
+    "closing": "Algunas promesas se cumplen, otras van atrasadas y otras solo necesitan una pregunta. Revisar con respeto funciona mejor que culpar.",
+    "seeScore": "Ver mi puntaje",
+    "can": "Puedo revisar, con respeto, si se cumplieron las promesas.",
+    "tipFollow": "La próxima vez, haz un seguimiento amable para cada promesa atrasada o que no está clara.",
+    "tipAsk": "La próxima vez, recuerda: si no hay pista, no quiere decir que se rompió la promesa. Primero pregunta.",
+    "tipStatus": "La próxima vez, lee despacio cada pista. ¿Ya está hecho, apenas empezó o no está claro?",
+    "tipClue": "La próxima vez, busca por todo el pueblo la pista de cada promesa.",
+    "tip100": "¡Muy buena vigilancia! Prueba una nueva ronda. El pueblo puede tomar el otro camino.",
+    "real": "Con un adulto, lleva en casa un cuaderno de 'escucha y observa'. Anota los cambios de ruido, luces o agua que notes. Nunca te acerques a una obra.",
+    "askH": "Pregúntale a un adulto",
+    "ask": "¿Qué promesa de nuestro pueblo te gustaría revisar, y a quién le podríamos preguntar?",
+    "gu": "Para adultos: sobre esta parada",
+    "guText": "Las promesas vienen del pueblo, de los constructores y de los vecinos. Los niños comparan cada promesa con una pista un año después y eligen un seguimiento amable. La revisión real es trabajo de adultos: pidan informes anuales y actas de las reuniones, y pregunten quién hace cumplir cada promesa. En cada ronda, el pueblo tomó uno de dos caminos justos: construir con cambios, o no construir mientras estudia."
+  }
+}

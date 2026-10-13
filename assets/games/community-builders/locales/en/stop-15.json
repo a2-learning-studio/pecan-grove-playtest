@@ -1,0 +1,130 @@
+{
+  "WORDS": {
+    "lucia1": "Imagine Pecan Grove in 2035. Jayden is grown up, and so are you!",
+    "theo1": "Today the town draws a plan for 2035. Every neighbor shares one wish.",
+    "plan": "Plan 5 places so every neighbor's wish is in the plan. Use all your skills: listen, weigh, include and check. There's no wrong choice for the old farm.",
+    "start": "Start",
+    "step": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Step ",
+        " of 3"
+      ]
+    },
+    "s1": "Tap a place, then pick a tile for it.",
+    "tray": {
+      "$args": [
+        "p"
+      ],
+      "$parts": [
+        ": pick a tile"
+      ]
+    },
+    "see": "See the trade-off",
+    "good": "Good:",
+    "hard": "Hard:",
+    "put": "Put it in the plan",
+    "inPlan": "In the plan",
+    "notYet": "Not planned yet",
+    "lblNot": {
+      "$args": [
+        "p"
+      ],
+      "$parts": [
+        ", not planned yet"
+      ]
+    },
+    "lblOn": {
+      "$args": [
+        "p",
+        "t"
+      ],
+      "$parts": [
+        ", planned: "
+      ]
+    },
+    "placesN": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Places planned: ",
+        " of 5"
+      ]
+    },
+    "wishesN": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Wishes in the plan: ",
+        " of 6"
+      ]
+    },
+    "myWish": "My wish for 2035",
+    "forHere": "Wishes for this place",
+    "theo2": "A plan needs care over time. Add one yearly check-in.",
+    "added": "Check-in added!",
+    "lucia3": "Who isn't at the table yet? Invite one person.",
+    "table": "At the planning table",
+    "who": "Who else lives in Pecan Grove?",
+    "great": {
+      "$args": [
+        "p"
+      ],
+      "$parts": [
+        "Great! A new seat at the table: ",
+        "."
+      ]
+    },
+    "look": {
+      "$args": [
+        "p"
+      ],
+      "$parts": [
+        "Look again. Already at the table: ",
+        "."
+      ]
+    },
+    "tried": "Tried",
+    "finishPlan": "Finish the plan",
+    "yes": "My wish is in the plan. Thanks for hearing me!",
+    "notYetWish": "My wish isn't in the plan yet. Maybe next time?",
+    "luciaFarm": {
+      "$args": [
+        "t"
+      ],
+      "$parts": [
+        "For the old farm, we chose: ",
+        ". Like every choice, it has good parts and hard parts."
+      ]
+    },
+    "theoCheck": "And we'll check the plan every year!",
+    "thanks": "Thanks for inviting me!",
+    "picnic": "Picnic time!",
+    "aha": "A good plan answers every neighbor's wish a little, instead of answering one neighbor's wish completely.",
+    "seeScore": "See my score",
+    "can": "I can use all my skills to help plan our town's future.",
+    "tipWish": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Next time, find a tile for ",
+        " too."
+      ]
+    },
+    "tipTrade": "Next time, open each trade-off before you place a tile.",
+    "tipCheck": "Next time, add a yearly check-in, so the plan gets checked over time.",
+    "tipInvite": "Next time, look at who's already at the table, then invite someone who's missing.",
+    "tip100": "A plan for everyone! Try a new round with new wishes.",
+    "real": "Draw your town in 2035 and share it with your family or class. When you're in high school, you can apply to a youth commission. Ask a grown-up.",
+    "askK": "Ask a grown-up",
+    "ask": "What do you hope our town looks like when I'm grown up?",
+    "journeyDone": "You finished the journey! Play any stop again for a new round.",
+    "gu": "For grown-ups: about this stop",
+    "guText": "Kids plan Pecan Grove in 2035 using every skill. The old farm can hold a data center as planned or with changes, stay a farm, or wait for a study. Every choice can earn full points if every neighbor is heard. In Fulton County, high school students can apply to the county Youth Commission. In Georgia, county plans usually look about 20 years ahead and are updated every five years."
+  }
+}

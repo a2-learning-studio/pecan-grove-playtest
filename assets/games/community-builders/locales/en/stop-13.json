@@ -1,0 +1,105 @@
+{
+  "T": {
+    "title": "Spread the Word Right - Community Builders of Pecan Grove",
+    "intro": "The town hasn't decided yet. The library asked kids to make a 'What we know so far' poster for its board at school. Pick 3 fact cards. Give each one its source and check its date. Then pick a headline.",
+    "pickHead": "Then pick a headline.",
+    "boardTag": "School library board",
+    "prog": {
+      "$args": [
+        "n",
+        "hd"
+      ],
+      "$parts": [
+        "Cards on the poster: ",
+        " of 3 · Headline: ",
+        "picked",
+        "not yet"
+      ]
+    },
+    "start": "Start",
+    "step": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Step ",
+        " of 2"
+      ]
+    },
+    "cards": "Fact cards",
+    "heads": "Headlines",
+    "slot": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Slot ",
+        " of 3"
+      ]
+    },
+    "tap": "Tap a card to put it on the poster.",
+    "hope": "Hope",
+    "worry": "Worry",
+    "addSrc": "Add its source",
+    "checkDate": "Check the date",
+    "takeOff": "Take it off",
+    "swap": "Swap for the new fact",
+    "source": {
+      "$args": [
+        "s"
+      ],
+      "$parts": [
+        "Source: "
+      ]
+    },
+    "upToDate": "Up to date. Nothing newer.",
+    "oldLine": "Old news from June 2. There is newer news.",
+    "noSrc": "No source. Nobody can show how they know.",
+    "noDate": "No date. Nobody remembers.",
+    "rumor": "This sounds like a rumor. You can take it off.",
+    "next": "Next: pin it up",
+    "card": {
+      "$args": [
+        "w",
+        "tag"
+      ],
+      "$parts": [
+        "Card: ",
+        ", "
+      ]
+    },
+    "at": {
+      "$args": [
+        "b",
+        "n"
+      ],
+      "$parts": [
+        ", slot "
+      ]
+    },
+    "inSlot": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Card in slot "
+      ]
+    },
+    "srcAdded": "Source added",
+    "good": "Good headline! It tells what's on the poster.",
+    "sell": "This headline tells people what to think. A 'What we know' poster tells what's inside, so everyone can make up their own mind.",
+    "ask": "Ask a grown-up: where can we share it?",
+    "aha": "Sharing a fact without its source or date can spread a mistake.",
+    "see": "See my score",
+    "can": "I can share facts with their sources and say what we don't know yet.",
+    "tipRumor": "Next time, add a source to every card. If it has no source, it's a rumor. Leave it off.",
+    "tipSrc": "Next time, add the source to every fact before you pin it up.",
+    "tipDate": "Next time, check the date on every card. Old news can sneak in.",
+    "tipMix": "Next time, show a hope and a worry, so every neighbor feels heard.",
+    "tipHead": "Next time, pick a headline that tells what's inside, not what to think.",
+    "tip100": "Great poster! Try a new round with new cards.",
+    "real": "Make a poster for your class or library, with permission. Every fact gets its source and date. No posting online.",
+    "gu": "For grown-ups: about this stop",
+    "guText": "Kids make a poster with sources and dates, show a hope and a worry, and choose a safe place to share it: family, class, or a library board with permission. No social media, petitions or campaign materials."
+  }
+}

@@ -1,0 +1,92 @@
+{
+  "T": {
+    "intro1": "The neighbors are going to the Planning Board meeting. Help them turn each worry into a clear question.",
+    "ex": [
+      [
+        "'Will it be big?'",
+        " just gets a 'yes'."
+      ],
+      [
+        "'How much water will it use on the hottest day?'",
+        " gets an answer you can use."
+      ]
+    ],
+    "start": "Let's start",
+    "coach": "Tap one tile in each row. Then tap Ask it.",
+    "ask": "Ask it",
+    "over": "Start over",
+    "yourQ": "Your question:",
+    "coachFor": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Turn ",
+        "'s worry into a clear question. Tap one tile in each row, then tap Ask it."
+      ]
+    },
+    "boardK": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Your questions for the Planning Board: ",
+        " of 4"
+      ]
+    },
+    "slotNow": "Your question goes here when you tap Ask it.",
+    "rows": {
+      "start": "1. Start: how you ask",
+      "topic": "2. Topic: what it's about",
+      "detail": "3. Detail: when or where"
+    },
+    "worryN": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Worry ",
+        " of 4"
+      ]
+    },
+    "ans3": "I can really use that question. Thank you!",
+    "ans12": "Good try. Let's make the question fit my worry:",
+    "ans0": "Thanks for trying! Here's how to fix it:",
+    "topicOk": "Topic: yes, that's my worry.",
+    "topicNo": {
+      "$args": [
+        "t"
+      ],
+      "$parts": [
+        "Topic: my worry is about ",
+        "."
+      ]
+    },
+    "startOk": "Start: an open question asks for information, not just yes or no.",
+    "startWill": "Start: 'Will...' just gets a yes or a no. Try How, When, Who or What happens if.",
+    "detOk": "Detail: now it's specific.",
+    "detNone": "Detail: add when or where to make it specific.",
+    "detTopic": "Detail: choose my worry's topic first, then add a detail that fits.",
+    "detNo": {
+      "$args": [
+        "d"
+      ],
+      "$parts": [
+        "Detail: that one doesn't fit my worry. Try '",
+        "'."
+      ]
+    },
+    "next": "Next worry",
+    "see": "See my score",
+    "fix": "Fix my question",
+    "fixCoach": "Use the tips to change your question. The tile with the dashed ring is one to try. Then tap Ask it.",
+    "can": "I can turn a worry into a clear question.",
+    "tipTopic": "Next time, read the worry again and pick its topic.",
+    "tipWill": "Next time, choose a start that asks for information, not just yes or no.",
+    "tipDetail": "Next time, add a detail that fits: when or where.",
+    "tip100": "Great questions! Try a new round.",
+    "real": "Write one good question about your town on paper. Ask a grown-up to help you find who could answer it.",
+    "gu": "Ask a grown-up",
+    "guText": "Open, specific questions ('How much water on the hottest, driest day, and from where?') get more useful answers than yes/no ones. The hub's '30 questions to ask' list has more examples you can take to a public meeting."
+  }
+}

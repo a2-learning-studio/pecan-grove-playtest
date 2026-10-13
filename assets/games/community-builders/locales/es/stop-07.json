@@ -1,0 +1,97 @@
+{
+  "T": {
+    "title": "Habla con respeto - Constructores de comunidad de Pecan Grove",
+    "intro": "Pronto será la audiencia del Concejo del pueblo. Antes, un adulto puede enviar un comentario por escrito a los grupos que deciden. Arma una tarjeta corta y respetuosa. No se envía nada. Se la muestras a un adulto.",
+    "start": "Empezar",
+    "home": "Tu casa",
+    "step": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Paso ",
+        " de 2"
+      ]
+    },
+    "lead": "¿Y tú qué quieres decir? Arma tu propia tarjeta sobre un tema, el que tú quieras.",
+    "tap": "Toca una ficha en cada fila, todas sobre ese tema. Puedes cambiar de idea.",
+    "rows": {
+      "n": "Me di cuenta de que…",
+      "w": "Me pregunto…",
+      "i": "Una idea…"
+    },
+    "stem": {
+      "n": "Me di cuenta de que",
+      "w": "Me pregunto",
+      "i": "Una idea:"
+    },
+    "topicIs": {
+      "$args": [
+        "t"
+      ],
+      "$parts": [
+        "Tema: "
+      ]
+    },
+    "hello": "¡Hola!",
+    "thanks": "Gracias por escuchar.",
+    "from": "De: un niño o una niña de Pecan Grove",
+    "ready": "Mi tarjeta está lista",
+    "who": "¿Quién decide sobre tu idea? Toca para quién es tu tarjeta.",
+    "cardFor": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Tarjeta para: "
+      ]
+    },
+    "right": "¡Sí! Este grupo decide sobre tu idea.",
+    "not": "Este no.",
+    "another": "Prueba otro.",
+    "tried": "Ya lo probaste",
+    "here": "Este es el grupo que decide sobre tu idea.",
+    "liveRight": "Grupo correcto",
+    "liveNot": "Este no",
+    "to": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Para: "
+      ]
+    },
+    "parts": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Tu tarjeta tiene ",
+        " de 3 partes. Las tres partes ayudan a que te entiendan."
+      ]
+    },
+    "topics": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Tu tarjeta tiene ",
+        " temas. Una tarjeta sobre un solo tema se escucha mejor."
+      ]
+    },
+    "aha": "Una tarjeta corta sobre un solo tema, para el grupo que lo decide, se escucha mejor que una lista larga.",
+    "sent": "No se envió nada. Tu tarjeta se queda en esta pantalla.",
+    "print": "Imprimir",
+    "show": "Muéstraselo a un adulto",
+    "see": "Ver mi puntaje",
+    "guTitle": "Para adultos",
+    "guText": "Los niños arman un comentario de tres partes (me di cuenta, me pregunto, una idea) y eligen quién decide ese tema. El juego no envía nada. Si usted está de acuerdo con la tarjeta de su hijo o hija, puede enviarla como carta o comentario público por escrito. Para saber cómo se reciben los comentarios por escrito antes de una audiencia pública, pregunte en la secretaría de su ciudad o condado.",
+    "can": "Puedo decir lo que noté, preguntar y compartir una idea, con respeto.",
+    "tipParts": "La próxima vez, completa las tres partes: me di cuenta, me pregunto y una idea.",
+    "tipTopic": "La próxima vez, usa un solo tema en las tres partes. Un solo tema se escucha mejor.",
+    "tipWho": "La próxima vez, pregúntate: ¿quién decide sobre mi idea?",
+    "tip100": "¡Gran tarjeta! Prueba una nueva ronda con otro tema.",
+    "real": "Imprime tu tarjeta y muéstrasela a un adulto. Si está de acuerdo, puede enviar tu idea en una carta o un comentario escrito antes de una reunión.",
+    "gu": "Para adultos: sobre esta parada"
+  }
+}

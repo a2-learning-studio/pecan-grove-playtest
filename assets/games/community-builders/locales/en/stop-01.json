@@ -1,0 +1,69 @@
+{
+  "T": {
+    "lead": "Big changes often start with small signs.",
+    "start": "Start looking",
+    "story": "The Miller family wants to sell their old farm by the creek. A company wants to build a data center there.",
+    "todayMore": "Some are signs of the project. Some are just everyday changes.",
+    "aboutH": "About this module",
+    "about": "Notice the Signs is stop 1 of Community Builders of Pecan Grove, a free bilingual game for ages 8-14. Players compare a road last month and today and find small signs that a big project may be coming. They learn that not every change is about the project.",
+    "past": "Last month",
+    "today": "Today",
+    "pastLine": "This is the road last month. Now tap Today.",
+    "todayLine": "Tap only the new things that could be about the farm project.",
+    "done": "I'm done looking",
+    "signT": "A sign of change!",
+    "askLine": "Ask a grown-up: what could this mean?",
+    "found": "Found",
+    "not": "Not the project",
+    "missed": "Missed",
+    "keep": "Keep looking",
+    "every": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "That's ",
+        "."
+      ]
+    },
+    "everyRest": "Good eyes, but it isn't about the farm. Not every change is about the project.",
+    "aFound": ", found",
+    "aNot": ", not the project",
+    "aMissed": ", missed",
+    "foundN": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Signs found: ",
+        " of 6"
+      ]
+    },
+    "all6": "You found all 6 signs!",
+    "review": "Here are the signs you didn't find. Tap one to read it.",
+    "seeScore": "See my score",
+    "can": "I can notice when something in my town is changing.",
+    "everyN": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Everyday changes tapped: "
+      ]
+    },
+    "tipMiss": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Next time, look for ",
+        " too!"
+      ]
+    },
+    "tipEvery": "Next time, ask yourself: is this new thing about the farm's land?",
+    "tip100": "Sharp eyes! Try a new round.",
+    "real": "With a grown-up, look for one sign of change on your street or in the local news this week. Talk about what it might mean.",
+    "ask": "Ask a grown-up",
+    "guText": "Kids practice noticing change without jumping to conclusions. In Georgia, a rezoning usually comes with a public notice in the newspaper, and often a sign on the land, before the public hearing. Ask together: what is changing, and where can we read more?"
+  }
+}

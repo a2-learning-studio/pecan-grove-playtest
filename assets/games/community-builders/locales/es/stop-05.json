@@ -1,0 +1,96 @@
+{
+  "S": {
+    "title": "Mapa de lo que puede cambiar - Constructores de comunidad de Pecan Grove",
+    "intro1": "Ya publicaron el plano de la granja. La Junta de Planificación se reúne pronto.",
+    "intro2": "Cada cambio hace ondas, como una piedra en un estanque. Síguelas, cerca y lejos.",
+    "start": "Empezar",
+    "change": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Cambio ",
+        " de 5"
+      ]
+    },
+    "step": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Paso ",
+        " de 2"
+      ]
+    },
+    "kind": {
+      "help": "Cambio que ayuda",
+      "hard": "Cambio difícil"
+    },
+    "q": [
+      "¿Adónde llega primero? Toca un lugar.",
+      "¿Quién podría sentirlo después? Toca a un vecino."
+    ],
+    "ok": [
+      "¡Sí! Puede llegar ahí.",
+      "¡Sí! Le puede llegar."
+    ],
+    "wrong": [
+      "Buena idea. Puede llegar ahí después, pero busca adónde llega primero. Prueba otra vez.",
+      "Buena idea. Puede que le llegue un poco, pero busca a quién le llega más. Prueba otra vez."
+    ],
+    "shown": [
+      "Mira adónde puede llegar.",
+      "Mira a quién le puede llegar."
+    ],
+    "tried": "Ya probaste",
+    "also": "También está bien:",
+    "planTag": "Plano de la granja",
+    "end": "¡Mira qué lejos llegaron los cambios!",
+    "see": "Ver mi puntaje",
+    "live": {
+      "$args": [
+        "n",
+        "s"
+      ],
+      "$parts": [
+        "Cambio ",
+        " de 5, paso ",
+        " de 2"
+      ]
+    },
+    "place": {
+      "$args": [
+        "p"
+      ],
+      "$parts": [
+        ", lugar"
+      ]
+    },
+    "can": "Puedo buscar cambios lejos del edificio también.",
+    "tip100": "¡Gran mapa! Prueba una nueva ronda con cambios nuevos.",
+    "tipHelp": "La próxima vez, sigue los cambios que ayudan tan lejos como los difíciles.",
+    "tipHard": "La próxima vez, sigue los cambios difíciles tan lejos como los que ayudan.",
+    "tipCard": {
+      "$args": [
+        "c"
+      ],
+      "$parts": [
+        "La próxima vez, sigue '",
+        "' hasta el final: dónde llega primero y quién vive o trabaja ahí."
+      ]
+    },
+    "landed": {
+      "$args": [
+        "p"
+      ],
+      "$parts": [
+        "Llegó a: "
+      ]
+    },
+    "tipStep2": "La próxima vez, pregúntate: ¿quién vive, trabaja o juega cerca de ese lugar?",
+    "tipPaths": "La próxima vez, sigue los caminos punteados lejos de la granja.",
+    "real": "Con un adulto, dibuja un mapa de tu vecindario. Marca los lugares que un edificio grande podría cambiar, para bien o con dificultades.",
+    "gu": "Para adultos: sobre esta parada",
+    "guText": "Algunos efectos llegan lejos del terreno: recibos de luz, rentas, presupuestos escolares, un arroyo río abajo o las calles por donde pasan los autobuses escolares. Los niños siguen cada cambio hasta donde llega, ya sea que ayude o que sea difícil. Los cambios buenos y los difíciles valen los mismos puntos."
+  }
+}

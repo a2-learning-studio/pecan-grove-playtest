@@ -1,0 +1,73 @@
+/* Shared colour, type, spacing, motion and focus tokens. */
+:root {
+  --pg-stage: #163a30;
+  --pg-stage-raised: #1e5a47;
+  --pg-paper: #f7f4ee;
+  --pg-card: #ffffff;
+  --pg-sunken: #efeae1;
+  --pg-ink: #163a30;
+  --pg-ink-muted: #33443d;
+  --pg-line: #cdc3b3;
+  --pg-clay: #a9492a;
+  --pg-clay-ink: #94401f;
+  --pg-clay-soft: #f6e4da;
+  --pg-pine-soft: #e9f2ee;
+  --pg-gold: #e69f00;
+  --pg-focus: #13243b;
+  --pg-focus-stage: #f0b43c;
+  --pg-chapter-1: #56b4e9;
+  --pg-chapter-2: #e69f00;
+  --pg-chapter-3: #009e73;
+  --pg-chapter-4: #cc79a7;
+  --pg-pecan: #8a5a3b;
+  --pg-backdrop: rgba(10, 26, 21, 0.55);
+  --pg-font-body: var(--a2-font-body, system-ui, sans-serif);
+  --pg-font-display: var(--a2-font-display, system-ui, sans-serif);
+  --pg-type-small: 0.8125rem;
+  --pg-type-body: 1.125rem;
+  --pg-type-title: clamp(1.5rem, 3.5cqw, 2.75rem);
+  --pg-space-1: 4px;
+  --pg-space-2: 8px;
+  --pg-space-3: 12px;
+  --pg-space-4: 16px;
+  --pg-space-5: 24px;
+  --pg-space-6: 32px;
+  --pg-radius-1: 12px;
+  --pg-radius-2: 16px;
+  --pg-radius-3: 24px;
+  --pg-shadow-1:
+    0 1px 2px rgba(22, 58, 48, 0.18), 0 3px 8px -2px rgba(22, 58, 48, 0.26);
+  --pg-shadow-2:
+    0 2px 4px rgba(22, 58, 48, 0.14), 0 12px 28px -8px rgba(22, 58, 48, 0.42);
+  --pg-shadow-3: 0 30px 70px -18px rgba(10, 26, 21, 0.6);
+  --dur-1: 120ms;
+  --dur-2: 200ms;
+  --dur-3: 320ms;
+  --pg-ease: cubic-bezier(0.16, 1, 0.3, 1);
+}
+.cb {
+  --cb-stage: var(--pg-stage);
+  --cb-stage-2: var(--pg-stage-raised);
+  --cb-on-stage: var(--pg-paper);
+  --cb-board: var(--pg-paper);
+  --cb-card: var(--pg-card);
+  --cb-sunken: var(--pg-sunken);
+  --cb-line-strong: var(--pg-line);
+  --cb-ink: var(--pg-ink);
+  --cb-ink-2: var(--pg-ink-muted);
+  --cb-clay: var(--pg-clay);
+  --cb-clay-ink: var(--pg-clay-ink);
+  --cb-clay-soft: var(--pg-clay-soft);
+  --cb-pine-soft: var(--pg-pine-soft);
+  --cb-focus: var(--pg-focus);
+  --cb-focus-on-stage: var(--pg-focus-stage);
+  --cb-focus-ring: 3px solid var(--cb-focus);
+  --cb-text-scale: 1;
+  --cb-c1: var(--pg-chapter-1);
+  --cb-c2: var(--pg-chapter-2);
+  --cb-c3: var(--pg-chapter-3);
+  --cb-c4: var(--pg-chapter-4);
+  --cb-shadow-1: var(--pg-shadow-1);
+  --cb-shadow-2: var(--pg-shadow-2);
+  --cb-shadow-3: var(--pg-shadow-3);
+}

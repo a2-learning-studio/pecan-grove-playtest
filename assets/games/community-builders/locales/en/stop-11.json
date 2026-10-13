@@ -1,0 +1,150 @@
+{
+  "S": {
+    "title": "Weigh the Trade-offs - Community Builders of Pecan Grove",
+    "intro": [
+      "The hearing is over. Before the Town Council decides, it weighs four paths.",
+      "Every path has good parts and hard parts. Help the town see them all.",
+      "There's no wrong path. Points come from weighing well."
+    ],
+    "start": "Start",
+    "parts": {
+      "good": "Good parts",
+      "hard": "Hard parts"
+    },
+    "kind": {
+      "good": "Good part",
+      "hard": "Hard part"
+    },
+    "changes": "Changes",
+    "bowlN": {
+      "good": {
+        "$args": [
+          "n"
+        ],
+        "$parts": [
+          " good"
+        ]
+      },
+      "hard": {
+        "$args": [
+          "n"
+        ],
+        "$parts": [
+          " hard"
+        ]
+      }
+    },
+    "p1": "Tap each signpost to weigh its good parts and hard parts.",
+    "weighed": "Weighed",
+    "weighedL": "weighed",
+    "weighedN": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Paths weighed: ",
+        " of 4"
+      ]
+    },
+    "choose": "Choose this path",
+    "ask": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "You weighed ",
+        " of 4 paths. Weighing every path helps you see the whole picture."
+      ]
+    },
+    "more": "Weigh more paths",
+    "yours": "Your path",
+    "chose": {
+      "$args": [
+        "p"
+      ],
+      "$parts": [
+        "You chose: ",
+        ". Now look closely at its cards."
+      ]
+    },
+    "q": [
+      "Who does this path help? Tap a neighbor.",
+      "Who could find this path hard? Tap a neighbor."
+    ],
+    "nb": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        ", neighbor"
+      ]
+    },
+    "ok": [
+      {
+        "$args": [
+          "n"
+        ],
+        "$parts": [
+          "Yes! A good part reaches ",
+          "."
+        ]
+      },
+      {
+        "$args": [
+          "n"
+        ],
+        "$parts": [
+          "Yes! A hard part reaches ",
+          "."
+        ]
+      }
+    ],
+    "wrong": [
+      {
+        "$args": [
+          "n"
+        ],
+        "$parts": [
+          "Good thinking. In this round, the good parts don't reach ",
+          " much. Read them again."
+        ]
+      },
+      {
+        "$args": [
+          "n"
+        ],
+        "$parts": [
+          "Good thinking. In this round, the hard parts don't reach ",
+          " much. Read them again."
+        ]
+      }
+    ],
+    "tried": "Tried",
+    "shown": [
+      "Here is who it helps:",
+      "Here is who could find it hard:"
+    ],
+    "p3": "Add one change that makes a hard part easier. Tap a change.",
+    "okChg": "Good change! It makes this hard part easier:",
+    "easier": "Easier now",
+    "idea": [
+      "That's a real idea! It helps a different hard part:",
+      "Look at your path's hard parts and try again."
+    ],
+    "fits": "Here is a change that fits:",
+    "finish": "Finish",
+    "aha": "Every path, even 'don't build' or 'wait', helps someone and is hard for someone.",
+    "see": "See my score",
+    "can": "I can see that every plan has good parts and hard parts.",
+    "tipWeigh": "Next time, weigh all four paths before you choose.",
+    "tipGood": "Next time, read the good parts slowly. Who would be glad?",
+    "tipHard": "Next time, read the hard parts slowly. Who would feel them?",
+    "tipChange": "Next time, pick a change that fits one of your path's hard parts.",
+    "tip100": "Great weighing! Try a new round with a different path.",
+    "real": "Choose something your family is deciding, like a weekend plan. Name one good part and one hard part of each choice.",
+    "askT": "Ask a grown-up",
+    "askQ": "When you make a big choice, how do you weigh the good parts and the hard parts?",
+    "gu": "For grown-ups: about this stop",
+    "guText": "There are four paths: build as planned, build with changes, don't build here, or wait for more information. Each has gains and costs, and each can earn full points. The score rewards exploring every path and naming who gains and who finds it hard. It never rewards the path chosen."
+  }
+}

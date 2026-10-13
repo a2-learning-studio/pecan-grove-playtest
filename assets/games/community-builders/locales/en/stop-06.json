@@ -1,0 +1,57 @@
+{
+  "T": {
+    "hall": "Town Hall",
+    "intro": "Welcome to Town Hall! The Planning Board met last week. The Town Council hearing is next. Neighbors have questions. Help each one find the right desk.",
+    "start": "Start",
+    "qn": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Question ",
+        " of 5"
+      ]
+    },
+    "who": "Who can help? Tap the desk that decides this.",
+    "desk": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Desk: "
+      ]
+    },
+    "speakAt": "People can speak at:",
+    "howK": "How the farm plan gets decided",
+    "ringAt": {
+      "$args": [
+        "st"
+      ],
+      "$parts": [
+        "This desk's step is circled below: ",
+        "."
+      ]
+    },
+    "boardPast": "People could speak at the Planning Board meeting. It already happened, so the Town Council hearing is next.",
+    "written": "a written comment (with a grown-up)",
+    "yes": "Yes! This desk can help.",
+    "wrong": "Not this desk. Try another one.",
+    "tried": "Tried",
+    "hereIs": "Here is the desk for this question.",
+    "nextQ": "Next question",
+    "finish": "Finish",
+    "rightDesk": "Right desk",
+    "notThis": "Not this desk",
+    "canSpeak": "People can speak",
+    "here": "We are here",
+    "aha": "Different helpers decide different parts. The Town Council decides what can be built on the farm, after a public hearing. That is where neighbors' voices count most.",
+    "see": "See my score",
+    "can": "I can find out who decides, and when people can speak.",
+    "tipCouncil": "Next time, remember: the Town Council decides what can be built, after a hearing.",
+    "tipDesk": "Next time, remember this desk:",
+    "tip100": "Great job finding who decides! Try a new round.",
+    "real": "Ask a grown-up: 'Who decides big building plans where we live?' Find out together at the library or on your city or county website.",
+    "gu": "For grown-ups: how it works in Georgia",
+    "guText": "In Fulton County, each city decides zoning inside its limits after a public hearing, and the county decides in the few unincorporated areas left. If land is already zoned for a use, there may be no hearing. Development authorities decide local tax breaks. Large projects also get a regional review that only gives advice. State bodies handle other parts. The Georgia Public Service Commission sets power rates but does not pick sites. Georgia EPD issues air permits for backup generators and permits for large water use. The game uses made-up boards so it stays clear of elections."
+  }
+}

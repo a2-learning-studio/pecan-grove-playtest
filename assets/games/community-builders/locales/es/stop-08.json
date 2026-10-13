@@ -1,0 +1,92 @@
+{
+  "WORDS": {
+    "intro": "La Junta de Planificación se reunió anoche. Ahora dos vecinos no están de acuerdo sobre una parte del plan. El pueblo todavía no ha decidido. ¿Puedes ayudarlos a encontrar algo que les sirva a los dos?",
+    "go": "¡Vamos!",
+    "park": "Parque",
+    "step1": "Paso 1 de 2: Escucha",
+    "step2": "Paso 2 de 2: Busca algo para los dos",
+    "coach1": "Toca a cada vecino para escuchar lo que quiere. Luego pregúntale por qué.",
+    "coach2": "Busca algo que les sirva a los dos. Toca 'Pruébalo' en una tarjeta.",
+    "want": "Lo que quiero",
+    "ask": "Pregunta por qué",
+    "whyK": "Por qué me importa",
+    "heard": "Ya sé por qué",
+    "tryIt": "Pruébalo",
+    "can": "Eso me parece bien.",
+    "hard": {
+      "$args": [
+        "why"
+      ],
+      "$parts": [
+        "Eso se me hace difícil porque ",
+        "."
+      ]
+    },
+    "works": "¡Les sirve a los dos!",
+    "foundOne": "¡Encontraste una! ¿Puedes encontrar otra?",
+    "tried": "Ya la probaste",
+    "hardFor": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Difícil para "
+      ]
+    },
+    "tray": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Opciones que les sirven a los dos: ",
+        " de 2"
+      ]
+    },
+    "end": "¡Los dos vecinos están bien con estas dos ideas!",
+    "see": "Ver mi puntaje",
+    "aha": "Cuando escuchas el porqué, muchas veces puedes encontrar una opción que les sirva a los dos.",
+    "takeaway": "Puedo no estar de acuerdo con respeto y buscar algo que sirva a los dos.",
+    "tipNone": "La próxima vez, pregúntales a los dos vecinos por qué antes de probar una tarjeta.",
+    "tipOne": {
+      "$args": [
+        "aName"
+      ],
+      "$parts": [
+        "La próxima vez, pregúntale también ",
+        " por qué, antes de probar una tarjeta."
+      ]
+    },
+    "tipCareful": "La próxima vez, vuelve a leer los dos porqués antes de probar otra tarjeta.",
+    "tip100": "¡Escuchaste muy bien y tuviste buenas ideas! Prueba una nueva ronda.",
+    "real": "Cuando no estés de acuerdo en casa o en la escuela, prueba: 'Te escucho. ¿Buscamos algo que nos sirva a los dos?'",
+    "askGrown": "Pregúntale a un adulto",
+    "askGrownText": "'Cuéntame de una vez que encontraste algo que les sirvió a los dos.'",
+    "gu": "Para adultos",
+    "guText": "Los niños escuchan la razón de cada vecino antes de buscar opciones que los dos acepten, como el paso de '¿hay un plan con el que todos podamos vivir?' de los juegos de deliberación. Estar en desacuerdo es normal; la habilidad es seguir con respeto y curiosidad. Cada ronda trata de una parte pequeña de un plan, para que a los dos vecinos les pueda ir bien. Las tarjetas se parecen a opciones que pueblos reales han usado o discutido: horarios y rutas para camiones, luces que apuntan hacia abajo, franjas de árboles, medir el ruido antes de construir, revisar pozos y buscar tumbas antiguas antes de excavar, y capacitar a trabajadores locales. Pecan Grove es inventado, y el juego no dice si se debe construir un centro de datos.",
+    "nbLabel": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        ", lo que quiero"
+      ]
+    },
+    "askLabel": {
+      "$args": [
+        "aName"
+      ],
+      "$parts": [
+        "Pregúntale ",
+        " por qué"
+      ]
+    },
+    "tryLabel": {
+      "$args": [
+        "c"
+      ],
+      "$parts": [
+        "Pruébalo: "
+      ]
+    }
+  }
+}

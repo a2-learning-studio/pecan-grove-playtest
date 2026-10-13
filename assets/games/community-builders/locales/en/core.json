@@ -1,0 +1,255 @@
+{
+  "W": {
+    "series": "Community Builders of Pecan Grove",
+    "town": "Pecan Grove, Georgia",
+    "intro1": "You live in Pecan Grove. The Miller family wants to sell their old farm by the creek. A company wants to build a data center there. Learn 15 ways to be a helpful neighbor while your town decides.",
+    "intro2": "There's no one right answer. You earn points for how well you listen, check facts and speak kindly.",
+    "start": "Start the journey",
+    "grownups": "For grown-ups",
+    "close": "Close",
+    "townmap": "Town map",
+    "grownText": "Your game is saved on this device. Notes are sent only after you choose Send. Score sharing starts off. A grown-up can turn it on.",
+    "stop": "Stop",
+    "next": "Next",
+    "soon": "Coming soon",
+    "back": "Back to town map",
+    "nextStop": "Next stop",
+    "moreSoon": "More stops are coming soon!",
+    "journey": "Journey score",
+    "open": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Stops open: ",
+        " of 15"
+      ]
+    },
+    "allStops": "Choose a stop: names and progress",
+    "mapHelp": "Town map. Use the arrow keys to scroll, or choose a stop from the list below.",
+    "journeyHelp": "Your journey adds your best score at each stop. Replaying can improve it; a lower score never takes points away.",
+    "perfect": "Perfect score saved! Try a new round to practice with different examples.",
+    "language": "Español",
+    "languageTitle": "Change language?",
+    "languageNote": "You will keep your place in this stop.",
+    "languageGo": "Continue in Español",
+    "last5": "Last 5 tries",
+    "best": "Best",
+    "library": "Library / Class mode",
+    "who": "Who's playing?",
+    "scoreboard": "Scoreboard",
+    "team": "Team challenge",
+    "leave": "Leave Library mode",
+    "playing": {
+      "$args": [
+        "a"
+      ],
+      "$parts": [
+        "Playing: "
+      ]
+    },
+    "you": "You",
+    "total": "Total",
+    "starsWord": "Stars",
+    "pbest": "Personal best",
+    "improved": "Most improved",
+    "noImproved": "Play a stop again to earn Most improved!",
+    "everyone": "Everyone gets better by playing again.",
+    "clear": "Clear scoreboard",
+    "tapTurtle": "To erase, tap the Turtle.",
+    "sure": "Are you sure? This erases all scores on this device.",
+    "yesErase": "Yes, erase",
+    "noKeep": "No, keep them",
+    "erased": "Scores erased.",
+    "undo": "Undo",
+    "team1": "Team 1, pick your animal.",
+    "team2": "Team 2, pick your animal.",
+    "pickStop": "Pick a stop.",
+    "pass": "Pass the tablet to Team 2.",
+    "bothTeams": "Great work, both teams! Play again and switch who goes first.",
+    "teamLabel": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Team "
+      ]
+    },
+    "score": "Your score",
+    "yourBest": "Your best",
+    "first": "First score saved! Play again to beat it.",
+    "newBest": "New personal best!",
+    "goodStart": "Good start! Every round is practice.",
+    "stars": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        " of 3 stars"
+      ]
+    },
+    "tryReal": "Try it for real (with a grown-up)",
+    "again": "Play again (new round)",
+    "stopStars": {
+      "$args": [
+        "n",
+        "name",
+        "s"
+      ],
+      "$parts": [
+        "Stop ",
+        ", ",
+        ", ",
+        " of 3 stars"
+      ]
+    },
+    "stopSoon": {
+      "$args": [
+        "n",
+        "name"
+      ],
+      "$parts": [
+        "Stop ",
+        ", ",
+        ", coming soon"
+      ]
+    },
+    "stopOpen": {
+      "$args": [
+        "n",
+        "name"
+      ],
+      "$parts": [
+        "Stop ",
+        ", ",
+        ", not played yet"
+      ]
+    },
+    "chapters": [
+      "Notice and understand",
+      "Speak up well",
+      "Find solutions",
+      "Stay involved"
+    ],
+    "footer": "Made with the help of AI tools. Voices made with ElevenLabs AI. Ideas from construction research at Kennesaw State University. v0.1",
+    "part": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Part ",
+        " of 3"
+      ]
+    }
+  },
+  "X": {
+    "parts3": [
+      "Listen",
+      "Find shared wishes",
+      "Who said this?"
+    ],
+    "of": {
+      "$args": [
+        "a",
+        "b"
+      ],
+      "$parts": [
+        " of "
+      ]
+    },
+    "fsOn": "Full screen",
+    "fsOff": "Exit full screen",
+    "restored": "Scores are back.",
+    "voice": "Voice",
+    "voiceOn": "Voice is on",
+    "voiceOff": "Voice is off",
+    "replay": "Hear it again",
+    "settings": "Settings",
+    "setSub": "How the game sounds and looks. This device remembers it.",
+    "keepPlaying": "Keep playing",
+    "on": "On",
+    "off": "Off",
+    "secVoice": "Sound",
+    "auto": "Read new lines by itself",
+    "autoHint": "When this is off, tap the speaker button at the end of a line to hear it.",
+    "vol": "Volume",
+    "speed": "Speed",
+    "speeds": [
+      "Slower",
+      "Normal",
+      "Faster"
+    ],
+    "sample": "Hear a sample",
+    "sampleStop": "Stop the sample",
+    "secCap": "Captions",
+    "words": "Light up each word as it is read",
+    "capBar": "Caption bar",
+    "capHint": "Shows who is talking and what they say, at the bottom of the game.",
+    "capSize": "Caption size",
+    "sizes": [
+      "Small",
+      "Medium",
+      "Large"
+    ],
+    "capOn": "Captions are on",
+    "capOff": "Captions are off",
+    "secHelp": "Screen and helpers",
+    "circles": "Circle what to tap",
+    "circlesHint": "When the voice says what to tap, a marker circle shows where it is.",
+    "calm": "Calm motion",
+    "calmHint": "Fewer things move and slide.",
+    "calmSys": "Your device asks for less motion, so this stays on.",
+    "secKeys": "Keys",
+    "keysNote": "On a computer, these keys work while you play.",
+    "keys": [
+      [
+        "Esc",
+        "Open Settings (the voice waits)"
+      ],
+      [
+        "M",
+        "Voice on or off"
+      ],
+      [
+        "R",
+        "Hear it again"
+      ],
+      [
+        "S",
+        "Stop the voice"
+      ],
+      [
+        "C",
+        "Caption bar on or off"
+      ],
+      [
+        "F",
+        "Full screen"
+      ],
+      [
+        "?",
+        "Show these keys"
+      ],
+      [
+        "Tab",
+        "Move to the next button"
+      ],
+      [
+        "Enter|Space",
+        "Choose"
+      ]
+    ],
+    "reset": "Go back to the usual settings",
+    "resetDone": "Settings are back to the usual.",
+    "guide": "Lucía",
+    "guide2": "Theo",
+    "librarySub": "Set up this device for a classroom or a quiet library.",
+    "libraryQuiet": "Use quiet mode · no voice",
+    "libraryNote": "Quiet mode turns off narration and speaker buttons. All instructions stay on screen. This device remembers the sound setting.",
+    "libraryActive": "Quiet mode is on. You can keep playing without sound.",
+    "libraryGroups": "Players, teams and scores",
+    "libraryGroupsNote": "Animal profiles and team scores belong to this player session. Use New player for a different person's private feedback.",
+    "librarySettings": "Sound and caption settings",
+    "libraryReady": "Keep playing quietly"
+  }
+}

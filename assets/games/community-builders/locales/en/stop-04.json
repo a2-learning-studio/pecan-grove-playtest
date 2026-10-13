@@ -1,0 +1,88 @@
+{
+  "T": {
+    "title": "Fact or Rumor?",
+    "intro": "The Planning Board meets next week. People in town are saying lots of things. Some are checked facts. Some are rumors. Some, nobody knows yet.",
+    "start": "Start sorting",
+    "claim": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Claim ",
+        " of 5"
+      ]
+    },
+    "peek": "Peek at the source",
+    "how": "Tap 'Peek at the source' to see who said it and how they know. Then tap the box where it goes.",
+    "flyerTag": "Flyer",
+    "chatTag": "Family chat",
+    "whoT": "Who told you?",
+    "howT": "How do they know?",
+    "whenT": "When?",
+    "b": {
+      "fact": "Checked fact",
+      "rumor": "Rumor",
+      "dontknow": "We don't know yet"
+    },
+    "put": {
+      "$args": [
+        "b"
+      ],
+      "$parts": [
+        "Put in "
+      ]
+    },
+    "ok": {
+      "fact": "Yes! We checked what the dated proposal says. A proposal is not a promise that it will happen.",
+      "rumor": "Yes! Nobody can show how they know. Rumors come from hopeful and worried people.",
+      "dontknow": "Yes! It isn't studied or decided yet. 'We don't know yet' is an honest answer."
+    },
+    "notQuite": {
+      "$args": [
+        "h"
+      ],
+      "$parts": [
+        "Good try. The source says: "
+      ]
+    },
+    "nextClaim": "Next claim",
+    "sorted": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Claim ",
+        " of 5 sorted."
+      ]
+    },
+    "at": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        ", at the counter"
+      ]
+    },
+    "flyer": "A flyer on the board",
+    "chat": "A message in the family chat",
+    "can": "I can check who said it and how they know.",
+    "your5": "Your 5 claims",
+    "tipNb": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Next time, peek first, even when ",
+        " tells you."
+      ]
+    },
+    "tipPeek": "Next time, tap 'Peek at the source' before you sort.",
+    "tipRumor": "Next time, if nobody can show how they know, choose Rumor.",
+    "tipDk": "Next time, look for a study or a decision that isn't done yet.",
+    "tipFact": "Next time, check what the source actually proves. A dated proposal tells us what is proposed, not what will happen.",
+    "tip100": "Great checking! Try a new round with new claims.",
+    "real": "Next time you hear 'Everyone says…', ask a grown-up: 'Who said it? How do they know?'",
+    "gu": "For grown-ups: this stop",
+    "guText": "Kids check a claim's source before sorting it as a checked fact, a rumor or 'we don't know yet'. Rumors in the game come from both sides, for example 'the lights will go out' and 'it uses no water at all'. Health effects for a site that isn't built yet go under 'we don't know yet'."
+  }
+}

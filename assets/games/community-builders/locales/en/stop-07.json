@@ -1,0 +1,97 @@
+{
+  "T": {
+    "title": "Speak Up Kindly - Community Builders of Pecan Grove",
+    "intro": "The Town Council hearing is soon. Before it, a grown-up can send a written comment to the helpers who decide. Make a short, kind postcard. Nothing gets sent. You show it to a grown-up.",
+    "start": "Start",
+    "home": "Your home",
+    "step": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Step ",
+        " of 2"
+      ]
+    },
+    "lead": "What do you want to say? Make your own postcard about one topic, any one you like.",
+    "tap": "Tap one tile in each row, all about that topic. You can change your mind.",
+    "rows": {
+      "n": "I noticed…",
+      "w": "I wonder…",
+      "i": "One idea…"
+    },
+    "stem": {
+      "n": "I noticed",
+      "w": "I wonder",
+      "i": "One idea:"
+    },
+    "topicIs": {
+      "$args": [
+        "t"
+      ],
+      "$parts": [
+        "Topic: "
+      ]
+    },
+    "hello": "Hello!",
+    "thanks": "Thank you for listening.",
+    "from": "From: a kid in Pecan Grove",
+    "ready": "My card is ready",
+    "who": "Who decides your idea? Tap who your card is for.",
+    "cardFor": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Card for: "
+      ]
+    },
+    "right": "Yes! This helper decides your idea.",
+    "not": "Not this one.",
+    "another": "Try another one.",
+    "tried": "Tried",
+    "here": "Here is who decides your idea.",
+    "liveRight": "Right helper",
+    "liveNot": "Not this one",
+    "to": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "To: "
+      ]
+    },
+    "parts": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Your card has ",
+        " of 3 parts. All three parts help people understand you."
+      ]
+    },
+    "topics": {
+      "$args": [
+        "n"
+      ],
+      "$parts": [
+        "Your card has ",
+        " topics. A card about one topic is easier to hear."
+      ]
+    },
+    "aha": "A short card on one topic, sent to the helper who decides it, is easier to hear than a long list.",
+    "sent": "Nothing was sent. Your card stays on this screen.",
+    "print": "Print",
+    "show": "Show a grown-up",
+    "see": "See my score",
+    "guTitle": "For grown-ups",
+    "guText": "Kids build a three-part comment (I noticed, I wonder, one idea) and pick who decides that topic. The game sends nothing. If you agree with your child's card, you can send it yourself as a letter or written public comment. To learn how written comments are accepted before a public hearing, ask your city or county clerk.",
+    "can": "I can say what I noticed, ask, and share one idea, kindly.",
+    "tipParts": "Next time, fill all three parts: I noticed, I wonder and one idea.",
+    "tipTopic": "Next time, keep all three parts on one topic. One topic is easier to hear.",
+    "tipWho": "Next time, ask: who decides my idea?",
+    "tip100": "Great card! Try a new round with a different topic.",
+    "real": "Print your card and show a grown-up. If they agree, they can send your idea as a letter or written comment before a meeting.",
+    "gu": "For grown-ups: about this stop"
+  }
+}
