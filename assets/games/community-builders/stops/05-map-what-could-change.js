@@ -5,67 +5,20 @@
    Words, cards and scoring are exact from "05 - map-what-could-change.md" (5A-5E). No network, no inputs. */
 (function () {
   "use strict";
-  var CB = window.CommunityBuilders; if (!CB) return;
+  var host = window.CommunityBuilders; if (!host) return;
+  function factory(lifecycle) {
+    var document = lifecycle.document, window = lifecycle.window, Date = lifecycle.Date;
+    var setTimeout = lifecycle.setTimeout, clearTimeout = lifecycle.clearTimeout;
+    var requestAnimationFrame = lifecycle.requestAnimationFrame, cancelAnimationFrame = lifecycle.cancelAnimationFrame;
+    var definition = null, CB = { register: function (value) { definition = value; } };
+
+  "use strict";
+
   var LANG = (document.documentElement.lang || "en").slice(0, 2) === "es" ? "es" : "en";
   var NS = "http://www.w3.org/2000/svg";
 
   /* ── words (exact, from the spec) ──────────────────────────────────── */
-  var S = {
-    en: {
-      title: "Map What Could Change - Community Builders of Pecan Grove",
-      intro1: "The plan for the farm is posted. The Planning Board meets soon.",
-      intro2: "Each change makes ripples, like a stone in a pond. Follow them, near and far.",
-      start: "Start", change: function (n) { return "Change " + n + " of 5"; }, step: function (n) { return "Step " + n + " of 2"; },
-      kind: { help: "Helpful change", hard: "Hard change" },
-      q: ["Where does it land first? Tap a place.", "Who could feel it next? Tap a neighbor."],
-      ok: ["Yes! It can land there.", "Yes! It can reach them."],
-      wrong: ["Good thinking. It may get there later, but look for where it lands first. Try once more.",
-        "Good thinking. It may reach them a little, but look for who feels it most. Try once more."],
-      shown: ["Here is where it can land.", "Here is who it can reach."],
-      tried: "Tried", also: "Also right:", planTag: "Farm plan",
-      end: "Look how far the changes went!", see: "See my score",
-      live: function (n, s) { return "Change " + n + " of 5, step " + s + " of 2"; },
-      place: function (p) { return p + ", place"; },
-      can: "I can look for changes far from the building, too.",
-      tip100: "Great map! Try a new round with new changes.",
-      tipHelp: "Next time, follow the helpful changes as far as the hard ones.",
-      tipHard: "Next time, follow the hard changes as far as the helpful ones.",
-      tipCard: function (c) { return "Next time, follow '" + c + "' all the way: where it lands first, and who lives or works there."; },
-      landed: function (p) { return "Landed at: " + p; },
-      tipStep2: "Next time, ask: who lives, works or plays near that place?",
-      tipPaths: "Next time, follow the dotted paths far from the farm.",
-      real: "With a grown-up, draw a map of your neighborhood. Mark places a big new building could change, both helpful and hard.",
-      gu: "For grown-ups: about this stop",
-      guText: "Some effects land far from the site: power bills, rents, school budgets, a creek downstream, or the roads school buses use. Kids follow each change to where it lands, whether it helps or is hard. Helpful and hard changes are worth the same points, which keeps the game balanced."
-    },
-    es: {
-      title: "Mapa de lo que puede cambiar - Constructores de comunidad de Pecan Grove",
-      intro1: "Ya publicaron el plano de la granja. La Junta de Planificación se reúne pronto.",
-      intro2: "Cada cambio hace ondas, como una piedra en un estanque. Síguelas, cerca y lejos.",
-      start: "Empezar", change: function (n) { return "Cambio " + n + " de 5"; }, step: function (n) { return "Paso " + n + " de 2"; },
-      kind: { help: "Cambio que ayuda", hard: "Cambio difícil" },
-      q: ["¿Adónde llega primero? Toca un lugar.", "¿Quién podría sentirlo después? Toca a un vecino."],
-      ok: ["¡Sí! Puede llegar ahí.", "¡Sí! Le puede llegar."],
-      wrong: ["Buena idea. Puede llegar ahí después, pero busca adónde llega primero. Prueba otra vez.",
-        "Buena idea. Puede que le llegue un poco, pero busca a quién le llega más. Prueba otra vez."],
-      shown: ["Mira adónde puede llegar.", "Mira a quién le puede llegar."],
-      tried: "Ya probaste", also: "También está bien:", planTag: "Plano de la granja",
-      end: "¡Mira qué lejos llegaron los cambios!", see: "Ver mi puntaje",
-      live: function (n, s) { return "Cambio " + n + " de 5, paso " + s + " de 2"; },
-      place: function (p) { return p + ", lugar"; },
-      can: "Puedo buscar cambios lejos del edificio también.",
-      tip100: "¡Gran mapa! Prueba una nueva ronda con cambios nuevos.",
-      tipHelp: "La próxima vez, sigue los cambios que ayudan tan lejos como los difíciles.",
-      tipHard: "La próxima vez, sigue los cambios difíciles tan lejos como los que ayudan.",
-      tipCard: function (c) { return "La próxima vez, sigue '" + c + "' hasta el final: dónde llega primero y quién vive o trabaja ahí."; },
-      landed: function (p) { return "Llegó a: " + p; },
-      tipStep2: "La próxima vez, pregúntate: ¿quién vive, trabaja o juega cerca de ese lugar?",
-      tipPaths: "La próxima vez, sigue los caminos punteados lejos de la granja.",
-      real: "Con un adulto, dibuja un mapa de tu vecindario. Marca los lugares que un edificio grande podría cambiar, para bien o con dificultades.",
-      gu: "Para adultos: sobre esta parada",
-      guText: "Algunos efectos llegan lejos del terreno: recibos de luz, rentas, presupuestos escolares, un arroyo río abajo o las calles por donde pasan los autobuses escolares. Los niños siguen cada cambio hasta donde llega, ya sea que ayude o que sea difícil. Los cambios buenos y los difíciles valen los mismos puntos."
-    }
-  }[LANG];
+  var S = window.CBLocale.read("stop-05", LANG, {en:{"S.change":function (n) { return window.CBLocale.part("stop-05", "en", "S.change", 0) + n + window.CBLocale.part("stop-05", "en", "S.change", 1); },"S.step":function (n) { return window.CBLocale.part("stop-05", "en", "S.step", 0) + n + window.CBLocale.part("stop-05", "en", "S.step", 1); },"S.live":function (n, s) { return window.CBLocale.part("stop-05", "en", "S.live", 0) + n + window.CBLocale.part("stop-05", "en", "S.live", 1) + s + window.CBLocale.part("stop-05", "en", "S.live", 2); },"S.place":function (p) { return p + window.CBLocale.part("stop-05", "en", "S.place", 0); },"S.tipCard":function (c) { return window.CBLocale.part("stop-05", "en", "S.tipCard", 0) + c + window.CBLocale.part("stop-05", "en", "S.tipCard", 1); },"S.landed":function (p) { return window.CBLocale.part("stop-05", "en", "S.landed", 0) + p; }},es:{"S.change":function (n) { return window.CBLocale.part("stop-05", "es", "S.change", 0) + n + window.CBLocale.part("stop-05", "es", "S.change", 1); },"S.step":function (n) { return window.CBLocale.part("stop-05", "es", "S.step", 0) + n + window.CBLocale.part("stop-05", "es", "S.step", 1); },"S.live":function (n, s) { return window.CBLocale.part("stop-05", "es", "S.live", 0) + n + window.CBLocale.part("stop-05", "es", "S.live", 1) + s + window.CBLocale.part("stop-05", "es", "S.live", 2); },"S.place":function (p) { return p + window.CBLocale.part("stop-05", "es", "S.place", 0); },"S.tipCard":function (c) { return window.CBLocale.part("stop-05", "es", "S.tipCard", 0) + c + window.CBLocale.part("stop-05", "es", "S.tipCard", 1); },"S.landed":function (p) { return window.CBLocale.part("stop-05", "es", "S.landed", 0) + p; }}}).S;
 
   /* ── the scene: a crop of the painted town map, y 0.14-0.86 (the farm fields down to the river) ── */
   var Y0 = 0.14, Y1 = 0.86, VB_H = 553;                        // 0.72 x 768 map px; CSS keeps aspect-ratio 1376 / 553
@@ -73,15 +26,15 @@
      Points are fractions of the 1376 x 768 town map. */
   var ORDER = ["chapel", "clinic", "bakery", "school", "river", "community", "wells", "homes"];
   var PL = {
-    farm: { n: ["Old Miller Farm", "Vieja granja Miller"], p: [0.58, 0.27] },
-    chapel: { n: ["Historic Chapel", "Capilla histórica"], p: [0.33, 0.425], ic: "chapel" },
-    clinic: { n: ["Clinic", "Clínica"], p: [0.095, 0.53], ic: "clinic" },
-    bakery: { n: ["Bakery & Store", "Panadería y tienda"], p: [0.71, 0.49], ic: "shop" },
-    school: { n: ["School", "Escuela"], p: [0.50, 0.50], ic: "school" },
-    river: { n: ["Pecan River", "Río Pecan"], p: [0.42, 0.77], ic: "river" },
-    community: { n: ["Community", "Comunidad"], p: [0.27, 0.62], ic: "people" },
-    wells: { n: ["Wells", "Pozos"], p: [0.60, 0.645], ic: "well" },
-    homes: { n: ["Homes", "Casas"], p: [0.84, 0.645], ic: "home" }
+    farm: { n: window.CBLocale.pair("stop-05","bank.b0001"), p: [0.58, 0.27] },
+    chapel: { n: window.CBLocale.pair("stop-05","bank.b0002"), p: [0.33, 0.425], ic: "chapel" },
+    clinic: { n: window.CBLocale.pair("stop-05","bank.b0003"), p: [0.095, 0.53], ic: "clinic" },
+    bakery: { n: window.CBLocale.pair("stop-05","bank.b0004"), p: [0.71, 0.49], ic: "shop" },
+    school: { n: window.CBLocale.pair("stop-05","bank.b0005"), p: [0.50, 0.50], ic: "school" },
+    river: { n: window.CBLocale.pair("stop-05","bank.b0006"), p: [0.42, 0.77], ic: "river" },
+    community: { n: window.CBLocale.pair("stop-05","bank.b0007"), p: [0.27, 0.62], ic: "people" },
+    wells: { n: window.CBLocale.pair("stop-05","bank.b0008"), p: [0.60, 0.645], ic: "well" },
+    homes: { n: window.CBLocale.pair("stop-05","bank.b0009"), p: [0.84, 0.645], ic: "home" }
   };
   /* the farm plan, as a storybook paper sketch: see .cb-story in cb.css */
   var PLAN = '<path class="pp" d="M4 5h56v54H4z"/><rect class="n gr" x="9" y="10" width="17" height="13" rx="1"/><rect class="n grd" x="9" y="26" width="17" height="10" rx="1"/>' +
@@ -95,42 +48,42 @@
   /* ── the 12 change cards (5C, 5D). k: help / hard; first: right places; next: right neighbors ── */
   function C(k, ic, n, first, next, l1, l2) { return { k: k, ic: ic, n: n, first: first, next: next, l1: l1, l2: l2 }; }
   var CARDS = [
-    C("help", "coin", ["New tax money", "Dinero nuevo de impuestos"], ["school", "community"], ["jayden", "ruth"],
-      ["Taxes from the building can help pay for the school and the town.", "Los impuestos del edificio pueden ayudar a pagar la escuela y el pueblo."],
-      ["Jayden could get new classes, and Grandma Ruth could pay less tax on her home.", "Jayden podría tener clases nuevas, y la abuela Ruth podría pagar menos impuestos por su casa."]),
-    C("help", "bread", ["Workers buy lunch in town", "Los trabajadores compran comida en el pueblo"], ["bakery"], ["patel"],
-      ["Building crews eat and shop on Main Street.", "Los equipos de la obra comen y compran en la calle principal."],
-      ["Mr. Patel gets more customers and could hire more people.", "El Sr. Patel tiene más clientes y podría contratar a más gente."]),
-    C("help", "hardhat", ["Building jobs for a year or two", "Trabajos en la obra por uno o dos años"], ["homes"], ["ana", "ruth"],
-      ["Paychecks from the building crew come home to Pecan Grove families.", "Los sueldos de la obra llegan a familias de Pecan Grove."],
-      ["Ana could get more work, and Grandma Ruth's grandson could find a job.", "Ana podría tener más trabajo, y el nieto de la abuela Ruth podría encontrar empleo."]),
-    C("help", "book", ["Classes to train electricians", "Clases para formar electricistas"], ["school"], ["ana", "jayden"],
-      ["The school could add classes for building and power jobs.", "La escuela podría tener clases para trabajos de construcción y electricidad."],
-      ["Ana could teach, and Jayden could learn a trade and work here someday.", "Ana podría enseñar, y Jayden podría aprender un oficio y trabajar aquí algún día."]),
-    C("help", "signal", ["A fast internet line comes to town", "Llega una línea rápida de internet"], ["clinic", "homes"], ["lee", "ruth"],
-      ["The fiber line to the building could also reach the clinic and homes.", "La línea de fibra del edificio también podría llegar a la clínica y a las casas."],
-      ["Ms. Lee could do video visits, and Grandma Ruth could video-call her family.", "La Sra. Lee podría dar consultas por video, y la abuela Ruth podría hacer videollamadas con su familia."]),
-    C("help", "road", ["The plan fixes the farm road", "El plan arregla el camino de la granja"], ["clinic", "bakery"], ["lee", "johnson"],
-      ["A smoother road leads from the farm to Main Street and the clinic.", "Un camino mejor va de la granja a la calle principal y a la clínica."],
-      ["Mr. Johnson's crops get to the store easily, and ambulances reach Ms. Lee's clinic fast.", "Las cosechas del Sr. Johnson llegan fácil a la tienda, y las ambulancias llegan rápido a la clínica de la Sra. Lee."]),
-    C("hard", "droplet", ["Big water use on hot days", "Mucho uso de agua en días de calor"], ["wells", "river"], ["johnson", "lee"],
-      ["On hot days, keeping the computers cool can use a lot of water from wells and the river.", "En días de calor, enfriar las computadoras puede usar mucha agua de los pozos y del río."],
-      ["Mr. Johnson's cows and well, and Ms. Lee's clinic, need water too.", "Las vacas y el pozo del Sr. Johnson, y la clínica de la Sra. Lee, también necesitan agua."]),
-    C("hard", "shovel", ["Mud from digging", "Lodo de la excavación"], ["river", "wells"], ["johnson", "ana"],
-      ["When rain hits bare dirt, mud can wash into the creek, the Pecan River and nearby wells.", "Cuando llueve sobre la tierra pelada, el lodo puede llegar al arroyo, al río Pecan y a pozos cercanos."],
-      ["Mr. Johnson's well and Ana's fishing spot are downstream.", "El pozo del Sr. Johnson y el lugar donde pesca Ana están río abajo."]),
-    C("hard", "truck", ["Lots of trucks", "Muchos camiones"], ["bakery", "school", "clinic"], ["patel", "jayden", "lee"],
-      ["Trucks fill Main Street and the roads that school buses and ambulances use.", "Los camiones llenan la calle principal y las calles que usan los autobuses escolares y las ambulancias."],
-      ["Mr. Patel's shoppers, Jayden's bus and Ms. Lee's ambulances could all take longer for months.", "Los clientes del Sr. Patel, el autobús de Jayden y las ambulancias de la Sra. Lee podrían tardar más por meses."]),
-    C("hard", "moon", ["Bright lights at night", "Luces fuertes de noche"], ["homes"], ["johnson", "lee", "jayden"],
-      ["Lights that stay on all night can shine into nearby homes.", "Las luces prendidas toda la noche pueden alumbrar las casas cercanas."],
-      ["Mr. Johnson lives next door, and Ms. Lee and Jayden's little sister want dark nights.", "El Sr. Johnson vive al lado, y la Sra. Lee y la hermanita de Jayden quieren noches oscuras."]),
-    C("hard", "key", ["Many workers need places to live", "Muchos trabajadores necesitan dónde vivir"], ["homes", "bakery"], ["patel", "ana"],
-      ["Rents for homes and shops near Main Street can go up for a while.", "Las rentas de casas y locales cerca de la calle principal pueden subir por un tiempo."],
-      ["Mr. Patel rents his shop, and Ana rents her home.", "El Sr. Patel renta su local, y Ana renta su casa."]),
-    C("hard", "lightbulb", ["The building needs lots of power", "El edificio necesita mucha electricidad"], ["homes", "bakery"], ["ruth", "patel"],
-      ["New power lines cost money, and power bills for homes and shops can change.", "Las nuevas líneas de luz cuestan dinero, y los recibos de luz de casas y negocios pueden cambiar."],
-      ["Grandma Ruth and Mr. Patel keep a close eye on their power bills.", "La abuela Ruth y el Sr. Patel cuidan mucho sus recibos de luz."])
+    C("help", "coin", window.CBLocale.pair("stop-05","bank.b0010"), ["school", "community"], ["jayden", "ruth"],
+      window.CBLocale.pair("stop-05","bank.b0011"),
+      window.CBLocale.pair("stop-05","bank.b0012")),
+    C("help", "bread", window.CBLocale.pair("stop-05","bank.b0013"), ["bakery"], ["patel"],
+      window.CBLocale.pair("stop-05","bank.b0014"),
+      window.CBLocale.pair("stop-05","bank.b0015")),
+    C("help", "hardhat", window.CBLocale.pair("stop-05","bank.b0016"), ["homes"], ["ana", "ruth"],
+      window.CBLocale.pair("stop-05","bank.b0017"),
+      window.CBLocale.pair("stop-05","bank.b0018")),
+    C("help", "book", window.CBLocale.pair("stop-05","bank.b0019"), ["school"], ["ana", "jayden"],
+      window.CBLocale.pair("stop-05","bank.b0020"),
+      window.CBLocale.pair("stop-05","bank.b0021")),
+    C("help", "signal", window.CBLocale.pair("stop-05","bank.b0022"), ["clinic", "homes"], ["lee", "ruth"],
+      window.CBLocale.pair("stop-05","bank.b0023"),
+      window.CBLocale.pair("stop-05","bank.b0024")),
+    C("help", "road", window.CBLocale.pair("stop-05","bank.b0025"), ["clinic", "bakery"], ["lee", "johnson"],
+      window.CBLocale.pair("stop-05","bank.b0026"),
+      window.CBLocale.pair("stop-05","bank.b0027")),
+    C("hard", "droplet", window.CBLocale.pair("stop-05","bank.b0028"), ["wells", "river"], ["johnson", "lee"],
+      window.CBLocale.pair("stop-05","bank.b0029"),
+      window.CBLocale.pair("stop-05","bank.b0030")),
+    C("hard", "shovel", window.CBLocale.pair("stop-05","bank.b0031"), ["river", "wells"], ["johnson", "ana"],
+      window.CBLocale.pair("stop-05","bank.b0032"),
+      window.CBLocale.pair("stop-05","bank.b0033")),
+    C("hard", "truck", window.CBLocale.pair("stop-05","bank.b0034"), ["bakery", "school", "clinic"], ["patel", "jayden", "lee"],
+      window.CBLocale.pair("stop-05","bank.b0035"),
+      window.CBLocale.pair("stop-05","bank.b0036")),
+    C("hard", "moon", window.CBLocale.pair("stop-05","bank.b0037"), ["homes"], ["johnson", "lee", "jayden"],
+      window.CBLocale.pair("stop-05","bank.b0038"),
+      window.CBLocale.pair("stop-05","bank.b0039")),
+    C("hard", "key", window.CBLocale.pair("stop-05","bank.b0040"), ["homes", "bakery"], ["patel", "ana"],
+      window.CBLocale.pair("stop-05","bank.b0041"),
+      window.CBLocale.pair("stop-05","bank.b0042")),
+    C("hard", "lightbulb", window.CBLocale.pair("stop-05","bank.b0043"), ["homes", "bakery"], ["ruth", "patel"],
+      window.CBLocale.pair("stop-05","bank.b0044"),
+      window.CBLocale.pair("stop-05","bank.b0045"))
   ];
 
   /* ── authored icons: 24-unit grid, one 2px round stroke (same family as the shell's api.IC) ── */
@@ -164,7 +117,8 @@
   CB.register({ id: "map-what-could-change", steps: [null, null, null, null, null], css: "05-map-what-could-change.css", run: run });
 
   function run(api, stop) {
-    var h = api.h, t2 = api.t2, L = api.L, NB = api.NB, REDUCED = api.REDUCED;
+    function reduced() { return api.motionAllowed ? !api.motionAllowed() : api.REDUCED; }
+    var h = api.h, t2 = api.t2, L = api.L, NB = api.NB;
     document.title = S.title;                                  // spec's exact page title (the shell's separator is " · ")
     var DOTS = [null, null, null, null, null];
 
@@ -172,7 +126,7 @@
       var s = document.createElementNS(NS, "svg");
       s.setAttribute("viewBox", "0 0 24 24"); s.setAttribute("aria-hidden", "true"); s.setAttribute("focusable", "false");
       s.setAttribute("class", "cb-ico cb-s05-i" + (cls ? " " + cls : ""));
-      s.innerHTML = ICONS[name] || api.IC[name];               // constant, authored markup only
+      host.setAuthoredMarkup(s, ICONS[name] || api.IC[name]);               // constant, authored markup only
       return s;
     }
     function sv(tag, attrs) { var e = document.createElementNS(NS, tag); for (var k in attrs) e.setAttribute(k, attrs[k]); return e; }
@@ -207,7 +161,7 @@
     var ids = draw();
     if (T && T.phase === "A") T.s05 = ids.slice();
     var round = ids.map(function (i) { return { i: i, c: CARDS[i], st: [{ tried: [], res: null, pick: null }, { tried: [], res: null, pick: null }] }; });
-    var ci = 0, step = 0, drawn = {}, dropped = -1, lineNew = {}, finished = false;
+    var ci = 0, step = 0, drawn = {}, dropped = -1, lineNew = {}, finished = false, phase = "intro", feedbackKind = null;
     var PTS = { first: 10, second: 5, shown: 0 };
     /* a double-tap on Start or Next must not land its second click on the place or neighbor drawn under the finger.
        Pointer clicks (detail > 0) within GHOST ms of a new screen are ignored; keyboard clicks (detail 0) never are. */
@@ -222,7 +176,7 @@
       var el = panel && panel.getBoundingClientRect().height + barH + 16 <= vh ? panel : cardEl;
       el.style.setProperty("scroll-margin-bottom", barH + "px");
       el.style.setProperty("scroll-margin-top", "16px");
-      el.scrollIntoView({ block: "nearest", behavior: REDUCED ? "auto" : "smooth" });
+      el.scrollIntoView({ block: "nearest", behavior: reduced() ? "auto" : "smooth" });
     }
     /* plates on the map: a two-line label shrinks to its widest line, so no empty space is left beside it */
     function fitPlates() {
@@ -262,11 +216,11 @@
       } else picksUpTo(5).forEach(function (p) { trails.push({ id: p.id }); });
       trails.forEach(function (tr) {
         var p = sv("path", { d: pathFor(tr.id), "class": "cb-s05-trail" + (tr.old ? " is-old" : "") });
-        if (tr.key && !drawn[tr.key] && !REDUCED) { p.setAttribute("data-new", tr.key); p.setAttribute("data-delay", String(tr.delay || 0)); }
+        if (tr.key && !drawn[tr.key] && !reduced()) { p.setAttribute("data-new", tr.key); p.setAttribute("data-delay", String(tr.delay || 0)); }
         svg.appendChild(p); lit[tr.id] = 1;
       });
-      if (mode === "play" && !REDUCED && dropped !== ci) svg.classList.add("is-drop");
-      var farm = at(h("div", { "class": "cb-s05-farm" + (mode === "play" && !REDUCED && dropped !== ci ? " is-drop" : ""), "aria-hidden": "true" }, [
+      if (mode === "play" && !reduced() && dropped !== ci) svg.classList.add("is-drop");
+      var farm = at(h("div", { "class": "cb-s05-farm" + (mode === "play" && !reduced() && dropped !== ci ? " is-drop" : ""), "aria-hidden": "true" }, [
         h("span", { "class": "cb-s05-farm__stone cb-story-obj" }, [api.story(STONE)]), h("span", { "class": "cb-s05-farm__name", text: pname("farm") })]), PL.farm.p);
       var pins = ORDER.map(function (id, k) {                  // phone: numbered markers; the list below carries the same number and the name
         return at(h("span", { "class": "cb-s05-pin" + (lit[id] ? " is-lit" : ""), "aria-hidden": "true", text: String(k + 1) }), PL[id].p);
@@ -283,7 +237,7 @@
       return art;
     }
     function playTrails() {                                    // the trail draws itself from the farm to the place
-      if (REDUCED) return;
+      if (reduced()) return;
       [].forEach.call(document.querySelectorAll(".cb-s05-svg [data-new]"), function (p) {
         var key = p.getAttribute("data-new"), delay = +p.getAttribute("data-delay") || 0; drawn[key] = 1;
         var len = p.getTotalLength(); p.style.strokeDasharray = len; p.style.strokeDashoffset = len;
@@ -329,9 +283,9 @@
       [0, 1].forEach(function (s) {
         if (!cur.st[s].res) return;
         var key = ci + ":" + s, fresh = !lineNew[key]; lineNew[key] = 1;
-        lines.push(h("p", { "class": "cb-s05-line" + (fresh && !REDUCED ? " is-new" : "") }, [s ? api.ico("people") : icon("pin"), h("span", { text: t2(s ? c.l2 : c.l1) })]));
+        lines.push(h("p", { "class": "cb-s05-line" + (fresh && !reduced() ? " is-new" : "") }, [s ? api.ico("people") : icon("pin"), h("span", { text: t2(s ? c.l2 : c.l1) })]));
       });
-      return h("article", { "class": "cb-s05-card" + (dropped !== ci && !REDUCED ? " is-new" : "") }, [
+      return h("article", { "class": "cb-s05-card" + (dropped !== ci && !reduced() ? " is-new" : "") }, [
         h("div", { "class": "cb-s05-card__top" }, [cardIcon(c), h("div", { "class": "cb-s05-card__head" }, [kindChip(c.k), h("h3", { "class": "cb-s05-card__name", text: t2(c.n) })])]),
         lines.length ? h("div", { "class": "cb-s05-lines" }, lines) : null]);
     }
@@ -341,6 +295,7 @@
       })), h("span", { text: S.step(step + 1) })]);
     }
     function feedback(cur, s, kind) {                          // kind: ok | wrong | shown
+      feedbackKind = kind;
       var st = cur.st[s], right = s ? cur.c.next : cur.c.first, nameOf = s ? function (id) { return api.nm(nb(id)); } : pname;
       var sentence = kind === "ok" ? S.ok[s] : kind === "wrong" ? S.wrong[s] : S.shown[s];
       var f = api.fb(sentence, kind === "ok"), p = f.querySelector("p"), wrap = h("div", { "class": "cb-s05-fbtext" });
@@ -358,6 +313,7 @@
     /* ── screens ── */
     var CROWD = [[13, 71], [24, 85], [37, 76], [50, 88], [62, 76], [74, 87]];
     function intro() {
+      phase = "intro";
       var faces = NB.map(function (n, k) {
         var f = h("span", { "class": "cb-s05-face" }, [api.img(n.img, "", null, true)]);
         f.style.setProperty("left", CROWD[k][0] + "%"); f.style.setProperty("top", CROWD[k][1] + "%"); return f;
@@ -380,6 +336,7 @@
       api.frame();
     }
     function play(fbo, focusSel) {
+      phase = "play"; if (!fbo) feedbackKind = null;
       var cur = round[ci], st = cur.st[step], done = !!st.res;
       var task = h("div", { "class": "cb-s05-task" }, [stepNo(), api.coach(S.q[step], step ? "people" : "peek"), step === 0 ? places(true) : who()]);
       var playEl = h("div", { "class": "cb-s05-play" + (step ? " is-who" : "") }, [scene("play"), step ? places(false) : null, h("div", { "class": "cb-s05-panel" }, [card(cur), task])]);
@@ -424,6 +381,8 @@
       }));
     }
     function endScreen() {
+      phase = "aha";
+      feedbackKind = null;
       var shownAt = Date.now() + GHOST;
       var see = api.btn(S.see, "cb-btn--go cb-btn--big cb-s05-big cb-s05-see", function (e) { if (!ghost(e, shownAt)) finish(); }, "go", true);
       var playEl = h("div", { "class": "cb-s05-play is-end" }, [scene("end"), places(false),
@@ -436,6 +395,7 @@
 
     /* ── score: 10 steps x (+10 first tap, +5 second tap, 0 shown). Max 100. No time bonus. ── */
     function finish() {
+      phase = "result";
       if (finished) return; finished = true;                   // one save per round, whatever is tapped twice
       var score = 0, miss = [0, 0], help = [], hard = [], worst = null;
       round.forEach(function (r) {
@@ -451,7 +411,7 @@
       var info = api.saveRound(stop.id, score, { lastRound: ids.slice().sort(function (a, b) { return a - b; }) });
       api.endPlay();
       var mini = scene("mini");
-      if (score >= 90 && !REDUCED) mini.classList.add("is-glow");   // 3 stars: the ripple rings glow once
+      if (score >= 90 && !reduced()) mini.classList.add("is-glow");   // 3 stars: the ripple rings glow once
       var sum = h("div", { "class": "cb-s05-sum" }, [h("strong", { text: S.end }), h("div", { "class": "cb-s05-sum__grid" }, [mini, recapList("cb-s05-recap--card")])]);
       var gu = api.btn(S.gu, "cb-btn--quiet cb-s05-gu", function () { api.dialog(S.gu, [h("p", { text: S.guText })], gu); }, "family");
       var sc = api.scoreCard(stop, score, info, tip, S.can, S.real, sum);
@@ -459,6 +419,22 @@
       api.say(api.W.score + " " + score + " / 100");
     }
 
+    if (api.setController) api.setController({
+      snapshot: function () { return { v: 2, phase: phase, ci: ci, step: step, feedback: feedbackKind, drawn: drawn, dropped: dropped, lineNew: lineNew, round: round.map(function(value) { return { id: value.i, steps: value.st.map(function(st){return {tried:st.tried.slice(),res:st.res,pick:st.pick};}) }; }) }; },
+      restore: function (saved) {
+        if (!saved || saved.v !== 2 || !Array.isArray(saved.round) || saved.round.length !== 5) return false;
+        ids = saved.round.map(function(value){return value.id;});
+        round = saved.round.map(function(value){return {i:value.id,c:CARDS[value.id],st:value.steps.map(function(st){return {tried:st.tried.slice(),res:st.res,pick:st.pick};})};});
+        ci = saved.ci; step = saved.step; drawn = saved.drawn || {}; dropped = saved.dropped; lineNew = saved.lineNew || {}; finished = false;
+        if (saved.phase === "result") finish(); else if(saved.phase === "aha") endScreen(); else if(saved.phase === "play") play(saved.feedback ? feedback(round[ci],step,saved.feedback) : null); else intro();
+        return true;
+      }
+    });
     intro();
   }
+
+    return definition;
+  }
+  if (host.defineStop) host.defineStop(factory);
+  else host.register(factory({ document: document, window: window, Date: Date, setTimeout: setTimeout, clearTimeout: clearTimeout, requestAnimationFrame: requestAnimationFrame, cancelAnimationFrame: typeof cancelAnimationFrame === "function" ? cancelAnimationFrame : function () {} }));
 })();
