@@ -7,176 +7,85 @@
    Words are exact from the stop spec (12 - make-a-fair-deal.md). No network, no inputs, no inline styles. */
 (function () {
   "use strict";
-  var CB = window.CommunityBuilders; if (!CB) return;
+  var host = window.CommunityBuilders; if (!host) return;
+  function factory(lifecycle) {
+    var document = lifecycle.document, window = lifecycle.window, Date = lifecycle.Date;
+    var setTimeout = lifecycle.setTimeout, clearTimeout = lifecycle.clearTimeout;
+    var requestAnimationFrame = lifecycle.requestAnimationFrame, cancelAnimationFrame = lifecycle.cancelAnimationFrame;
+    var definition = null, CB = { register: function (value) { definition = value; } };
+
+  "use strict";
+
   var ID = "make-a-fair-deal";
 
   /* ── words (exact) ─────────────────────────────────────────────────── */
-  var WORDS = {
-    en: {
-      title: "Make a Fair Deal - Community Builders of Pecan Grove", crew: "For the building crew",
-      intro1: "The town has not decided yet. Today, neighbors and builders try out one path: building, with changes. Not building, or waiting for more facts, are fair paths too.",
-      intro2: "Pick 4 promises for the deal. Ana answers for the building crew, and she lives here too.",
-      start: "Start",
-      step: function (n) { return "Step " + n + " of 3"; },
-      s1: "Pick 4 promises that answer as many worries as you can.",
-      onDeal: "On the deal",
-      full: "The deal has 4 promises. Take one off first.",
-      onDealN: function (n) { return "Promises on the deal: " + n + " of 4"; },
-      show: "Show the neighbors",
-      answers: "That answers my worry!",
-      notYet: "My worry isn't in the deal yet.",
-      noOne: "A good promise, but no one here worried about that this time.",
-      helped: function (n) { return "Neighbors helped: " + n + " of 6"; },
-      wow: "Wow! That's the most 4 promises can help.",
-      ask: "Ask the builders",
-      cardLabel: function (name, on) { return name + ", promise, " + (on ? "on the deal" : "not on the deal"); },
-      s2: "Ana answers for the building crew.",
-      promiseN: function (n) { return "Promise " + n + " of 4"; },
-      can: "We can do this.",
-      hard: "That one is hard. Can we change it?",
-      pickChange: "Pick a change, or keep it as it was.",
-      keep: "Keep it as it was",
-      changed: "Changed",
-      cant: "We want to help, but we can't promise that one.",
-      note: "A promise no one can keep doesn't protect anyone. A changed promise can still answer the worry.",
-      tooHard: "Still too hard",
-      s3h: "Make it clear",
-      s3: "Tap each fuzzy part to make it clear: who, what and when we check.",
-      who: "Who:", somebody: "Somebody", whoOpts: ["The builders", "The builders, with a helper the town picks"],
-      what: "What:", tryHelp: "Try to help",
-      when: "Check on:", someday: "Someday", whenOpts: ["June 1, every year", "The first day of each season"],
-      clear: "Clear!",
-      clearN: function (n) { return "Clear promises: " + n + " of 4"; },
-      sign: "Sign the deal",
-      signed1: "The deal is written down. Now everyone knows who does what, and when to check.",
-      signed2: "A fair deal is one that neighbors and builders can both keep, written down with a date to check it.",
-      see: "See my score",
-      takeaway: "I can help make promises clear, fair and written down.",
-      tipName: function (n) { return "Next time, find a promise for " + n + " too."; },
-      tipKeep: "Next time, when Ana says a promise is hard, pick a change. It can still answer the worry.",
-      tipClear: "Next time, make every promise clear: who, what and when we check.",
-      tip100: "A fair deal! Try a new round with new worries.",
-      real: "Make a fair deal at home, like sharing chores. Write it down and add a day to check it.",
-      askGrown: "Ask a grown-up", askGrownText: "Which promise would you want in writing, and who should check it?",
-      gu: "For grown-ups: about this stop",
-      guText: "Kids choose promises for a written deal, and the builders must be able to say 'we can do this'. Real communities use permit conditions and community benefit agreements. How binding these are varies, so ask who checks them and what happens if a promise is missed. This stop practices one path, building with changes; not building and waiting for more information are fair choices too."
-    },
-    es: {
-      title: "Haz un trato justo - Constructores de comunidad de Pecan Grove", crew: "Por el equipo de la obra",
-      intro1: "El pueblo todavía no ha decidido. Hoy, los vecinos y los constructores prueban un camino: construir, con cambios. No construir, o esperar más datos, también son caminos justos.",
-      intro2: "Elige 4 promesas para el trato. Ana responde por el equipo de la obra, y ella también vive aquí.",
-      start: "Empezar",
-      step: function (n) { return "Paso " + n + " de 3"; },
-      s1: "Elige 4 promesas que respondan a todas las preocupaciones que puedas.",
-      onDeal: "En el trato",
-      full: "El trato tiene 4 promesas. Quita una primero.",
-      onDealN: function (n) { return "Promesas en el trato: " + n + " de 4"; },
-      show: "Mostrarles el trato a los vecinos",
-      answers: "¡Eso responde a mi preocupación!",
-      notYet: "Mi preocupación todavía no está en el trato.",
-      noOne: "Es una buena promesa, pero esta vez nadie aquí se preocupaba por eso.",
-      helped: function (n) { return "Vecinos ayudados: " + n + " de 6"; },
-      wow: "¡Muy bien! Es lo máximo que pueden ayudar 4 promesas.",
-      ask: "Preguntar a los constructores",
-      cardLabel: function (name, on) { return name + ", promesa, " + (on ? "en el trato" : "fuera del trato"); },
-      s2: "Ana responde por el equipo de la obra.",
-      promiseN: function (n) { return "Promesa " + n + " de 4"; },
-      can: "Sí podemos cumplirlo.",
-      hard: "Esa es difícil. ¿La cambiamos?",
-      pickChange: "Elige un cambio, o déjala como estaba.",
-      keep: "Dejarla como estaba",
-      changed: "Cambiada",
-      cant: "Queremos ayudar, pero esa no la podemos prometer.",
-      note: "Una promesa que nadie puede cumplir no protege a nadie. Una promesa cambiada todavía puede responder a la preocupación.",
-      tooHard: "Todavía es difícil",
-      s3h: "Hazla clara",
-      s3: "Toca cada parte que no está clara para aclararla: quién, qué y cuándo se revisa.",
-      who: "Quién:", somebody: "Alguien", whoOpts: ["Los constructores", "Los constructores, con un ayudante que elija el pueblo"],
-      what: "Qué:", tryHelp: "Tratar de ayudar",
-      when: "Se revisa:", someday: "Algún día", whenOpts: ["El 1 de junio, cada año", "El primer día de cada estación"],
-      clear: "¡Clara!",
-      clearN: function (n) { return "Promesas claras: " + n + " de 4"; },
-      sign: "Firmar el trato",
-      signed1: "El trato está por escrito. Ahora todos saben quién hace qué y cuándo revisar.",
-      signed2: "Un trato justo es uno que tanto los vecinos como los constructores pueden cumplir, por escrito y con una fecha para revisarlo.",
-      see: "Ver mi puntaje",
-      takeaway: "Puedo ayudar a que las promesas sean claras, justas y por escrito.",
-      tipName: function (n) { return "La próxima vez, busca también una promesa para " + n + "."; },
-      tipKeep: "La próxima vez, cuando Ana diga que una promesa es difícil, elige un cambio. Todavía puede responder a la preocupación.",
-      tipClear: "La próxima vez, haz clara cada promesa: quién, qué y cuándo se revisa.",
-      tip100: "¡Un trato justo! Prueba una nueva ronda con otras preocupaciones.",
-      real: "Haz un trato justo en casa, como repartir las tareas. Escríbelo y agrega un día para revisarlo.",
-      askGrown: "Pregúntale a un adulto", askGrownText: "¿Qué promesa te gustaría tener por escrito, y quién debería revisarla?",
-      gu: "Para adultos: sobre esta parada",
-      guText: "Los niños eligen promesas para un acuerdo por escrito, y los constructores deben poder decir 'sí podemos cumplirlo'. Las comunidades reales usan condiciones en los permisos y acuerdos de beneficios comunitarios; qué tan obligatorios son varía, así que pregunten quién los revisa y qué pasa si no se cumple una promesa. Esta parada practica un camino, construir con cambios; no construir y esperar más información también son decisiones justas."
-    }
-  };
+  var WORDS = {en:window.CBLocale.read("stop-12", "en", {en:{"WORDS.step":function (n) { return window.CBLocale.part("stop-12", "en", "WORDS.step", 0) + n + window.CBLocale.part("stop-12", "en", "WORDS.step", 1); },"WORDS.onDealN":function (n) { return window.CBLocale.part("stop-12", "en", "WORDS.onDealN", 0) + n + window.CBLocale.part("stop-12", "en", "WORDS.onDealN", 1); },"WORDS.helped":function (n) { return window.CBLocale.part("stop-12", "en", "WORDS.helped", 0) + n + window.CBLocale.part("stop-12", "en", "WORDS.helped", 1); },"WORDS.cardLabel":function (name, on) { return name + window.CBLocale.part("stop-12", "en", "WORDS.cardLabel", 0) + (on ? window.CBLocale.part("stop-12", "en", "WORDS.cardLabel", 1) : window.CBLocale.part("stop-12", "en", "WORDS.cardLabel", 2)); },"WORDS.promiseN":function (n) { return window.CBLocale.part("stop-12", "en", "WORDS.promiseN", 0) + n + window.CBLocale.part("stop-12", "en", "WORDS.promiseN", 1); },"WORDS.clearN":function (n) { return window.CBLocale.part("stop-12", "en", "WORDS.clearN", 0) + n + window.CBLocale.part("stop-12", "en", "WORDS.clearN", 1); },"WORDS.tipName":function (n) { return window.CBLocale.part("stop-12", "en", "WORDS.tipName", 0) + n + window.CBLocale.part("stop-12", "en", "WORDS.tipName", 1); }},es:{"WORDS.step":function (n) { return window.CBLocale.part("stop-12", "es", "WORDS.step", 0) + n + window.CBLocale.part("stop-12", "es", "WORDS.step", 1); },"WORDS.onDealN":function (n) { return window.CBLocale.part("stop-12", "es", "WORDS.onDealN", 0) + n + window.CBLocale.part("stop-12", "es", "WORDS.onDealN", 1); },"WORDS.helped":function (n) { return window.CBLocale.part("stop-12", "es", "WORDS.helped", 0) + n + window.CBLocale.part("stop-12", "es", "WORDS.helped", 1); },"WORDS.cardLabel":function (name, on) { return name + window.CBLocale.part("stop-12", "es", "WORDS.cardLabel", 0) + (on ? window.CBLocale.part("stop-12", "es", "WORDS.cardLabel", 1) : window.CBLocale.part("stop-12", "es", "WORDS.cardLabel", 2)); },"WORDS.promiseN":function (n) { return window.CBLocale.part("stop-12", "es", "WORDS.promiseN", 0) + n + window.CBLocale.part("stop-12", "es", "WORDS.promiseN", 1); },"WORDS.clearN":function (n) { return window.CBLocale.part("stop-12", "es", "WORDS.clearN", 0) + n + window.CBLocale.part("stop-12", "es", "WORDS.clearN", 1); },"WORDS.tipName":function (n) { return window.CBLocale.part("stop-12", "es", "WORDS.tipName", 0) + n + window.CBLocale.part("stop-12", "es", "WORDS.tipName", 1); }}}).WORDS,es:window.CBLocale.read("stop-12", "es", {en:{"WORDS.step":function (n) { return window.CBLocale.part("stop-12", "en", "WORDS.step", 0) + n + window.CBLocale.part("stop-12", "en", "WORDS.step", 1); },"WORDS.onDealN":function (n) { return window.CBLocale.part("stop-12", "en", "WORDS.onDealN", 0) + n + window.CBLocale.part("stop-12", "en", "WORDS.onDealN", 1); },"WORDS.helped":function (n) { return window.CBLocale.part("stop-12", "en", "WORDS.helped", 0) + n + window.CBLocale.part("stop-12", "en", "WORDS.helped", 1); },"WORDS.cardLabel":function (name, on) { return name + window.CBLocale.part("stop-12", "en", "WORDS.cardLabel", 0) + (on ? window.CBLocale.part("stop-12", "en", "WORDS.cardLabel", 1) : window.CBLocale.part("stop-12", "en", "WORDS.cardLabel", 2)); },"WORDS.promiseN":function (n) { return window.CBLocale.part("stop-12", "en", "WORDS.promiseN", 0) + n + window.CBLocale.part("stop-12", "en", "WORDS.promiseN", 1); },"WORDS.clearN":function (n) { return window.CBLocale.part("stop-12", "en", "WORDS.clearN", 0) + n + window.CBLocale.part("stop-12", "en", "WORDS.clearN", 1); },"WORDS.tipName":function (n) { return window.CBLocale.part("stop-12", "en", "WORDS.tipName", 0) + n + window.CBLocale.part("stop-12", "en", "WORDS.tipName", 1); }},es:{"WORDS.step":function (n) { return window.CBLocale.part("stop-12", "es", "WORDS.step", 0) + n + window.CBLocale.part("stop-12", "es", "WORDS.step", 1); },"WORDS.onDealN":function (n) { return window.CBLocale.part("stop-12", "es", "WORDS.onDealN", 0) + n + window.CBLocale.part("stop-12", "es", "WORDS.onDealN", 1); },"WORDS.helped":function (n) { return window.CBLocale.part("stop-12", "es", "WORDS.helped", 0) + n + window.CBLocale.part("stop-12", "es", "WORDS.helped", 1); },"WORDS.cardLabel":function (name, on) { return name + window.CBLocale.part("stop-12", "es", "WORDS.cardLabel", 0) + (on ? window.CBLocale.part("stop-12", "es", "WORDS.cardLabel", 1) : window.CBLocale.part("stop-12", "es", "WORDS.cardLabel", 2)); },"WORDS.promiseN":function (n) { return window.CBLocale.part("stop-12", "es", "WORDS.promiseN", 0) + n + window.CBLocale.part("stop-12", "es", "WORDS.promiseN", 1); },"WORDS.clearN":function (n) { return window.CBLocale.part("stop-12", "es", "WORDS.clearN", 0) + n + window.CBLocale.part("stop-12", "es", "WORDS.clearN", 1); },"WORDS.tipName":function (n) { return window.CBLocale.part("stop-12", "es", "WORDS.tipName", 0) + n + window.CBLocale.part("stop-12", "es", "WORDS.tipName", 1); }}}).WORDS};
 
   /* ── each neighbor's worry, word for word from Stop 3's line Set A and Set B ── */
   var WORRY = {
     A: {
-      lee: ["I worry the big backup engines could make smoky air. I want to know how often they run.", "Me preocupa que los grandes motores de respaldo echen humo. Quiero saber cada cuánto los prenden."],
-      johnson: ["I worry mud could reach the creek and my well.", "Me preocupa que el lodo llegue al arroyo y a mi pozo."],
-      ana: ["I worry the jobs will end when the building is done.", "Me preocupa que los empleos se acaben cuando terminen de construir."],
-      ruth: ["I worry old graves could be hidden on the farm. I want someone to look before digging.", "Me preocupa que haya tumbas antiguas escondidas en la granja. Quiero que alguien las busque antes de excavar."],
-      patel: ["I worry big trucks will crowd Main Street for months.", "Me preocupa que los camiones grandes llenen la calle principal por meses."],
-      jayden: ["I worry young people will move away to find work.", "Me preocupa que los jóvenes se vayan a buscar trabajo a otro lado."]
+      lee: window.CBLocale.pair("stop-12","bank.b0001"),
+      johnson: window.CBLocale.pair("stop-12","bank.b0002"),
+      ana: window.CBLocale.pair("stop-12","bank.b0003"),
+      ruth: window.CBLocale.pair("stop-12","bank.b0004"),
+      patel: window.CBLocale.pair("stop-12","bank.b0005"),
+      jayden: window.CBLocale.pair("stop-12","bank.b0006")
     },
     B: {
-      lee: ["I worry bright lights all night could shine into bedrooms.", "Me preocupa que las luces fuertes toda la noche alumbren los cuartos."],
-      johnson: ["I worry no one will test my well before they dig.", "Me preocupa que nadie revise mi pozo antes de excavar."],
-      ana: ["I worry the creek could get muddy. I fish there with my kids.", "Me preocupa que el arroyo se llene de lodo. Ahí pesco con mis hijos."],
-      ruth: ["I worry my power bill will go up.", "Me preocupa que suba mi recibo de luz."],
-      patel: ["I worry the rent for my shop will go up while they build.", "Me preocupa que suba la renta de mi local mientras construyen."],
-      jayden: ["I worry a hum at night could keep my little sister awake.", "Me preocupa que un zumbido de noche no deje dormir a mi hermanita."]
+      lee: window.CBLocale.pair("stop-12","bank.b0007"),
+      johnson: window.CBLocale.pair("stop-12","bank.b0008"),
+      ana: window.CBLocale.pair("stop-12","bank.b0009"),
+      ruth: window.CBLocale.pair("stop-12","bank.b0010"),
+      patel: window.CBLocale.pair("stop-12","bank.b0011"),
+      jayden: window.CBLocale.pair("stop-12","bank.b0012")
     }
   };
 
   /* ── the eight promise cards (exact). helps: whose worry the card answers in Set A and Set B.
      ch: the two smaller changes the builders can keep; they help the same neighbors. Codes P1..P8 never show. ── */
   var PROMISES = [
-    { id: "p1", ic: "water", name: ["Water tests", "Pruebas de agua"],
-      line: ["test the wells and the creek before digging and every month after", "revisar los pozos y el arroyo antes de excavar y cada mes después"],
+    { id: "p1", ic: "water", name: window.CBLocale.pair("stop-12","bank.b0013"),
+      line: window.CBLocale.pair("stop-12","bank.b0014"),
       helps: { A: ["johnson"], B: ["johnson", "ana"] },
-      ch: [["test before digging, then every 3 months", "revisar antes de excavar y luego cada 3 meses"],
-        ["test the creek and the wells near the farm every month", "revisar cada mes el arroyo y los pozos cerca de la granja"]] },
-    { id: "p2", ic: "trucks", name: ["Quiet truck hours", "Horario tranquilo para camiones"],
-      line: ["keep big trucks off Main Street, and keep trucks and machines quiet at night", "mantener los camiones grandes fuera de la calle principal, y no hacer ruido con camiones ni máquinas de noche"],
+      ch: [window.CBLocale.pair("stop-12","bank.b0015"),
+        window.CBLocale.pair("stop-12","bank.b0016")] },
+    { id: "p2", ic: "trucks", name: window.CBLocale.pair("stop-12","bank.b0017"),
+      line: window.CBLocale.pair("stop-12","bank.b0018"),
       helps: { A: ["patel"], B: ["jayden"] },
-      ch: [["use Main Street only from 10 a.m. to 2 p.m., and stay quiet at night", "usar la calle principal solo de 10 de la mañana a 2 de la tarde, y no hacer ruido de noche"],
-        ["send most trucks by the farm road, and build a sound wall by the homes", "mandar casi todos los camiones por el camino de la granja, y poner un muro contra el ruido junto a las casas"]] },
-    { id: "p3", ic: "lamp", name: ["Lights pointed down", "Luces hacia abajo"],
-      line: ["point every outside light down, and turn most off at night", "apuntar todas las luces de afuera hacia abajo, y apagar casi todas de noche"],
+      ch: [window.CBLocale.pair("stop-12","bank.b0019"),
+        window.CBLocale.pair("stop-12","bank.b0020")] },
+    { id: "p3", ic: "lamp", name: window.CBLocale.pair("stop-12","bank.b0021"),
+      line: window.CBLocale.pair("stop-12","bank.b0022"),
       helps: { A: [], B: ["lee"] },
-      ch: [["point every light down, and light only where people walk", "apuntar todas las luces hacia abajo, y alumbrar solo donde camina la gente"],
-        ["point every light down, and plant trees on the homes side", "apuntar todas las luces hacia abajo, y sembrar árboles del lado de las casas"]] },
-    { id: "p4", ic: "hiring", name: ["Local hiring and training", "Empleo y capacitación local"],
-      line: ["hire people from Pecan Grove first, and pay for job classes at the school", "contratar primero a gente de Pecan Grove, y pagar clases de oficios en la escuela"],
+      ch: [window.CBLocale.pair("stop-12","bank.b0023"),
+        window.CBLocale.pair("stop-12","bank.b0024")] },
+    { id: "p4", ic: "hiring", name: window.CBLocale.pair("stop-12","bank.b0025"),
+      line: window.CBLocale.pair("stop-12","bank.b0026"),
       helps: { A: ["ana", "jayden"], B: ["patel"] },
-      also: { B: { patel: ["Local workers already have homes, so fewer people need to rent.", "Los trabajadores de aquí ya tienen casa, así que menos gente necesita rentar."] } },
-      ch: [["save half the jobs for local people, and train them on the job", "guardar la mitad de los empleos para gente de aquí, y capacitarla en el trabajo"],
-        ["hire local people first, and help the school start one class", "contratar primero a gente de aquí, y ayudar a la escuela a abrir una clase"]] },
-    { id: "p5", ic: "graves", name: ["Look for graves first", "Buscar tumbas primero"],
-      line: ["have experts look for old graves on the whole farm before any digging", "pedir a expertos que busquen tumbas antiguas en toda la granja antes de excavar"],
+      also: { B: { patel: window.CBLocale.pair("stop-12","bank.b0027") } },
+      ch: [window.CBLocale.pair("stop-12","bank.b0028"),
+        window.CBLocale.pair("stop-12","bank.b0029")] },
+    { id: "p5", ic: "graves", name: window.CBLocale.pair("stop-12","bank.b0030"),
+      line: window.CBLocale.pair("stop-12","bank.b0031"),
       helps: { A: ["ruth"], B: [] },
-      ch: [["look first where they will dig, and look at the rest within a year", "buscar primero donde van a excavar, y el resto en un año"],
-        ["check the old town maps with Grandma Ruth, then have experts look where the maps show", "revisar los mapas viejos del pueblo con la abuela Ruth, y que expertos busquen donde marcan los mapas"]] },
-    { id: "p6", ic: "share", name: ["Pay a fair share", "Pagar su parte justa"],
-      line: ["pay full taxes to the town and school, and pay for their own new power lines", "pagar todos sus impuestos al pueblo y a la escuela, y pagar sus propias líneas de luz nuevas"],
+      ch: [window.CBLocale.pair("stop-12","bank.b0032"),
+        window.CBLocale.pair("stop-12","bank.b0033")] },
+    { id: "p6", ic: "share", name: window.CBLocale.pair("stop-12","bank.b0034"),
+      line: window.CBLocale.pair("stop-12","bank.b0035"),
       helps: { A: [], B: ["ruth"] },
-      also: { B: { ruth: ["Then new power lines aren't added to my bill.", "Así las líneas nuevas no se suman a mi recibo de luz."] } },
-      ch: [["pay for their own power lines, and pay full taxes after 3 years", "pagar sus propias líneas de luz, y pagar todos sus impuestos después de 3 años"],
-        ["pay full taxes, and pay for their power lines over 10 years", "pagar todos sus impuestos, y pagar sus líneas de luz en 10 años"]] },
-    { id: "p7", ic: "jar", name: ["Clean-up money for later", "Dinero para limpiar después"],
-      line: ["save money now to fix any harm to the land or water, and to clean up if it ever closes", "guardar dinero ahora para arreglar daños a la tierra o al agua, y para limpiar si algún día cierra"],
+      also: { B: { ruth: window.CBLocale.pair("stop-12","bank.b0036") } },
+      ch: [window.CBLocale.pair("stop-12","bank.b0037"),
+        window.CBLocale.pair("stop-12","bank.b0038")] },
+    { id: "p7", ic: "jar", name: window.CBLocale.pair("stop-12","bank.b0039"),
+      line: window.CBLocale.pair("stop-12","bank.b0040"),
       helps: { A: ["johnson"], B: ["ana"] },
-      ch: [["save the money little by little over 5 years", "guardar el dinero poco a poco en 5 años"],
-        ["save money for the creek and wells now, and for the clean-up later", "guardar ya dinero para el arroyo y los pozos, y más adelante para limpiar"]] },
-    { id: "p8", ic: "calendar", name: ["A yearly report", "Un informe cada año"],
-      line: ["share a short report every year: how often the backup engines ran, water used, jobs and fixes", "compartir un informe corto cada año: cuántas veces prendieron los motores de respaldo, cuánta agua usaron, empleos y arreglos"],
+      ch: [window.CBLocale.pair("stop-12","bank.b0041"),
+        window.CBLocale.pair("stop-12","bank.b0042")] },
+    { id: "p8", ic: "calendar", name: window.CBLocale.pair("stop-12","bank.b0043"),
+      line: window.CBLocale.pair("stop-12","bank.b0044"),
       helps: { A: ["lee"], B: [] },
-      ch: [["share the report every two years", "compartir el informe cada dos años"],
-        ["share how often the engines ran every year, and the rest every two years", "compartir cada año cuántas veces prendieron los motores, y lo demás cada dos años"]] }
+      ch: [window.CBLocale.pair("stop-12","bank.b0045"),
+        window.CBLocale.pair("stop-12","bank.b0046")] }
   ];
   /* the spec's own check: in either set, four promises can help at most 5 of the 6 neighbors */
   ["A", "B"].forEach(function (s) {
@@ -215,7 +124,7 @@
     var s = document.createElementNS(SVGNS, "svg");
     s.setAttribute("viewBox", "0 0 24 24"); s.setAttribute("aria-hidden", "true"); s.setAttribute("focusable", "false");
     s.setAttribute("class", "cb-ico" + (cls ? " " + cls : ""));
-    s.innerHTML = IC12[name];                                 // constant, authored markup only
+    host.setAuthoredMarkup(s, IC12[name]);                                 // constant, authored markup only
     return s;
   }
 
@@ -234,13 +143,14 @@
     var r = api.rec(stop.id) || {}, team = api.team();
     function other(s) { return s === "A" ? "B" : "A"; }
     var set = team && team.phase === "B" && team.s12Set ? other(team.s12Set)
-      : (r.lastSet === "A" || r.lastSet === "B") ? other(r.lastSet) : (Math.random() < 0.5 ? "A" : "B");
+      : (r.lastSet === "A" || r.lastSet === "B") ? other(r.lastSet) : ((api.rng ? api.rng() : Math.random()) < 0.5 ? "A" : "B");
     if (team && team.phase === "A") team.s12Set = set;
     var deck = api.shuffle(PROMISES).map(function (p) {
       return { p: p, id: p.id, name: t2(p.name), line: cap(t2(p.line)), helps: p.helps[set], on: false,
         hard: false, opts: null, choice: null, who: null, what: false, when: null, open: null, li: null, btn: null, k: 0 };
     });
     var S = { step: 0, picked: [], deal: null, locked: false, note: null, i: 0, hardDone: false, fresh: -1 };
+    var viewPhase = "intro";
     var board, barEl, seatsEl, cardsEl;
     /* a double tap must not reach the control that the re-render puts under the finger (keyboard is never held back) */
     var calmUntil = 0;
@@ -263,7 +173,7 @@
     function bigBtn(label, fn, data, ic) {
       var b = api.btn(label, "cb-btn--go cb-btn--big cb-s12-go", function (e) { if (calm(e)) return; settle(); fn(e); }, ic ? null : "go", true);
       if (ic) b.insertBefore(icon(ic), b.firstChild);
-      b.setAttribute("data-s12", data);
+      b.setAttribute("data-s12", data); b.setAttribute("data-cb-id", "s12-" + data);
       return b;
     }
     function helpedMap(list) { var m = {}; list.forEach(function (c) { c.helps.forEach(function (id) { (m[id] = m[id] || []).push(c); }); }); return m; }
@@ -312,6 +222,7 @@
 
     /* ── 0 · the intro over the Deal Table ───────────────────────────── */
     function intro() {
+      viewPhase = "intro";
       S.step = 0;
       var guests = h("span", { "class": "cb-s12-guests", "aria-hidden": "true" }, NB.filter(function (n) { return n.id !== "ana"; }).map(function (n) {
         return h("span", { "class": "cb-s12-guests__f" }, [api.img(n.img, "")]);
@@ -336,7 +247,7 @@
     }
     function cardEl(c) {
       var lid = "cb-s12-l-" + c.id;
-      c.btn = h("button", { type: "button", "class": "cb-s12-card", "data-s12": "card-" + c.id, "aria-describedby": lid, onclick: function (e) { if (!calm(e)) toggle(c); } }, [
+      c.btn = h("button", { type: "button", "class": "cb-s12-card", "data-s12": "card-" + c.id, "data-cb-id": "s12-card-" + c.id, "aria-describedby": lid, onclick: function (e) { if (!calm(e)) toggle(c); } }, [
         disc(c.p.ic, "cb-s12-card__ic"),
         h("span", { "class": "cb-s12-card__mark", "aria-hidden": "true" }, [api.ico("check")]),
         h("span", { "class": "cb-s12-card__tag", "aria-hidden": "true" }, [api.ico("check"), h("span", { text: T.onDeal })]),
@@ -358,9 +269,10 @@
       return el;
     }
     function step1() {
+      viewPhase = "pick";
       S.step = 1;
       seatsEl = h("ul", { "class": "cb-s12-seats" }, [ANA].concat(NB.filter(function (n) { return n.id !== "ana"; })).map(seatEl));
-      cardsEl = h("ul", { "class": "cb-s12-cards" }, deck.map(cardEl));
+      cardsEl = h("ul", { "class": "cb-s12-cards", "data-cb-choices": "" }, deck.map(cardEl));
       barEl = bar1();
       board = h("div", { "class": "cb-board cb-s12", "data-step": "1", "data-set": set }, [coach(T.s1, "scroll"),
         h("div", { "class": "cb-s12-table" }, [scene(), seatsEl]), cardsEl, barEl]);
@@ -376,6 +288,7 @@
       api.say(T.onDealN(S.picked.length));
     }
     function reveal() {
+      viewPhase = "shown";
       if (S.locked || S.picked.length !== 4) return;
       S.locked = true; S.deal = S.picked.slice();
       var m = helpedMap(S.deal), n = Object.keys(m).length, k = 0;
@@ -421,7 +334,7 @@
       var chosen = c.choice !== null;
       var items = c.opts.map(function (k) { return { k: k, text: cap(t2(c.p.ch[k])), ic: "pen" }; }).concat([{ k: "keep", text: T.keep, ic: c.p.ic }]);
       return h("div", { "class": "cb-s12-opts" }, [h("p", { "class": "cb-s12-opts__h", text: T.pickChange }),
-        h("ul", { "class": "cb-s12-opts__list" }, items.map(function (it) {
+        h("ul", { "class": "cb-s12-opts__list", "data-cb-choices": "" }, items.map(function (it) {
           var kids = [disc(it.ic, "cb-s12-opt__ic"), h("span", { "class": "cb-s12-opt__text", text: it.text })];
           if (!chosen) return h("li", null, [h("button", { type: "button", "class": "cb-s12-opt", "data-s12": "opt-" + it.k, onclick: function (e) { if (!calm(e)) choose(c, it.k); } }, kids)]);
           var me = c.choice === it.k;
@@ -430,6 +343,7 @@
         }))]);
     }
     function step2(i, fresh) {
+      viewPhase = "answer";
       S.step = 2; S.i = i;
       if (!S.hardDone) { pickHard(); S.hardDone = true; }
       var c = S.deal[i], done = answered(c);
@@ -465,11 +379,11 @@
       if (value !== null) dd = h("dd", null, [h("p", { "class": "cb-s12-val" + (S.justPart === c.k + key ? " is-new" : "") }, [api.ico("check"), h("span", { text: value })])]);
       else {
         var open = c.open === key, cid = "cb-s12-o-" + c.id + "-" + key;
-        var b = h("button", { type: "button", "class": "cb-s12-fuzzy", "data-s12": "f-" + c.k + "-" + key, "aria-label": label + " " + fuzzy, "aria-describedby": nid,
+        var b = h("button", { type: "button", "class": "cb-s12-fuzzy", "data-s12": "f-" + c.k + "-" + key, "data-cb-id": "s12-f-" + c.k + "-" + key, "aria-label": label + " " + fuzzy, "aria-describedby": nid,
           onclick: function (e) { if (!calm(e)) tapFuzzy(c, key, e.detail === 0); } }, [icon("q"), h("span", { text: fuzzy })]);
         if (opts) { b.setAttribute("aria-expanded", open ? "true" : "false"); if (open) b.setAttribute("aria-controls", cid); }
         dd = h("dd", null, [b, opts && open ? h("div", { "class": "cb-s12-choices", id: cid }, opts.map(function (o, j) {
-          return h("button", { type: "button", "class": "cb-s12-choice", "data-s12": "ch-" + c.k + "-" + key + "-" + j, onclick: function (e) { if (!calm(e)) setPart(c, key, j, e.detail === 0); } }, [h("span", { text: o })]);
+          return h("button", { type: "button", "class": "cb-s12-choice", "data-s12": "ch-" + c.k + "-" + key + "-" + j, "data-cb-id": "s12-ch-" + c.k + "-" + key + "-" + j, onclick: function (e) { if (!calm(e)) setPart(c, key, j, e.detail === 0); } }, [h("span", { text: o })]);
         })) : null]);
       }
       return h("div", { "class": "cb-s12-part" + (value !== null ? " is-clear" : ""), "data-part": key }, [h("dt", { text: label }), dd]);
@@ -487,6 +401,7 @@
       return bar([slots(), h("p", { "class": "cb-msg", text: T.clearN(S.deal.filter(isClear).length) })], bigBtn(T.sign, signed, "sign", "pen"));
     }
     function step3() {
+      viewPhase = "clarify";
       S.step = 3;
       S.deal.forEach(function (c, k) { c.k = k; });
       var list = h("ul", { "class": "cb-s12-clars" }, S.deal.map(function (c) { return clarEl(c); }));
@@ -539,10 +454,11 @@
         h("dl", { "class": "cb-s12-rc__dl" }, [].concat(row("who"), row("what"), row("when")))]);
     }
     function signed() {
+      viewPhase = "signed";
       S.step = 4;
       var roll = document.createElementNS(SVGNS, "svg");
       roll.setAttribute("viewBox", "0 0 120 96"); roll.setAttribute("aria-hidden", "true"); roll.setAttribute("focusable", "false"); roll.setAttribute("class", "cb-s12-roll");
-      roll.innerHTML = ROLL;                                     // constant, authored markup only
+      host.setAuthoredMarkup(roll, ROLL);                                     // constant, authored markup only
       var card = h("div", { "class": "cb-s12-over cb-s12-over--signed" }, [h("div", { "class": "cb-s12-signed" }, [roll, h("div", { "class": "cb-s12-signed__copy" }, [
         h("p", { "class": "cb-s12-over__lead", tabindex: "-1", "data-s12": "signed", text: T.signed1 }),
         h("p", { "class": "cb-s12-signed__aha", text: T.signed2 })])]),
@@ -556,13 +472,14 @@
 
     /* ── the score card ──────────────────────────────────────────────── */
     function finish() {
+      viewPhase = "result";
       var m = helpedMap(S.deal), nHelped = Object.keys(m).length;
       var nClear = S.deal.filter(isClear).length, kept = S.deal.filter(function (c) { return c.choice === "keep"; }).length;
       var score = Math.min(5, nHelped) * 10 + nClear * 5 + (kept === 0 ? 30 : kept === 1 ? 15 : 0);
       var miss = NB.filter(function (n) { return !m[n.id]; })[0];
       var tip = nHelped < 5 ? T.tipName(api.nm(miss)) : kept ? T.tipKeep : nClear < 4 ? T.tipClear : T.tip100;
       var info = api.saveRound(stop.id, score, { lastRound: set + ":" + deck.map(function (c) { return c.id; }).join(","), lastSet: set,
-        lastHard: S.deal.filter(function (c) { return c.hard; }).map(function (c) { return c.id; }) });
+        processBadge: nClear === 4 && kept === 0 ? "process-12" : null, lastHard: S.deal.filter(function (c) { return c.hard; }).map(function (c) { return c.id; }) });
       api.endPlay();
       var ask = h("div", { "class": "cb-tipcard cb-tipcard--real cb-s12-askgrown" }, [api.ico("chat"), h("div", null, [h("strong", { text: T.askGrown }), h("p", { text: T.askGrownText })])]);
       var card = api.scoreCard(stop, score, info, tip, T.takeaway, T.real, ask);
@@ -573,9 +490,34 @@
       api.say(W.score + " " + score + " / 100");
     }
 
+    if (api.setController) api.setController({
+      snapshot: function () { return { v: 2, phase: viewPhase, picked: S.picked.map(function (c) { return c.id; }),
+        deal: S.deal ? S.deal.map(function (c) { return c.id; }) : null, locked: S.locked, note: !!S.note, i: S.i, hardDone: S.hardDone,
+        deck: deck.map(function (c) { return { id: c.id, on: c.on, hard: c.hard, opts: c.opts, choice: c.choice, who: c.who, what: c.what, when: c.when, open: c.open, k: c.k }; }) }; },
+      restore: function (saved) {
+        if (!saved || saved.v !== 2 || !Array.isArray(saved.deck)) return false;
+        var byId = {}; deck.forEach(function (c) { byId[c.id] = c; });
+        saved.deck.forEach(function (value) { var c = byId[value.id]; if (!c) return;
+          ["on", "hard", "opts", "choice", "who", "what", "when", "open", "k"].forEach(function (key) { c[key] = value[key]; });
+          c.line = cap(t2(c.choice !== null && c.choice !== "keep" ? c.p.ch[c.choice] : c.p.line));
+        });
+        S.picked = saved.picked.map(function (id) { return byId[id]; }); S.deal = saved.deal ? saved.deal.map(function (id) { return byId[id]; }) : null;
+        S.locked = !!saved.locked; S.note = saved.note ? T.full : null; S.i = saved.i; S.hardDone = !!saved.hardDone; S.fresh = -1;
+        if (saved.phase === "result") finish(); else if (saved.phase === "signed") signed(); else if (saved.phase === "clarify") step3();
+        else if (saved.phase === "answer") step2(S.i); else if (saved.phase === "shown") { S.locked = false; step1(); reveal(); }
+        else if (saved.phase === "pick") step1(); else intro();
+        return true;
+      }
+    });
+
     intro();
   }
 
   var LANG = (document.documentElement.lang || "en").slice(0, 2) === "es" ? "es" : "en";
   CB.register({ id: ID, steps: { en: [null, null, null], es: [null, null, null] }[LANG], css: "12-make-a-fair-deal.css", run: run });
+
+    return definition;
+  }
+  if (host.defineStop) host.defineStop(factory);
+  else host.register(factory({ document: document, window: window, Date: Date, setTimeout: setTimeout, clearTimeout: clearTimeout, requestAnimationFrame: requestAnimationFrame, cancelAnimationFrame: typeof cancelAnimationFrame === "function" ? cancelAnimationFrame : function () {} }));
 })();
