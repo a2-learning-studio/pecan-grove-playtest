@@ -22,3 +22,11 @@
 .pt-feedback small { font-weight: 400; line-height: 1.5; }
 @media (max-width: 650px) { .pt-feedback__fields, .pt-feedback__text { grid-template-columns: 1fr; } .pt-feedback__actions > button { flex: 1 1 100%; } }
 @media (prefers-reduced-motion: reduce) { .pt-feedback * { scroll-behavior: auto; } }
+
+.pt-feedback__preview { border: 2px solid #42654c; border-radius: 1rem; padding: 1rem; background: #fff; }
+.pt-feedback__preview h3 { margin-block: 0 .5rem; }
+.pt-feedback__preview-text { white-space: pre-wrap; overflow-wrap: anywhere; padding: .75rem; background: #f2f5ee; border-radius: .65rem; }
+.pt-feedback__preview button { margin: .25rem; min-height: 48px; }
+#pt-feedback-send { touch-action: none; user-select: none; background: #244f35; color: #fff; }
+#pt-feedback-save-draft { justify-self: start; }
+@media (forced-colors: active) { .pt-feedback__preview { border-color: CanvasText; } .pt-feedback button:focus-visible { outline-color: Highlight; } }
