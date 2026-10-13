@@ -6,142 +6,94 @@
    Words, pools, rounds and scoring are exact from "10 - match-a-fix.md" (10A-10F). No network, no inputs. */
 (function () {
   "use strict";
-  var CB = window.CommunityBuilders; if (!CB) return;
+  var host = window.CommunityBuilders; if (!host) return;
+  function factory(lifecycle) {
+    var document = lifecycle.document, window = lifecycle.window, Date = lifecycle.Date;
+    var setTimeout = lifecycle.setTimeout, clearTimeout = lifecycle.clearTimeout;
+    var requestAnimationFrame = lifecycle.requestAnimationFrame, cancelAnimationFrame = lifecycle.cancelAnimationFrame;
+    var definition = null, CB = { register: function (value) { definition = value; } };
+
+  "use strict";
+
   var LANG = (document.documentElement.lang || "en").slice(0, 2) === "es" ? "es" : "en";
   var NS = "http://www.w3.org/2000/svg";
 
   /* ── words (exact, from the spec) ──────────────────────────────────── */
-  var S = {
-    en: {
-      title: "Match a Fix - Community Builders of Pecan Grove",
-      intro1: "Before the Town Council decides, it asks neighbors for ideas to fix problems.",
-      intro2: "Other places already tried some fixes. Match each problem to a fix that helps. Then check: did it work?",
-      start: "Start", problems: "Problems", fixes: "Fixes from real places", check: "Did it work?",
-      matched: function (n) { return "Problems matched: " + n + " of 5"; },
-      coach1: "Tap a problem.", coach2: "Now tap a fix that could help it.", coach2Down: "Now scroll down to 'Fixes from real places' and tap one that could help it.",
-      openChip: "No tested fix yet · Tap to share an idea", oneOpen: "One problem has no tested fix yet. You can share your own idea for it.",
-      link: "Link them", other: "Pick another fix", linked: "Linked", linkN: function (n) { return "Link " + n; },
-      good: "Good match! This fix was tried for this problem.",
-      miss: function (place, prob) { return "That's a real fix from " + place.replace(/^Near /, "near ") + ", but it was tried for a different problem: " + prob + ". Try another fix."; },
-      tried: "Tried", shown: "Here is the fix that was tried for it.",
-      openQ: "Nobody has solved this yet. What's your idea?",
-      nice: "Nice idea! Ideas like this still need testing. Who could help test it?",
-      badge: "Idea badge", openLink: "No fix here was tested for this problem. Tap the card to share an idea.",
-      look: "Look at your board:",
-      aha: "Some fixes worked, some only partly, some are too early to tell, and some problems have no tested fix yet.",
-      see: "See my score", chosen: "Chosen", probL: "Problem: ", fixL: "Fix: ",
-      can: "I can match a problem with a fix and check if it worked.",
-      tipIdea: "Great fixing! Try a new round with new problems.",
-      tip100: "Perfect board! Next time, share your idea on the open problem too.",
-      tipCheck: "Next time, tap 'Did it work?' before you link.",
-      tipRead: "Next time, read the problem again, then look for the fix made for it.",
-      real: "Pick one problem at your school or in your neighborhood. With a grown-up, look for one place that tried a fix. Did it work?",
-      gu: "For grown-ups: about this stop",
-      guText: "Each solution card names a real place and gives an honest 'Did it work?' note, for example testing wells before and after digging, or metering construction water. Some problems, like rent rises, truck traffic and power-line routes, have no tested fix yet."
-    },
-    es: {
-      title: "Une problema y solución - Constructores de comunidad de Pecan Grove",
-      intro1: "Antes de decidir, el Concejo del pueblo les pide a los vecinos ideas para resolver problemas.",
-      intro2: "Otros lugares ya probaron algunas soluciones. Une cada problema con una solución que ayude. Luego revisa: ¿funcionó?",
-      start: "Empezar", problems: "Problemas", fixes: "Soluciones de lugares reales", check: "¿Funcionó?",
-      matched: function (n) { return "Problemas unidos: " + n + " de 5"; },
-      coach1: "Toca un problema.", coach2: "Ahora toca una solución que podría ayudar.",
-      coach2Down: "Ahora baja hasta 'Soluciones de lugares reales' y toca una que podría ayudar.",
-      openChip: "Aún no hay solución probada · Toca para compartir una idea", oneOpen: "Un problema todavía no tiene una solución probada. Puedes compartir tu propia idea.",
-      link: "Unirlos", other: "Elegir otra solución", linked: "Unido", linkN: function (n) { return "Unión " + n; },
-      good: "¡Buena unión! Esta solución se probó para este problema.",
-      miss: function (place, prob) {      // "de" + "Condado de Kent" reads "del condado de Kent" in a sentence
-        var at = /^Condado /.test(place) ? "del c" + place.slice(1) : "de " + place.replace(/^Cerca /, "cerca ");
-        return "Es una solución real " + at + ", pero se probó para otro problema: " + prob + ". Prueba otra solución.";
-      },
-      tried: "Ya probaste", shown: "Mira la solución que se probó para este problema.",
-      openQ: "Nadie lo ha resuelto todavía. ¿Cuál es tu idea?",
-      nice: "¡Buena idea! Las ideas como esta todavía hay que probarlas. ¿Quién podría ayudar a probarla?",
-      badge: "Insignia de idea", openLink: "Ninguna solución de aquí se probó para este problema. Toca la tarjeta para compartir una idea.",
-      look: "Mira tu tablero:",
-      aha: "Algunas soluciones funcionaron, otras solo en parte, de otras es muy pronto para saber, y algunos problemas todavía no tienen una solución probada.",
-      see: "Ver mi puntaje", chosen: "Elegido", probL: "Problema: ", fixL: "Solución: ",
-      can: "Puedo unir un problema con una solución y revisar si funcionó.",
-      tipIdea: "¡Muy bien! Prueba una nueva ronda con problemas nuevos.",
-      tip100: "¡Tablero perfecto! La próxima vez, comparte también tu idea en el problema abierto.",
-      tipCheck: "La próxima vez, toca '¿Funcionó?' antes de unir.",
-      tipRead: "La próxima vez, lee otra vez el problema y busca la solución hecha para él.",
-      real: "Elige un problema de tu escuela o de tu vecindario. Con un adulto, busca un lugar que haya probado una solución. ¿Funcionó?",
-      gu: "Para adultos: sobre esta parada",
-      guText: "Cada tarjeta de solución nombra un lugar real y trae una nota honesta de '¿Funcionó?', por ejemplo revisar los pozos antes y después de excavar, o medir el agua de la obra. Algunos problemas, como el aumento de la renta, el tráfico de camiones y la ruta de las líneas eléctricas, todavía no tienen una solución probada."
-    }
-  }[LANG];
+  var S = window.CBLocale.read("stop-10", LANG, {en:{"S.matched":function (n) { return window.CBLocale.part("stop-10", "en", "S.matched", 0) + n + window.CBLocale.part("stop-10", "en", "S.matched", 1); },"S.linkN":function (n) { return window.CBLocale.part("stop-10", "en", "S.linkN", 0) + n; },"S.miss":function (place, prob) { return window.CBLocale.part("stop-10", "en", "S.miss", 0) + place.replace(/^Near /, window.CBLocale.part("stop-10", "en", "S.miss", 1)) + window.CBLocale.part("stop-10", "en", "S.miss", 2) + prob + window.CBLocale.part("stop-10", "en", "S.miss", 3); }},es:{"S.matched":function (n) { return window.CBLocale.part("stop-10", "es", "S.matched", 0) + n + window.CBLocale.part("stop-10", "es", "S.matched", 1); },"S.linkN":function (n) { return window.CBLocale.part("stop-10", "es", "S.linkN", 0) + n; },"S.miss":function (place, prob) {      // "de" + "Condado de Kent" reads "del condado de Kent" in a sentence
+        var at = /^Condado /.test(place) ? window.CBLocale.part("stop-10", "es", "S.miss", 0) + place.slice(1) : window.CBLocale.part("stop-10", "es", "S.miss", 1) + place.replace(/^Cerca /, window.CBLocale.part("stop-10", "es", "S.miss", 2));
+        return window.CBLocale.part("stop-10", "es", "S.miss", 3) + at + window.CBLocale.part("stop-10", "es", "S.miss", 4) + prob + window.CBLocale.part("stop-10", "es", "S.miss", 5);
+      }}}).S;
 
   /* four stamps (10B): sun, half sun, hourglass, seed */
-  var STAMP = { sun: ["Yes, it worked", "Sí, funcionó"], half: ["Partly", "En parte"], hour: ["Too early to tell", "Es muy pronto para saber"], seed: ["Not tested yet", "Aún no se ha probado"] };
+  var STAMP = { sun: window.CBLocale.pair("stop-10","bank.b0001"), half: window.CBLocale.pair("stop-10","bank.b0002"), hour: window.CBLocale.pair("stop-10","bank.b0003"), seed: window.CBLocale.pair("stop-10","bank.b0004") };
   var ST_ORDER = ["sun", "half", "hour", "seed"];
 
   /* ── the 16 problems and their fixes (10C, 10D). Codes are for code only; the letter is the group.
      [code, neighbor, problem, fix, place, stamp, note]. Each problem has exactly one right fix: its own. ── */
   var D = [
-    ["W1", "lee", ["Cooling the computers could use lots of drinking water.", "Enfriar las computadoras podría gastar mucha agua potable."],
-      ["Cool them with recycled water", "Enfriarlas con agua reciclada"], ["Douglas County, Georgia", "Condado de Douglas, Georgia"], "sun",
-      ["A data center there began cooling with recycled water in 2012.", "Un centro de datos de ahí empezó a enfriarse con agua reciclada en 2012."]],
-    ["W2", "ana", ["Nobody counts the water used while building.", "Nadie cuenta el agua que se usa en la obra."],
-      ["Put a meter on every water pipe", "Poner un medidor en cada tubo de agua"], ["Fayetteville, Georgia", "Fayetteville, Georgia"], "half",
-      ["Some pipes were missed at first. Once found, the water was paid for.", "Al principio se pasaron algunos tubos. Cuando los encontraron, se pagó el agua."]],
-    ["H1", "jayden", ["The computers make lots of heat that goes to waste.", "Las computadoras hacen mucho calor que se desperdicia."],
-      ["Use the heat to warm homes", "Usar el calor para calentar casas"], ["Odense, Denmark", "Odense, Dinamarca"], "sun",
-      ["It warms thousands of homes. It works best where a town already has heat pipes.", "Calienta miles de casas. Funciona mejor donde el pueblo ya tiene tubos de calefacción."]],
-    ["J1", "ana", ["Most jobs could go to people from far away.", "La mayoría de los empleos podrían ser para gente de lejos."],
-      ["Train people who live here for the jobs", "Preparar a la gente de aquí para esos empleos"], ["Douglasville, Georgia", "Douglasville, Georgia"], "hour",
-      ["A tech college there teaches the classes. We don't know yet how many got jobs.", "Una escuela técnica de ahí da las clases. Todavía no sabemos cuántos consiguieron empleo."]],
-    ["L1", "johnson", ["Mud from digging could get into wells.", "El lodo de la excavación podría llegar a los pozos."],
-      ["Test wells before and after digging", "Revisar los pozos antes y después de excavar"], ["Near Mansfield, Georgia", "Cerca de Mansfield, Georgia"], "seed",
-      ["Neighbors and the company there disagree about what made wells muddy. Testing first helps everyone know.", "Ahí los vecinos y la empresa no están de acuerdo sobre qué ensució los pozos. Revisar antes ayuda a que todos sepan."]],
-    ["L2", "ruth", ["Old graves could be hidden on the land.", "Podría haber tumbas antiguas escondidas en el terreno."],
-      ["Look for graves first and leave space around them", "Buscar tumbas antes y dejar espacio alrededor"], ["Hampton, Georgia", "Hampton, Georgia"], "half",
-      ["Hampton kept a 50-foot space around an old graveyard. Other places are still checking.", "Hampton dejó 50 pies de espacio alrededor de un cementerio antiguo. Otros lugares todavía están revisando."]],
-    ["L3", "johnson", ["Farms and forests could be cleared away.", "Se podrían perder granjas y bosques."],
-      ["Make the project smaller", "Hacer el proyecto más pequeño"], ["Frederick County, Maryland", "Condado de Frederick, Maryland"], "hour",
-      ["In 2026, a proposed deal there would make a project about 20% smaller.", "En 2026, un acuerdo propuesto ahí haría un proyecto como un 20 % más pequeño."]],
-    ["N1", "jayden", ["A low hum could keep neighbors awake.", "Un zumbido grave podría no dejar dormir a los vecinos."],
-      ["Measure sounds before building, then every year", "Medir los sonidos antes de construir y luego cada año"], ["Chandler, Arizona", "Chandler, Arizona"], "hour",
-      ["Chandler started this in 2023. We found no results yet.", "Chandler empezó en 2023. Todavía no encontramos resultados."]],
-    ["N2", "lee", ["Backup engines could make smoky air.", "Los motores de respaldo podrían echar humo."],
-      ["Use the cleanest backup engines", "Usar los motores de respaldo más limpios"], ["Virginia", "Virginia"], "hour",
-      ["Virginia made it a rule for new permits in 2026.", "Virginia lo hizo regla para los permisos nuevos en 2026."]],
-    ["N3", "johnson", ["Bright lights could shine into homes all night.", "Las luces fuertes podrían alumbrar las casas toda la noche."],
-      ["Dim the lights at night", "Bajar las luces de noche"], ["Near Mansfield, Georgia", "Cerca de Mansfield, Georgia"], "half",
-      ["Lights were dimmed in 2025 after neighbors asked. Some neighbors still have worries.", "Bajaron las luces en 2025 cuando los vecinos lo pidieron. Algunos vecinos todavía tienen preocupaciones."]],
-    ["N4", "patel", ["It could be built very close to homes.", "Lo podrían construir muy cerca de las casas."],
-      ["Keep a wide space between it and homes", "Dejar un espacio amplio entre el edificio y las casas"], ["South Fulton, Georgia", "South Fulton, Georgia"], "hour",
-      ["South Fulton made this a rule in 2026: 100 to 150 feet of space.", "South Fulton lo hizo regla en 2026: de 100 a 150 pies de espacio."]],
-    ["M1", "ruth", ["Power bills could go up for families.", "Los recibos de luz de las familias podrían subir."],
-      ["Big users pay their own share of power costs", "Que los grandes usuarios paguen su parte de la luz"], ["Ohio", "Ohio"], "hour",
-      ["Ohio started this for one power company in 2025. There is little bill data yet.", "Ohio lo empezó con una compañía de luz en 2025. Todavía hay pocos datos de los recibos."]],
-    ["M2", "jayden", ["Tax breaks could leave less money for schools.", "Una reducción de impuestos podría dejar menos dinero para las escuelas."],
-      ["Pay full taxes, with no tax break", "Pagar todos los impuestos, sin reducción"], ["Barber County, Kansas", "Condado de Barber, Kansas"], "hour",
-      ["In 2026, a data center there said it will pay full property taxes.", "En 2026, un centro de datos de ahí dijo que pagará todo su impuesto a la propiedad."]],
-    ["M3", "ana", ["If it closes someday, an empty building could be left.", "Si algún día cierra, podría quedar un edificio vacío."],
-      ["Set money aside now to remove it later", "Apartar dinero desde ahora para quitarlo después"], ["Kent County, Delaware", "Condado de Kent, Delaware"], "seed",
-      ["Kent County made a rule like this in 2026. It has not been used yet.", "El condado de Kent hizo una regla así en 2026. Todavía no se ha usado."]],
-    ["V1", "patel", ["Neighbors might not know who wants to build, or what was promised.", "Los vecinos podrían no saber quién quiere construir ni qué se prometió."],
-      ["No secret agreements for leaders", "Que los líderes no firmen acuerdos secretos"], ["Pennsylvania", "Pensilvania"], "hour",
-      ["Pennsylvania started this rule in 2026.", "Pensilvania empezó esta regla en 2026."]],
-    ["V2", "ruth", ["Neighbors could feel that nobody listens to them.", "Los vecinos podrían sentir que nadie los escucha."],
-      ["A neighbors' group that meets with leaders", "Un grupo de vecinos que se reúne con los líderes"], ["Prince William County, Virginia", "Condado de Prince William, Virginia"], "hour",
-      ["In 2024 the county put more neighbors in its advice group. Results aren't known yet.", "En 2024 el condado puso a más vecinos en su grupo de consejo. Todavía no se saben los resultados."]]
+    ["W1", "lee", window.CBLocale.pair("stop-10","bank.b0005"),
+      window.CBLocale.pair("stop-10","bank.b0006"), window.CBLocale.pair("stop-10","bank.b0007"), "sun",
+      window.CBLocale.pair("stop-10","bank.b0008")],
+    ["W2", "ana", window.CBLocale.pair("stop-10","bank.b0009"),
+      window.CBLocale.pair("stop-10","bank.b0010"), window.CBLocale.pair("stop-10","bank.b0011"), "half",
+      window.CBLocale.pair("stop-10","bank.b0012")],
+    ["H1", "jayden", window.CBLocale.pair("stop-10","bank.b0013"),
+      window.CBLocale.pair("stop-10","bank.b0014"), window.CBLocale.pair("stop-10","bank.b0015"), "sun",
+      window.CBLocale.pair("stop-10","bank.b0016")],
+    ["J1", "ana", window.CBLocale.pair("stop-10","bank.b0017"),
+      window.CBLocale.pair("stop-10","bank.b0018"), window.CBLocale.pair("stop-10","bank.b0019"), "hour",
+      window.CBLocale.pair("stop-10","bank.b0020")],
+    ["L1", "johnson", window.CBLocale.pair("stop-10","bank.b0021"),
+      window.CBLocale.pair("stop-10","bank.b0022"), window.CBLocale.pair("stop-10","bank.b0023"), "seed",
+      window.CBLocale.pair("stop-10","bank.b0024")],
+    ["L2", "ruth", window.CBLocale.pair("stop-10","bank.b0025"),
+      window.CBLocale.pair("stop-10","bank.b0026"), window.CBLocale.pair("stop-10","bank.b0027"), "half",
+      window.CBLocale.pair("stop-10","bank.b0028")],
+    ["L3", "johnson", window.CBLocale.pair("stop-10","bank.b0029"),
+      window.CBLocale.pair("stop-10","bank.b0030"), window.CBLocale.pair("stop-10","bank.b0031"), "hour",
+      window.CBLocale.pair("stop-10","bank.b0032")],
+    ["N1", "jayden", window.CBLocale.pair("stop-10","bank.b0033"),
+      window.CBLocale.pair("stop-10","bank.b0034"), window.CBLocale.pair("stop-10","bank.b0035"), "hour",
+      window.CBLocale.pair("stop-10","bank.b0036")],
+    ["N2", "lee", window.CBLocale.pair("stop-10","bank.b0037"),
+      window.CBLocale.pair("stop-10","bank.b0038"), window.CBLocale.pair("stop-10","bank.b0039"), "hour",
+      window.CBLocale.pair("stop-10","bank.b0040")],
+    ["N3", "johnson", window.CBLocale.pair("stop-10","bank.b0041"),
+      window.CBLocale.pair("stop-10","bank.b0042"), window.CBLocale.pair("stop-10","bank.b0023"), "half",
+      window.CBLocale.pair("stop-10","bank.b0043")],
+    ["N4", "patel", window.CBLocale.pair("stop-10","bank.b0044"),
+      window.CBLocale.pair("stop-10","bank.b0045"), window.CBLocale.pair("stop-10","bank.b0046"), "hour",
+      window.CBLocale.pair("stop-10","bank.b0047")],
+    ["M1", "ruth", window.CBLocale.pair("stop-10","bank.b0048"),
+      window.CBLocale.pair("stop-10","bank.b0049"), window.CBLocale.pair("stop-10","bank.b0050"), "hour",
+      window.CBLocale.pair("stop-10","bank.b0051")],
+    ["M2", "jayden", window.CBLocale.pair("stop-10","bank.b0052"),
+      window.CBLocale.pair("stop-10","bank.b0053"), window.CBLocale.pair("stop-10","bank.b0054"), "hour",
+      window.CBLocale.pair("stop-10","bank.b0055")],
+    ["M3", "ana", window.CBLocale.pair("stop-10","bank.b0056"),
+      window.CBLocale.pair("stop-10","bank.b0057"), window.CBLocale.pair("stop-10","bank.b0058"), "seed",
+      window.CBLocale.pair("stop-10","bank.b0059")],
+    ["V1", "patel", window.CBLocale.pair("stop-10","bank.b0060"),
+      window.CBLocale.pair("stop-10","bank.b0061"), window.CBLocale.pair("stop-10","bank.b0062"), "hour",
+      window.CBLocale.pair("stop-10","bank.b0063")],
+    ["V2", "ruth", window.CBLocale.pair("stop-10","bank.b0064"),
+      window.CBLocale.pair("stop-10","bank.b0065"), window.CBLocale.pair("stop-10","bank.b0066"), "hour",
+      window.CBLocale.pair("stop-10","bank.b0067")]
   ];
   /* the 3 open problems (10E): no tested fix; three good ideas each, none marked best */
   var OPEN = [
-    ["O1", "patel", ["Rents could go up while many workers are in town.", "Las rentas podrían subir mientras haya muchos trabajadores en el pueblo."], [
-      ["Build homes for workers first", "Construir casas para los trabajadores primero"],
-      ["Ask landlords to keep rents the same for a while", "Pedirles a los dueños que no suban las rentas por un tiempo"],
-      ["Bring workers by bus from bigger towns", "Traer a los trabajadores en autobús desde ciudades más grandes"]]],
-    ["O2", "lee", ["Lots of big trucks could crowd the roads for months.", "Muchos camiones grandes podrían llenar las calles por meses."], [
-      ["Trucks drive only when school buses don't", "Que los camiones pasen solo cuando no pasan los autobuses escolares"],
-      ["Make a special road for the trucks", "Hacer un camino especial para los camiones"],
-      ["The builders fix any road the trucks damage", "Que la empresa arregle las calles que dañen los camiones"]]],
-    ["O3", "johnson", ["New power lines could cross people's land.", "Nuevas líneas eléctricas podrían cruzar los terrenos de la gente."], [
-      ["Follow power lines that are already there", "Seguir las líneas eléctricas que ya existen"],
-      ["Put the lines underground", "Poner las líneas bajo tierra"],
-      ["Ask landowners early where lines could go", "Preguntarles temprano a los dueños por dónde podrían pasar"]]]
+    ["O1", "patel", window.CBLocale.pair("stop-10","bank.b0068"), [
+      window.CBLocale.pair("stop-10","bank.b0069"),
+      window.CBLocale.pair("stop-10","bank.b0070"),
+      window.CBLocale.pair("stop-10","bank.b0071")]],
+    ["O2", "lee", window.CBLocale.pair("stop-10","bank.b0072"), [
+      window.CBLocale.pair("stop-10","bank.b0073"),
+      window.CBLocale.pair("stop-10","bank.b0074"),
+      window.CBLocale.pair("stop-10","bank.b0075")]],
+    ["O3", "johnson", window.CBLocale.pair("stop-10","bank.b0076"), [
+      window.CBLocale.pair("stop-10","bank.b0077"),
+      window.CBLocale.pair("stop-10","bank.b0078"),
+      window.CBLocale.pair("stop-10","bank.b0079")]]
   ];
   var DD = {}, BYG = {}, OD = {};
   D.forEach(function (r) {
@@ -167,7 +119,8 @@
   CB.register({ id: "match-a-fix", steps: [null, null, null, null, null], css: "10-match-a-fix.css", run: run });
 
   function run(api, stop) {
-    var h = api.h, t2 = api.t2, REDUCED = api.REDUCED;
+    function reduced() { return api.motionAllowed ? !api.motionAllowed() : api.REDUCED; }
+    var h = api.h, t2 = api.t2;
     document.title = S.title;                                   // the spec's exact page title
     var DOTS = [null, null, null, null, null];
 
@@ -175,7 +128,7 @@
       var s = document.createElementNS(NS, "svg");
       s.setAttribute("viewBox", "0 0 24 24"); s.setAttribute("aria-hidden", "true"); s.setAttribute("focusable", "false");
       s.setAttribute("class", "cb-ico" + (cls ? " " + cls : ""));
-      s.innerHTML = ICONS[name] || api.IC[name];                // constant, authored markup only
+      host.setAuthoredMarkup(s, ICONS[name] || api.IC[name]);                // constant, authored markup only
       return s;
     }
     function sv(tag, attrs) { var e = document.createElementNS(NS, tag); for (var k in attrs) e.setAttribute(k, attrs[k]); return e; }
@@ -220,6 +173,7 @@
 
     var state = {}; R.probs.forEach(function (c) { state[c] = { misses: [], link: null, by: null, note: false, n: 0 }; });
     var fixLink = {}, opened = {}, drawn = {}, selP = null, selF = null, idea = null, fbk = null, linkNo = 0;
+    var phase = "intro", openDialog = null;
     var corkEl = null, yarnEl = null, ro = null, endSeen = false, finished = false;
     function nLinked() { return R.probs.filter(function (c) { return state[c].link; }).length; }
     function isOpen(c) { return c === openCode; }
@@ -317,19 +271,22 @@
 
     /* ── the board ── */
     function play(focusSel, first) {
+      phase = "play";
       var n = nLinked();
       var yarn = sv("svg", { "class": "cb-s10-yarn", "aria-hidden": "true", focusable: "false", preserveAspectRatio: "none" });
       var cork = h("div", { "class": "cb-s10-cork" }, [yarn,
         h("section", { "class": "cb-s10-col cb-s10-col--p", "aria-labelledby": "cb-s10-hp" }, [
           h("h3", { "class": "cb-s10-col__h", id: "cb-s10-hp" }, [h("span", { "class": "cb-s10-col__ic", "aria-hidden": "true" }, [icon("problem")]), h("span", { text: S.problems })]),
-          h("ul", { "class": "cb-s10-list" }, pList.map(function (c) { return h("li", null, [probCard(c)]); }))]),
+          h("ul", { "class": "cb-s10-list", "data-cb-choices": "" }, pList.map(function (c) { return h("li", null, [probCard(c)]); }))]),
         h("section", { "class": "cb-s10-col cb-s10-col--f", "aria-labelledby": "cb-s10-hf" }, [
           h("h3", { "class": "cb-s10-col__h", id: "cb-s10-hf" }, [h("span", { "class": "cb-s10-col__ic", "aria-hidden": "true" }, [icon("pin")]), h("span", { text: S.fixes })]),
-          h("ul", { "class": "cb-s10-list" }, fList.map(fixCard))])]);
+          h("ul", { "class": "cb-s10-list", "data-cb-choices": "" }, fList.map(fixCard))])]);
       var g = document.querySelector('[data-game="community-builders"]'), oneCol = !!g && g.clientWidth < 760;   // one column: the fixes sit below the problems
       var board = h("div", { "class": "cb-board cb-s10 cb-s10-play" }, [n < 5 ? coach(selP ? (oneCol ? S.coach2Down : S.coach2) : S.coach1, selP ? "pin" : "problem") : null, cork, bench()]);
       api.screen([api.stopHud(stop, DOTS, n, S.matched(n)), board], focusSel || null);
       corkEl = cork; yarnEl = yarn;
+        // Static links must exist even when a restored round has paused its frame clock.
+        placeYarn();
       if (ro) ro.disconnect();
       if (window.ResizeObserver) { ro = new ResizeObserver(function () { requestAnimationFrame(placeYarn); }); ro.observe(cork); [].forEach.call(cork.querySelectorAll(".cb-s10-list"), function (l) { ro.observe(l); }); }
       requestAnimationFrame(placeYarn);
@@ -338,7 +295,7 @@
         endSeen = true;
         requestAnimationFrame(function () {
           var e = board.querySelector(".cb-s10-bench--end");
-          if (e && getComputedStyle(e).position !== "sticky") e.scrollIntoView({ block: "nearest", behavior: REDUCED ? "auto" : "smooth" });
+          if (e && getComputedStyle(e).position !== "sticky") e.scrollIntoView({ block: "nearest", behavior: reduced() ? "auto" : "smooth" });
         });
       }
     }
@@ -366,7 +323,7 @@
         if (!g) {
           g = sv("g", { "class": "cb-s10-yarnline", "data-y": c });
           g.appendChild(sv("path", { "class": "cb-s10-yarn__base", pathLength: "1" })); g.appendChild(sv("path", { "class": "cb-s10-yarn__hi" }));
-          if (!drawn[c] && !REDUCED && two) g.classList.add("is-new");          // reduced motion: the yarn just appears
+          if (!drawn[c] && !reduced() && two) g.classList.add("is-new");          // reduced motion: the yarn just appears
           svg.appendChild(g);
         }
         if (two) drawn[c] = 1;
@@ -386,7 +343,7 @@
       play('[data-p="' + c + '"]'); api.say(S.chosen + ". " + S.coach2);
       var hf = document.getElementById("cb-s10-hf");
       if (hf && hf.getBoundingClientRect().top > window.innerHeight * 0.7) {      // one column: the fixes are below the other problems
-        try { hf.scrollIntoView({ block: "start", behavior: api.REDUCED ? "auto" : "smooth" }); } catch (e) { hf.scrollIntoView(); }
+        try { hf.scrollIntoView({ block: "start", behavior: reduced() ? "auto" : "smooth" }); } catch (e) { hf.scrollIntoView(); }
       }
     }
     function tapF(c) {
@@ -398,7 +355,7 @@
       play('[data-f="' + c + '"]'); api.say(S.chosen + ". " + S.coach1);
     }
     function tapOpen(b) {
-      if (selF) { selF = null; fbk = { text: S.openLink, ok: false }; play('[data-p="' + openCode + '"]'); api.say(S.openLink); return; }
+      if (selF) { selF = null; fbk = { kind: "openLink", text: S.openLink, ok: false }; play('[data-p="' + openCode + '"]'); api.say(S.openLink); return; }
       openIdeas(b);
     }
     function pickOther() { var f = selF; selF = null; fbk = null; play('[data-f="' + f + '"]'); api.say(S.coach2); }
@@ -411,19 +368,19 @@
       var p = selP, f = selF, st = state[p]; if (!p || !f) return;
       if (f === p) {
         st.link = f; st.by = "player"; st.note = !!opened[f]; st.n = ++linkNo; fixLink[f] = p;
-        selP = selF = null; fbk = { text: S.good, ok: true };
+        selP = selF = null; fbk = { kind: "good", text: S.good, ok: true };
         play(nextFocus(p));
         api.say(S.good + " " + t2(STAMP[DD[f].st]) + ". " + S.matched(nLinked()) + (nLinked() === 5 ? ". " + S.look + " " + S.aha : ""));
         return;
       }
       st.misses.push(f);
       if (st.misses.length < 2) {
-        selF = null; fbk = { text: S.miss(t2(DD[f].pl), noDot(t2(DD[f].p))), ok: false };
+        selF = null; fbk = { kind: "miss", fix: f, text: S.miss(t2(DD[f].pl), noDot(t2(DD[f].p))), ok: false };
         play('[data-f="' + f + '"]'); api.say(fbk.text + " " + S.matched(nLinked()));
         return;
       }
       /* second miss on the same problem: the game links the fix that was tried for it and opens its note (0 points) */
-      st.link = p; st.by = "game"; st.n = ++linkNo; fixLink[p] = p; selP = selF = null; fbk = { text: S.shown, ok: false };
+      st.link = p; st.by = "game"; st.n = ++linkNo; fixLink[p] = p; selP = selF = null; fbk = { kind: "shown", text: S.shown, ok: false };
       play(null);
       api.say(S.shown + " " + S.matched(nLinked()));
       var opener = corkEl.querySelector('[data-f="' + p + '"]');
@@ -432,25 +389,30 @@
 
     /* "Did it work?": the fix's stamp icon, its stamp words, then its note line. Opening it costs nothing. */
     function openNote(c, opener, focusAfter) {
+      openDialog = { kind: "note", code: c, focusAfter: focusAfter || null };
       var d = DD[c];
       opened[c] = true;
+      // Keep the visible board in the same state that the open-note snapshot records.
+      play();
+      if (focusAfter) opener = corkEl.querySelector(focusAfter) || opener;
       var pinB = h("span", { "class": "cb-s10-dlgpin", "aria-hidden": "true" }, [icon("pin")]);
       s10dlg(t2(d.f), [h("div", { "class": "cb-s10-note", "data-st": d.st }, [
         h("p", { "class": "cb-s10-note__q" }, [icon("stamp"), h("span", { text: S.check })]),
         h("p", { "class": "cb-s10-note__stamp" }, [stDisc(d.st, "cb-s10-stdisc--big"), h("strong", { text: t2(STAMP[d.st]) })]),
         h("p", { "class": "cb-s10-note__line", text: t2(d.note) })])],
-      opener, function () { if (corkEl && corkEl.isConnected) play(nextValid(focusAfter)); }, { sub: t2(d.pl), badge: pinB });
+      opener, function () { openDialog = null; if (corkEl && corkEl.isConnected) play(nextValid(focusAfter)); }, { sub: t2(d.pl), badge: pinB });
       api.say(S.check + " " + t2(STAMP[d.st]) + ". " + t2(d.note));
     }
     function nextValid(sel) { return sel === '[data-b="check"]' && !(selP && selF) ? null : sel; }
 
     /* the open problem: three good ideas, none marked best; a badge, no points */
     function openIdeas(opener) {
+      openDialog = { kind: "ideas" };
       var d = OD[openCode], nb = nbOf(openCode), wrap = h("div", { "class": "cb-dlg__body cb-s10-ideas" });
       function drawIdeas(focusI) {
-        wrap.innerHTML = "";
+        host.clear(wrap);
         wrap.appendChild(h("p", { "class": "cb-dlg__lead cb-s10-ideas__q" }, [h("span", { "class": "cb-s10-bulb", "aria-hidden": "true" }, [icon("bulb")]), h("span", { text: S.openQ })]));
-        wrap.appendChild(h("ul", { "class": "cb-s10-tiles" }, ideaOrder.map(function (i) {
+        wrap.appendChild(h("ul", { "class": "cb-s10-tiles", "data-cb-choices": "" }, ideaOrder.map(function (i) {
           var on = idea === i;
           return h("li", null, [h("button", { type: "button", "class": "cb-s10-tile", "data-i": String(i), "aria-pressed": on ? "true" : "false",
             "aria-label": t2(d.ideas[i]) + (on ? ". " + S.chosen : ""), onclick: function () { idea = i; drawIdeas(i); api.say(S.nice); } }, [
@@ -462,12 +424,14 @@
       }
       drawIdeas();
       s10dlg(t2(d.p), [wrap], opener, function () {
-        if (corkEl && corkEl.isConnected) { if (idea !== null) fbk = { text: S.nice, ok: true }; play('[data-p="' + openCode + '"]'); }
+        openDialog = null;
+        if (corkEl && corkEl.isConnected) { if (idea !== null) fbk = { kind: "nice", text: S.nice, ok: true }; play('[data-p="' + openCode + '"]'); }
       }, { face: nb.img, sub: api.nmCap(nb) });
     }
 
     /* ── intro: the School, with the "Did it work?" note pinned to the maker-room corkboard ── */
     function intro() {
+      phase = "intro";
       var art = api.crop([0.39, 0.235, 0.77], "cb-s10-hero");     // the School on the left, so the pinned note never covers it
       var legend = h("div", { "class": "cb-s10-legend" }, [h("span", { "class": "cb-s10-legend__pin", "aria-hidden": "true" }),
         h("p", { "class": "cb-s10-legend__q" }, [icon("stamp"), h("span", { text: S.check })]),
@@ -486,6 +450,7 @@
     /* ── score: per problem +12 right first link, +6 right second link, 0 when the game shows it,
        +8 if the player opened that right fix's note before linking it. The open problem adds nothing. ── */
     function finish() {
+      phase = "result";
       if (finished) return; finished = true;                     // one save per round, however fast "See my score" is pressed
       var score = 0, linkedUnchecked = false;
       R.probs.forEach(function (c) {
@@ -494,11 +459,11 @@
         if (!st.note) linkedUnchecked = true;
       });
       var tip = score === 100 ? (idea !== null ? S.tipIdea : S.tip100) : linkedUnchecked ? S.tipCheck : S.tipRead;
-      var info = api.saveRound(stop.id, score, { lastRound: R.probs.slice().sort(), lastOpen: openCode });
+      var info = api.saveRound(stop.id, score, { processBadge: R.probs.every(function (c) { return state[c].note; }) ? "process-10" : null, lastRound: R.probs.slice().sort(), lastOpen: openCode });
       api.endPlay();
       if (ro) { ro.disconnect(); ro = null; }
       var sum = summary();
-      if (score >= 90 && !REDUCED) sum.classList.add("is-glow");       // 3 stars: the yarn glows once
+      if (score >= 90 && !reduced()) sum.classList.add("is-glow");       // 3 stars: the yarn glows once
       var gu = api.btn(S.gu, "cb-btn--quiet cb-s10-big", function () { s10dlg(S.gu, [h("p", { text: S.guText })], gu); }, "family");
       var card = api.scoreCard(stop, score, info, tip, S.can, S.real, sum);
       api.finishRound(stop.id, card, api.cardButtons(stop.id, api.restart(stop.id), gu));
@@ -518,6 +483,31 @@
         idea !== null ? h("p", { "class": "cb-s10-sum__badge" }, [chip("badge", S.badge, "bulb"), h("span", { text: t2(OD[openCode].ideas[idea]) })]) : null]);
     }
 
+    if (lifecycle.cleanup) lifecycle.cleanup(function () { if (ro) ro.disconnect(); });
+    if (api.setController) api.setController({
+      snapshot: function () { return { v: 2, phase: phase, state: state, fixLink: fixLink, opened: opened, drawn: drawn,
+        selP: selP, selF: selF, idea: idea, fbk: fbk ? { kind: fbk.kind, fix: fbk.fix || null, ok: fbk.ok } : null,
+        linkNo: linkNo, endSeen: endSeen, dialog: openDialog }; },
+      restore: function (saved) {
+        if (!saved || saved.v !== 2) return false;
+        state = saved.state; fixLink = saved.fixLink; opened = saved.opened; drawn = saved.drawn; selP = saved.selP; selF = saved.selF;
+        idea = saved.idea; linkNo = saved.linkNo; endSeen = !!saved.endSeen; finished = false; openDialog = null;
+        fbk = saved.fbk ? { kind: saved.fbk.kind, fix: saved.fbk.fix, ok: saved.fbk.ok,
+          text: saved.fbk.kind === "miss" ? S.miss(t2(DD[saved.fbk.fix].pl), noDot(t2(DD[saved.fbk.fix].p))) : S[saved.fbk.kind] } : null;
+        if (saved.phase === "result") finish(); else if (saved.phase === "intro") intro(); else {
+          play();
+          if (saved.dialog && saved.dialog.kind === "note") openNote(saved.dialog.code, null, saved.dialog.focusAfter);
+          else if (saved.dialog && saved.dialog.kind === "ideas") openIdeas(null);
+        }
+        return true;
+      }
+    });
+
     intro();
   }
+
+    return definition;
+  }
+  if (host.defineStop) host.defineStop(factory);
+  else host.register(factory({ document: document, window: window, Date: Date, setTimeout: setTimeout, clearTimeout: clearTimeout, requestAnimationFrame: requestAnimationFrame, cancelAnimationFrame: typeof cancelAnimationFrame === "function" ? cancelAnimationFrame : function () {} }));
 })();
