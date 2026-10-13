@@ -88,14 +88,15 @@ export default function createMapTools(ctx) {
             null,
             rows.map(function (s) {
               var r = ctx.rec(s.id, pl);
+              var tries = r.last5 || [];
               var bars = ctx.h(
                 "span",
                 {
                   class: "cb-tries",
                   role: "img",
-                  "aria-label": r.last5.join(", "),
+                  "aria-label": tries.join(", "),
                 },
-                r.last5.map(function (v) {
+                tries.map(function (v) {
                   var b = ctx.h("span", { class: "cb-tries__bar" }, [
                     ctx.h("b", { text: String(v) }),
                   ]);

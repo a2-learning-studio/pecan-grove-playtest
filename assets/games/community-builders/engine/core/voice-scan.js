@@ -127,6 +127,15 @@ export default function createVoiceScan(ctx) {
         vWords(f.el);
         return;
       } // never a button inside a button: the line still plays and lights up
+      if (
+        ctx.mode === "title" ||
+        ctx.mode === "map" ||
+        (f.el.closest && f.el.closest(".cb-hero")) ||
+        (f.el.querySelector && f.el.querySelector(".cb-vbtn"))
+      ) {
+        vWords(f.el);
+        return;
+      }
       vAttach(
         f.el,
         ctx.h(

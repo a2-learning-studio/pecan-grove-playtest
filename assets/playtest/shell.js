@@ -32,7 +32,8 @@
       // A mounted title must not become visible while native fullscreen is still entering.
       game.hidden = true;
       if (words) status.textContent = words.shell_loading_styles; game.setAttribute('inert', ''); game.setAttribute('aria-busy', 'true'); el('start').disabled = true;
-      return Promise.all([needsStyles ? window.PGStyles.load() : null, fullscreen]).then(function () {
+      var fullscreenSafe = fullscreen && typeof fullscreen.catch === 'function' ? fullscreen.catch(function () { return null; }) : fullscreen;
+      return Promise.all([needsStyles ? window.PGStyles.load() : null, fullscreenSafe]).then(function () {
         if (version !== startVersion) return;
         el('start').disabled = false; game.hidden = false; game.removeAttribute('inert'); game.removeAttribute('aria-busy');
         finish(); warmArt();
@@ -85,6 +86,11 @@
           });
         });
         document.title = words.title;
+        var badge = document.querySelector('.pt-tag');
+        if (badge && typeof words.version_badge === 'string') {
+          var dated = (badge.textContent || '').match(/\d{4}-\d{2}-\d{2}/);
+          badge.textContent = words.version_badge.replace('{date}', dated ? dated[0] : '');
+        }
         var languageLink = document.querySelector('.pt-lang');
         if (languageLink) { languageLink.href = words.other; languageLink.hreflang = words.other_lang; languageLink.lang = words.other_lang; }
         es = language === 'es';

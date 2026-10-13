@@ -191,7 +191,7 @@
         api.coach(t.who, "people")]);
       var desks = h("ul", { "class": "cb-s06-desks" + (answered ? " is-answered" : "") }, order.map(function (id) {
         var e = deskById(id), tried = Q.tried.indexOf(id) >= 0, right = answered && id === Q.desk;
-        var label = t.desk(tx(e.name)) + ", " + tx(e.job) + (tried ? ", " + t.tried : "") + (right ? ", " + t.rightDesk : "");
+        var label = tx(e.name) + ". " + tx(e.job) + (tried ? ". " + t.tried : "") + (right ? ". " + t.rightDesk : "");
         var b = h("button", { type: "button", "class": "cb-s06-desk" + (tried ? " is-tried" : "") + (right ? " is-right" : "") + (st.fresh === id ? " is-fresh" : ""),
           "data-desk": id, "aria-label": label, "aria-disabled": tried || answered ? "true" : null, onclick: function (e) { tap(id, e); } }, [
           h("span", { "class": "cb-s06-desk__ic" }, [icon(id), right ? h("span", { "class": "cb-badge" }, [api.ico("check")]) : null]),

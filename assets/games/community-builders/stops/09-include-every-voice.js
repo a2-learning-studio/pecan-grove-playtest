@@ -212,18 +212,11 @@
     }
     function actions() {
       /* before the first chair is opened, the bar stays away: on a phone it would cover the instruction, and there is nothing to finish yet */
-      if (!confirming && !resolved && !seats.some(function (s) { return s.opened; })) return null;
-      if (confirming) {
-        return h("div", { "class": "cb-actions cb-s09-actions" }, [
-          h("div", { "class": "cb-actions__info" }, [h("p", { "class": "cb-msg cb-s09-ask", text: T.confirm })]),
-          h("div", { "class": "cb-row cb-s09-btns" }, [
-            withKey(api.btn(T.keep, "cb-btn--primary cb-btn--big", keepLooking, "back"), "keep"),
-            withKey(api.btn(T.finish, "cb-btn--big", function (e) { if (settled(e)) aha(); }, "go", true), "finish-anyway")])]);
-      }
+      if (!resolved && !seats.some(function (s) { return s.opened; })) return null;
       var info = [pips(), h("p", { "class": "cb-msg", text: T.filled(nFilled()) })];
       var main = resolved ? api.btn(T.done, "cb-btn--go cb-btn--big", done, "go", true)
-        : api.btn(T.finishPlan, (nFilled() === 5 ? "cb-btn--go" : "cb-s09-finish") + " cb-btn--big", finishPlan, "check");
-      main.setAttribute("data-s09", resolved ? "done" : "finish");
+        : nFilled() === 5 ? api.btn(T.finishPlan, "cb-btn--go cb-btn--big", finishPlan, "check") : null;
+      if (main) main.setAttribute("data-s09", resolved ? "done" : "finish");
       return h("div", { "class": "cb-actions cb-s09-actions" }, [h("div", { "class": "cb-actions__info" }, info), main]);
     }
     function withKey(el, key) { el.setAttribute("data-s09", key); return el; }
@@ -321,7 +314,7 @@
     }
     function finishPlan(e) {
       if (!settled(e)) return;
-      if (nFilled() < 5) { confirming = true; swapAt = Date.now(); render('[data-s09="keep"]'); api.say(T.confirm); return; }
+      if (nFilled() < 5) return;
       aha();
     }
     function keepLooking() {

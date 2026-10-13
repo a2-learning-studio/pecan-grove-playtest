@@ -1,9 +1,9 @@
 {
   "WORDS": {
     "title": "Haz un trato justo - Constructores de comunidad de Pecan Grove",
-    "crew": "Por el equipo de la obra",
+    "crew": "Ana, la electricista",
     "intro1": "El pueblo todavía no ha decidido. Hoy, los vecinos y los constructores prueban un camino: construir, con cambios. No construir, o esperar más datos, también son caminos justos.",
-    "intro2": "Elige 4 promesas para el trato. Ana responde por el equipo de la obra, y ella también vive aquí.",
+    "intro2": "Elige 4 promesas para el trato. Ana, la electricista, responde por el equipo de la obra, y ella también vive aquí.",
     "start": "Empezar",
     "step": {
       "$args": [
@@ -52,7 +52,7 @@
         "fuera del trato"
       ]
     },
-    "s2": "Ana responde por el equipo de la obra.",
+    "s2": "Ana, la electricista, responde por el equipo de la obra.",
     "promiseN": {
       "$args": [
         "n"

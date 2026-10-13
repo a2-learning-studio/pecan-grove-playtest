@@ -1,5 +1,5 @@
 import { h, icon } from "./dom.js";
-import { padLayout } from "./gamepad.js";
+import { padLayout } from "./pad-layout.js";
 export function screenHints(root, i18n) {
   if (!["map", "stop"].includes(root.dataset.screen)) return [];
   if (root.dataset.screen === "map")

@@ -165,9 +165,9 @@ def feedback_panel(lang, revision, endpoint, form=""):
 
 
 def page(lang, form, revision="preview", build_date=None, feedback_endpoint="", flavor="playtest", commit=""):
-    if flavor not in {"playtest", "family"}:
+    if flavor not in {"playtest", "family", "library"}:
         raise ValueError("Unknown game flavor")
-    if flavor == "family":
+    if flavor in {"family", "library"}:
         feedback_endpoint = ""
     w = WORDS[lang]; e = html.escape
     form = checked_form(form)
@@ -360,11 +360,11 @@ def main(argv=None):
     ap.add_argument("--form-es", default="", help="Spanish Microsoft Form; defaults to --form")
     ap.add_argument("--feedback-endpoint", default=None, help="Deployed Google Apps Script URL; defaults to backend/feedback/deployment.json. Pass an empty string to disable shared backup.")
     ap.add_argument("--build-date", type=date.fromisoformat, default=date.today())
-    ap.add_argument("--flavor", choices=["playtest", "family"], default="playtest")
+    ap.add_argument("--flavor", choices=["playtest", "family", "library"], default="playtest")
     a = ap.parse_args(argv)
     try:
         checked_form(a.form); checked_form(a.form_es)
-        a.feedback_endpoint = "" if a.flavor == "family" else resolve_feedback_endpoint(a.feedback_endpoint)
+        a.feedback_endpoint = "" if a.flavor in {"family", "library"} else resolve_feedback_endpoint(a.feedback_endpoint)
     except ValueError as exc:
         ap.error(str(exc))
     # Validate before touching generated output. No package download is needed.
@@ -374,8 +374,9 @@ def main(argv=None):
     subprocess.run([node, str(ROOT / "tools/validate_game.mjs"), "--root", str(ROOT)], check=True)
     revision = build_id(a.form, a.form_es, a.feedback_endpoint, a.flavor)
     commit = git_commit()
-    OUT = ROOT / "_publish" / ("pecan-grove-family" if a.flavor == "family" else "pecan-grove-playtest")
-    if OUT.resolve() not in {ROOT.resolve() / "_publish" / "pecan-grove-playtest", ROOT.resolve() / "_publish" / "pecan-grove-family"}:
+    out_names = {"family": "pecan-grove-family", "library": "pecan-grove-library"}
+    OUT = ROOT / "_publish" / out_names.get(a.flavor, "pecan-grove-playtest")
+    if OUT.resolve() not in {ROOT.resolve() / "_publish" / "pecan-grove-playtest", ROOT.resolve() / "_publish" / "pecan-grove-family", ROOT.resolve() / "_publish" / "pecan-grove-library"}:
         raise SystemExit("Refusing to rebuild outside the project playtest folder.")
     keep_git = (OUT / ".git").exists()
     if OUT.exists():
@@ -425,7 +426,7 @@ def main(argv=None):
         "# Community Builders of Pecan Grove · student play-test\n\n"
         "A test copy of the kids' civic game from the Know Your Data Center hub, for students to play and review before the public launch.\n"
         "English: `index.html` · Spanish: `espanol.html`. Built by `tools/make_playtest.py` in the hub project; do not edit here.\n\n"
-        "The game saves progress and drafts on the device. Feedback is sent only after a grown-up reviews and chooses Send. Score sharing starts off and is optional. The family flavor has no feedback connection. Shared computers have separate anonymous sessions; names and contact details are never requested.\n",
+        "The game saves progress and drafts on the device. Feedback is sent only after a grown-up reviews and chooses Send. Score sharing starts off and is optional. The family flavor has no feedback connection. The library flavor keeps local notes and never sends them. Shared computers have separate anonymous sessions; names and contact details are never requested.\n",
         encoding="utf-8", newline="\n")
     subprocess.run([node, str(ROOT / "tools/validate_game.mjs"), "--root", str(ROOT), "--site", str(OUT)], check=True)
     n = sum(1 for _ in OUT.rglob("*") if _.is_file() and ".git" not in _.parts)

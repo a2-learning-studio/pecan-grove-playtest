@@ -35,7 +35,7 @@
         [].concat([["A1", "A2", "B1"]],window.CBLocale.pair("stop-08","bank.b0010")),
         [].concat([["A1", "A2", "B1"]],window.CBLocale.pair("stop-08","bank.b0011")),
         [].concat([["A2", "B1", "B2"]],window.CBLocale.pair("stop-08","bank.b0012")),
-        [].concat([["A2", "B2"]],window.CBLocale.pair("stop-08","bank.b0013"))
+        [].concat([["A2", "B1", "B2"]],window.CBLocale.pair("stop-08","bank.b0013"))
       ] },
     { id: "lights", ic: "moon", topic: window.CBLocale.pair("stop-08","bank.b0014"),
       want: { A: window.CBLocale.pair("stop-08","bank.b0015"),
@@ -177,6 +177,10 @@
       pairs = api.shuffle(pairs).filter(function (p) { return !(lastPair.indexOf(p[0]) !== -1 && lastPair.indexOf(p[1]) !== -1); });
       function flip(s) { return s === "A" ? "B" : s === "B" ? "A" : null; }
       function seat(p) {                       // a neighbor who took side A last time takes side B, and the other way round
+        if (d.id === "trucks" && (p[0] === "patel" || p[1] === "patel" || p[0] === "ruth" || p[1] === "ruth")) {
+          if (p[0] === "ruth" || p[1] === "patel") return [p[1], p[0]];
+          return p;
+        }
         var n0 = flip(sides[p[0]]), n1 = flip(sides[p[1]]);
         if (n0 && n1) return n0 === n1 ? null : n0 === "A" ? p : [p[1], p[0]];
         if (n0) return n0 === "A" ? p : [p[1], p[0]];
@@ -427,9 +431,8 @@
     function finish() {
       phase = "result";
       var heard = S.firstTry || { A: false, B: false };
-      var careful = 15;
-      S.tries.forEach(function (t, k) { if (k >= 3 && !t.works) careful -= 5; });     // the first 3 tries are free
-      careful = Math.max(0, careful);
+      var misses = S.tries.filter(function (t) { return !t.works; }).length;
+      var careful = Math.max(0, 15 - 8 * misses);
       var score = (heard.A ? 15 : 0) + (heard.B ? 15 : 0) + (S.found.length >= 1 ? 35 : 0) + (S.found.length >= 2 ? 20 : 0) + careful;
       var tip = !heard.A && !heard.B ? T.tipNone : !heard.A ? T.tipOne(aNm(NBS.A)) : !heard.B ? T.tipOne(aNm(NBS.B)) : careful < 15 ? T.tipCareful : T.tip100;
       var sides = {}, old = r.sides || {};

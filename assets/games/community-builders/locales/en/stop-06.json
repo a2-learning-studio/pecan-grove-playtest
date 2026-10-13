@@ -1,7 +1,7 @@
 {
   "T": {
     "hall": "Town Hall",
-    "intro": "Welcome to Town Hall! The Planning Board met last week. The Town Council hearing is next. Neighbors have questions. Help each one find the right desk.",
+    "intro": "Welcome to Town Hall! Neighbors have questions. Help each one find the right desk.",
     "start": "Start",
     "qn": {
       "$args": [
@@ -36,7 +36,7 @@
     "written": "a written comment (with a grown-up)",
     "yes": "Yes! This desk can help.",
     "wrong": "Not this desk. Try another one.",
-    "tried": "Tried",
+    "tried": "Already tried",
     "hereIs": "Here is the desk for this question.",
     "nextQ": "Next question",
     "finish": "Finish",

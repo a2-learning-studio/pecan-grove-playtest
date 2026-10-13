@@ -1,9 +1,9 @@
 {
   "WORDS": {
     "title": "Make a Fair Deal - Community Builders of Pecan Grove",
-    "crew": "For the building crew",
+    "crew": "Ana, the electrician",
     "intro1": "The town has not decided yet. Today, neighbors and builders try out one path: building, with changes. Not building, or waiting for more facts, are fair paths too.",
-    "intro2": "Pick 4 promises for the deal. Ana answers for the building crew, and she lives here too.",
+    "intro2": "Pick 4 promises for the deal. Ana, the electrician, answers for the building crew, and she lives here too.",
     "start": "Start",
     "step": {
       "$args": [
@@ -52,7 +52,7 @@
         "not on the deal"
       ]
     },
-    "s2": "Ana answers for the building crew.",
+    "s2": "Ana, the electrician, answers for the building crew.",
     "promiseN": {
       "$args": [
         "n"

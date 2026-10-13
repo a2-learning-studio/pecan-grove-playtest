@@ -1,4 +1,5 @@
 import { Bindings } from "./bindings.js";
+import { mapStops } from "./focus.js";
 export const ACTIONS = Object.freeze([
   "nav.up",
   "nav.down",
@@ -49,7 +50,9 @@ export function guarded(event, root, scope, paused = false) {
       !scope.matches?.("dialog[open]"))
   )
     return true;
-  if (event.key?.startsWith("Arrow") && nativeArrows(event.target)) return true;
+  if (event.key?.startsWith("Arrow") && nativeArrows(event.target)) {
+    if (!mapStops(root) || !root.contains?.(event.target)) return true;
+  }
   return false;
 }
 export class Input {

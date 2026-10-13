@@ -6,10 +6,11 @@
 .cb-s15 .cb-badge { animation: none; }
 .cb-s15 .is-new > .cb-badge, .cb-s15 .is-new .cb-s15-wish__face .cb-badge { animation: cb-pop 0.45s var(--cb-ease) both; }
 
-/* ── avatars: six painted neighbors; Lucía and Theo show their initial, the townspeople a paper silhouette, until they have painted portraits ── */
+/* ── avatars: six painted neighbors; Lucía and Theo use line-icon faces; townspeople a paper silhouette ── */
 .cb-s15-av { --av: 56px; position: relative; display: grid; place-items: center; flex: none; width: var(--av); height: var(--av); border-radius: 50%; overflow: hidden;
   background: var(--cb-card); border: 3px solid var(--cb-card); box-shadow: var(--cb-shadow-1); }
 .cb-s15-av img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.cb-s15-av .cb-ico { width: 68%; height: 68%; }
 .cb-s15-av--mono { background: none; border-color: var(--pg-color-b07a43); }
 .cb-s15-av--mono .cb-mono { width: 100%; height: 100%; border-width: 0; }
 .cb-s15-av--theo { border-color: var(--pg-color-4f8fb6); }

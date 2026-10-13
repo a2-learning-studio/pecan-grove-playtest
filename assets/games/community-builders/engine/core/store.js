@@ -68,10 +68,11 @@ export default function createStore(ctx) {
     r.rounds += 1;
     r.best = Math.max(r.best, score);
     if (wasFirst) r.first = score;
-    r.last5.push(score);
-    if (r.last5.length > 5) r.last5.shift();
+    var history = (r.last5 || []).concat([score]);
+    var keep = { last5: 1, all: 1, best: 1, rounds: 1, first: 1 };
+    for (var k in extra) if (!keep[k]) r[k] = extra[k];
+    r.last5 = history.slice(-5);
     r.all = (r.all || []).concat([score]).slice(-50);
-    for (var k in extra) r[k] = extra[k];
     pl.stops[stopId] = r;
     save();
     if (wasFirst) ctx.justDone = stopId;

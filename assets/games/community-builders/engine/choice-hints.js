@@ -1,6 +1,6 @@
 import { icon } from "./dom.js";
 import { controllerGlyph } from "./hints.js";
-import { padLayout } from "./gamepad.js";
+import { padLayout } from "./pad-layout.js";
 
 export function annotateChoices(root, { settings, pad } = {}) {
   const span = (className, text) => {

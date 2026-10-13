@@ -514,9 +514,28 @@
     window.PecanGroveFeedback = Object.assign({}, api, runtime);
     return runtime;
   }
-  var api = { KEY: KEY, GAME_KEY: GAME_KEY, CONSENT_KEY: CONSENT_KEY, scrubPII: scrubPII, readConsent: readConsent, WORDS: WORDS, createModel: createModel, mergeEntries: mergeEntries, sendBatch: sendBatch, endpointAllowed: endpointAllowed, excel: excel, mount: mount };
+  function scopeSession(document, window) {
+    var game = document.getElementById("community-builders");
+    if (!game || game.getAttribute("data-feedback-session")) return;
+    var storage;
+    try { storage = window.localStorage; } catch (e) { return; }
+    var lang = document.documentElement && document.documentElement.lang;
+    var model = createModel({ storage: storage, language: lang === "es" ? "es" : "en", id: function () { return uid(window.crypto); } });
+    if (!model.persist()) return;
+    game.setAttribute("data-feedback-session", model.active());
+    if (model.fresh) {
+      try {
+        var legacy = storage.getItem(GAME_KEY), scopedKey = GAME_KEY + ":" + model.active();
+        if (legacy && !storage.getItem(scopedKey)) storage.setItem(scopedKey, legacy);
+      } catch (e) { model.storageFailed(); }
+    }
+  }
+  var api = { KEY: KEY, GAME_KEY: GAME_KEY, CONSENT_KEY: CONSENT_KEY, scrubPII: scrubPII, readConsent: readConsent, WORDS: WORDS, createModel: createModel, mergeEntries: mergeEntries, sendBatch: sendBatch, endpointAllowed: endpointAllowed, excel: excel, mount: mount, scopeSession: scopeSession };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   host.PecanGroveFeedback = api;
+  if (host.document && host.document.getElementById && host.document.getElementById("community-builders")) {
+    try { scopeSession(host.document, host); } catch (e) { /* The form mount still scopes the session if storage is busy. */ }
+  }
   if (host.document && host.document.getElementById("pt-feedback")) {
     // First-party static locales load before the singleton feedback form is mounted.
     api.ready = Promise.all(["en", "es"].map(function (language) {

@@ -5,12 +5,11 @@ import './styles.js';
 
 async function boot() {
   if (!document.getElementById('community-builders')) return;
+  const gameLocales = import('../games/community-builders/locales/catalog.js');
   if (document.documentElement.dataset.flavor !== 'family') {
     await import('./feedback.js');
-    const feedback = await window.PecanGroveFeedback?.ready;
-    if (!feedback) throw new Error('Feedback is unavailable');
   }
-  await import('../games/community-builders/locales/catalog.js');
+  await gameLocales;
   await window.CBLocale.load('core');
   await import('../games/community-builders/cb.js');
   await import('./shell.js');

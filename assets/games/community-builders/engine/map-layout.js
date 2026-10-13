@@ -127,9 +127,7 @@ export function installMapPresentation(ctx, world, canvas, pan) {
     class: "cb-map-controls",
     "data-cb-novoice": "",
   });
-  const legend = ctx.h("details", { class: "cb-map-legend" }, [
-    ctx.h("summary", { text: ctx.W.mapLegend }),
-  ]);
+  const panelId = "cb-map-legend-" + ++ctx.uid;
   const list = ctx.h("ul");
   ctx.W.chapters.forEach((label, i) =>
     list.append(
@@ -139,7 +137,25 @@ export function installMapPresentation(ctx, world, canvas, pan) {
       ]),
     ),
   );
-  legend.append(list);
+  const panel = ctx.h("div", {
+    class: "cb-map-legend__panel",
+    id: panelId,
+    hidden: true,
+  });
+  panel.append(list);
+  const toggle = ctx.h("button", {
+    type: "button",
+    class: "cb-map-legend__btn",
+    "aria-expanded": "false",
+    "aria-controls": panelId,
+    text: ctx.W.mapLegend,
+  });
+  toggle.addEventListener("click", () => {
+    const open = toggle.getAttribute("aria-expanded") !== "true";
+    toggle.setAttribute("aria-expanded", open ? "true" : "false");
+    panel.hidden = !open;
+  });
+  const legend = ctx.h("div", { class: "cb-map-legend" }, [toggle, panel]);
   const listButton = ctx.btn(ctx.W.mapList, "cb-btn--onstage", () => {
     const journey = ctx.main.querySelector(".cb-journey"),
       show = pan.hidden;

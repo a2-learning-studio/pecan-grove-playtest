@@ -7,7 +7,6 @@ export default function createVoiceCues(ctx) {
     ],
     "s03-p1": [["tap each neighbor", "toca a cada vecino", ".cb-nbr", 6]],
     "s03-p2": [["tap one neighbor", "toca a un vecino", ".cb-note", 2]],
-    "s03-p3": [["tap the neighbor", "toca al vecino", ".cb-face-btn", 6]],
     "s04-how": [
       [
         "peek at the source",
@@ -19,7 +18,6 @@ export default function createVoiceCues(ctx) {
     ],
     "s05-q1": [["tap a place", "toca un lugar", ".cb-s05-place", 6]],
     "s05-q2": [["tap a neighbor", "toca a un vecino", ".cb-face-btn", 6]],
-    "s06-who": [["tap the desk", "toca el escritorio", ".cb-s06-desk", 7]],
     "s07-build": [
       ["one tile in each row", "una ficha en cada fila", ".cb-s07-tile", 3],
     ],
@@ -88,6 +86,14 @@ export default function createVoiceCues(ctx) {
             });
     return all
       .filter(function (e) {
+        if (e.disabled || e.getAttribute("aria-disabled") === "true")
+          return false;
+        if (
+          e.classList.contains("is-tried") ||
+          e.classList.contains("is-wrong") ||
+          e.classList.contains("is-rest")
+        )
+          return false;
         var r = e.getBoundingClientRect();
         return r.width > 4 && r.height > 4 && !e.closest("[hidden], .cb-vh");
       })
@@ -156,10 +162,13 @@ export default function createVoiceCues(ctx) {
     );
   }
   function vCue(q) {
+    if (ctx.REDUCED || ctx.root.classList.contains("is-calm")) return;
     vTargets(q.what, q.max).forEach(function (el, k) {
       vCircle(el, k);
     });
   }
+  if (ctx.root && ctx.root.addEventListener)
+    ctx.root.addEventListener("pointerdown", vInkClear, true);
   ctx.publish({ vCues, vTargets, vInkClear, vCircle, vCue });
   ctx.bind({
     CUES: [() => CUES, (value) => (CUES = value)],

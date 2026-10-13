@@ -12,6 +12,13 @@ export function visible(node) {
 export function focusables(scope) {
   return [...scope.querySelectorAll(SELECTOR)].filter(visible);
 }
+export function mapStops(scope) {
+  if (!scope || typeof scope.querySelector !== "function") return null;
+  const canvas = scope.querySelector(".cb-world__canvas");
+  if (!canvas || canvas.closest?.("[hidden]") || canvas.hidden) return null;
+  const stops = [...canvas.querySelectorAll(".cb-stop")].filter(visible);
+  return stops.length ? stops : null;
+}
 export function spatialScore(from, to, direction) {
   const a = { x: from.left + from.width / 2, y: from.top + from.height / 2 },
     b = { x: to.left + to.width / 2, y: to.top + to.height / 2 };
@@ -136,6 +143,14 @@ export class Focus {
         }
         return true;
       }
+    }
+    const stops = mapStops(active);
+    if (stops) {
+      const next = stops.includes(current)
+        ? chooseSpatial(current, stops, direction) ||
+          (direction === "left" || direction === "up" ? stops.at(-1) : stops[0])
+        : stops.find((stop) => stop.dataset.state === "next") || stops[0];
+      return this.focus(next);
     }
     const items = focusables(active);
     if (!items.length) return false;

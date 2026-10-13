@@ -1,8 +1,8 @@
 {
   "S": {
     "title": "Match a Fix - Community Builders of Pecan Grove",
-    "intro1": "Before the Town Council decides, it asks neighbors for ideas to fix problems.",
-    "intro2": "Other places already tried some fixes. Match each problem to a fix that helps. Then check: did it work?",
+    "intro1": "The Town Council wants ideas that fix problems.",
+    "intro2": "Match each problem to a fix. Then check: did it work?",
     "start": "Start",
     "problems": "Problems",
     "fixes": "Fixes from real places",
@@ -53,6 +53,7 @@
     "openLink": "No fix here was tested for this problem. Tap the card to share an idea.",
     "look": "Look at your board:",
     "aha": "Some fixes worked, some only partly, some are too early to tell, and some problems have no tested fix yet.",
+    "boardEmpty": "Nothing on the board yet.",
     "see": "See my score",
     "chosen": "Chosen",
     "probL": "Problem: ",

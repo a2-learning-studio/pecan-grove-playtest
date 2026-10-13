@@ -198,7 +198,7 @@
   align-self: flex-start;
   margin-left: auto;
 }
-.cb-map-legend summary {
+.cb-map-legend__btn {
   min-height: 44px;
   display: flex;
   align-items: center;
@@ -207,6 +207,19 @@
   border-radius: 12px;
   padding: 0 12px;
   font-weight: 700;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+}
+.cb-map-legend__panel {
+  position: absolute;
+  z-index: 5;
+  right: 0;
+  top: calc(100% + 8px);
+  min-width: 220px;
+}
+.cb-map-legend__panel[hidden] {
+  display: none;
 }
 .cb-map-legend ul {
   display: grid;

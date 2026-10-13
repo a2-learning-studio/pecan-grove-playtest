@@ -13,17 +13,13 @@ async function withInput(run) {
   finally { input.destroy(); globalThis.CustomEvent = previous; r.close(); }
 }
 const back = (input) => input.emit('back', { device: 'keyboard' });
-test('Stop 9 intro and confirmation use the shared Back action', () => withInput(async (r, input) => {
+test('Stop 9 intro Back starts play and Finish waits for every chair', () => withInput(async (r, input) => {
   await r.core.startStop('include-every-voice');
   r.main().querySelector('[data-s09="start"]').focus();
   assert.equal(back(input), true);
   assert.ok(r.main().querySelector('.cb-s09-ways'));
   r.main().querySelector('.cb-s09-chair').click(); await r.tick();
-  r.main().querySelector('[data-s09="finish"]').click(); await r.tick();
-  assert.ok(r.main().querySelector('[data-s09="keep"]'));
-  r.main().querySelector('[data-s09="keep"]').focus();
-  assert.equal(back(input), true);
-  assert.equal(r.main().querySelector('[data-s09="keep"]'), null);
+  assert.equal(r.main().querySelector('[data-s09="finish"]'), null);
 }));
 test('Stop 6 answer Back advances once and its subscription is disposed on leaving', () => withInput(async (r, input) => {
   await r.core.startStop('who-decides'); r.main().querySelector('.cb-btn--go').click(); await r.tick();
