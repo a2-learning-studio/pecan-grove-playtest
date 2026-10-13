@@ -6,141 +6,73 @@
    Every player-facing string is exact from "13 - spread-the-word-right.md". */
 (function () {
   "use strict";
-  var CB = window.CommunityBuilders; if (!CB) return;
+  var host = window.CommunityBuilders; if (!host) return;
+  function factory(lifecycle) {
+    var document = lifecycle.document, window = lifecycle.window, Date = lifecycle.Date;
+    var setTimeout = lifecycle.setTimeout, clearTimeout = lifecycle.clearTimeout;
+    var requestAnimationFrame = lifecycle.requestAnimationFrame, cancelAnimationFrame = lifecycle.cancelAnimationFrame;
+    var definition = null, CB = { register: function (value) { definition = value; } };
+
+  "use strict";
+
   var ES = (document.documentElement.lang || "en").slice(0, 2) === "es";
   function tx(p) { return ES ? p[1] : p[0]; }
   var ID = "spread-the-word-right", STEPS = [null, null];
   var SCHOOL = [0.32, 0.27, 0.68, 0.63];      // painted crop: the clock-tower building, used as the School with its library board
   var BAND = [0.3, 0.29, 0.7, 0.6];           // a wider strip of the same building, behind the poster
-  var SVGNS = "http://www.w3.org/2000/svg", uid = 0, kbd = false;
+  var SVGNS = "http://www.w3.org/2000/svg", uid = 0;
 
   /* ── words ─────────────────────────────────────────────────────────── */
-  var T = ES ? {
-    title: "Comparte bien la información - Constructores de comunidad de Pecan Grove",
-    intro: "El pueblo todavía no ha decidido. La biblioteca les pidió a los niños hacer un cartel de 'Lo que sabemos hasta ahora' para su tablero en la escuela. Elige 3 tarjetas de datos. Ponle a cada una su fuente y revisa su fecha. Luego elige un título.",
-    pickHead: "Luego elige un título.", boardTag: "Tablero de la biblioteca escolar",
-    prog: function (n, hd) { return "Tarjetas en el cartel: " + n + " de 3 · Título: " + (hd ? "elegido" : "todavía no"); },
-    start: "Empezar",
-    step: function (n) { return "Paso " + n + " de 2"; },
-    cards: "Tarjetas de datos", heads: "Títulos",
-    slot: function (n) { return "Espacio " + n + " de 3"; },
-    tap: "Toca una tarjeta para ponerla en el cartel.",
-    hope: "Esperanza", worry: "Preocupación",
-    addSrc: "Ponle su fuente", checkDate: "Revisa la fecha", takeOff: "Quitarla", swap: "Cambiar por el dato nuevo",
-    source: function (s) { return "Fuente: " + s; },
-    upToDate: "Está al día. No hay nada más nuevo.",
-    oldLine: "Noticia vieja, del 2 de junio. Hay noticias más nuevas.",
-    noSrc: "Sin fuente. Nadie puede mostrar cómo lo sabe.",
-    noDate: "Sin fecha. Nadie se acuerda.",
-    rumor: "Esto parece un rumor. Puedes quitar esta tarjeta.",
-    next: "Siguiente: ponerlo en el tablero",
-    card: function (w, tag) { return "Tarjeta: " + w + ", " + tag; },
-    at: function (b, n) { return b + ", espacio " + n; },
-    inSlot: function (n) { return "Tarjeta en el espacio " + n; },
-    srcAdded: "Fuente agregada",
-    good: "¡Buen título! Dice lo que hay en el cartel.",
-    sell: "Este título le dice a la gente qué pensar. Un cartel de 'Lo que sabemos' dice lo que tiene adentro, para que cada quien decida.",
-    ask: "Pregúntale a un adulto: ¿dónde lo podemos compartir?",
-    aha: "Compartir un dato sin su fuente o su fecha puede esparcir un error.",
-    see: "Ver mi puntaje",
-    can: "Puedo compartir datos con su fuente y decir lo que todavía no sabemos.",
-    tipRumor: "La próxima vez, ponle fuente a cada tarjeta. Si no tiene fuente, es un rumor. Déjalo fuera.",
-    tipSrc: "La próxima vez, ponle su fuente a cada dato antes de ponerlo en el tablero.",
-    tipDate: "La próxima vez, revisa la fecha de cada tarjeta. Las noticias viejas se cuelan.",
-    tipMix: "La próxima vez, muestra una esperanza y una preocupación, para que todos los vecinos se sientan escuchados.",
-    tipHead: "La próxima vez, elige un título que diga lo que hay adentro, no qué pensar.",
-    tip100: "¡Gran cartel! Prueba una nueva ronda con tarjetas nuevas.",
-    real: "Haz un cartel para tu clase o la biblioteca, con permiso. Cada dato lleva su fuente y su fecha. Nada en internet.",
-    gu: "Para adultos: sobre esta parada",
-    guText: "Los niños hacen un cartel con fuentes y fechas, muestran una esperanza y una preocupación, y eligen un lugar seguro para compartirlo: la familia, la clase o un tablero de la biblioteca, con permiso. Nada de redes sociales, peticiones ni materiales de campaña."
-  } : {
-    title: "Spread the Word Right - Community Builders of Pecan Grove",
-    intro: "The town hasn't decided yet. The library asked kids to make a 'What we know so far' poster for its board at school. Pick 3 fact cards. Give each one its source and check its date. Then pick a headline.",
-    pickHead: "Then pick a headline.", boardTag: "School library board",
-    prog: function (n, hd) { return "Cards on the poster: " + n + " of 3 · Headline: " + (hd ? "picked" : "not yet"); },
-    start: "Start",
-    step: function (n) { return "Step " + n + " of 2"; },
-    cards: "Fact cards", heads: "Headlines",
-    slot: function (n) { return "Slot " + n + " of 3"; },
-    tap: "Tap a card to put it on the poster.",
-    hope: "Hope", worry: "Worry",
-    addSrc: "Add its source", checkDate: "Check the date", takeOff: "Take it off", swap: "Swap for the new fact",
-    source: function (s) { return "Source: " + s; },
-    upToDate: "Up to date. Nothing newer.",
-    oldLine: "Old news from June 2. There is newer news.",
-    noSrc: "No source. Nobody can show how they know.",
-    noDate: "No date. Nobody remembers.",
-    rumor: "This sounds like a rumor. You can take it off.",
-    next: "Next: pin it up",
-    card: function (w, tag) { return "Card: " + w + ", " + tag; },
-    at: function (b, n) { return b + ", slot " + n; },
-    inSlot: function (n) { return "Card in slot " + n; },
-    srcAdded: "Source added",
-    good: "Good headline! It tells what's on the poster.",
-    sell: "This headline tells people what to think. A 'What we know' poster tells what's inside, so everyone can make up their own mind.",
-    ask: "Ask a grown-up: where can we share it?",
-    aha: "Sharing a fact without its source or date can spread a mistake.",
-    see: "See my score",
-    can: "I can share facts with their sources and say what we don't know yet.",
-    tipRumor: "Next time, add a source to every card. If it has no source, it's a rumor. Leave it off.",
-    tipSrc: "Next time, add the source to every fact before you pin it up.",
-    tipDate: "Next time, check the date on every card. Old news can sneak in.",
-    tipMix: "Next time, show a hope and a worry, so every neighbor feels heard.",
-    tipHead: "Next time, pick a headline that tells what's inside, not what to think.",
-    tip100: "Great poster! Try a new round with new cards.",
-    real: "Make a poster for your class or library, with permission. Every fact gets its source and date. No posting online.",
-    gu: "For grown-ups: about this stop",
-    guText: "Kids make a poster with sources and dates, show a hope and a worry, and choose a safe place to share it: family, class, or a library board with permission. No social media, petitions or campaign materials."
-  };
+  var T = window.CBLocale.read("stop-13", (ES ? "es" : "en"), {en:{"T.prog":function (n, hd) { return window.CBLocale.part("stop-13", "en", "T.prog", 0) + n + window.CBLocale.part("stop-13", "en", "T.prog", 1) + (hd ? window.CBLocale.part("stop-13", "en", "T.prog", 2) : window.CBLocale.part("stop-13", "en", "T.prog", 3)); },"T.step":function (n) { return window.CBLocale.part("stop-13", "en", "T.step", 0) + n + window.CBLocale.part("stop-13", "en", "T.step", 1); },"T.slot":function (n) { return window.CBLocale.part("stop-13", "en", "T.slot", 0) + n + window.CBLocale.part("stop-13", "en", "T.slot", 1); },"T.source":function (s) { return window.CBLocale.part("stop-13", "en", "T.source", 0) + s; },"T.card":function (w, tag) { return window.CBLocale.part("stop-13", "en", "T.card", 0) + w + window.CBLocale.part("stop-13", "en", "T.card", 1) + tag; },"T.at":function (b, n) { return b + window.CBLocale.part("stop-13", "en", "T.at", 0) + n; },"T.inSlot":function (n) { return window.CBLocale.part("stop-13", "en", "T.inSlot", 0) + n; }},es:{"T.prog":function (n, hd) { return window.CBLocale.part("stop-13", "es", "T.prog", 0) + n + window.CBLocale.part("stop-13", "es", "T.prog", 1) + (hd ? window.CBLocale.part("stop-13", "es", "T.prog", 2) : window.CBLocale.part("stop-13", "es", "T.prog", 3)); },"T.step":function (n) { return window.CBLocale.part("stop-13", "es", "T.step", 0) + n + window.CBLocale.part("stop-13", "es", "T.step", 1); },"T.slot":function (n) { return window.CBLocale.part("stop-13", "es", "T.slot", 0) + n + window.CBLocale.part("stop-13", "es", "T.slot", 1); },"T.source":function (s) { return window.CBLocale.part("stop-13", "es", "T.source", 0) + s; },"T.card":function (w, tag) { return window.CBLocale.part("stop-13", "es", "T.card", 0) + w + window.CBLocale.part("stop-13", "es", "T.card", 1) + tag; },"T.at":function (b, n) { return b + window.CBLocale.part("stop-13", "es", "T.at", 0) + n; },"T.inSlot":function (n) { return window.CBLocale.part("stop-13", "es", "T.inSlot", 0) + n; }}}).T;
 
   /* sources and their dates; the ids are for code only, never shown */
   var SRC = {
-    plan: { name: ["The company's plan, at the library", "El plan de la empresa, en la biblioteca"], date: ["September 3", "3 de septiembre"] },
-    board: { name: ["Planning Board notes", "Notas de la Junta de Planificación"], date: ["September 24", "24 de septiembre"] },
-    state: { name: ["A letter from the State Environment Office", "Una carta de la Oficina Estatal del Medio Ambiente"], date: ["October 2", "2 de octubre"] },
-    first: { name: ["The company's first plan", "El primer plan de la empresa"], date: ["June 2", "2 de junio"] }
+    plan: { name: window.CBLocale.pair("stop-13","bank.b0001"), date: window.CBLocale.pair("stop-13","bank.b0002") },
+    board: { name: window.CBLocale.pair("stop-13","bank.b0003"), date: window.CBLocale.pair("stop-13","bank.b0004") },
+    state: { name: window.CBLocale.pair("stop-13","bank.b0005"), date: window.CBLocale.pair("stop-13","bank.b0006") },
+    first: { name: window.CBLocale.pair("stop-13","bank.b0007"), date: window.CBLocale.pair("stop-13","bank.b0008") }
   };
   /* 8 checked facts: 4 hope, 4 worry */
   var FACTS = [
-    { tag: "hope", src: "plan", t: ["The company's plan lists many jobs during building.", "El plan de la empresa indica muchos empleos durante la construcción."] },
-    { tag: "hope", src: "plan", t: ["The company's plan shows outdoor lights pointing down, away from homes.", "El plan de la empresa muestra luces exteriores hacia abajo, sin apuntar a las casas."] },
-    { tag: "hope", src: "board", t: ["The Board notes describe a proposed building far from the old chapel.", "Las notas de la Junta describen un edificio propuesto lejos de la vieja capilla."] },
-    { tag: "hope", src: "board", t: ["The Board notes propose an expert search for old graves before digging.", "Las notas de la Junta proponen que una persona experta busque tumbas antiguas antes de excavar."] },
-    { tag: "worry", src: "plan", t: ["The company's plan lists only a few jobs after opening.", "El plan de la empresa indica solo unos pocos empleos después de abrir."] },
-    { tag: "worry", src: "plan", t: ["The company's plan lists daily water use.", "El plan de la empresa indica un uso diario de agua."] },
-    { tag: "worry", src: "plan", t: ["The company's plan says backup engines would run during power cuts and short tests.", "El plan de la empresa dice que los motores de respaldo se prenderían durante cortes de luz y pruebas cortas."] },
-    { tag: "worry", src: "state", t: ["The air permit isn't decided yet.", "El permiso de calidad del aire todavía no se ha decidido."] }
+    { tag: "hope", src: "plan", t: window.CBLocale.pair("stop-13","bank.b0009") },
+    { tag: "hope", src: "plan", t: window.CBLocale.pair("stop-13","bank.b0010") },
+    { tag: "hope", src: "board", t: window.CBLocale.pair("stop-13","bank.b0011") },
+    { tag: "hope", src: "board", t: window.CBLocale.pair("stop-13","bank.b0012") },
+    { tag: "worry", src: "plan", t: window.CBLocale.pair("stop-13","bank.b0013") },
+    { tag: "worry", src: "plan", t: window.CBLocale.pair("stop-13","bank.b0014") },
+    { tag: "worry", src: "plan", t: window.CBLocale.pair("stop-13","bank.b0015") },
+    { tag: "worry", src: "state", t: window.CBLocale.pair("stop-13","bank.b0016") }
   ];
   /* 4 old facts from the company's first plan (June 2), each with its new fact */
   var OLDS = [
-    { tag: "hope", t: ["Electrician classes at the school start this fall.", "Las clases de electricista en la escuela empiezan este otoño."],
-      src: "plan", nt: ["The new plan proposes electrician classes next year, if the town says yes.", "El nuevo plan propone clases de electricista el próximo año, si el pueblo dice que sí."] },
-    { tag: "hope", t: ["The plan keeps some of the big pecan trees.", "El plan conserva algunos de los nogales grandes."],
-      src: "plan", nt: ["The plan keeps all the big pecan trees by the creek.", "El plan conserva todos los nogales grandes junto al arroyo."] },
-    { tag: "worry", t: ["It would take water from the town's wells.", "Sacaría agua de los pozos del pueblo."],
-      src: "plan", nt: ["The new plan proposes water from Pecan River, not from wells.", "El nuevo plan propone tomar agua del río Pecan, no de los pozos."] },
-    { tag: "worry", t: ["The sound study will be done in October.", "El estudio de ruido va a estar listo en octubre."],
-      src: "board", nt: ["The sound study isn't done yet. It's due in the spring.", "El estudio de ruido todavía no está listo. Va a estar listo en la primavera."] }
+    { tag: "hope", t: window.CBLocale.pair("stop-13","bank.b0017"),
+      src: "plan", nt: window.CBLocale.pair("stop-13","bank.b0018") },
+    { tag: "hope", t: window.CBLocale.pair("stop-13","bank.b0019"),
+      src: "plan", nt: window.CBLocale.pair("stop-13","bank.b0020") },
+    { tag: "worry", t: window.CBLocale.pair("stop-13","bank.b0021"),
+      src: "plan", nt: window.CBLocale.pair("stop-13","bank.b0022") },
+    { tag: "worry", t: window.CBLocale.pair("stop-13","bank.b0023"),
+      src: "board", nt: window.CBLocale.pair("stop-13","bank.b0024") }
   ];
   /* 4 rumors (Stop 4's words): no source, no date; 2 hope, 2 worry */
   var RUMORS = [
-    { tag: "hope", t: ["It uses no water at all.", "No usa nada de agua."] },
-    { tag: "worry", t: ["Every well in town will dry up next year.", "Todos los pozos del pueblo se van a secar el próximo año."] },
-    { tag: "hope", t: ["Everyone's power bill will go down.", "A todos nos va a bajar el recibo de luz."] },
-    { tag: "worry", t: ["The lights will go out in every house.", "Se va a ir la luz en todas las casas."] }
+    { tag: "hope", t: window.CBLocale.pair("stop-13","bank.b0025") },
+    { tag: "worry", t: window.CBLocale.pair("stop-13","bank.b0026") },
+    { tag: "hope", t: window.CBLocale.pair("stop-13","bank.b0027") },
+    { tag: "worry", t: window.CBLocale.pair("stop-13","bank.b0028") }
   ];
   /* 4 headlines: two tell, two sell (one for each side); both selling ones get the same note and the same 0 */
   var HEADS = [
-    { tells: true, t: ["What we know so far, and what we don't know yet", "Lo que sabemos hasta ahora y lo que todavía no sabemos"] },
-    { tells: true, t: ["The farm plan: facts with sources and dates", "El plan de la granja: datos con fuente y fecha"] },
-    { tells: false, t: ["The data center would be great for Pecan Grove!", "¡El centro de datos sería genial para Pecan Grove!"] },
-    { tells: false, t: ["The data center would be bad for Pecan Grove!", "¡El centro de datos sería malo para Pecan Grove!"] }
+    { tells: true, t: window.CBLocale.pair("stop-13","bank.b0029") },
+    { tells: true, t: window.CBLocale.pair("stop-13","bank.b0030") },
+    { tells: false, t: window.CBLocale.pair("stop-13","bank.b0031") },
+    { tells: false, t: window.CBLocale.pair("stop-13","bank.b0032") }
   ];
   /* where to share: all three are safe and score the same; there is no "post online" choice */
   var SHARES = [
-    { id: "family", icon: "table", t: ["At the family table", "En la mesa con la familia"], line: ["Your family reads it at dinner and asks about the sources.", "Tu familia lo lee en la cena y pregunta por las fuentes."] },
-    { id: "class", icon: "desk", t: ["With my class", "Con mi clase"], line: ["Your teacher puts it up, and your class talks about the dates.", "Tu maestro o maestra lo pone en el salón, y tu clase habla de las fechas."] },
-    { id: "library", icon: "board", t: ["On the library board, with permission", "En el tablero de la biblioteca, con permiso"], line: ["The library says yes and puts it on the board.", "En la biblioteca te dicen que sí y lo ponen en el tablero."] }
+    { id: "family", icon: "table", t: window.CBLocale.pair("stop-13","bank.b0033"), line: window.CBLocale.pair("stop-13","bank.b0034") },
+    { id: "class", icon: "desk", t: window.CBLocale.pair("stop-13","bank.b0035"), line: window.CBLocale.pair("stop-13","bank.b0036") },
+    { id: "library", icon: "board", t: window.CBLocale.pair("stop-13","bank.b0037"), line: window.CBLocale.pair("stop-13","bank.b0038") }
   ];
 
   /* line icons on the shell's 24-unit grid, one 2px round stroke (no glyphs, no words) */
@@ -161,12 +93,14 @@
     var s = document.createElementNS(SVGNS, "svg");
     s.setAttribute("viewBox", "0 0 24 24"); s.setAttribute("aria-hidden", "true"); s.setAttribute("focusable", "false");
     s.setAttribute("class", "cb-ico" + (cls ? " " + cls : ""));
-    s.innerHTML = name === "pin" ? PIN : ICONS[name];            // constant, authored markup only
+    host.setAuthoredMarkup(s, name === "pin" ? PIN : ICONS[name]);            // constant, authored markup only
     return s;
   }
-  /* keyboard players get the focused control scrolled into view; touch and mouse players keep their scroll */
-  document.addEventListener("keydown", function (e) { if (e.key === "Tab" || e.key === "Enter" || e.key === " ") kbd = true; }, true);
-  document.addEventListener("pointerdown", function () { kbd = false; }, true);
+  /* Shared input reports modality, including native Tab, so this stop does not intercept keys. */
+  function keyboardMode() {
+    var root = document.querySelector('[data-game="community-builders"]');
+    return !!(root && root.dataset && (root.dataset.input === "keyboard" || root.dataset.input === "gamepad"));
+  }
 
   CB.register({ id: ID, steps: STEPS, css: "13-spread-the-word-right.css", run: run });
 
@@ -176,13 +110,15 @@
     document.title = T.title;
     var round = newRound(api);
     var tray = round.cards.slice();          // tray order; a card on the poster leaves a dashed gap here
+    var viewPhase = "intro", displayedAnim = null, displayedDrop = false;
     var slots = [null, null, null];          // { card, src, date, at (tray index) }
-    var head = null, firstHead = null, share = null, dropped = false, anim = null, done = false, holdUntil = 0;
+    var head = null, firstHead = null, share = null, dropped = false, anim = null, done = false, holdUntil = 0, keyboardActivation = false;
+    document.addEventListener("click", function (event) { keyboardActivation = event.detail === 0; }, true);
     /* a tap re-draws the board and moves things under the finger: for 300 ms the second tap of a double tap is ignored, so it never lands
        on a control that just appeared or moved there (Swap under Check the date, the next slot under Take it off, See my score). Placing
        cards is never held: its second tap lands on the dashed outline, so a child can tap cards as fast as they like. */
     function hold() { holdUntil = Date.now() + 300; }
-    function busy() { return Date.now() < holdUntil; }
+    function busy() { return !keyboardActivation && Date.now() < holdUntil; }
 
     function tagName(tag) { return tag === "hope" ? T.hope : T.worry; }
     function filled() { return slots.filter(Boolean).length; }
@@ -200,7 +136,7 @@
       return (b && b.height ? b.top : window.innerHeight) - 12;
     }
     function reveal(el, always) {             // scroll a control into view when focus moved somewhere the player cannot see
-      if (!el || !(kbd || always)) return;
+      if (!el || !(keyboardMode() || always)) return;
       var r = el.getBoundingClientRect();
       if (r.top < 8 || r.bottom > floorY(el)) el.scrollIntoView({ block: "center", behavior: api.REDUCED ? "auto" : "smooth" });
     }
@@ -282,6 +218,7 @@
 
     /* ── intro: the School, where the library keeps its board ───────── */
     function intro() {
+      viewPhase = "intro";
       var scene = api.crop(SCHOOL, "cb-s13-scene", [mark()]);
       var legend = h("ul", { "class": "cb-s13-legend" }, [[icon("note"), T.addSrc], [icon("calendar"), T.checkDate]].map(function (x) {
         return h("li", null, [x[0], h("span", { text: x[1] })]);
@@ -313,6 +250,7 @@
       return h("span", { "class": "cb-s13-dots", "aria-hidden": "true" }, d);
     }
     function build(focusSel) {
+      viewPhase = "build"; displayedAnim = anim;
       var ready = filled() === 3 && head !== null, d = dots();
       /* the bar says in words what is done and what is missing; a tap on the faded Next shows why it waits */
       var why = h("p", { "class": "cb-msg cb-s13-prog", role: "status", text: T.prog(filled(), head !== null) });
@@ -333,9 +271,9 @@
           h("div", { "class": "cb-s13-wall" }, [api.crop(BAND, "cb-s13-band", [mark()]), poster("build")]),
           h("div", { "class": "cb-s13-side" }, [
             h("section", { "class": "cb-s13-tray", "aria-labelledby": tid }, [h("h3", { "class": "cb-s13-h", id: tid }, [icon("card"), h("span", { text: T.cards })]),
-              h("ul", { "class": "cb-s13-cards" }, tray.map(trayItem))]),
+              h("ul", { "class": "cb-s13-cards", "data-cb-choices": "" }, tray.map(trayItem))]),
             h("section", { "class": "cb-s13-heads", "aria-labelledby": hid }, [h("h3", { "class": "cb-s13-h", id: hid }, [icon("headline"), h("span", { text: T.heads })]),
-              h("ul", { "class": "cb-s13-headlist" }, round.heads.map(headBtn)), note ? h("div", { "class": "cb-s13-note" }, [note]) : null])])]),
+              h("ul", { "class": "cb-s13-headlist", "data-cb-choices": "" }, round.heads.map(headBtn)), note ? h("div", { "class": "cb-s13-note" }, [note]) : null])])]),
         h("div", { "class": "cb-actions cb-s13-bar" }, [h("div", { "class": "cb-actions__info" }, [d, why]), next])], "cb-s13--build")], focusSel || null);
       anim = null;
     }
@@ -348,7 +286,7 @@
       anim = { i: e, what: "place" };
       var nxt = null;
       if (filled() < 3) for (var k = 1; k < tray.length; k++) { var j = (i + k) % tray.length; if (!onPoster(j)) { nxt = j; break; } }
-      if (nxt !== null) { build('[data-s13card="' + nxt + '"]'); back(); if (kbd) keep(focused()); }
+      if (nxt !== null) { build('[data-s13card="' + nxt + '"]'); back(); if (keyboardMode()) keep(focused()); }
       else { build('[data-s13act="src-' + slots.findIndex(function (s) { return s && !s.src; }) + '"]'); back(); reveal(focused(), true); }
       api.say(T.inSlot(e + 1));
     }
@@ -384,7 +322,7 @@
       hold();
       slots[i] = null;                                     // the card goes back to the tray, plain again
       build('[data-s13card="' + s.at + '"]');
-      if (kbd) keep(focused());                            // a touch player keeps looking at the poster
+      if (keyboardMode()) keep(focused());                            // a touch player keeps looking at the poster
     }
     function pickHead(k) {
       if (busy()) return;
@@ -403,14 +341,15 @@
         onclick: function () { pickShare(x.id); } }, [h("span", { "class": "cb-s13-share__ic" }, [icon(x.icon)]), h("span", { "class": "cb-s13-share__t", text: tx(x.t) }),
           h("span", { "class": "cb-s13-share__ok", "aria-hidden": "true" }, [api.ico("check")])])]);
     }
-    function step2(focusSel) {
+    function step2(focusSel, restoreDrop) {
+      viewPhase = "share";
       var x = SHARES.filter(function (s) { return s.id === share; })[0];
-      var drop = !!share && !dropped; if (share) dropped = true;
+      var drop = restoreDrop === undefined ? !!share && !dropped : !!restoreDrop; displayedDrop = drop; if (share) dropped = true;
       var wall = h("div", { "class": "cb-s13-wall cb-s13-wall--share" + (drop ? " is-drop" : "") }, [api.crop(BAND, "cb-s13-band", [mark()]), poster("share"),
         share ? h("p", { "class": "cb-s13-aha", id: "cb-s13-aha" }, [api.ico("bulb"), h("span", { text: T.aha })]) : null]);
       api.screen([hud(1), board([
         h("p", { "class": "cb-coach cb-s13-q", tabindex: "-1" }, [api.ico("family"), h("span", { text: T.ask })]),
-        h("div", { "class": "cb-s13-play cb-s13-play--share" }, [wall, h("div", { "class": "cb-s13-side" }, [h("ul", { "class": "cb-s13-shares" }, SHARES.map(shareBtn))])]),
+        h("div", { "class": "cb-s13-play cb-s13-play--share" }, [wall, h("div", { "class": "cb-s13-side" }, [h("ul", { "class": "cb-s13-shares", "data-cb-choices": "" }, SHARES.map(shareBtn))])]),
         x ? h("div", { "class": "cb-actions cb-s13-bar" }, [h("div", { "class": "cb-actions__info" }, [api.fb(tx(x.line), true)]), see()]) : null], "cb-s13--share")],
         focusSel || ".cb-s13-q");
       if (drop) keep(document.getElementById("cb-s13-aha"));   // the poster drops onto the board: its aha line comes into view above the sticky bar
@@ -431,6 +370,7 @@
 
     /* ── score: the finished poster only ────────────────────────────── */
     function finish() {
+      viewPhase = "result";
       var cards = slots.map(function (s) { return s; });
       var rumorOn = cards.some(function (s) { return s.card.kind === "rumor"; });
       var nSrc = cards.filter(function (s) { return s.card.kind === "fact" && s.src; }).length;      // up-to-date checked fact with its source
@@ -444,7 +384,7 @@
         : facts.some(function (s) { return !s.date || s.card.kind === "old"; }) ? T.tipDate
         : !(hope && worry) ? T.tipMix
         : !tells ? T.tipHead : T.tip100;
-      var info = api.saveRound(stop.id, score, { lastRumor: round.rumor, lastOld: round.old, lastFacts: round.facts });   // pool codes only, never the poster
+      var info = api.saveRound(stop.id, score, { allSources: nSrc === 3, processBadge: nSrc === 3 && nDate === 3 ? "process-13" : null, lastRumor: round.rumor, lastOld: round.old, lastFacts: round.facts });   // pool codes only, never the poster
       api.endPlay();
       var card = api.scoreCard(stop, score, info, tip, T.can, T.real);
       var can = card.querySelector(".cb-card__can");
@@ -454,11 +394,27 @@
       }, "family");
       var btns = api.cardButtons(stop.id, api.restart(stop.id), gu), shown = Date.now();
       btns.addEventListener("click", function (e) {           // the second tap of a double tap on See my score never lands on Play again
-        if (Date.now() - shown < 400) { e.stopPropagation(); e.preventDefault(); }
+        if (e.detail > 0 && Date.now() - shown < 400) { e.stopPropagation(); e.preventDefault(); }
       }, true);
       api.finishRound(stop.id, card, btns);
       api.say(api.W.score + " " + score + " / 100");
     }
+
+    if (api.setController) api.setController({
+      snapshot: function () { return { v: 2, phase: viewPhase, tray: tray.map(function (c) { return c.key; }), slots: slots.map(function (s) { return s ? { at: s.at, key: s.card.key, src: s.src, date: s.date } : null; }),
+        head: head, firstHead: firstHead, share: share, dropped: dropped, displayedAnim: displayedAnim, displayedDrop: displayedDrop }; },
+      restore: function (saved) {
+        if (!saved || saved.v !== 2 || !Array.isArray(saved.slots) || saved.slots.length !== 3) return false;
+        tray = saved.tray.map(function (key, at) { if (key.charAt(0) !== "n") return tray[at]; var o = OLDS[Number(key.slice(1))]; return { key: key, kind: "fact", tag: o.tag, text: tx(o.nt), src: o.src }; });
+        slots = saved.slots.map(function (s) { if (!s) return null; var c = tray[s.at];
+          if (s.key && s.key.charAt(0) === "n") { var index = Number(s.key.slice(1)), o = OLDS[index]; c = { key: s.key, kind: "fact", tag: o.tag, text: tx(o.nt), src: o.src }; }
+          return { at: s.at, card: c, src: !!s.src, date: !!s.date };
+        });
+        head = saved.head; firstHead = saved.firstHead; share = saved.share; dropped = !!saved.dropped; anim = saved.displayedAnim; displayedAnim = saved.displayedAnim; displayedDrop = !!saved.displayedDrop; done = saved.phase === "result";
+        if (saved.phase === "result") finish(); else if (saved.phase === "share") step2(null, saved.displayedDrop); else if (saved.phase === "build") build(); else intro();
+        return true;
+      }
+    });
 
     intro();
   }
@@ -488,4 +444,9 @@
     cards.push({ key: "r" + rumor, kind: "rumor", tag: RUMORS[rumor].tag, text: tx(RUMORS[rumor].t), src: null });
     return { rumor: rumor, old: old, facts: facts, cards: api.shuffle(cards), heads: api.shuffle([0, 1, 2, 3]) };
   }
+
+    return definition;
+  }
+  if (host.defineStop) host.defineStop(factory);
+  else host.register(factory({ document: document, window: window, Date: Date, setTimeout: setTimeout, clearTimeout: clearTimeout, requestAnimationFrame: requestAnimationFrame, cancelAnimationFrame: typeof cancelAnimationFrame === "function" ? cancelAnimationFrame : function () {} }));
 })();
