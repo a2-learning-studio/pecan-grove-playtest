@@ -18,6 +18,12 @@ async function nativeCore(language='en',{failOnce=null,paused=false}={}) {
   w.HTMLDialogElement.prototype.showModal=function(){this.setAttribute('open','');};
   w.HTMLDialogElement.prototype.close=function(){this.removeAttribute('open');this.dispatchEvent(new w.Event('close'));};
   w.HTMLImageElement.prototype.decode=()=>Promise.resolve();
+  // This native-module fixture models successful requests without a network
+  // resource loader; the loading suite separately exercises pending/error cases.
+  Object.defineProperties(w.HTMLImageElement.prototype, {
+    complete: { configurable: true, get: () => true },
+    naturalWidth: { configurable: true, get: () => 960 },
+  });
   w.Audio=class {constructor(src){this.src=src;this.paused=true;this.currentTime=0;}pause(){this.paused=true;}play(){this.paused=false;return Promise.resolve();}addEventListener(){}removeEventListener(){}};
   // The only fetch is the actual first-party lazy-stop descriptor, read locally.
   // No resource loader or socket is enabled; any other fetch fails explicitly.
@@ -37,13 +43,13 @@ async function nativeCore(language='en',{failOnce=null,paused=false}={}) {
     const result=append(node);
     if(node.tagName==='SCRIPT'&&node.src.includes('/stops/')) {
       const filename=new URL(node.src).pathname.split('/').pop();requests.push(filename);
-      queueMicrotask(()=>{
+      w.queueMicrotask(()=>{
         if(!failed&&filename===failOnce){failed=true;node.onerror?.();return;}
         try{w.eval(fs.readFileSync(path.join(base,'stops',filename),'utf8'));node.onload?.();}
         catch(error){errors.push(error);node.onerror?.();}
       });
-    }else if(node.tagName==='LINK')queueMicrotask(()=>node.onload?.());
-    else if(node.tagName==='SCRIPT'&&node.src.includes('/voice/'))queueMicrotask(()=>node.onerror?.());
+    }else if(node.tagName==='LINK')w.queueMicrotask(()=>node.onload?.());
+    else if(node.tagName==='SCRIPT'&&node.src.includes('/voice/'))w.queueMicrotask(()=>node.onerror?.());
     return result;
   };
   w.eval(fs.readFileSync(path.join(base,'locales/catalog.js'),'utf8'));
@@ -80,6 +86,7 @@ for(const language of ['en','es']) {
     const r=await nativeCore(language);
     try{
       r.core.enterPlay({quiet:true});assert.equal(await r.core.startStop('notice-the-signs'),true);await r.tick();
+      assert.equal(r.root.querySelector('.cb-loading-overlay'),null,'Successful critical artwork leaves the real scene usable');
       assert.ok(r.requests.includes('01-notice-the-signs.js'));assert.ok(r.main().querySelector('.cb-s01-intro'));
       r.main().querySelector('.cb-s01-intro .cb-btn--go').click();r.main().querySelector('[data-view="today"]').click();r.main().querySelector('[data-spot="0"]').click();await r.tick();
       assert.equal(r.root.querySelectorAll('dialog[open]').length,0);assert.ok(r.root.querySelector('.cb-callout'));
@@ -97,6 +104,7 @@ for(const language of ['en','es']) {
     const r=await nativeCore(language);
     try{
       r.core.enterPlay({quiet:true});assert.equal(await r.core.startStop('ask-a-good-question'),true);await r.tick();
+      assert.equal(r.root.querySelector('.cb-loading-overlay'),null,'Successful critical artwork leaves the real scene usable');
       const first=r.main().querySelector('.cb-s02-first').textContent.replace(/^[^:]+:\s*/,'');r.main().querySelector('.cb-s02-intro .cb-btn--go').click();
       assert.equal(r.main().querySelector('.cb-s02-nb[data-i="0"] .cb-s02-nb__name').textContent,first);
       for(const row of ['start','topic','detail'])r.main().querySelector(`.cb-s02-row[data-row="${row}"] .cb-s02-tile`).click();

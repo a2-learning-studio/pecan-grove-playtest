@@ -295,13 +295,87 @@ test("an already loaded image remains usable when decode rejects, but real art f
   }
 });
 
+test("deferred portraits cannot block critical scene art, including portraits added during a render", async () => {
+  const r = fixture();
+  try {
+    let finishDecode,
+      deferredDecodes = 0;
+    const eager = r.ctx.h("img", { loading: "eager" });
+    eager.decode = () => new Promise((resolve) => (finishDecode = resolve));
+    const deferred = () => {
+      const image = r.ctx.h("img", { loading: "lazy" });
+      image.decode = () => {
+        deferredDecodes++;
+        return Promise.reject(new Error("Deferred request has not started"));
+      };
+      return image;
+    };
+    r.root.append(eager, deferred());
+    const load = r.ctx.loadingTask(() => {});
+    r.advance(300);
+    const ready = load.art(r.root);
+    r.root.append(deferred());
+    assert.equal(r.root.querySelector("progress").value, 0);
+    finishDecode();
+    await ready;
+    assert.equal(deferredDecodes, 0);
+    assert.equal(r.root.querySelector("progress").value, 35);
+    load.finish();
+  } finally {
+    r.close();
+  }
+});
+
+test("pending eager artwork waits for load before decode, and an unchanged broken request still fails", async () => {
+  const r = fixture();
+  try {
+    let width = 0,
+      complete = false,
+      decodes = 0;
+    const image = r.ctx.h("img", { loading: "eager", src: "/map.avif" });
+    Object.defineProperties(image, {
+      complete: { get: () => complete },
+      naturalWidth: { get: () => width },
+    });
+    image.decode = () => {
+      decodes++;
+      return complete
+        ? Promise.resolve()
+        : Promise.reject(new Error("Request has not completed"));
+    };
+    r.root.append(image);
+    const load = r.ctx.loadingTask(() => {});
+    r.advance(300);
+    const ready = load.art(r.root);
+    await Promise.resolve();
+    assert.equal(decodes, 0);
+    assert.equal(r.root.querySelector("progress").value, 0);
+    complete = true;
+    width = 960;
+    image.dispatchEvent(new r.ctx.window.Event("load"));
+    await ready;
+    assert.equal(decodes, 1);
+    assert.equal(r.root.querySelector("progress").value, 35);
+    complete = false;
+    width = 0;
+    const failed = assert.rejects(load.art(r.root), /Image failed to load/);
+    image.dispatchEvent(new r.ctx.window.Event("error"));
+    await failed;
+    load.fail();
+    assert.match(r.root.textContent, /Something didn't load/);
+    load.finish();
+  } finally {
+    r.close();
+  }
+});
+
 test("a changed responsive source waits for its load and decode before contributing art progress", async () => {
   const r = fixture();
   try {
     const image = r.ctx.h("img");
     let source = "/map-960.avif",
-      complete = false,
-      width = 0,
+      complete = true,
+      width = 960,
       attempts = 0,
       abort,
       finishDecode;
@@ -322,6 +396,8 @@ test("a changed responsive source waits for its load and decode before contribut
     r.advance(300);
     const ready = load.art(r.root);
     source = "/map-2048.avif";
+    complete = false;
+    width = 0;
     abort(new Error("The source changed during decoding"));
     await Promise.resolve();
     assert.equal(attempts, 1, "the pending replacement is not decoded early");
@@ -341,18 +417,23 @@ test("a changed responsive source waits for its load and decode before contribut
   }
 });
 
-test("an unchanged pending image still rejects rather than masking a genuine decode failure", async () => {
+test("an unchanged request that finishes without usable pixels still fails with an explicit Retry", async () => {
   const r = fixture();
   try {
     const image = r.ctx.h("img");
+    let complete = false;
     Object.defineProperties(image, {
       currentSrc: { value: "/broken.avif" },
-      complete: { value: false },
+      complete: { get: () => complete },
+      naturalWidth: { value: 0 },
     });
     image.decode = () => Promise.reject(new Error("Invalid image data"));
     r.root.append(image);
     const load = r.ctx.loadingTask(() => {});
-    await assert.rejects(load.art(r.root), /Invalid image data/);
+    const failed = assert.rejects(load.art(r.root), /Image failed to load/);
+    complete = true;
+    image.dispatchEvent(new r.ctx.window.Event("load"));
+    await failed;
     load.fail();
     assert.match(r.root.textContent, /Something didn't load/);
     assert.ok(r.root.querySelector("button"));
@@ -373,7 +454,7 @@ for (const changedElement of ["img", "source"])
       source.setAttribute("srcset", "/map-960.avif 960w, /map-2048.avif 2048w");
       const changed = changedElement === "img" ? image : source;
       changed.setAttribute("sizes", "900px");
-      let width = 0,
+      let width = 960,
         abort,
         attempts = 0;
       Object.defineProperties(image, {
@@ -393,6 +474,7 @@ for (const changedElement of ["img", "source"])
       r.advance(300);
       const ready = load.art(r.root);
       changed.setAttribute("sizes", "1849px");
+      width = 0;
       abort(
         new Error("Responsive selection changed before currentSrc updated"),
       );
@@ -410,7 +492,7 @@ for (const changedElement of ["img", "source"])
     }
   });
 
-test("responsive recovery remains bounded and is cancelled when its loading task is replaced", async () => {
+test("pending critical requests remain bounded and are cancelled when their loading task is replaced", async () => {
   const r = fixture();
   try {
     const image = r.ctx.h("img");
@@ -426,10 +508,7 @@ test("responsive recovery remains bounded and is cancelled when its loading task
     };
     r.root.append(image);
     const first = r.ctx.loadingTask(() => {});
-    const failed = assert.rejects(
-      first.art(r.root),
-      /Responsive decode interrupted/,
-    );
+    const failed = assert.rejects(first.art(r.root), /Image failed to load/);
     await Promise.resolve();
     r.advance(15000);
     await failed;

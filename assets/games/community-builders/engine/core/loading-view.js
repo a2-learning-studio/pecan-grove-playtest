@@ -91,7 +91,17 @@ export default function createLoadingView(ctx) {
         paint();
       },
       art: function (scope) {
-        var images = [].slice.call(scope.querySelectorAll("img"));
+        function criticalImages() {
+          // Deferred portraits keep their normal browser loading lifecycle and must
+          // not block the playable scene while they are outside the viewport.
+          return [].filter.call(
+            scope.querySelectorAll("img"),
+            function (image) {
+              return image.getAttribute("loading") !== "lazy";
+            },
+          );
+        }
+        var images = criticalImages();
         function sourceSelection(image) {
           var picture = image.parentElement;
           return JSON.stringify([
@@ -113,8 +123,51 @@ export default function createLoadingView(ctx) {
               : [],
           ]);
         }
+        function loaded(image) {
+          return new Promise(function (resolve, reject) {
+            var waiting = true,
+              timeout;
+            function settle(failure, ready) {
+              if (!waiting) return;
+              waiting = false;
+              ctx.clearTimeout(timeout);
+              image.removeEventListener("load", loadedImage);
+              image.removeEventListener("error", failedImage);
+              var index = cancelArt.indexOf(cancel);
+              if (index >= 0) cancelArt.splice(index, 1);
+              if (failure) reject(failure);
+              else resolve(ready);
+            }
+            function loadedImage() {
+              settle(
+                image.naturalWidth > 0
+                  ? null
+                  : new Error("Image failed to load"),
+                true,
+              );
+            }
+            function failedImage() {
+              settle(new Error("Image failed to load"));
+            }
+            function cancel() {
+              settle(null, false);
+            }
+            image.addEventListener("load", loadedImage);
+            image.addEventListener("error", failedImage);
+            cancelArt.push(cancel);
+            timeout = ctx.setTimeout(failedImage, 15000);
+            if (closed || !image.isConnected) cancel();
+            else if (image.complete) loadedImage();
+          });
+        }
         function decoded(image, retries) {
           if (closed || !image.isConnected) return Promise.resolve();
+          // Firefox can reject decode() before an eager request has completed.
+          // Wait for the request's actual load/error result before decoding it.
+          if (image.complete === false)
+            return loaded(image).then(function (ready) {
+              return ready ? decoded(image, retries) : undefined;
+            });
           var source = sourceSelection(image),
             decoding;
           try {
@@ -136,37 +189,8 @@ export default function createLoadingView(ctx) {
               retries >= 3
             )
               throw error;
-            return new Promise(function (resolve, reject) {
-              var waiting = true,
-                timeout;
-              function settle(failure, loaded) {
-                if (!waiting) return;
-                waiting = false;
-                ctx.clearTimeout(timeout);
-                image.removeEventListener("load", loadedImage);
-                image.removeEventListener("error", failedImage);
-                var index = cancelArt.indexOf(cancel);
-                if (index >= 0) cancelArt.splice(index, 1);
-                if (failure) reject(failure);
-                else resolve(loaded);
-              }
-              function loadedImage() {
-                settle(image.naturalWidth > 0 ? null : error, true);
-              }
-              function failedImage() {
-                settle(error);
-              }
-              function cancel() {
-                settle(null, false);
-              }
-              image.addEventListener("load", loadedImage);
-              image.addEventListener("error", failedImage);
-              cancelArt.push(cancel);
-              timeout = ctx.setTimeout(failedImage, 15000);
-              if (closed || !image.isConnected) cancel();
-              else if (image.complete) loadedImage();
-            }).then(function (loaded) {
-              return loaded ? decoded(image, retries + 1) : undefined;
+            return loaded(image).then(function (ready) {
+              return ready ? decoded(image, retries + 1) : undefined;
             });
           });
         }
@@ -176,11 +200,9 @@ export default function createLoadingView(ctx) {
           }),
         )
           .then(function () {
-            var replacements = [].slice
-              .call(scope.querySelectorAll("img"))
-              .filter(function (image) {
-                return images.indexOf(image) === -1;
-              });
+            var replacements = criticalImages().filter(function (image) {
+              return images.indexOf(image) === -1;
+            });
             return Promise.all(
               replacements.map(function (image) {
                 return decoded(image, 0);

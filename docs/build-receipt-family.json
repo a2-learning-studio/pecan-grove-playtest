@@ -1,10 +1,10 @@
 {
-  "build": "acfc2dc5b60e",
+  "build": "6f774d0a8afe",
   "flavor": "family",
   "files": 292,
-  "jsGzipBytes": 78849,
-  "cssGzipBytes": 26968,
-  "criticalCssGzipBytes": 9922,
+  "jsGzipBytes": 79186,
+  "cssGzipBytes": 27007,
+  "criticalCssGzipBytes": 10023,
   "fonts": {
     "fonts": [
       {

@@ -180,3 +180,25 @@ test('explicit audio cancellation retains the client signal rather than using th
   assert.equal((await pending).type, 'error');
   assert.equal(w.stores.get('pecan-grove-voice-es').size, 0);
 });
+
+
+test('family intro Exit cancels a native fullscreen request that settles after the player leaves', async () => {
+  const dom = page('family'), win = dom.window, doc = win.document;
+  try {
+    const stage = doc.getElementById('pt-stage'), game = doc.getElementById('community-builders');
+    let fullscreen = null, enter, entered = 0, exited = 0;
+    Object.defineProperty(doc, 'fullscreenElement', { configurable: true, get: () => fullscreen });
+    stage.requestFullscreen = () => new Promise(resolve => { enter = () => { fullscreen = stage; resolve(); }; });
+    doc.exitFullscreen = () => { fullscreen = null; exited++; return Promise.resolve(); };
+    win.CommunityBuilders.enterPlay = () => { entered++; };
+    const app = mount(doc, win), starting = app.start();
+    assert.equal(game.hidden, true);
+    app.exit(); enter(); await starting;
+    assert.equal(fullscreen, null);
+    assert.equal(exited, 1);
+    assert.equal(entered, 0);
+    assert.equal(doc.getElementById('pt-intro').hidden, false);
+    assert.equal(stage.classList.contains('is-expanded'), false);
+    assert.equal(game.getAttribute('inert'), null);
+  } finally { dom.window.close(); }
+});

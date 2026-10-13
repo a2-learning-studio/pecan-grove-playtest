@@ -60,6 +60,8 @@ jobs:
             docs/build-receipt*.json
             docs/readability*
             docs/privacy-baseline-proof*
+            docs/engine-coverage.json
+            docs/engine-coverage.txt
           retention-days: 7
   browsers:
     needs: quality
@@ -83,6 +85,8 @@ jobs:
         with:
           name: checked-builds
       - run: npx playwright install --with-deps chromium firefox webkit
+      - name: Prepare CSP-compatible WebKit screenshots
+        run: node tools/prepare-browser-screenshots.mjs
       - name: Isolate native WebKit dropdown CSP behavior
         if: matrix.project == 'webkit'
         run: node tools/webkit-csp-probe.mjs

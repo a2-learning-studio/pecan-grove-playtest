@@ -149,6 +149,7 @@ export default function createScene(ctx) {
         {
           type: "button",
           class: "cb-chip",
+          "aria-label": ctx.W.playing(a.name),
           onclick: function () {
             ctx.openWho(c);
           },

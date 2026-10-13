@@ -12,6 +12,12 @@ async function fullCore(lang = 'en', seed = 42, paused = false, saved = null, op
   w.HTMLDialogElement.prototype.showModal=function(){this.setAttribute('open','');};
   w.HTMLDialogElement.prototype.close=function(){this.removeAttribute('open');this.dispatchEvent(new w.Event('close'));};
   w.HTMLImageElement.prototype.decode=()=>Promise.resolve();
+  // JSDOM does not fetch image bytes. Model the successful image request as well
+  // as decode; pending/error/timeout behavior has its own loading-view tests.
+  Object.defineProperties(w.HTMLImageElement.prototype, {
+    complete: { configurable: true, get: () => true },
+    naturalWidth: { configurable: true, get: () => 960 },
+  });
   w.Audio=class {constructor(){this.paused=true;this.currentTime=0;} pause(){this.paused=true;} play(){this.paused=false;return Promise.resolve();} addEventListener(){} removeEventListener(){} };
   if (options.audioFactory) w.Audio=options.audioFactory(w);
   w.fetch=async url=>{

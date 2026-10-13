@@ -243,6 +243,7 @@ def page(lang, form, revision="preview", build_date=None, feedback_endpoint="", 
       <button class="pt-tool" id="pt-exit" type="button">{e(w['exit_play'])}</button>
     </nav>
     <div class="pt-stage-content">
+      <h1 class="pt-sr pt-game-heading">{e(w["game_label"])}</h1>
       <p class="pt-sr" id="pt-play-status" role="status" aria-live="polite"></p>
       <div class="cb" id="community-builders" tabindex="-1" aria-label="{e(w["game_label"])}" data-playtest-paused="true" data-game="community-builders" data-language-url="{w["other"]}" data-base="assets/games/community-builders/"></div>
       <div id="pt-feedback-home">

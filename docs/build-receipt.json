@@ -1,10 +1,10 @@
 {
-  "build": "812b6e259a15",
+  "build": "b1b3f4f631f7",
   "flavor": "playtest",
   "files": 293,
-  "jsGzipBytes": 92932,
-  "cssGzipBytes": 27562,
-  "criticalCssGzipBytes": 10569,
+  "jsGzipBytes": 93272,
+  "cssGzipBytes": 27601,
+  "criticalCssGzipBytes": 10669,
   "fonts": {
     "fonts": [
       {

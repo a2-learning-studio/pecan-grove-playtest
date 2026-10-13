@@ -6,11 +6,13 @@ import {showCallout,prefersFindCards} from '../../assets/games/community-builder
 function setup({voice=false}={}) {
   const dom=new JSDOM('<div id="game"><main><button class="cb-s01-spot">A sign</button></main></div>',{pretendToBeVisual:true});
   const w=dom.window,root=w.document.querySelector('#game'),main=root.querySelector('main'),anchor=main.querySelector('button');
-  let time=0,next=0;const tasks=new Map(),cleanups=[];
+  let time=0,next=0;const tasks=new Map(),cleanups=[],frames=new Map();
+  w.requestAnimationFrame=fn=>{const id=++next;frames.set(id,fn);return id;};w.cancelAnimationFrame=id=>frames.delete(id);
+  function frame(){const pending=[...frames];frames.clear();pending.forEach(([,fn])=>fn(time));}
   const clock={Date:{now:()=>time},setTimeout(fn,ms){const id=++next;tasks.set(id,{fn,at:time+ms});return id;},clearTimeout(id){tasks.delete(id);},cleanup(fn){cleanups.push(fn);}};
   function advance(ms){const end=time+ms;while(true){let entry=[...tasks].sort((a,b)=>a[1].at-b[1].at)[0];if(!entry||entry[1].at>end)break;time=entry[1].at;tasks.delete(entry[0]);entry[1].fn();}time=end;}
   const ctx={window:w,document:w.document,root,main,activeLifecycle:clock,CFG:{findCards:false},W:{close:'Close'},vOn:voice,gamePaused:false,vAudio:null,vEl:null,vLoad:()=>Promise.resolve(),vScan(){ctx.vAudio={};ctx.vEl=root.querySelector('.cb-callout p');},vStop(){ctx.vAudio=null;ctx.vEl=null;},h(tag,attrs={},kids=[]){const n=w.document.createElement(tag);for(const[k,v]of Object.entries(attrs))k==='text'?n.textContent=v:n.setAttribute(k,v);for(const c of kids)if(c)n.append(c);return n;},btn(label,cls,run){const b=w.document.createElement('button');b.textContent=label;b.className=cls;b.addEventListener('click',run);return b;}};
-  return{dom,w,ctx,anchor,advance,tasks,cleanups,close:()=>w.close()};
+  return{dom,w,ctx,anchor,advance,tasks,frames,frame,cleanups,close:()=>w.close()};
 }
 
 test('findings are polite and nonmodal, retain the chosen target, and dismiss after six quiet seconds',()=>{
@@ -24,4 +26,18 @@ test('Escape and stop cleanup dismiss once and remove all timers',()=>{
 });
 test('classic-card preference follows the setting and conservative forced-colors preference',()=>{
  const r=setup();try{r.w.matchMedia=()=>({matches:false});assert.equal(prefersFindCards(r.ctx),false);r.ctx.CFG.findCards=true;assert.equal(prefersFindCards(r.ctx),true);r.ctx.CFG.findCards=false;r.w.matchMedia=()=>({matches:true});assert.equal(prefersFindCards(r.ctx),true);}finally{r.close();}
+});
+
+test('scroll and resize bursts update callout geometry once on the next frame without synchronous scroll positioning',()=>{
+ const r=setup();try{let reads=0,left=20;r.anchor.getBoundingClientRect=()=>{reads++;return{left,top:30,right:left+44,bottom:74,width:44,height:44};};
+  const panel=showCallout(r.ctx,r.anchor,r.ctx.h('p',{text:'A sign.'}));const initial=reads,previousLeft=panel.style.left;left=80;
+  for(let i=0;i<10;i++)r.anchor.dispatchEvent(new r.w.Event('scroll',{bubbles:true}));r.w.dispatchEvent(new r.w.Event('resize'));
+  assert.equal(reads,initial,'The scroll event must not synchronously inspect layout.');assert.equal(panel.style.left,previousLeft);assert.equal(r.frames.size,1);
+  r.frame();assert.equal(reads,initial+1);assert.equal(panel.style.left,'80px');assert.equal(r.frames.size,0);
+ }finally{r.close();}
+});
+test('dismissing a callout cancels its pending position frame and detaches scroll scheduling',()=>{
+ const r=setup();try{const panel=showCallout(r.ctx,r.anchor,r.ctx.h('p',{text:'A sign.'}));r.anchor.dispatchEvent(new r.w.Event('scroll',{bubbles:true}));assert.equal(r.frames.size,1);
+  panel.dismiss();assert.equal(r.frames.size,0);r.anchor.dispatchEvent(new r.w.Event('scroll',{bubbles:true}));assert.equal(r.frames.size,0);r.frame();assert.equal(panel.isConnected,false);
+ }finally{r.close();}
 });

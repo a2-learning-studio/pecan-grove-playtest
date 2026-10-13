@@ -23,7 +23,7 @@ DOC_FILES = {"source-map.md", "stop-api.md", "stop-api.d.ts", "stops-audit.md", 
 BACKEND_FILES = {"Code.gs", "appsscript.json", "README.md", "feedback-backend.test.cjs"}
 TOOL_FILES.add("check-fact-sources.mjs")
 TOOL_FILES.add("requirements-build.txt")
-TOOL_FILES.update({"delivery-manifest.mjs", "performance-checks.mjs", "webkit-csp-probe.mjs"})
+TOOL_FILES.update({"delivery-manifest.mjs", "performance-checks.mjs", "webkit-csp-probe.mjs", "prepare-browser-screenshots.mjs"})
 DOC_FILES.update({"content-review.md", "engine-coverage.json", "engine-coverage.txt"})
 ROOT_FILES.update({".gitattributes", "IMPLEMENTATION-REPORT.md", "pecan-grove-comprehensive-audit-2026-10-12.md"})
 ROOT_FILES.add("assets/img/mark.svg")

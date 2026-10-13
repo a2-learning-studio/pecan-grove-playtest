@@ -6,7 +6,7 @@
     if (!stage) return null;
     var el = function (id) { return document.getElementById('pt-' + id); };
     var intro = el('intro'), game = document.getElementById('community-builders');
-    var startVersion = 0, artWarmed = false;
+    var startVersion = 0, artWarmed = false, nativeWanted = false, nativeRequest = null;
     function warmArt() {
       if (artWarmed || !window.PG_ASSET_MAP) return;
       artWarmed = true;
@@ -23,24 +23,27 @@
         document.head.appendChild(link);
       }, { timeout: 3000 });
     }
-    function readyToPlay(finish) {
-      if (!window.PGStyles || !window.PGStyles.required) { finish(); warmArt(); return; }
+    function readyToPlay(finish, fullscreen) {
       var version = ++startVersion;
-      var words = window.PGShellLocale[document.documentElement.lang === 'es' ? 'es' : 'en'];
+      var needsStyles = window.PGStyles && window.PGStyles.required;
+      if (!needsStyles && !fullscreen) { game.hidden = false; finish(); warmArt(); return; }
+      var words = window.PGShellLocale && window.PGShellLocale[document.documentElement.lang === 'es' ? 'es' : 'en'];
       var status = el('play-status');
-      status.textContent = words.shell_loading_styles; game.setAttribute('inert', ''); game.setAttribute('aria-busy', 'true'); el('start').disabled = true;
-      return window.PGStyles.load().then(function () {
-        el('start').disabled = false; game.removeAttribute('inert'); game.removeAttribute('aria-busy');
-        if (version === startVersion) { finish(); warmArt(); }
-      }).catch(function () {
-        el('start').disabled = false; game.removeAttribute('inert'); game.removeAttribute('aria-busy');
+      // A mounted title must not become visible while native fullscreen is still entering.
+      game.hidden = true;
+      if (words) status.textContent = words.shell_loading_styles; game.setAttribute('inert', ''); game.setAttribute('aria-busy', 'true'); el('start').disabled = true;
+      return Promise.all([needsStyles ? window.PGStyles.load() : null, fullscreen]).then(function () {
         if (version !== startVersion) return;
+        el('start').disabled = false; game.hidden = false; game.removeAttribute('inert'); game.removeAttribute('aria-busy');
+        finish(); warmArt();
+      }).catch(function () {
+        if (version !== startVersion) return;
+        el('start').disabled = false; game.hidden = false; game.removeAttribute('inert'); game.removeAttribute('aria-busy');
         stage.classList.remove('is-playing', 'is-expanded'); document.body.classList.remove('pt-playing'); intro.hidden = false;
         var error = el('style-error');
         if (!error) { error = document.createElement('p'); error.id = 'pt-style-error'; error.setAttribute('role', 'alert'); intro.appendChild(error); }
         error.textContent = window.PGShellLocale[document.documentElement.lang === 'es' ? 'es' : 'en'].shell_styles_error;
-        el('start').focus();
-        if (document.fullscreenElement === stage && document.exitFullscreen) document.exitFullscreen().catch(function () {});
+        el('start').focus(); cancelNativeFS();
       });
     }
     var currentLanguage = document.documentElement.lang === 'es' ? 'es' : 'en';
@@ -92,25 +95,29 @@
       var value = window.CommunityBuilders;
       if (value && value.setLanguage) { event.preventDefault(); value.setLanguage(document.documentElement.lang === 'es' ? 'en' : 'es'); }
     });
+    // This listener also exists in family mode; declarations below are hoisted.
+    function releaseLateFullscreen() { if (fs() === stage && !stage.classList.contains('is-playing')) exitNativeFS(); }
+    document.addEventListener('fullscreenchange', releaseLateFullscreen);
+    document.addEventListener('webkitfullscreenchange', releaseLateFullscreen);
     var panel = el('feedback'), home = el('feedback-home'), slot = el('feedback-window');
     if (!panel) {
-      var familyStart = function () {
+      var familyStart = function (options) {
         intro.hidden = true; stage.classList.add('is-playing', 'is-expanded'); document.body.classList.add('pt-playing');
-        var request = stage.requestFullscreen || stage.webkitRequestFullscreen;
-        if (request) { try { var promise = request.call(stage); if (promise && promise.catch) promise.catch(function () {}); } catch (_) {} }
+        var fullscreen = !options || options.requestFullscreen !== false ? requestFS() : null;
         return readyToPlay(function () {
           var familyCore = window.CommunityBuilders || {};
           if (familyCore.enterPlay) familyCore.enterPlay({ quiet: !!el('quiet').checked });
           if (familyCore.suspendVoice) familyCore.suspendVoice(false);
           game.focus({ preventScroll: true }); stage.scrollTop = 0;
-        });
+        }, fullscreen);
       };
       var familyExit = function () {
         startVersion += 1;
         var familyCore = window.CommunityBuilders || {};
         if (familyCore.suspendVoice) familyCore.suspendVoice(true);
         game.setAttribute('data-playtest-paused', 'true');
-        if (document.fullscreenElement === stage && document.exitFullscreen) document.exitFullscreen().catch(function () {});
+        cancelNativeFS();
+        game.hidden = false; game.removeAttribute('inert'); game.removeAttribute('aria-busy'); el('start').disabled = false;
         stage.classList.remove('is-playing', 'is-expanded'); document.body.classList.remove('pt-playing'); intro.hidden = false; el('h').focus();
       };
       el('start').addEventListener('click', familyStart); el('exit').addEventListener('click', familyExit);
@@ -229,18 +236,44 @@
     window.addEventListener('blur', endDrag);
     if (window.visualViewport) { window.visualViewport.addEventListener('resize', clampFloat); window.visualViewport.addEventListener('scroll', clampFloat); }
     if (typeof window.ResizeObserver === 'function') new window.ResizeObserver(clampFloat).observe(review);
+    function exitNativeFS() {
+      var exit = document.exitFullscreen || document.webkitExitFullscreen;
+      if (fs() !== stage || !exit) return;
+      try { var result = exit.call(document); return result && result.catch ? result.catch(function () {}) : result; }
+      catch (_) { /* The expanded view remains usable if the native transition is unavailable. */ }
+    }
+    function cancelNativeFS() { nativeWanted = false; return exitNativeFS(); }
     function requestFS() {
+      nativeWanted = true;
+      if (nativeRequest) return nativeRequest;
       var request = stage.requestFullscreen || stage.webkitRequestFullscreen;
       if (request && document.fullscreenEnabled !== false) {
-        try { var result = request.call(stage); if (result && result.catch) result.catch(function () {}); } catch (_) { /* Expanded browser view remains available. */ }
+        try {
+          var result = request.call(stage);
+          if (result && result.then) {
+            var pending = new Promise(function (resolve) {
+              // A browser transition must not leave the expanded game hidden forever.
+              var timeout = window.setTimeout(function () { nativeWanted = false; exitNativeFS(); resolve(); }, 3000);
+              Promise.resolve(result).catch(function () {}).then(function () {
+                window.clearTimeout(timeout);
+                if (!nativeWanted || !stage.classList.contains('is-playing')) exitNativeFS();
+                resolve();
+              });
+            });
+            nativeRequest = pending;
+            pending.then(function () { if (nativeRequest === pending) nativeRequest = null; });
+            return pending;
+          }
+        } catch (_) { /* Expanded browser view remains available. */ }
       }
+      return null;
     }
     function start(options) {
       playing = true; intro.hidden = true;
       stage.classList.add('is-playing', 'is-expanded');
       document.body.classList.add('pt-playing');
       // Request fullscreen within the original user gesture, before async work.
-      if (!options || options.requestFullscreen !== false) requestFS();
+      var fullscreen = !options || options.requestFullscreen !== false ? requestFS() : null;
       return readyToPlay(function () {
         if (core().enterPlay) core().enterPlay({ quiet: !!el('quiet').checked });
         suspend(false);
@@ -248,7 +281,7 @@
         el('play-status').textContent = words ? words.shell_play_open : '';
         game.setAttribute('tabindex', '-1'); focus(game);
         stage.scrollTop = 0;
-      });
+      }, fullscreen);
     }
     function restore() {
       flush();
@@ -296,8 +329,8 @@
       startVersion += 1;
       closeReview(); playing = false;
       game.setAttribute('data-playtest-paused', 'true'); suspend(true);
-      var exitFS = document.exitFullscreen || document.webkitExitFullscreen;
-      if (fs() === stage && exitFS) { try { var result = exitFS.call(document); if (result && result.catch) result.catch(function () {}); } catch (_) {} }
+      cancelNativeFS();
+      game.hidden = false; game.removeAttribute('inert'); game.removeAttribute('aria-busy'); el('start').disabled = false;
       stage.classList.remove('is-playing', 'is-expanded'); document.body.classList.remove('pt-playing');
       intro.hidden = false; focus(el('h'));
     }

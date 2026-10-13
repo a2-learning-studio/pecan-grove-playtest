@@ -1,9 +1,15 @@
 const { test, expect } = require('./fixtures');
 const AxeBuilder = require('@axe-core/playwright').default;
 const {renderedLabelContrast}=require('./contrast-probe.cjs');
+const {settleFiniteAnimations,accessibilityDiagnostics}=require('./settle-animations.cjs');
 
 const languages = [{lang:'en',file:'index.html'},{lang:'es',file:'espanol.html'}];
-async function audit(page) { const result = await new AxeBuilder({page}).analyze(); expect(result.violations).toEqual([]); }
+async function audit(page) {
+  await settleFiniteAnimations(page,expect);
+  const result = await new AxeBuilder({page}).analyze();
+  const diagnostics = result.violations.length ? await accessibilityDiagnostics(page,result.violations) : [];
+  expect(result.violations,`Accessibility violations; rendered context: ${JSON.stringify(diagnostics)}`).toEqual([]);
+}
 async function startStage(page,file='index.html',seed=42) {
   await page.goto(`/${file}?seed=${seed}`);
   // The team intro intentionally keeps the mounted game hidden until Start.
@@ -41,10 +47,15 @@ async function completeStop1(page,check=async()=>{}) {
   await page.locator('.cb-s01-intro .cb-btn--go').click();
   await page.locator('.cb-s01-view[data-view="today"]').click(); await check();
   for(let i=0;i<12;i++) {
-    await page.locator(`.cb-s01-spot[data-spot="${i}"]`).click();
+    // Pointer actions have a 350 ms double-tap guard. Let each deliberate tap
+    // finish, then prove this particular object was actually processed.
+    await page.waitForTimeout(400);
+    const spot=page.locator(`.cb-s01-spot[data-spot="${i}"]`);
+    await spot.click(); await expect(spot).toHaveClass(/is-(found|not)(?:\s|$)/);
     // The modernization requires inline callouts, not a blocking dialog after each tap.
     await expect(page.locator('dialog[open]')).toHaveCount(0); await check();
   }
+  await page.waitForTimeout(400);
   await primary(page); await expect(page.locator('.cb-card__can')).toBeVisible(); await check();
 }
 async function backToMap(page) { await page.locator('.cb-stophud__back').click(); await expect(page.locator('.cb-stop[data-stop-n="2"]:visible').first()).toBeVisible(); }
@@ -225,10 +236,17 @@ test('frame guard replaces an embedded game with a safe open link',async({page})
 test.describe('explicitly approved feedback transport',()=>{
   test.use({allowFeedback:true});
   test('preview and grown-up hold are required, and only scrubbed submitted entries are sent',async({page,noNetwork})=>{
-    await page.route('https://script.google.com/macros/**',async route=>{const body=JSON.parse(route.request().postData());await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,schemaVersion:1,acknowledged:body.entries.map(e=>({sessionId:e.sessionId,entryId:e.entryId,revision:e.revision}))})});});
+    await page.route('https://script.google.com/macros/**',async route=>{
+      const request=route.request(),headers={'Access-Control-Allow-Origin':'*','Access-Control-Allow-Methods':'POST, OPTIONS','Access-Control-Allow-Headers':'content-type'};
+      // Native browsers may send a CORS preflight before the actual submitted
+      // payload. Both are mocked; a preflight must never be mistaken for a POST.
+      if(request.method()==='OPTIONS'){expect(request.postData()).toBeNull();await route.fulfill({status:204,headers,body:''});return;}
+      expect(request.method()).toBe('POST');const body=JSON.parse(request.postData());
+      await route.fulfill({status:200,headers,contentType:'application/json',body:JSON.stringify({ok:true,schemaVersion:1,acknowledged:body.entries.map(e=>({sessionId:e.sessionId,entryId:e.entryId,revision:e.revision}))})});
+    });
     await start(page);await page.locator('#pt-review-tab').click();await page.locator('#pt-feedback-fix').fill('Email ana@x.com or call 555-123-4567');await page.locator('#pt-feedback-submit').click();await expect(page.locator('#pt-feedback-preview')).toBeVisible();await expect(page.locator('#pt-feedback-preview-text')).not.toContainText('ana@x.com');expect(noNetwork.receiverRequests).toHaveLength(0);
-    await page.locator('#pt-feedback-send').focus();const sent=page.waitForRequest(request=>request.url().includes('/macros/'));await page.keyboard.down('Enter');const request=await sent;await page.keyboard.up('Enter');
-    const body=JSON.parse(request.postData());expect(JSON.stringify(body)).not.toMatch(/ana@x\.com|555-123-4567/);expect(body.entries.every(e=>e.submitted===true)).toBe(true);await expect(page.locator('#pt-feedback-status')).toContainText('received');expect(noNetwork.receiverRequests).toHaveLength(1);
+    await page.locator('#pt-feedback-send').focus();const sent=page.waitForRequest(request=>request.url().includes('/macros/')&&request.method()==='POST');await page.keyboard.down('Enter');const request=await sent;await page.keyboard.up('Enter');
+    const body=JSON.parse(request.postData());expect(JSON.stringify(body)).not.toMatch(/ana@x\.com|555-123-4567/);expect(body.entries.every(e=>e.submitted===true)).toBe(true);await expect(page.locator('#pt-feedback-status')).toContainText('received');expect(noNetwork.receiverRequests.filter(request=>request.method()==='POST')).toHaveLength(1);expect(noNetwork.receiverRequests.every(request=>['POST','OPTIONS'].includes(request.method()))).toBe(true);
   });
 });
 
@@ -249,9 +267,10 @@ for(const {lang,file} of languages) for(const completed of [1,2,15]) {
     const canvas=pan.querySelector('.cb-world__canvas'),bounds=pan.getBoundingClientRect(),buttons=[...canvas.querySelectorAll('.cb-stop')],discs=buttons.map(button=>button.querySelector('.cb-stop__disc').getBoundingClientRect());
     const overlaps=(a,b)=>a.left<b.right-.5&&a.right>b.left+.5&&a.top<b.bottom-.5&&a.bottom>b.top+.5;
     const labels=[];buttons.forEach((button,index)=>{for(const node of button.querySelectorAll('.cb-tag,.cb-stop__plate')){const style=getComputedStyle(node),box=node.getBoundingClientRect();if(node.hidden||style.visibility==='hidden'||Number(style.opacity)===0||!box.width||!box.height)continue;for(let j=0;j<discs.length;j++)if(j!==index&&overlaps(box,discs[j]))labels.push({stop:index+1,other:j+1,label:node.className});}});
-    return{count:discs.length,scroll:pan.scrollWidth>pan.clientWidth+1,outside:discs.map((box,index)=>({box,index})).filter(({box})=>box.width<43.9||box.height<43.9||box.left<bounds.left-.5||box.right>bounds.right+.5||box.top<bounds.top-.5||box.bottom>bounds.bottom+.5).map(({index})=>index+1),labels};
+    const geometry={pan:{x:bounds.x,y:bounds.y,width:bounds.width,height:bounds.height,scrollWidth:pan.scrollWidth,clientWidth:pan.clientWidth},canvas:{width:canvas.getBoundingClientRect().width,height:canvas.getBoundingClientRect().height,scrollWidth:canvas.scrollWidth,transform:getComputedStyle(canvas).transform},viewport:{width:innerWidth,height:innerHeight,fullscreen:(document.fullscreenElement||document.webkitFullscreenElement)?.id||null}};
+    return{count:discs.length,scroll:pan.scrollWidth>pan.clientWidth+1,outside:discs.map((box,index)=>({box,index})).filter(({box})=>box.width<43.9||box.height<43.9||box.left<bounds.left-.5||box.right>bounds.right+.5||box.top<bounds.top-.5||box.bottom>bounds.bottom+.5).map(({index})=>index+1),labels,geometry};
    });
-   expect(result.count).toBe(15);expect(result.scroll,`${width}px horizontal map overflow`).toBe(false);expect(result.outside,`${width}px clipped or undersized discs`).toEqual([]);expect(result.labels,`${width}px labels cover a different disc`).toEqual([]);
+   expect(result.count).toBe(15);expect(result.scroll,`${width}px horizontal map overflow: ${JSON.stringify(result.geometry)}`).toBe(false);expect(result.outside,`${width}px clipped or undersized discs: ${JSON.stringify(result.geometry)}`).toEqual([]);expect(result.labels,`${width}px labels cover a different disc`).toEqual([]);
   }
   noNetwork.assertClean();
  });
@@ -259,7 +278,7 @@ for(const {lang,file} of languages) for(const completed of [1,2,15]) {
 
 for(const {lang,file}of languages)test(`${lang}: rendered map and Stop1/2 label contrast`,async({page})=>{
  test.setTimeout(120000);await start(page,file);await page.evaluate(()=>window.PecanGroveEngine.settings.update({calm:true}));
- async function probe(selector){const labels=await renderedLabelContrast(page,selector);expect(labels.length,`Visible labels for ${selector}`).toBeGreaterThan(0);for(const label of labels)expect(label.ratio,`${label.text}: rendered contrast`).toBeGreaterThanOrEqual(4.5);}
+ async function probe(selector){await settleFiniteAnimations(page,expect);const labels=await renderedLabelContrast(page,selector);expect(labels.length,`Visible labels for ${selector}`).toBeGreaterThan(0);for(const label of labels)expect(label.ratio,`${label.text}: rendered contrast`).toBeGreaterThanOrEqual(4.5);}
  await page.locator('.cb-stop[data-stop-n="1"]').first().focus();await probe('.cb-stop__plate');
  await stop(page,1);await page.locator('.cb-s01-intro .cb-btn--go').click();await page.locator('.cb-s01-view[data-view="today"]').click();await probe('.cb-s01-tag');
  for(const index of [0,5,10]){await page.locator(`.cb-s01-spot[data-spot="${index}"]`).click();await page.locator('.cb-callout .cb-btn').click();await probe('.cb-s01-tag');}

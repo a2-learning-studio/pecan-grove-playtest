@@ -26,3 +26,19 @@ for (const language of ['en', 'es']) test(`${language}: native NodeFilter consta
     assert.deepEqual(r.errors, []);
   } finally { r.w.removeEventListener('error', capture); r.close(); }
 });
+
+for (const language of ['en', 'es']) test(`${language}: player chip keeps a localized accessible name when narrow presentation hides its text`, async () => {
+  const r = await fullCore(language);
+  try {
+    r.core.getState().store.current = 'fox';
+    r.core.showTitle();
+    const chip = r.root.querySelector('.cb-chip');
+    assert.ok(chip);
+    const label = chip.lastElementChild.textContent;
+    chip.lastElementChild.hidden = true;
+    assert.equal(chip.firstElementChild.getAttribute('aria-hidden'), 'true');
+    assert.equal(chip.getAttribute('aria-label'), label);
+    assert.ok(chip.getAttribute('aria-label').length > 0, 'the icon-only chip retains its actual localized player/action name');
+    assert.match(label, language === 'es' ? /Zorro/ : /Fox/);
+  } finally { r.close(); }
+});

@@ -24,6 +24,7 @@ export function showCallout(ctx, anchor, content, options = {}) {
   );
   let closed = false,
     tick = 0,
+    positionFrame = null,
     dismissAt = null,
     voiceReady = !ctx.vOn,
     offBack = () => {};
@@ -33,10 +34,14 @@ export function showCallout(ctx, anchor, content, options = {}) {
     if (closed) return;
     closed = true;
     clock.clearTimeout(tick);
+    if (positionFrame !== null) ctx.window.cancelAnimationFrame(positionFrame);
+    positionFrame = null;
     ctx.document.removeEventListener("pointerdown", outside, true);
     ctx.document.removeEventListener("keydown", escape, true);
-    ctx.window.removeEventListener("resize", place);
-    ctx.document.removeEventListener("scroll", place, true);
+    ctx.window.removeEventListener("resize", schedulePlace);
+    ctx.document.removeEventListener("scroll", schedulePlace, true);
+    ctx.window.visualViewport?.removeEventListener("resize", schedulePlace);
+    ctx.window.visualViewport?.removeEventListener("scroll", schedulePlace);
     offBack();
     if (ctx.vEl && panel.contains(ctx.vEl)) ctx.vStop();
     panel.remove();
@@ -68,6 +73,15 @@ export function showCallout(ctx, anchor, content, options = {}) {
   ctx.root.appendChild(panel);
   panel.dismiss = close;
   // Prefer beside the chosen item, then either edge. Avoid every remaining item.
+  function schedulePlace() {
+    // Scroll handlers only schedule work. Geometry and position writes happen
+    // once per frame, outside native asynchronous scrolling dispatch.
+    if (closed || positionFrame !== null) return;
+    positionFrame = ctx.window.requestAnimationFrame(() => {
+      positionFrame = null;
+      place();
+    });
+  }
   function place() {
     if (closed || !anchor.isConnected) {
       close();
@@ -122,8 +136,9 @@ export function showCallout(ctx, anchor, content, options = {}) {
     // the board in the normal flow instead of obscuring an unfound target.
     const inline = score(chosen) > 0;
     panel.classList.toggle("is-flow", inline);
-    if (inline) ctx.main.appendChild(panel);
-    else {
+    if (inline) {
+      if (panel.parentNode !== ctx.main) ctx.main.appendChild(panel);
+    } else {
       if (panel.parentNode !== ctx.root) ctx.root.appendChild(panel);
       panel.style.left = chosen.left + "px";
       panel.style.top = chosen.top + "px";
@@ -142,8 +157,15 @@ export function showCallout(ctx, anchor, content, options = {}) {
   }
   ctx.document.addEventListener("pointerdown", outside, true);
   ctx.document.addEventListener("keydown", escape, true);
-  ctx.window.addEventListener("resize", place);
-  ctx.document.addEventListener("scroll", place, true);
+  ctx.window.addEventListener("resize", schedulePlace);
+  ctx.document.addEventListener("scroll", schedulePlace, {
+    capture: true,
+    passive: true,
+  });
+  ctx.window.visualViewport?.addEventListener("resize", schedulePlace);
+  ctx.window.visualViewport?.addEventListener("scroll", schedulePlace, {
+    passive: true,
+  });
   const input = ctx.window.PecanGroveEngine?.input;
   if (input)
     offBack = input.on(

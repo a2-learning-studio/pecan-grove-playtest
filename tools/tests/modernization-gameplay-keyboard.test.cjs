@@ -1,6 +1,27 @@
 const test = require('node:test'), assert = require('node:assert/strict');
 const {fullCore} = require('./modernization-gameplay-fixture.cjs');
 
+for(const lang of ['en','es'])test(`Stop1 ${lang}: deliberate pointer taps process all twelve objects and reach the score`,async()=>{
+  const r=await fullCore(lang,42);try{
+    let clock=1000;r.w.Date.now=()=>clock;
+    await r.core.startStop('notice-the-signs');
+    r.main().querySelector('.cb-s01-intro .cb-btn--go').click();
+    r.main().querySelector('[data-view="today"]').click();
+    const pointer=node=>node.dispatchEvent(new r.w.MouseEvent('click',{bubbles:true,detail:1}));
+    pointer(r.main().querySelector('[data-spot="0"]'));
+    assert.equal(r.core.snapshot().state.found.length,0,'a pointer edge during the screen handoff is intentionally ignored');
+    for(let i=0;i<12;i++){
+      clock+=400;
+      const spot=r.main().querySelector(`[data-spot="${i}"]`);pointer(spot);
+      assert.match(spot.className,/is-(found|not)(?:\s|$)/,'each deliberate tap must process its own object');
+    }
+    const state=r.core.snapshot().state;
+    assert.equal(state.found.length,6);assert.equal(state.tapped.length,6);
+    clock+=400;pointer(r.main().querySelector('.cb-actions .cb-btn--go'));
+    assert.ok(r.main().querySelector('.cb-card__can'),'finding every sign proceeds directly to the result');
+  }finally{r.close();}
+});
+
 test('Stop 2 accepts an immediate keyboard choice while rejecting the second pointer tap', async()=>{
   const r=await fullCore('en',42);try{
     let clock=1000;r.w.Date.now=()=>clock;

@@ -2,6 +2,8 @@
   overflow: hidden;
 }
 .cb-map-ready .cb-world__canvas {
+  /* Hidden label plates must not enlarge the fitted pan's scrollable bounds. */
+  overflow: hidden;
   width: 100%;
   min-width: 0;
   padding: 0;

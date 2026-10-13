@@ -30,7 +30,7 @@ const report = {
   uaStyle, hash,
   source: 'https://raw.githubusercontent.com/WebKit/WebKit/main/Source/WebCore/html/HTMLSelectElement.cpp',
   purpose: 'Isolate native-select UA inline-style behavior from all game code; record exact-hash and arbitrary-style controls.',
-  results: [], unexpectedRequests: [], harnessErrors: [], controlFailures: []
+  results: [], screenshotControls: [], unexpectedRequests: [], harnessErrors: [], controlFailures: []
 };
 function validateControl(name, observed, consoleMessages) {
   const failures = [];
@@ -83,6 +83,15 @@ try {
       });
       await context.route('**/*', async route => {
         const url = new URL(route.request().url());
+        if (url.origin === origin && url.pathname === '/screenshot-sheet.css') {
+          await route.fulfill({status: 200, contentType: 'text/css', body: 'p { color: black; }'});
+          return;
+        }
+        if (url.origin === origin && url.pathname === '/screenshot-sync') {
+          await route.fulfill({status: 200, contentType: 'text/html', body:
+            `<!doctype html><html lang="en"><head><meta http-equiv="Content-Security-Policy" content="${strict}"><link rel="stylesheet" href="/screenshot-sheet.css"><title>Strict screenshot synchronization</title></head><body><p>First-party styled screenshot control.</p></body></html>`});
+          return;
+        }
         const specimen = cases.find(item => url.pathname === '/' + item.name);
         if (url.origin !== origin || !specimen) {
           report.unexpectedRequests.push({ viewport: viewport.name, url: url.href });
@@ -123,6 +132,30 @@ try {
           await page.close();
         }
       }
+      // Separate from the ten native-control cases: prove the dependency patch
+      // captures real pixels under strict CSP and restores the existing sheet.
+      const page = await context.newPage(), consoleMessages = [];
+      page.on('console', message => consoleMessages.push({type: message.type(), text: message.text(), location: message.location()}));
+      try {
+        await page.goto(origin + '/screenshot-sync', {waitUntil: 'load', timeout: 15000});
+        const before = await page.evaluate(() => Array.from(document.styleSheets[0].cssRules, rule => rule.cssText));
+        const pixels = await page.screenshot({animations: 'allow', caret: 'initial'});
+        await page.waitForTimeout(100);
+        const after = await page.evaluate(() => ({rules: Array.from(document.styleSheets[0].cssRules, rule => rule.cssText),
+          violations: window.__cspProbeEvents, color: getComputedStyle(document.querySelector('p')).color}));
+        const controlFailures = [];
+        if (JSON.stringify(before) !== JSON.stringify(after.rules)) controlFailures.push('Screenshot synchronization must restore the authored CSS rules.');
+        if (after.violations.length) controlFailures.push('Screenshot capture must not create a CSP violation.');
+        if (consoleMessages.some(message => ['warning', 'error'].includes(message.type))) controlFailures.push('Screenshot capture must not create a console warning/error.');
+        if (!pixels.length || after.color !== 'rgb(0, 0, 0)') controlFailures.push('Screenshot capture must retain the allowed first-party rendering.');
+        report.screenshotControls.push({viewport: viewport.name, before, after, consoleMessages, screenshotBytes: pixels.length,
+          controlPassed: controlFailures.length === 0, controlFailures});
+        for (const message of controlFailures) report.controlFailures.push({viewport: viewport.name, case: 'strict-screenshot-sync', message});
+      } catch (error) {
+        report.harnessErrors.push({viewport: viewport.name, case: 'strict-screenshot-sync', error: error.message});
+      } finally {
+        await page.close();
+      }
     } finally {
       await context.close();
     }
@@ -138,6 +171,7 @@ try {
   for (const result of report.results) {
     console.log(`${result.viewport}: ${result.case}: ${result.controlPassed ? 'PASS' : 'FAIL'}; ${result.consoleMessages.length} console messages, ${result.violations.length} CSP violations, color ${result.probeColor}`);
   }
+  for (const result of report.screenshotControls) console.log(`${result.viewport}: strict-screenshot-sync: ${result.controlPassed ? 'PASS' : 'FAIL'}; ${result.screenshotBytes} pixel bytes`);
   console.log('WebKit CSP isolation evidence: test-results/webkit-csp-probe.json');
   // Expected rejections must be demonstrated. This never waives game violations.
   if (report.harnessErrors.length || report.unexpectedRequests.length || report.controlFailures.length) process.exitCode = 1;
