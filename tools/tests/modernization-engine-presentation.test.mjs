@@ -426,8 +426,8 @@ test("normal scene transitions retain their authored animation and owned lifecyc
     assert.deepEqual(owned, [animation, animation]);
     assert.equal(calls[0].options.duration, 320);
     assert.equal(calls[1].options.duration, 200);
-    assert.equal(calls[0].frames[0].transform, "scale(.985)");
-    assert.equal(calls[1].frames[0].transform, "translateX(16px)");
+    assert.equal(calls[0].frames[0].transform, "translateY(16px) scale(.985)");
+    assert.equal(calls[1].frames[0].transform, "translateY(12px)");
     ctx.restoring = true;
     animateScene(ctx, r.root);
     assert.equal(calls.length, 2, "Restoring does not start a new fade");

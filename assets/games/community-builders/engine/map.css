@@ -280,6 +280,38 @@
   }
   .cb-map-controls {
     padding: 8px;
+    max-width: 100%;
+  }
+  .cb-map-ready,
+  .cb-map-ready .cb-world__pan,
+  .cb-map-ready .cb-world__canvas {
+    max-width: 100%;
+  }
+  /* Name plates stay in the caption. Floating plates are wider than a
+     phone map and were clipping off the left and right edges. */
+  .cb-map-ready .cb-stops--onmap .cb-stop__plate {
+    display: none !important;
+  }
+  .cb-map-caption {
+    block-size: auto;
+    min-block-size: 3.25rem;
+    max-block-size: 5.5rem;
+    padding: 8px 10px;
+  }
+  .cb-map-controls .cb-engine-hud {
+    flex-wrap: wrap;
+    min-width: 0;
+  }
+  .cb-map-controls .cb-engine-hud .cb-btn,
+  .cb-map-controls .cb-jscore,
+  .cb-map-legend__btn,
+  .cb-map-controls .cb-map-list {
+    max-width: 100%;
+    min-width: 0;
+  }
+  .cb-map-controls .cb-engine-hud .cb-btn {
+    flex-shrink: 1;
+    white-space: normal;
   }
 }
 @container cb (max-width: 599.98px) {

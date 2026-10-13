@@ -1,6 +1,7 @@
 @import "./map.css";
 @import "./input-hints.css";
 @import "./presentation.css";
+@import "./chrome.css";
 .cb[data-screen="stop"] {
   font-size: calc(var(--pg-type-body) * var(--cb-text-scale));
 }
