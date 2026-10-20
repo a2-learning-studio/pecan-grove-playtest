@@ -86,10 +86,11 @@ for (const file of await walk(path.join(output, 'assets'))) {
 await fs.writeFile(path.join(output, 'asset-map.json'), JSON.stringify(assetMap));
 // Boot after the hero has painted. Simulated Lighthouse LCP includes every
 // request that started before that paint, so loading the game first puts the
-// whole HTTP/1.1 queue on the LCP path. Schedule that import from a callback
-// instead of a top-level await so this entry, and Vite's preload helper, finish
-// immediately. Safari warns when a preloaded module is still unused a few
-// seconds after the load event.
+// whole HTTP/1.1 queue on the LCP path. Callbacks only: a top-level await keeps
+// Vite's preload helper pending, and Safari warns when that preload is still
+// unused a few seconds after load. The image's own decode is the backup when
+// a LCP entry never points at the hero. Waiting a full second instead overlaps
+// the game with the title-to-map interaction and pushes that task over 50ms.
 const imports = `import map from './asset-map.json';
 window.PG_ASSET_MAP=map;
 window.PG_STYLE_HREF=map['assets/games/community-builders/full-game.css'];
@@ -105,6 +106,9 @@ if (hero && typeof PerformanceObserver === 'function') {
     paints.observe({ type: 'largest-contentful-paint', buffered: true });
   } catch (_) {}
 }
+const afterDecode = () => requestAnimationFrame(() => requestAnimationFrame(start));
+if (hero && typeof hero.decode === 'function') hero.decode().then(() => setTimeout(afterDecode, 200), afterDecode);
+else afterDecode();
 setTimeout(arm, 1000);
 `;
 await fs.writeFile(path.join(output, 'app-entry.js'), imports);
