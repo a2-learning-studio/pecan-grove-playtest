@@ -86,27 +86,26 @@ for (const file of await walk(path.join(output, 'assets'))) {
 await fs.writeFile(path.join(output, 'asset-map.json'), JSON.stringify(assetMap));
 // Boot after the hero has painted. Simulated Lighthouse LCP includes every
 // request that started before that paint, so loading the game first puts the
-// whole HTTP/1.1 queue on the LCP path.
+// whole HTTP/1.1 queue on the LCP path. Schedule that import from a callback
+// instead of a top-level await so this entry, and Vite's preload helper, finish
+// immediately. Safari warns when a preloaded module is still unused a few
+// seconds after the load event.
 const imports = `import map from './asset-map.json';
 window.PG_ASSET_MAP=map;
 window.PG_STYLE_HREF=map['assets/games/community-builders/full-game.css'];
 const hero = document.querySelector('#pt-intro img');
-await new Promise(resolve => {
-  let open = true;
-  const finish = () => { if (open) { open = false; resolve(); } };
-  if (hero && typeof PerformanceObserver === 'function') {
-    try {
-      const paints = new PerformanceObserver(list => {
-        if (list.getEntries().some(entry => entry.element === hero)) requestAnimationFrame(finish);
-      });
-      paints.observe({ type: 'largest-contentful-paint', buffered: true });
-    } catch (_) {}
-  }
-  const later = () => requestAnimationFrame(() => requestAnimationFrame(finish));
-  if (hero && typeof hero.decode === 'function') hero.decode().then(() => setTimeout(later, 200), later);
-  else later();
-});
-await import('./assets/playtest/boot.js');
+let started = false;
+const start = () => { if (started) return; started = true; import('./assets/playtest/boot.js'); };
+const arm = () => requestAnimationFrame(start);
+if (hero && typeof PerformanceObserver === 'function') {
+  try {
+    const paints = new PerformanceObserver(list => {
+      if (list.getEntries().some(entry => entry.element === hero)) arm();
+    });
+    paints.observe({ type: 'largest-contentful-paint', buffered: true });
+  } catch (_) {}
+}
+setTimeout(arm, 1000);
 `;
 await fs.writeFile(path.join(output, 'app-entry.js'), imports);
 for (const lang of ['en', 'es']) {
@@ -120,6 +119,9 @@ for (const lang of ['en', 'es']) {
 }
 await build({ configFile: false, root: output, base: './', publicDir: false,
   build: { outDir: dist, emptyOutDir: true, target: 'es2022', cssCodeSplit: true, manifest: true,
+    // Vite's preload helper modulepreloads itself when a dynamic import runs.
+    // That file is already running, so Safari reports the link as an unused preload.
+    modulePreload: { resolveDependencies: (_filename, deps) => deps.filter(dep => !dep.includes('preload-helper')) },
     rollupOptions: { input: { en: path.join(output, 'index.html'), es: path.join(output, 'espanol.html') }, output: {
       assetFileNames: asset => asset.names?.some(name => name.endsWith('.css')) ? 'assets/critical-[hash][extname]' : 'assets/[name]-[hash][extname]'
     } } } });
