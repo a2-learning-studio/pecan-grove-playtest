@@ -1,10 +1,11 @@
 """Build the student play-test copy of Community Builders of Pecan Grove.
 
 Output: _publish/pecan-grove-playtest/ — a small static site for GitHub Pages: the game in English (index.html) and
-Spanish (espanol.html), a short "help us test" note, and only the files the game needs. Every path is relative, so it
-works from https://<user>.github.io/pecan-grove-playtest/. It asks search engines not to index it (this is a test, not
-the public launch). Game progress and feedback drafts stay in the player's browser. An optional configured
-Google Apps Script endpoint receives only explicitly submitted, reviewed feedback.
+Spanish (espanol.html), a short "help us test" note, and only the files the game needs. Page assets use relative paths,
+so the site works from https://<user>.github.io/pecan-grove-playtest/. Social preview tags use the absolute public URL
+so LinkedIn and other apps can fetch the card. Search engines stay out; preview crawlers may read that card. Game
+progress and feedback drafts stay in the player's browser. An optional configured Google Apps Script endpoint receives
+only explicitly submitted, reviewed feedback.
 
     python tools/make_playtest.py                      # reuse the saved feedback deployment, when present
     python tools/make_playtest.py --form https://forms.office.com/r/XXXX
@@ -22,6 +23,30 @@ IGNORED_FILES = {"desktop.ini", "thumbs.db", ".ds_store"}
 # WebKit's native select shadow tree writes exactly `text-overflow:inherit` before attaching
 # its UA slot. Permit that one declaration; authored style elements and every other attribute stay blocked.
 # The CI WebKit probe checks both the native control and unrelated-style rejection.
+SITE_ORIGIN = "https://a2-learning-studio.github.io/pecan-grove-playtest"
+SOCIAL_IMAGE = SITE_ORIGIN + "/social-preview.jpg"
+SOCIAL_IMAGE_WIDTH = 1200
+SOCIAL_IMAGE_HEIGHT = 627
+# These agents build link cards. Every other crawler remains disallowed.
+PREVIEW_AGENTS = (
+    "LinkedInBot", "Twitterbot", "facebookexternalhit", "Facebot", "WhatsApp",
+    "Slackbot", "Slackbot-LinkExpanding", "Discordbot", "TelegramBot", "Applebot",
+)
+SOCIAL = {
+    "en": {
+        "title": "Community Builders of Pecan Grove",
+        "description": "A free bilingual civic game for kids 8 to 14. Practice noticing, asking, listening, and planning together in the made-up town of Pecan Grove.",
+        "url": SITE_ORIGIN + "/",
+        "image_alt": "Illustrated town of Pecan Grove with neighbors from the bilingual civic game.",
+    },
+    "es": {
+        "title": "Constructores de comunidad de Pecan Grove",
+        "description": "Un juego cívico bilingüe y gratis para niños de 8 a 14 años. Practica notar, preguntar, escuchar y planear juntos en el pueblo inventado de Pecan Grove.",
+        "url": SITE_ORIGIN + "/espanol.html",
+        "image_alt": "Pueblo ilustrado de Pecan Grove con vecinos del juego cívico bilingüe.",
+    },
+}
+
 CSP = ("default-src 'self'; script-src 'self'; style-src 'self'; "
        "style-src-attr 'unsafe-hashes' 'sha256-3oFxofzq3N//6J8H86e9ul4WT2OkJrtonB66gn/TLJw='; "
        "img-src 'self' data:; font-src 'self'; media-src 'self' blob:; "
@@ -164,6 +189,40 @@ def feedback_panel(lang, revision, endpoint, form=""):
   </section>'''
 
 
+def robots_txt():
+    """Keep the playtest out of search, and let social apps read the preview card."""
+    blocks = ["# Search indexing stays off. Preview crawlers may read the public card."]
+    blocks.extend(f"User-agent: {agent}\nAllow: /" for agent in PREVIEW_AGENTS)
+    blocks.append("User-agent: *\nDisallow: /")
+    return "\n\n".join(blocks) + "\n"
+
+
+def social_tags(lang):
+    """Absolute card tags. Crawlers do not resolve paths relative to the shared URL."""
+    card = SOCIAL[lang]
+    e = lambda value: html.escape(value, quote=True)
+    image = SOCIAL_IMAGE
+    pairs = (
+        ("property", "og:type", "website"),
+        ("property", "og:title", card["title"]),
+        ("property", "og:description", card["description"]),
+        ("property", "og:url", card["url"]),
+        ("property", "og:image", image),
+        ("property", "og:image:type", "image/jpeg"),
+        ("property", "og:image:width", str(SOCIAL_IMAGE_WIDTH)),
+        ("property", "og:image:height", str(SOCIAL_IMAGE_HEIGHT)),
+        ("property", "og:image:alt", card["image_alt"]),
+        ("property", "og:locale", "en_US" if lang == "en" else "es_ES"),
+        ("name", "description", card["description"]),
+        ("name", "twitter:card", "summary_large_image"),
+        ("name", "twitter:title", card["title"]),
+        ("name", "twitter:description", card["description"]),
+        ("name", "twitter:image", image),
+        ("name", "twitter:image:alt", card["image_alt"]),
+    )
+    return "\n".join(f'<meta {attr}="{name}" content="{e(value)}">' for attr, name, value in pairs)
+
+
 def page(lang, form, revision="preview", build_date=None, feedback_endpoint="", flavor="playtest", commit=""):
     if flavor not in {"playtest", "family", "library"}:
         raise ValueError("Unknown game flavor")
@@ -174,6 +233,7 @@ def page(lang, form, revision="preview", build_date=None, feedback_endpoint="", 
     feedback_endpoint = checked_feedback_endpoint(feedback_endpoint)
     day = build_date or date.today()
     tag = ("Play-test version · " if lang == "en" else "Versión de prueba · ") + day.isoformat()
+    social = "\n" + social_tags(lang) if flavor == "playtest" else ""
     steps = "".join(f"<li>{e(s)}</li>" for s in w["steps"])
     markup = f"""<!doctype html>
 <html lang="{lang}" data-flavor="{flavor}">
@@ -186,7 +246,7 @@ def page(lang, form, revision="preview", build_date=None, feedback_endpoint="", 
 <meta name="theme-color" content="#163A30">
 <meta name="build-id" content="{e(commit or revision)}">
 <meta name="content-build-id" content="{e(revision)}">
-<title>{e(w["title"])}</title>
+<title>{e(w["title"])}</title>{social}
 <link rel="icon" href="assets/img/mark.svg" type="image/svg+xml">
 <link rel="manifest" href="manifest.{lang}.webmanifest">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -420,7 +480,12 @@ def main(argv=None):
         for name in ("feedback.js", "feedback.css"):
             (OUT / "assets/playtest" / name).unlink(missing_ok=True)
     (OUT / "playtest.css").write_text(CSS, encoding="utf-8", newline="\n")
-    (OUT / "robots.txt").write_text("User-agent: *\nDisallow: /\n", encoding="utf-8", newline="\n")
+    (OUT / "robots.txt").write_text(robots_txt(), encoding="utf-8", newline="\n")
+    if a.flavor == "playtest":
+        preview = ROOT / "assets" / "img" / "social-preview.jpg"
+        if not preview.is_file():
+            raise SystemExit("Missing assets/img/social-preview.jpg. Run npm run images.")
+        shutil.copy2(preview, OUT / "social-preview.jpg")
     (OUT / ".nojekyll").write_text("", encoding="utf-8")
     (OUT / "build.json").write_text(json.dumps({"id": revision, "commit": commit or None, "date": a.build_date.isoformat(), "flavor": a.flavor}, indent=2) + "\n", encoding="utf-8")
     (OUT / "README.md").write_text(
