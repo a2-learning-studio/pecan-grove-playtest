@@ -62,7 +62,7 @@ def title(n):
 i = cb.index("  var SETS = {"); j = cb.index("\n  };", i) + 4
 sets = json.loads(subprocess.run(["node", "-e", "var SETS;" + cb[i:j].replace("var SETS", "SETS") + ";process.stdout.write(JSON.stringify(SETS))"],
                                  capture_output=True, text=True, encoding="utf-8").stdout)
-NB = {"lee": ["Ms. Lee", "la Sra. Lee"], "johnson": ["Mr. Johnson", "el Sr. Johnson"], "ana": ["Ana", "Ana"],
+NB = {"lee": ["Ms. Lee", "la Sra. Lee"], "johnson": ["Mr. Johnson", "el Sr. Johnson"], "ana": ["Mrs. Ana", "la Sra. Ana"],
       "ruth": ["Grandma Ruth", "la abuela Ruth"], "patel": ["Mr. Patel", "el Sr. Patel"], "jayden": ["Jayden", "Jayden"]}
 
 L = []                                            # (id, stop, where, speaker, delivery, [en, es])
@@ -146,9 +146,9 @@ add("s10-down", 10, "Stop 10, then a fix (phone: the fixes are further down)", "
 add("s10-open", 10, "Stop 10, the problem with no tested fix", "Lucia", TASK, pair("stops/10-match-a-fix.js", "openLink"))
 add("s12-s2", 12, "Stop 12, step 2", "Lucia", TASK, pair("stops/12-make-a-fair-deal.js", "s2"))
 add("s12-pick", 12, "Stop 12, step 2: a hard promise", "Lucia", TASK, pair("stops/12-make-a-fair-deal.js", "pickChange"))
-add("nb-ana-deal-can", 12, "Stop 12, Ana for the building crew: yes", "ana", "In character; glad and sure.", pair("stops/12-make-a-fair-deal.js", "can"))
-add("nb-ana-deal-hard", 12, "Stop 12, Ana for the building crew: hard", "ana", "In character; honest, friendly, open to a change.", pair("stops/12-make-a-fair-deal.js", "hard"))
-add("nb-ana-deal-cant", 12, "Stop 12, Ana for the building crew: can't promise", "ana", "In character; kind and sorry, never cold.", pair("stops/12-make-a-fair-deal.js", "cant"))
+add("nb-ana-deal-can", 12, "Stop 12, Mrs. Ana for the building crew: yes", "ana", "In character; glad and sure.", pair("stops/12-make-a-fair-deal.js", "can"))
+add("nb-ana-deal-hard", 12, "Stop 12, Mrs. Ana for the building crew: hard", "ana", "In character; honest, friendly, open to a change.", pair("stops/12-make-a-fair-deal.js", "hard"))
+add("nb-ana-deal-cant", 12, "Stop 12, Mrs. Ana for the building crew: can't promise", "ana", "In character; kind and sorry, never cold.", pair("stops/12-make-a-fair-deal.js", "cant"))
 add("g-team1", 0, "Two-team play: Team 1 picks an animal", "Lucia", TASK, both("cb.js", "team1"))
 add("g-team2", 0, "Two-team play: Team 2 picks an animal", "Lucia", TASK, both("cb.js", "team2"))
 
@@ -166,7 +166,7 @@ CAST = [
     ("johnson", "Mr. Johnson, third-generation farmer", "Black American man about 65, Georgia; slow, warm, deep, grounded.",
      "Search: 'southern older man', 'warm grandfather', 'deep Black American male'; Spanish: 'hombre mayor voz grave cálida'. Premade to compare: Bill (old American male).",
      "nb-johnson-A-hope"),
-    ("ana", "Ana, master electrician", "Latina woman about 35; confident, practical, upbeat; a parent.",
+    ("ana", "Mrs. Ana, master electrician", "Latina woman about 35; confident, practical, upbeat; a parent.",
      "Search: 'confident Latina woman', 'mujer latina segura 30s'; a bilingual voice is best. Premade to compare: Jessica.",
      "nb-ana-A-hope"),
     ("ruth", "Grandma Ruth, town historian", "Woman about 80; gentle storyteller, slow, a little humor.",

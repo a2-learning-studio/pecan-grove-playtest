@@ -343,6 +343,8 @@
     el('start').addEventListener('click', start);
     el('exit').addEventListener('click', exit);
     tab.addEventListener('click', function () { opener = tab; openReview(false); });
+    var jump = el('feedback-jump');
+    if (jump) jump.addEventListener('click', function () { opener = jump; openReview(false); });
     if (dockCollapse) dockCollapse.addEventListener('click', function () {
       if (narrow() && dockCollapsed) { opener = dockCollapse; openReview(false); return; }
       flush(); dockCollapsed = !dockCollapsed; renderDock(); focus(dockCollapse);

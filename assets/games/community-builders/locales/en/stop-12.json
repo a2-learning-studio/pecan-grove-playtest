@@ -1,9 +1,9 @@
 {
   "WORDS": {
     "title": "Make a Fair Deal - Community Builders of Pecan Grove",
-    "crew": "Ana, the electrician",
+    "crew": "Mrs. Ana, the electrician",
     "intro1": "The town has not decided yet. Today, neighbors and builders try out one path: building, with changes. Not building, or waiting for more facts, are fair paths too.",
-    "intro2": "Pick 4 promises for the deal. Ana, the electrician, answers for the building crew, and she lives here too.",
+    "intro2": "Pick 4 promises for the deal. Mrs. Ana, the electrician, answers for the building crew, and she lives here too.",
     "start": "Start",
     "step": {
       "$args": [
@@ -52,7 +52,7 @@
         "not on the deal"
       ]
     },
-    "s2": "Ana, the electrician, answers for the building crew.",
+    "s2": "Mrs. Ana, the electrician, answers for the building crew.",
     "promiseN": {
       "$args": [
         "n"
@@ -110,7 +110,7 @@
         " too."
       ]
     },
-    "tipKeep": "Next time, when Ana says a promise is hard, pick a change. It can still answer the worry.",
+    "tipKeep": "Next time, when Mrs. Ana says a promise is hard, pick a change. It can still answer the worry.",
     "tipClear": "Next time, make every promise clear: who, what and when we check.",
     "tip100": "A fair deal! Try a new round with new worries.",
     "real": "Make a fair deal at home, like sharing chores. Write it down and add a day to check it.",

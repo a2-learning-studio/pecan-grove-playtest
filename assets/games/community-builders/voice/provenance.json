@@ -22,8 +22,9 @@
    "voice": "Brother Wayne - Warm Southern Preacher"
   },
   {
-   "role": "Ana",
-   "voice": "Ery - Latina woman, Motivational"
+   "role": "Mrs. Ana",
+   "voice": "Ery - Latina woman, Motivational",
+   "note": "The eight character clips (nb-ana, English and Spanish) were re-encoded on 2026-10-20 with a high-pass, de-esser, limiter and loudnorm (-18 LUFS, true peak -2 dB) at 96 kbps, 44100 Hz mono, after playtesters heard harshness. The spoken words were not regenerated."
   },
   {
    "role": "Grandma Ruth",

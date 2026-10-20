@@ -5,6 +5,7 @@
   "local": "Saved on this device. Sending is not connected yet.",
   "queued": "Saved on this device. Your submitted feedback is waiting for confirmation.",
   "synced": "Your submitted feedback was received by the playtest team.",
+  "thanks": "Thanks, feedback received",
   "draftSaved": "Draft saved on this device. Press Send to share it.",
   "failed": "Your submitted feedback could not be sent. You can try Send again.",
   "retrying": "Your submitted feedback could not be sent. A limited retry is scheduled while this page stays open.",

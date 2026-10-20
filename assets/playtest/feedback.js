@@ -354,6 +354,7 @@
         window.clearTimeout(timeout); inflight = false; controller = null; render();
         // Maximum three total requests per explicit Send, including the first request.
         if (pageOpen && retry && model.pending().length && attempts < 3) scheduleSync(attempts === 1 ? 5000 : 30000);
+        settleSendLock();
       }
     }
     function make(tag, id, text) { var node = document.createElement(tag); node.id = "pt-feedback-" + id; if (text) node.textContent = text; return node; }
@@ -370,6 +371,48 @@
       [previewHeading, previewHint, previewText, send, edit, holdStatus].forEach(function (node) { preview.appendChild(node); }); form.appendChild(preview);
     } else { previewText = el("preview-text"); send = el("send"); edit = el("edit"); holdStatus = el("hold-status"); }
     var submit = el("submit"); if (submit) submit.textContent = W.send;
+    var thanks = el("thanks"), sending = false, editedWhileSending = false;
+    if (!thanks) {
+      thanks = make("p", "thanks", W.thanks);
+      thanks.className = "pt-feedback__thanks";
+      thanks.setAttribute("role", "status");
+      thanks.setAttribute("aria-live", "polite");
+      thanks.tabIndex = -1;
+      thanks.hidden = true;
+      if (status && status.parentNode) status.parentNode.insertBefore(thanks, status);
+      else form.appendChild(thanks);
+    }
+    function setSendLocked(locked) {
+      [submit, send].forEach(function (btn) {
+        if (!btn) return;
+        btn.disabled = !!locked;
+        btn.setAttribute("aria-disabled", locked ? "true" : "false");
+      });
+    }
+    function showThanks(on) {
+      if (!thanks) return;
+      thanks.textContent = W.thanks;
+      thanks.hidden = !on;
+    }
+    function releaseSendLock() {
+      if (sending) { editedWhileSending = true; return; }
+      editedWhileSending = false;
+      showThanks(false);
+      setSendLocked(false);
+    }
+    function settleSendLock() {
+      if (!sending || inflight) return;
+      var pending = model.pending().length > 0;
+      if (pending && retry && attempts < 3 && endpointAllowed(endpoint)) return;
+      sending = false;
+      // A failed cloud send can be tried again. Editing the note also clears the lock.
+      // A confirmed send, or a note saved where sending is not connected, keeps the thanks line.
+      if (editedWhileSending || (pending && endpointAllowed(endpoint))) {
+        showThanks(false);
+        setSendLocked(false);
+        editedWhileSending = false;
+      }
+    }
     function translateForm() {
       function text(node, value) { if (node) node.textContent = value; }
       function query(selector) { return root.querySelector ? root.querySelector(selector) : null; }
@@ -393,6 +436,7 @@
       text(query(".pt-feedback__saved > summary"), W.savedNotes); text(query(".pt-feedback-more > summary"), W.more);
       var build = query("p > code"); prefix(build && build.parentNode, W.buildLabel);
       text(submit, W.send); text(saveDraft, W.save); text(el("preview-heading"), W.preview); text(el("preview-hint"), W.removed);
+      text(thanks, W.thanks);
       if (preview) preview.setAttribute("aria-label", W.preview);
       text(send, W.hold); text(edit, W.edit); text(holdStatus, W.holdCancel);
       if (useNewDialog) { text(newTitle, W.newTitle); text(newCancel, W.newCancel); text(newConfirm, W.newConfirmLabel); text(newMessage, W.newConfirm); }
@@ -411,15 +455,19 @@
     }
     function finishHold() {
       holdTimer = null;
+      if (sending) return;
       var entry = previewEntry && model.find("feedback", previewEntry.stop);
       if (!entry || entry.entryId !== previewEntry.entryId || entry.revision !== previewEntry.revision || contextStop !== previewEntry.stop) { invalidatePreview(); return; }
       model.upsert("feedback", contextStop, { worked: previewEntry.worked, fix: previewEntry.fix });
       worked.value = previewEntry.worked; fix.value = previewEntry.fix;
       if (!model.submit(entry.entryId, consent.scores)) { setStatus(); return; }
-      preview.hidden = true; previewEntry = null; attempts = 0; retry = false; window.clearTimeout(syncTimer); render(); sync(); if (submit) submit.focus();
+      preview.hidden = true; previewEntry = null; attempts = 0; retry = false; window.clearTimeout(syncTimer);
+      sending = true; editedWhileSending = false; setSendLocked(true); showThanks(true); render();
+      if (thanks) thanks.focus();
+      Promise.resolve(sync()).then(settleSendLock);
     }
     function beginHold(event) {
-      if (!previewEntry || holdTimer !== null || (event && event.button !== undefined && event.button !== 0) || (event && (event.repeat || event.isPrimary === false))) return;
+      if (sending || (send && send.disabled) || !previewEntry || holdTimer !== null || (event && event.button !== undefined && event.button !== 0) || (event && (event.repeat || event.isPrimary === false))) return;
       if (event && event.preventDefault) event.preventDefault();
       holdStatus.textContent = W.holdProgress; holdTimer = window.setTimeout(finishHold, 2000);
     }
@@ -432,7 +480,7 @@
     }
     if (edit) edit.addEventListener("click", function () { invalidatePreview(); worked.focus(); });
     saveDraft.addEventListener("click", function () { invalidatePreview(); flush(); });
-    form.addEventListener("submit", function (event) { event.preventDefault(); showPreview(); });
+    form.addEventListener("submit", function (event) { event.preventDefault(); if (sending || (submit && submit.disabled)) return; showPreview(); });
     document.addEventListener("pt:feedback-flush", flush);
     document.addEventListener("pg:language-change", function (event) {
       var next = event.detail && event.detail.language;
@@ -442,7 +490,7 @@
       // A language change cannot finish an old hold; review the newly translated preview.
       if (wasPreviewing) showPreview();
     });
-    [rating, category, worked, fix].forEach(function (input) { input.addEventListener("input", function () { invalidatePreview(); window.clearTimeout(saveTimer); saveTimer = window.setTimeout(flush, 350); }); input.addEventListener("change", function () { invalidatePreview(); flush(); }); });
+    [rating, category, worked, fix].forEach(function (input) { input.addEventListener("input", function () { invalidatePreview(); releaseSendLock(); window.clearTimeout(saveTimer); saveTimer = window.setTimeout(flush, 350); }); input.addEventListener("change", function () { invalidatePreview(); releaseSendLock(); flush(); }); });
     stop.addEventListener("change", function () { var n = Math.max(0, Math.min(15, Number(stop.value) || 0)); flush(); loadContext(n); });
     document.addEventListener("cb:screen", function (event) {
       var d = event.detail || {}, n = Math.max(0, Math.min(15, Number(d.stopN) || 0));

@@ -242,6 +242,7 @@ def page(lang, form, revision="preview", build_date=None, feedback_endpoint="", 
       <button class="pt-tool" id="pt-grownups-tab" type="button" aria-haspopup="dialog">{e(w['grownups_tab'])}</button>
       <button class="pt-tool" id="pt-exit" type="button">{e(w['exit_play'])}</button>
     </nav>
+    <button class="pt-tool pt-feedback-jump" id="pt-feedback-jump" type="button">{e(w['feedback_jump'])}</button>
     <div class="pt-stage-content">
       <h1 class="pt-sr pt-game-heading">{e(w["game_label"])}</h1>
       <p class="pt-sr" id="pt-play-status" role="status" aria-live="polite"></p>
