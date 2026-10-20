@@ -287,7 +287,7 @@ def family_page(markup, lang):
     """Remove the playtest UI structurally, never with a fragile nested-tag regex."""
     class Family(HTMLParser):
         voids = {"area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "param", "source", "track", "wbr"}
-        remove = {"pt-feedback-home", "pt-review-dialog", "pt-new-player-dialog", "pt-review-tab", "pt-feedback-new-player-top", "pt-consent-options", "pt-intro-review-hint"}
+        remove = {"pt-feedback-home", "pt-review-dialog", "pt-new-player-dialog", "pt-review-tab", "pt-feedback-jump", "pt-feedback-new-player-top", "pt-consent-options", "pt-intro-review-hint"}
         def __init__(self):
             super().__init__(convert_charrefs=False)
             self.output, self.stack = [], []

@@ -379,8 +379,7 @@
       thanks.setAttribute("aria-live", "polite");
       thanks.tabIndex = -1;
       thanks.hidden = true;
-      if (status && status.parentNode) status.parentNode.insertBefore(thanks, status);
-      else form.appendChild(thanks);
+      form.appendChild(thanks);
     }
     function setSendLocked(locked) {
       [submit, send].forEach(function (btn) {
