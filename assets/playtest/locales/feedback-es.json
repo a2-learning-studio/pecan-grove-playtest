@@ -5,6 +5,7 @@
   "local": "Guardado en este dispositivo. El envío aún no está conectado.",
   "queued": "Guardado en este dispositivo. Los comentarios enviados esperan confirmación.",
   "synced": "El equipo de prueba recibió los comentarios que enviaste.",
+  "thanks": "Gracias, recibimos tus comentarios.",
   "draftSaved": "Borrador guardado en este dispositivo. Pulsa Enviar para compartirlo.",
   "failed": "No se pudieron enviar tus comentarios. Puedes volver a pulsar Enviar.",
   "retrying": "No se pudieron enviar tus comentarios. Se ha programado un reintento limitado mientras esta página siga abierta.",

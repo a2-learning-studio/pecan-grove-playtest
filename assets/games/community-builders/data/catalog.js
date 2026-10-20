@@ -71,7 +71,7 @@ export default function createData(ctx) {
       id: "ana",
       en: ctx.window.CBLocale.pair("core","bank.b0022")[0],
       es: ctx.window.CBLocale.pair("core","bank.b0022")[1],
-      esCap: "Ana",
+      esCap: "La Sra. Ana",
       role: { en: ctx.window.CBLocale.pair("core","bank.b0023")[0], es: ctx.window.CBLocale.pair("core","bank.b0023")[1] },
       plain: { en: ctx.window.CBLocale.pair("core","bank.b0024")[0], es: ctx.window.CBLocale.pair("core","bank.b0024")[1] },
       img: "ana",

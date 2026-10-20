@@ -1,8 +1,8 @@
 {
   "T": {
     "title": "Spread the Word Right - Community Builders of Pecan Grove",
-    "intro": "The town hasn't decided yet. The library asked kids to make a 'What we know so far' poster for its board at school. Pick 3 fact cards. Give each one its source and check its date. Then pick a headline.",
-    "pickHead": "Then pick a headline.",
+    "intro": "The town hasn't decided yet. The library asked kids to make a 'What we know so far' poster for its board at school. Pick 3 fact cards. Give each one its source and check its date. Then pick a headline. Use one hope and one worry. Add a source and check the date on every card. Your first headline is the one that counts.",
+    "pickHead": "Then pick a headline that tells what is on the poster. Your first pick is the one that counts.",
     "boardTag": "School library board",
     "prog": {
       "$args": [
@@ -100,7 +100,9 @@
     "tip100": "Great poster! Try a new round with new cards.",
     "real": "Make a poster for your class or library, with permission. Every fact gets its source and date. No posting online.",
     "gu": "For grown-ups: about this stop",
-    "guText": "Kids make a poster with sources and dates, show a hope and a worry, and choose a safe place to share it: family, class, or a library board with permission. No social media, petitions or campaign materials."
+    "guText": "Kids make a poster with sources and dates, show a hope and a worry, and choose a safe place to share it: family, class, or a library board with permission. No social media, petitions or campaign materials.",
+    "checkEach": "Add a source and check the date on every card.",
+    "readyPin": "You can pin it up now."
   },
   "bank": {
     "b0001": "The company's plan, at the library",

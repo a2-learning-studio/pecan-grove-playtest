@@ -1,8 +1,8 @@
 {
   "T": {
     "title": "Comparte bien la información - Constructores de comunidad de Pecan Grove",
-    "intro": "El pueblo todavía no ha decidido. La biblioteca les pidió a los niños hacer un cartel de 'Lo que sabemos hasta ahora' para su tablero en la escuela. Elige 3 tarjetas de datos. Ponle a cada una su fuente y revisa su fecha. Luego elige un título.",
-    "pickHead": "Luego elige un título.",
+    "intro": "El pueblo todavía no ha decidido. La biblioteca les pidió a los niños hacer un cartel de 'Lo que sabemos hasta ahora' para su tablero en la escuela. Elige 3 tarjetas de datos. Ponle a cada una su fuente y revisa su fecha. Luego elige un título. Usa una esperanza y una preocupación. Ponle la fuente y revisa la fecha de cada tarjeta. El primer título que elijas es el que cuenta.",
+    "pickHead": "Luego elige un título que diga lo que hay en el cartel. La primera elección es la que cuenta.",
     "boardTag": "Tablero de la biblioteca escolar",
     "prog": {
       "$args": [
@@ -100,7 +100,9 @@
     "tip100": "¡Gran cartel! Prueba una nueva ronda con tarjetas nuevas.",
     "real": "Haz un cartel para tu clase o la biblioteca, con permiso. Cada dato lleva su fuente y su fecha. Nada en internet.",
     "gu": "Para adultos: sobre esta parada",
-    "guText": "Los niños hacen un cartel con fuentes y fechas, muestran una esperanza y una preocupación, y eligen un lugar seguro para compartirlo: la familia, la clase o un tablero de la biblioteca, con permiso. Nada de redes sociales, peticiones ni materiales de campaña."
+    "guText": "Los niños hacen un cartel con fuentes y fechas, muestran una esperanza y una preocupación, y eligen un lugar seguro para compartirlo: la familia, la clase o un tablero de la biblioteca, con permiso. Nada de redes sociales, peticiones ni materiales de campaña.",
+    "checkEach": "Ponle la fuente y revisa la fecha de cada tarjeta.",
+    "readyPin": "Ya puedes fijarlo."
   },
   "bank": {
     "b0001": "El plan de la empresa, en la biblioteca",

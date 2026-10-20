@@ -26,7 +26,7 @@ CAST = {   # speaker -> ElevenLabs Voice Library voice, chosen 11 Oct 2026
     "johnson": "Brother Wayne - Warm Southern Preacher", "ana": "Ery - Latina woman, Motivational",
     "ruth": "Grandma Rachel - Wise Southern Senior", "patel": "Abhi - Friendly and Balanced", "jayden": "Valf - Young & Energetic",
 }
-ROLE = {"Lucia": "Lucía (guide)", "Theo": "Theo (guide)", "lee": "Ms. Lee", "johnson": "Mr. Johnson", "ana": "Ana",
+ROLE = {"Lucia": "Lucía (guide)", "Theo": "Theo (guide)", "lee": "Ms. Lee", "johnson": "Mr. Johnson", "ana": "Mrs. Ana",
         "ruth": "Grandma Ruth", "patel": "Mr. Patel", "jayden": "Jayden"}
 FILTER = ("silenceremove=start_periods=1:start_duration=0:start_threshold=-45dB:detection=peak,areverse,"
           "silenceremove=start_periods=1:start_duration=0:start_threshold=-45dB:detection=peak,areverse,"

@@ -122,6 +122,13 @@
 
     function tagName(tag) { return tag === "hope" ? T.hope : T.worry; }
     function filled() { return slots.filter(Boolean).length; }
+    function needsCheck() { return slots.some(function (s) { return s && (!s.src || !s.date); }); }
+    function coachText() {
+      if (filled() < 3) return T.tap;
+      if (needsCheck()) return T.checkEach;
+      if (head === null) return T.pickHead;
+      return T.readyPin;
+    }
     function onPoster(i) { return slots.some(function (s) { return s && s.at === i; }); }
     function board(kids, cls) { return h("div", { "class": "cb-board cb-s13" + (cls ? " " + cls : "") }, kids); }
     function hud(i) { return api.stopHud(stop, STEPS, i, T.step(i + 1)); }
@@ -253,20 +260,22 @@
       viewPhase = "build"; displayedAnim = anim;
       var ready = filled() === 3 && head !== null, d = dots();
       /* the bar says in words what is done and what is missing; a tap on the faded Next shows why it waits */
-      var why = h("p", { "class": "cb-msg cb-s13-prog", role: "status", text: T.prog(filled(), head !== null) });
+      var progLine = T.prog(filled(), head !== null);
+      if (filled() === 3 && needsCheck()) progLine += " " + T.checkEach;
+      var why = h("p", { "class": "cb-msg cb-s13-prog", role: "status", text: progLine });
       var tid = "cb-s13-tray-" + (++uid), hid = "cb-s13-heads-" + uid;
       var note = head !== null ? still(api.fb(HEADS[head].tells ? T.good : T.sell, HEADS[head].tells), anim && anim.what === "head") : null;
       var next = api.btn(T.next, "cb-btn--go cb-btn--big cb-s13-next", function () {
         if (busy()) return;
         if (filled() === 3 && head !== null) { hold(); return step2(); }
         d.classList.remove("is-nudge"); void d.offsetWidth; d.classList.add("is-nudge");
-        why.textContent = T.prog(filled(), head !== null) + ". " + (filled() < 3 ? T.tap : T.pickHead);
+        why.textContent = T.prog(filled(), head !== null) + ". " + coachText();
         why.classList.remove("is-nudge"); void why.offsetWidth; why.classList.add("is-nudge");
       }, "go", true);
       next.setAttribute("data-s13next", "");
       if (!ready) next.setAttribute("aria-disabled", "true");
       api.screen([hud(0), board([
-        api.coach(filled() < 3 ? T.tap : head === null ? T.pickHead : T.tap, "flyer"),
+        api.coach(coachText(), "flyer"),
         h("div", { "class": "cb-s13-play" }, [
           h("div", { "class": "cb-s13-wall" }, [api.crop(BAND, "cb-s13-band", [mark()]), poster("build")]),
           h("div", { "class": "cb-s13-side" }, [

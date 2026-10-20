@@ -1,9 +1,9 @@
 {
   "WORDS": {
     "title": "Haz un trato justo - Constructores de comunidad de Pecan Grove",
-    "crew": "Ana, la electricista",
+    "crew": "la Sra. Ana, la electricista",
     "intro1": "El pueblo todavía no ha decidido. Hoy, los vecinos y los constructores prueban un camino: construir, con cambios. No construir, o esperar más datos, también son caminos justos.",
-    "intro2": "Elige 4 promesas para el trato. Ana, la electricista, responde por el equipo de la obra, y ella también vive aquí.",
+    "intro2": "Elige 4 promesas para el trato. La Sra. Ana, la electricista, responde por el equipo de la obra, y ella también vive aquí.",
     "start": "Empezar",
     "step": {
       "$args": [
@@ -52,7 +52,7 @@
         "fuera del trato"
       ]
     },
-    "s2": "Ana, la electricista, responde por el equipo de la obra.",
+    "s2": "La Sra. Ana, la electricista, responde por el equipo de la obra.",
     "promiseN": {
       "$args": [
         "n"
@@ -110,7 +110,7 @@
         "."
       ]
     },
-    "tipKeep": "La próxima vez, cuando Ana diga que una promesa es difícil, elige un cambio. Todavía puede responder a la preocupación.",
+    "tipKeep": "La próxima vez, cuando la Sra. Ana diga que una promesa es difícil, elige un cambio. Todavía puede responder a la preocupación.",
     "tipClear": "La próxima vez, haz clara cada promesa: quién, qué y cuándo se revisa.",
     "tip100": "¡Un trato justo! Prueba una nueva ronda con otras preocupaciones.",
     "real": "Haz un trato justo en casa, como repartir las tareas. Escríbelo y agrega un día para revisarlo.",

@@ -1,4 +1,4 @@
-/* Stop 5 · Map What Could Change. A stone drops on the Old Miller Farm; ripples and dotted paths reach every place.
+/* Stop 5 · Map What Could Change. A stone drops on the Old Miller Farm; ripples and dashed paths reach every place.
    Only --cb-* tokens. Helpful and hard changes share one look: an icon and a word tell them apart. */
 
 /* ── intro: the farm plan on the town notice board, neighbors of all ages around it ── */
@@ -28,7 +28,7 @@
 .cb-s05-ring { fill: none; stroke: var(--cb-on-stage); stroke-width: 3.5; }
 .cb-s05-svg.is-drop .cb-s05-ring { transform-box: fill-box; transform-origin: center; animation: cb-s05-ring 1.5s var(--cb-ease) both; animation-delay: calc(var(--i) * 120ms + 150ms); }
 @keyframes cb-s05-ring { from { opacity: 0; transform: scale(0.3); } }
-.cb-s05-stones { fill: none; stroke: var(--cb-on-stage); stroke-width: 8; stroke-linecap: round; stroke-dasharray: 0.1 17; filter: drop-shadow(0 1.5px 1px rgba(22, 58, 48, 0.55)); }
+.cb-s05-stones { fill: none; stroke: var(--cb-ink-3); stroke-opacity: 0.72; stroke-width: 7; stroke-linecap: butt; stroke-linejoin: round; stroke-dasharray: 18 16; }
 .cb-s05-trail { fill: none; stroke: var(--cb-clay); stroke-width: 8; stroke-linecap: round; filter: drop-shadow(0 1.5px 1.5px rgba(22, 58, 48, 0.4)); }
 .cb-s05-trail.is-old { stroke-width: 6; opacity: 0.7; }
 
@@ -161,7 +161,7 @@ button.cb-s05-place.is-right .cb-s05-place__ic { animation: cb-pop 0.45s var(--c
 .cb-s05-mini .cb-s05-farm__name, .cb-s05-mini .cb-s05-pin { display: none; }
 .cb-s05-mini .cb-s05-farm { transform: translate(-50%, -50%); }
 .cb-s05-mini .cb-s05-farm__stone { width: 38px; height: 38px; }
-.cb-s05-mini .cb-s05-stones { stroke-width: 10; stroke-dasharray: 0.1 26; }
+.cb-s05-mini .cb-s05-stones { stroke-width: 8; stroke-dasharray: 24 18; stroke-opacity: 0.55; }
 .cb-s05-mini .cb-s05-trail { stroke-width: 12; opacity: 1; }
 .cb-s05-mini .cb-s05-ring { stroke-width: 6; }
 .cb-s05-mtag { position: absolute; z-index: 2; transform: translate(-50%, -50%); font-size: 0.75rem; white-space: nowrap; }
@@ -195,7 +195,7 @@ button.cb-s05-place.is-right .cb-s05-place__ic { animation: cb-pop 0.45s var(--c
   .cb-s05-farm { flex-direction: row-reverse; transform: translate(calc(-100% + 19px), -50%); gap: 5px; }
   .cb-s05-farm__stone { width: 38px; height: 38px; }
   .cb-s05-farm__name { padding: 3px 8px; font-size: 0.75rem; }
-  .cb-s05-stones { stroke-width: 12; stroke-dasharray: 0.1 26; }
+  .cb-s05-stones { stroke-width: 9; stroke-dasharray: 22 18; }
   .cb-s05-trail { stroke-width: 12; }
   .cb-s05-trail.is-old { stroke-width: 10; }
   .cb-s05-ring { stroke-width: 6; }
