@@ -274,6 +274,15 @@ class PlaytestBuilderTests(unittest.TestCase):
             for key in ("team", "team_about", "purpose", "quiet", "quiet_hint", "review_tab", "library_tab", "grownups_tab", "new_title", "new_cancel", "new_confirm"):
                 self.assertIn(html.escape(builder.WORDS[lang][key]), page)
 
+    def test_pages_credit_the_studio_instead_of_a_person(self):
+        for lang in ("en", "es"):
+            page = builder.page(lang, "")
+            self.assertIn(html.escape(builder.WORDS[lang]["team"]), page)
+            self.assertIn("A2 Learning Studio", builder.WORDS[lang]["team"])
+            self.assertIn('<meta name="author" content="A2 Learning Studio">', page)
+            self.assertNotIn("Ali Keyvanfar", page)
+            self.assertNotIn("Keyvanfar", page)
+
     def test_playtest_pages_publish_a_large_social_card(self):
         image = "https://a2-learning-studio.github.io/pecan-grove-playtest/social-preview.jpg"
         for lang in ("en", "es"):

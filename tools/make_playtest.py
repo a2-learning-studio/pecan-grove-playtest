@@ -244,6 +244,7 @@ def page(lang, form, revision="preview", build_date=None, feedback_endpoint="", 
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="robots" content="noindex, nofollow">
 <meta name="theme-color" content="#163A30">
+<meta name="author" content="A2 Learning Studio">
 <meta name="build-id" content="{e(commit or revision)}">
 <meta name="content-build-id" content="{e(revision)}">
 <title>{e(w["title"])}</title>{social}
