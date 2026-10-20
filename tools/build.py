@@ -31,11 +31,11 @@ UI = {
         "short_answer": "Short answer", "key_points": "Key points", "last_checked": "Last checked",
         "edition": "First edition, 20 Oct 2026", "faq": "Common questions", "sources": "Sources",
         "accessed": "Accessed", "primary": "Primary source", "related": "Keep reading", "toc": "On this page",
-        "independent": "Know Your Data Center is an independent educational project by Dr. Ali Keyvanfar, "
-                       "Construction Management, Kennesaw State University. Views are the author's own. It is not an "
+        "independent": "Know Your Data Center is an independent educational project by A2 Learning Studio, "
+                       "drawing on construction research at Kennesaw State University. Views are the author's own. It is not an "
                        "official publication of Kennesaw State University or the Fulton County Library System, and it "
                        "is not for or against any project.",
-        "fellowship": "Dr. Keyvanfar is a 2026 Google Higher Ed Faculty AI Fellow. Google does not pay for, review or "
+        "fellowship": "A2 Learning Studio includes a 2026 Google Higher Ed Faculty AI Fellow. Google does not pay for, review or "
                       "approve anything on this site.",
         "license": "Text CC BY 4.0. No ads, no sign-up, no tracking cookies.",
         "play": "Play the game", "play_path": "/kids/community-builders/", "panel_short": "Library panel · 27 Oct", "panel_path": "/panel/",
@@ -51,11 +51,11 @@ UI = {
         "short_answer": "Respuesta corta", "key_points": "Puntos clave", "last_checked": "Última revisión",
         "edition": "Primera edición, 20 de octubre de 2026", "faq": "Preguntas frecuentes", "sources": "Fuentes",
         "accessed": "Consultado el", "primary": "Fuente primaria", "related": "Siga leyendo", "toc": "En esta página",
-        "independent": "Know Your Data Center es un proyecto educativo independiente del Dr. Ali Keyvanfar, "
-                       "Gestión de la Construcción, Kennesaw State University. Las opiniones son del autor. No es una "
+        "independent": "Know Your Data Center es un proyecto educativo independiente de A2 Learning Studio, "
+                       "inspirado en investigación de construcción en Kennesaw State University. Las opiniones son del autor. No es una "
                        "publicación oficial de Kennesaw State University ni del Sistema de Bibliotecas del Condado de "
                        "Fulton, y no está a favor ni en contra de ningún proyecto.",
-        "fellowship": "El Dr. Keyvanfar es becario 2026 del programa Google Higher Ed Faculty AI Fellowship. Google no "
+        "fellowship": "A2 Learning Studio incluye a un becario 2026 del programa Google Higher Ed Faculty AI Fellowship. Google no "
                       "paga, no revisa ni aprueba nada de este sitio.",
         "license": "Texto con licencia CC BY 4.0. Sin anuncios, sin registro y sin cookies de seguimiento.",
         "play": "Jugar", "play_path": "/es/ninos/constructores-de-comunidad/", "panel_short": "Panel en la biblioteca · 27 de oct.", "panel_path": "/es/panel/",
@@ -245,9 +245,7 @@ def slug(value, separator="-"):
 
 def jsonld(p, by_path):
     page_type = {"FAQPage": "WebPage", "Article": "Article"}.get(p.get("schema"), "WebPage")
-    author = {"@type": "Person", "@id": f"{SITE_URL}/about/#author", "name": "Ali Keyvanfar", "honorificPrefix": "Dr.",
-              "jobTitle": "Construction Management faculty",
-              "affiliation": {"@type": "CollegeOrUniversity", "name": "Kennesaw State University"}}
+    author = {"@type": "Organization", "@id": f"{SITE_URL}/about/#author", "name": "A2 Learning Studio"}
     node = {"@type": page_type, "@id": f"{SITE_URL}{p['path']}#page", "url": f"{SITE_URL}{p['path']}",
             "name": p["title"], "headline": p["h1"], "description": p["description"], "inLanguage": p["lang"],
             "datePublished": PUBLISHED, "dateModified": p["last_checked"], "author": {"@id": author["@id"]},
