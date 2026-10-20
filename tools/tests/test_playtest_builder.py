@@ -274,6 +274,62 @@ class PlaytestBuilderTests(unittest.TestCase):
             for key in ("team", "team_about", "purpose", "quiet", "quiet_hint", "review_tab", "library_tab", "grownups_tab", "new_title", "new_cancel", "new_confirm"):
                 self.assertIn(html.escape(builder.WORDS[lang][key]), page)
 
+    def test_playtest_pages_publish_a_large_social_card(self):
+        image = "https://a2-learning-studio.github.io/pecan-grove-playtest/social-preview.jpg"
+        for lang in ("en", "es"):
+            page = builder.page(lang, "")
+            metas = {attrs.get("property") or attrs.get("name"): attrs.get("content") for tag, attrs in Elements(page).elements if tag == "meta"}
+            card = builder.SOCIAL[lang]
+            self.assertEqual(metas["og:type"], "website")
+            self.assertEqual(metas["og:title"], card["title"])
+            self.assertEqual(metas["og:description"], card["description"])
+            self.assertLessEqual(len(card["description"]), 200)
+            self.assertEqual(metas["og:url"], card["url"])
+            self.assertEqual(metas["og:image"], image)
+            self.assertTrue(metas["og:image"].startswith("https://"))
+            self.assertEqual(metas["og:image:width"], "1200")
+            self.assertEqual(metas["og:image:height"], "627")
+            self.assertEqual(metas["twitter:card"], "summary_large_image")
+            self.assertEqual(metas["twitter:image"], image)
+            self.assertIn('name="twitter:card" content="summary_large_image"', page)
+        for flavor in ("family", "library"):
+            self.assertNotIn("og:image", builder.page("en", "", flavor=flavor))
+        preview = builder.ROOT / "assets" / "img" / "social-preview.jpg"
+        self.assertTrue(preview.is_file(), "Run npm run images to create the social preview")
+        self.assertLess(preview.stat().st_size, 1_000_000)
+        self.assertEqual(jpeg_size(preview.read_bytes()), (1200, 627))
+
+    def test_robots_allows_preview_crawlers_and_blocks_search(self):
+        text = builder.robots_txt()
+        for agent in ("LinkedInBot", "Twitterbot", "facebookexternalhit", "WhatsApp"):
+            self.assertIn(f"User-agent: {agent}\nAllow: /", text)
+        self.assertIn("User-agent: *\nDisallow: /", text)
+        self.assertLess(text.index("User-agent: LinkedInBot"), text.index("User-agent: *"))
+
+
+def jpeg_size(data):
+    if data[:2] != b"\xff\xd8":
+        raise ValueError("not a jpeg")
+    index = 2
+    while index + 8 < len(data):
+        if data[index] != 0xFF:
+            raise ValueError("bad jpeg marker")
+        while data[index] == 0xFF:
+            index += 1
+        marker = data[index]
+        index += 1
+        if marker in (0xD8, 0xD9):
+            continue
+        if marker == 0xDA:
+            break
+        length = int.from_bytes(data[index:index + 2], "big")
+        if marker in (0xC0, 0xC1, 0xC2):
+            height = int.from_bytes(data[index + 3:index + 5], "big")
+            width = int.from_bytes(data[index + 5:index + 7], "big")
+            return width, height
+        index += length
+    raise ValueError("jpeg has no size marker")
+
 
 if __name__ == "__main__":
     unittest.main()

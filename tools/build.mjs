@@ -117,9 +117,15 @@ for (const entry of await fs.readdir(path.join(dist, 'assets'))) {
 }
 await fs.copyFile(path.join(output, 'build.json'), path.join(dist, 'build.json'));
 await fs.copyFile(path.join(output, 'robots.txt'), path.join(dist, 'robots.txt'));
+if (flavor === 'playtest') {
+  const preview = path.join(output, 'social-preview.jpg');
+  const previewBytes = (await fs.stat(preview)).size;
+  if (previewBytes > 1000000) throw new Error('Social preview image exceeds 1MB');
+  await fs.copyFile(preview, path.join(dist, 'social-preview.jpg'));
+}
 await fs.writeFile(path.join(dist, '.nojekyll'), '');
 const files = (await walk(dist)).map(f => path.relative(dist, f).split(path.sep).join('/'));
-const precache = files.filter(f => !f.endsWith('.mp3') && !f.includes('/voice/') && !/\/stops\/(?!0[12]-|manifest\.)/.test(f)
+const precache = files.filter(f => !f.endsWith('.mp3') && !f.includes('/voice/') && f !== 'social-preview.jpg' && !/\/stops\/(?!0[12]-|manifest\.)/.test(f)
   && !/\/locales\/(?:en|es)\/stop-(?!0[12]\.)/.test(f)
   && !/town-map-(?:2048|2752)\./.test(f) && !f.startsWith('.vite/'));
 const sw = await fs.readFile(path.join(root, 'tools/sw-template.js'), 'utf8');
@@ -127,6 +133,8 @@ await fs.writeFile(path.join(dist, 'sw.js'), sw.replace('__BUILD__', buildInfo.i
 for (const file of files.filter(f => f.endsWith('.html'))) {
   const html = await fs.readFile(path.join(dist, file), 'utf8');
   if (/<script\b(?![^>]*\bsrc=)[^>]*>[\s\S]*?\S[\s\S]*?<\/script>/i.test(html) || /<style\b|\sstyle\s*=/i.test(html)) throw new Error(`Inline code violates CSP: ${file}`);
+  if (flavor === 'playtest' && !html.includes('property="og:image" content="https://a2-learning-studio.github.io/pecan-grove-playtest/social-preview.jpg"')) throw new Error(`Social preview tags missing from deployed HTML: ${file}`);
+  if (flavor === 'playtest' && !html.includes('name="twitter:card" content="summary_large_image"')) throw new Error(`Twitter card missing from deployed HTML: ${file}`);
   if (flavor === 'family' && /script\.google|pt-feedback|pt-review-tab/.test(html)) throw new Error(`Family build contains playtest connection: ${file}`);
   if (flavor === 'library' && /script\.google/.test(html)) throw new Error(`Library build must not send feedback: ${file}`);
 }
