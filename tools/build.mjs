@@ -84,8 +84,31 @@ for (const file of await walk(path.join(output, 'assets'))) {
   assetMap[relative] = target; statics.push({ file, target });
 }
 await fs.writeFile(path.join(output, 'asset-map.json'), JSON.stringify(assetMap));
-const imports = ["import map from './asset-map.json';", "window.PG_ASSET_MAP=map;", "window.PG_STYLE_HREF=map['assets/games/community-builders/full-game.css'];", "await import('./assets/playtest/boot.js');"];
-await fs.writeFile(path.join(output, 'app-entry.js'), imports.join('\n'));
+// Boot after the hero has painted. Simulated Lighthouse LCP includes every
+// request that started before that paint, so loading the game first puts the
+// whole HTTP/1.1 queue on the LCP path.
+const imports = `import map from './asset-map.json';
+window.PG_ASSET_MAP=map;
+window.PG_STYLE_HREF=map['assets/games/community-builders/full-game.css'];
+const hero = document.querySelector('#pt-intro img');
+await new Promise(resolve => {
+  let open = true;
+  const finish = () => { if (open) { open = false; resolve(); } };
+  if (hero && typeof PerformanceObserver === 'function') {
+    try {
+      const paints = new PerformanceObserver(list => {
+        if (list.getEntries().some(entry => entry.element === hero)) requestAnimationFrame(finish);
+      });
+      paints.observe({ type: 'largest-contentful-paint', buffered: true });
+    } catch (_) {}
+  }
+  const later = () => requestAnimationFrame(() => requestAnimationFrame(finish));
+  if (hero && typeof hero.decode === 'function') hero.decode().then(() => setTimeout(later, 200), later);
+  else later();
+});
+await import('./assets/playtest/boot.js');
+`;
+await fs.writeFile(path.join(output, 'app-entry.js'), imports);
 for (const lang of ['en', 'es']) {
   const file = path.join(output, lang === 'en' ? 'index.html' : 'espanol.html');
   let html = await fs.readFile(file, 'utf8');
