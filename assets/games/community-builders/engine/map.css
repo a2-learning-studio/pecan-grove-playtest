@@ -115,6 +115,7 @@
   overflow: auto;
   background: var(--cb-stage);
   color: var(--cb-ink);
+  cursor: pointer;
 }
 .cb-map-caption .cb-stop__plate {
   position: static;

@@ -386,7 +386,9 @@
   .cb-stophud__back { margin-right: auto; }
   .cb-stophud .cb-fs { display: none; }
 }
-@container cb (max-width: 350px) { .cb-stophud__back span { display: none; } .cb-stophud__back { padding: 0 14px; } }
+/* Most phones give the game 340-410px. The labelled Town map button plus the Pause/stars/More row needs about 400px,
+   so below 420px the button keeps its arrow and its aria-label only (the old 350px cut-off let the row cover the label). */
+@container cb (max-width: 420px) { .cb-stophud__back span { display: none; } .cb-stophud__back { padding: 0 14px; } }
 @container cb (max-width: 1099.98px) { .cb-steps:not(.cb-steps--dots) .cb-step:not([data-s="now"]) .cb-step__lbl { display: none; } }
 
 /* ── the board: where a task needs focus ── */

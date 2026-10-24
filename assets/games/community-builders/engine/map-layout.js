@@ -202,6 +202,13 @@ export function installMapPresentation(ctx, world, canvas, pan) {
     frame = null,
     geometry = "",
     captionControl = null;
+  // The readout looks like a card, so a tap on it opens the stop it names, the
+  // same as tapping that disc. It stays out of the accessibility tree: the
+  // disc buttons remain the keyboard and screen-reader route.
+  caption.addEventListener("click", () => {
+    if (!stopped && captionControl?.isConnected && !captionControl.disabled)
+      captionControl.click();
+  });
   canvas.dataset.mapLayout = "pending";
   const requestFrame = ctx.window.requestAnimationFrame
     ? (callback) => ctx.window.requestAnimationFrame(callback)

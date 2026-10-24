@@ -39,6 +39,12 @@
   box-shadow: none;
   transform: none;
 }
+/* A save-slot pick fills its bordered card. The pill radius and press
+   shadow drew a second curved edge inside the card on phones. */
+.cb .cb-btn.cb-engine-slot-pick:not(.cb-btn--quiet) {
+  border-radius: 12px;
+  box-shadow: none;
+}
 
 .cb .cb-note,
 .cb .cb-face-btn,
