@@ -40,13 +40,14 @@
   }
  ],
  "clips": {
-  "per_language": 75,
+  "per_language": 87,
   "languages": [
    "en",
    "es"
   ],
-  "total_seconds": 1137.2,
-  "total_bytes": 9135236
+  "total_seconds": 1228.5,
+  "total_bytes": 10061537
  },
- "script": "_handoff/voice/voice-script.json (tools/make_voice_script.py)"
+ "script": "_handoff/voice/voice-script.json (tools/make_voice_script.py)",
+ "added_2026_10_24": "12 lines that had no voice (Stops 1, 2, 8, 10 and 12, Mrs. Ana's three Stop 12 answers, and the two-team prompts) were generated through the ElevenLabs API with Eleven v4 in the same cast voices, encoded like the rest; Mrs. Ana's three with the 20 Oct softer treatment at 96 kbps."
 }
