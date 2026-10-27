@@ -26,6 +26,7 @@ function libraryHarness(lang) {
   });
   vm.runInContext(readFileSync(new URL('../../assets/games/community-builders/locales/catalog.js', import.meta.url), 'utf8'), c);
   vm.runInContext(sectionSource('words'), c);
+  vm.runInContext(functionSource('quietMode'), c);
   vm.runInContext(functionSource('openLibraryMode'), c);
   return c;
 }
@@ -46,7 +47,7 @@ test('Library setup is bilingual and applies quiet play without changing player 
     assert.equal(actions[0].attrs['aria-pressed'], 'false');
     assert.match(d.textContent, lang === 'es' ? /Todas las instrucciones siguen en pantalla/ : /All instructions stay on screen/);
     actions[0].click();
-    assert.equal(c.vOn, false); assert.equal(d.closed, true); assert.equal(c.identity, 'same-player-session');
+    assert.equal(c.vOn, false); assert.equal(c.CFG.findCards, true); assert.equal(d.closed, true); assert.equal(c.identity, 'same-player-session');
     const quiet = c.openLibraryMode(opener);
     assert.equal(buttons(quiet)[0].attrs['aria-pressed'], 'true');
     assert.match(quiet.textContent, lang === 'es' ? /modo silencioso está activado/ : /Quiet mode is on/);
@@ -107,13 +108,15 @@ test('Start opens the title menu from every prior screen and respects saved quie
     const c = vm.createContext({ mode, booted: true, acted: false, playRequested: false, window: {}, maps: 0,titles:0, muted: 0, scans: 0,
       root: { removeAttribute(k) { c.removed = k; } }, main: { querySelector: () => null }, suspendVoice(v) { c.suspended = v; },
       setVoice(v) { c.muted++; c.voice = v; }, showMap() { c.maps++; },showTitle(){c.titles++;}, vLoad() {}, vScan() { c.scans++; },
-      openLibraryMode() {}, openGrownups() {} });
+      openLibraryMode() {}, openGrownups() {}, CFG: {}, cfgSave() {} });
     publicHookFixture(c);
+    vm.runInContext(functionSource('quietMode'), c);
     vm.runInContext(objectStatementSource('CommunityBuilders'), c);
     c.window.CommunityBuilders.enterPlay({ quiet: false });
     assert.equal(c.removed, 'data-playtest-paused'); assert.equal(c.suspended, false); assert.equal(c.maps,0);assert.equal(c.titles,1);
     assert.equal(c.muted, 0, 'Regular Start respects the existing saved sound setting');
     c.window.CommunityBuilders.enterPlay({ quiet: true }); assert.equal(c.muted, 1); assert.equal(c.voice, false);
+    assert.equal(c.CFG.findCards, true, 'the Library / Class mode choice on the page uses the in-game routine: classic find cards');
   }
 });
 

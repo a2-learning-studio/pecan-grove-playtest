@@ -26,15 +26,18 @@ export function createSceneLayout(ctx) {
       scrollport = stage?.querySelector(":scope > .pt-stage-content"),
       fullscreen = ctx.fsEl();
     // Expanded play owns a child scrollport; the outer stage never scrolls.
+    // In native fullscreen the game root (.cb.is-fs) scrolls too: a new scene
+    // must not open with the map's offset hiding its header and back button.
     if (
       scrollport?.contains(ctx.root) &&
       (stage.classList.contains("is-expanded") || fullscreen === stage)
     ) {
-      if (scrollport.scrollTop > 4)
-        scrollport.scrollTo({
-          top: 0,
-          behavior: ctx.motionAllowed() ? "smooth" : "auto",
-        });
+      for (const box of [scrollport, ctx.root])
+        if (box.scrollTop > 4)
+          box.scrollTo({
+            top: 0,
+            behavior: ctx.motionAllowed() ? "smooth" : "auto",
+          });
       return;
     }
     if (fullscreen === ctx.fsTarget()) {

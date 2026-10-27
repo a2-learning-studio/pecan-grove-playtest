@@ -1,4 +1,8 @@
-"""Back up and integrate reviewed feedback files; refuse concurrent source changes."""
+"""Back up and integrate reviewed feedback files; refuse concurrent source changes.
+
+Hub-only owner tool from the 12 Oct 2026 feedback update: ORIGINAL is the hub copy on the owner's computer. Nothing in this
+repository's build, tests, npm scripts or CI runs or imports it.
+"""
 import argparse
 import hashlib
 import json

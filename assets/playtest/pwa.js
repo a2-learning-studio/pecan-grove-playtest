@@ -29,7 +29,7 @@ const make = (tag, label, attrs = {}) => {
   for (const [key, value] of Object.entries(attrs)) element.setAttribute(key, value);
   return element;
 };
-let installEvent = null, registration = null, reloading = false, requestedUpdate = false, updateDeferred = false;
+let installEvent = null, registration = null, reloading = false, requestedUpdate = false, updateDeferred = false, stopUnavailable = false, lastCheck = 0;
 window.addEventListener('beforeinstallprompt', event => {
   event.preventDefault(); installEvent = event;
   document.dispatchEvent(new CustomEvent('cb:install-available'));
@@ -37,7 +37,8 @@ window.addEventListener('beforeinstallprompt', event => {
 window.addEventListener('appinstalled', () => { installEvent = null; });
 const safeScreen = () => {
   const state = window.CommunityBuilders?.snapshot?.();
-  return !state || state.mode !== 'stop';
+  // A stop that could not load has no play to lose: the restart may show there.
+  return stopUnavailable || !state || state.mode !== 'stop';
 };
 function pageBuild() {
   return document.querySelector('meta[name="content-build-id"]')?.content || '';
@@ -77,6 +78,7 @@ function updateNotice() {
   if (!registration?.waiting || updateDeferred || !safeScreen() || document.getElementById('pg-update-notice')) return;
   const bar = make('aside', '', { id: 'pg-update-notice', class: 'pg-update-notice', 'aria-label': text('pwa_game_update') });
   bar.append(make('p', text('pwa_a_new_version_is_ready')));
+  if (stopUnavailable) bar.append(make('p', text('pwa_stop_needs_update')));
   const restart = make('button', text('pwa_restart_now'), { type: 'button', class: 'pt-tool' });
   const later = make('button', text('pwa_later'), { type: 'button', class: 'pt-tool' });
   restart.addEventListener('click', () => {
@@ -100,6 +102,22 @@ document.addEventListener('pg:language-change', connectivity);
 document.addEventListener('cb:screen', () => {
   if (!safeScreen()) document.getElementById('pg-update-notice')?.remove(); else considerUpdate();
 });
+// A page left open across a release cannot open files that release removed. Look for the new release when a stop
+// cannot load, when the page comes back into view, and every hour; considerUpdate then offers Restart now.
+async function checkForUpdate(force) {
+  if (!registration || navigator.onLine === false || (!force && Date.now() - lastCheck < 600000)) return;
+  lastCheck = Date.now();
+  try { await registration.update(); } catch (_) { return; }
+  const worker = registration.installing;
+  if (worker) await new Promise(resolve => {
+    const settled = () => { if (worker.state === 'installing') return; worker.removeEventListener('statechange', settled); resolve(); };
+    worker.addEventListener('statechange', settled); settled();
+  });
+  considerUpdate();
+}
+document.addEventListener('cb:stop-unavailable', () => { stopUnavailable = true; updateDeferred = false; checkForUpdate(true); });
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') checkForUpdate(false); });
+setInterval(() => checkForUpdate(false), 3600000);
 if ('serviceWorker' in navigator && document.querySelector('meta[name="pg-offline"]')?.content === 'enabled') {
   navigator.serviceWorker.register(trustedWorkerURL(window, new URL('sw.js', document.baseURI))).then(value => {
     registration = value; considerUpdate();

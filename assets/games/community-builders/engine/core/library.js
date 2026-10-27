@@ -1,5 +1,17 @@
 import { mapOrderControl } from "../map-layout.js";
 export default function createLibrary(ctx) {
+  // Library / Class mode, from this dialog or the page's choice before Start:
+  // no voice, and the classic, predictable reading-card format.
+  function quietMode(tell) {
+    ctx.setVoice(false, tell);
+    var settings =
+      ctx.window.PecanGroveEngine && ctx.window.PecanGroveEngine.settings;
+    if (settings) settings.update({ findCards: true });
+    else {
+      ctx.CFG.findCards = true;
+      ctx.cfgSave();
+    }
+  }
   function openLibraryMode(opener) {
     ctx.vStop();
     var wrap = ctx.h("div", {
@@ -16,15 +28,7 @@ export default function createLibrary(ctx) {
       ctx.X.libraryQuiet,
       "cb-btn--go",
       function () {
-        ctx.setVoice(false, true);
-        // Library mode chooses the classic, predictable reading-card format.
-        var settings =
-          ctx.window.PecanGroveEngine && ctx.window.PecanGroveEngine.settings;
-        if (settings) settings.update({ findCards: true });
-        else {
-          ctx.CFG.findCards = true;
-          ctx.cfgSave();
-        }
+        quietMode(true);
         status.textContent = ctx.X.libraryActive;
         d.close();
       },
@@ -277,6 +281,7 @@ export default function createLibrary(ctx) {
     stepA();
   }
   ctx.publish({
+    quietMode,
     openLibraryMode,
     openWho,
     improvement,

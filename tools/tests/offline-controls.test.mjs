@@ -64,3 +64,28 @@ test('live language switching translates offline controls without rebuilding or 
   assert.equal(h.container.querySelector('section'),section); assert.equal(progress.value,1);
   assert.equal(h.requests.length,2); h.dom.window.close();
 });
+test('a stop that cannot load after a release looks for that release and offers Restart now on the stop screen', async()=>{
+  const source = read('assets/playtest/pwa.js').replace(/^import .*;$/m, 'const trustedWorkerURL = () => "/sw.js";');
+  const dom = new JSDOM('<!doctype html><html lang="en"><head><meta name="pg-offline" content="enabled"><meta name="content-build-id" content="build-a"></head><body><nav class="pt-toolbar"></nav><section id="pt-stage"></section></body></html>', {url:'https://game.test/', runScripts:'outside-only'});
+  const w = dom.window, listeners = [];
+  let updates = 0;
+  const registration = { waiting: null, installing: null, addEventListener() {},
+    async update() { updates++; registration.waiting = { postMessage(data) { if (data.type === 'GET_VERSION') listeners.slice().forEach(fn => fn({data:{type:'VERSION', build:'build-b'}})); } }; } };
+  Object.defineProperty(w.navigator, 'serviceWorker', {configurable:true, value:{
+    register: async()=>registration,
+    addEventListener(type, fn) { if (type === 'message') listeners.push(fn); },
+    removeEventListener(type, fn) { const index = listeners.indexOf(fn); if (type === 'message' && index >= 0) listeners.splice(index, 1); }
+  }});
+  w.PGShellLocale = {en: JSON.parse(read('assets/playtest/locales/en.json')), es: JSON.parse(read('assets/playtest/locales/es.json'))};
+  w.CommunityBuilders = { snapshot: () => ({ mode: 'stop' }) };
+  vm.runInContext(source, dom.getInternalVMContext());
+  await settle();
+  assert.equal(w.document.getElementById('pg-update-notice'), null, 'no release is waiting yet');
+  w.document.dispatchEvent(new w.CustomEvent('cb:stop-unavailable', {detail:{id:'speak-up-kindly'}}));
+  await settle();
+  assert.equal(updates, 1);
+  const notice = w.document.getElementById('pg-update-notice');
+  assert.match(notice.textContent, /new version is ready/i);
+  assert.match(notice.textContent, /Restart to open it/);
+  dom.window.close();
+});

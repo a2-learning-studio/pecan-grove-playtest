@@ -22,18 +22,14 @@ export function showCallout(ctx, anchor, content, options = {}) {
       ...(Array.isArray(content) ? content : [content]),
     ],
   );
+  // A finding stays until the player moves on: Close, Escape, a tap elsewhere,
+  // the next finding or a new scene. "This game has no timers" (WCAG 2.2.1).
   let closed = false,
-    tick = 0,
     positionFrame = null,
-    dismissAt = null,
-    voiceReady = !ctx.vOn,
     offBack = () => {};
-  const clock = ctx.activeLifecycle || ctx.window;
-  const now = () => clock.Date?.now() ?? ctx.performance.now();
   function close() {
     if (closed) return;
     closed = true;
-    clock.clearTimeout(tick);
     if (positionFrame !== null) ctx.window.cancelAnimationFrame(positionFrame);
     positionFrame = null;
     ctx.document.removeEventListener("click", outside, true);
@@ -156,17 +152,6 @@ export function showCallout(ctx, anchor, content, options = {}) {
       panel.style.top = chosen.top + "px";
     }
   }
-  function pulse() {
-    if (closed || !panel.isConnected) return;
-    const speaking = !!ctx.vAudio && !!ctx.vEl && panel.contains(ctx.vEl);
-    if (!voiceReady || speaking || ctx.gamePaused) dismissAt = null;
-    else if (dismissAt === null) dismissAt = now() + 6000;
-    else if (now() >= dismissAt) {
-      close();
-      return;
-    }
-    tick = clock.setTimeout(pulse, 100);
-  }
   // Removing an in-flow finding on pointerdown can clamp its scroller and move
   // the intended button before pointerup. Capture click keeps the native target
   // fixed while still dismissing before that target's own action handler.
@@ -197,15 +182,9 @@ export function showCallout(ctx, anchor, content, options = {}) {
   if (ctx.vOn)
     Promise.resolve(ctx.vLoad()).then(
       () => {
-        if (!closed) {
-          ctx.vScan([panel]);
-          voiceReady = true;
-        }
+        if (!closed) ctx.vScan([panel]);
       },
-      () => {
-        voiceReady = true;
-      },
+      () => {},
     );
-  pulse();
   return panel;
 }

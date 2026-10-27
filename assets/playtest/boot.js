@@ -18,13 +18,14 @@ async function boot() {
 }
 
 try { await boot(); }
-catch (_) {
+catch (error) {
+  console.error('The game could not get ready', error);
   const words = window.PGShellLocale[document.documentElement.lang === 'es' ? 'es' : 'en'];
   const message = document.createElement('p'); message.setAttribute('role', 'alert');
   message.textContent = words.boot_error;
   const reload = document.createElement('button'); reload.type = 'button'; reload.className = 'pt-btn';
   reload.textContent = words.reload; reload.addEventListener('click', () => location.reload());
   document.getElementById('pt-start')?.setAttribute('disabled', '');
-  document.getElementById('pt-feedback-new-player-top')?.setAttribute('disabled', '');
+  // Next player stays available: a fresh player starts from a fresh save.
   (document.querySelector('.pt-intro__copy') || document.body).append(message, reload);
 }

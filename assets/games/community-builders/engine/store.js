@@ -1,4 +1,4 @@
-import { safeSet } from "./dom.js";
+import { safeSet, storageArea, unavailableStorage } from "./dom.js";
 export const ANIMAL_IDS = [
   "fox",
   "owl",
@@ -59,7 +59,7 @@ export function isEmptyPlaceholder(player) {
 export class Slots {
   constructor({
     state,
-    storage = globalThis.localStorage,
+    storage = storageArea("localStorage"),
     target = globalThis.document,
   }) {
     this.state = state;
@@ -72,8 +72,9 @@ export class Slots {
   }
   save() {
     const state = this.state();
+    // The core keeps a newer or unrecoverable save untouched.
     return safeSet(
-      this.storage,
+      state.saveLocked ? unavailableStorage : this.storage,
       state.storageKey || state.key || "pecan-grove-journey",
       this.store(),
       this.target,
@@ -103,20 +104,35 @@ export class Slots {
     s.current = id;
     return this.save();
   }
+  // Each deletion returns its own undo record, so an older Undo restores the
+  // game it was made for.
   remove(id) {
     const store = this.store();
-    if (!store.players[id]) return false;
-    this.deleted = { id, player: structuredClone(store.players[id]) };
+    if (!store.players[id]) return null;
+    const deleted = { id, player: structuredClone(store.players[id]) };
+    this.deleted = deleted;
     delete store.players[id];
     if (store.current === id)
       store.current = Object.keys(store.players)[0] || "you";
     migrateStore(store);
-    return this.save();
+    this.save();
+    return deleted;
   }
-  undo() {
-    if (!this.deleted) return false;
-    this.store().players[this.deleted.id] = this.deleted.player;
-    this.deleted = null;
+  undo(deleted = this.deleted) {
+    if (!deleted) return false;
+    const store = this.store();
+    if (this.deleted === deleted) this.deleted = null;
+    // Never replace a newer game for the same animal or pass eight players.
+    // Only the empty default player may be replaced.
+    const emptyPlaceholder = isEmptyPlaceholder(store.players.you),
+      replacesPlaceholder = deleted.id === "you" && emptyPlaceholder;
+    if (store.players[deleted.id] && !replacesPlaceholder) return false;
+    if (
+      !replacesPlaceholder &&
+      Object.keys(store.players).length - (emptyPlaceholder ? 1 : 0) >= 8
+    )
+      return false;
+    store.players[deleted.id] = deleted.player;
     return this.save();
   }
   resume(record) {

@@ -136,7 +136,12 @@ export default function createData(ctx) {
     [].concat(["bee"],ctx.window.CBLocale.pair("core","bank.b0040"),["#F0E442"]),
     [].concat(["otter"],ctx.window.CBLocale.pair("core","bank.b0041"),["#882255"]),
   ].map(function (a) {
-    return { id: a[0], name: ctx.L === "es" ? a[2] : a[1], ring: a[3] };
+    return {
+      id: a[0],
+      name: ctx.L === "es" ? a[2] : a[1],
+      names: { en: a[1], es: a[2] },
+      ring: a[3],
+    };
   });
   var ICON = {
     fox: '<path d="M14 27 11 7q12 2 15 12h12q4-10 15-12l-3 20v12q-3 13-18 17-15-4-18-17Z" fill="#DD7442"/><path d="m16 14 3 13 7-5Zm32 0-10 8 7 5Z" fill="#F4B291"/><path d="M14 33q11-1 18 10 7-11 18-10-1 16-18 23-17-7-18-23Z" fill="#FFF2DA"/><path d="M21 31q3-3 6 0m10 0q3-3 6 0" fill="none" stroke="#34343D" stroke-width="2" stroke-linecap="round"/><path d="M28 42q4-3 8 0l-4 5Z" fill="#34343D"/><path d="M32 47v3" stroke="#34343D" stroke-width="1.6" stroke-linecap="round"/>',

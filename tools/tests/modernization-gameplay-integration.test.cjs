@@ -28,3 +28,12 @@ test('A completed Stop 4 result restores the same round without a second score w
   sameView(view(r),before,'completed round');assert.equal(JSON.stringify(r.core.getState().store),saved,'no duplicate completion');
  }finally{r.close();}
 });
+test('Animal names follow a live language change',async()=>{
+ const r=await fullCore('en',42);try{
+  const words=lang=>require(`../../assets/games/community-builders/locales/${lang}/core.json`).bank;
+  const fox=()=>r.core.getAPI().ANIMALS.find(a=>a.id==='fox').name;
+  assert.equal(fox(),words('en').b0034);
+  assert.equal(await r.core.setLanguage('es'),true);await r.tick();assert.equal(fox(),words('es').b0034);
+  assert.equal(await r.core.setLanguage('en'),true);await r.tick();assert.equal(fox(),words('en').b0034);
+ }finally{r.close();}
+});

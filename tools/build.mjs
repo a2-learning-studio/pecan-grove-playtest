@@ -77,8 +77,10 @@ for (const stop of descriptors) {
 const statics = [], assetMap = {};
 for (const file of await walk(path.join(output, 'assets'))) {
   const relative = path.relative(output, file).split(path.sep).join('/');
-  if (/\/voice\/(?:en|es)\/.*\.mp3$/.test(relative)) { statics.push({ file, target: relative }); continue; }
-  if (!/\.(?:webp|avif|png|svg|json)$/.test(file) && !/\/stops\/.*\.(?:js|css)$/.test(relative) && !/\/voice\/index\.js$/.test(relative) && !relative.endsWith('/full-game.css')) continue;
+  // Voice clips are content-addressed too: a re-recorded line gets a new URL, so a returning player's cache-first
+  // worker can never keep serving the old recording.
+  if (!/\.(?:webp|avif|png|svg|json)$/.test(file) && !/\/stops\/.*\.(?:js|css)$/.test(relative) && !/\/voice\/index\.js$/.test(relative)
+    && !/\/voice\/(?:en|es)\/[^/]+\.mp3$/.test(relative) && !relative.endsWith('/full-game.css')) continue;
   const bytes = await fs.readFile(file); const hash = crypto.createHash('sha256').update(bytes).digest('hex').slice(0, 12);
   const ext = path.extname(file); const target = relative.slice(0, -ext.length) + '.' + hash + ext;
   assetMap[relative] = target; statics.push({ file, target });
@@ -146,6 +148,8 @@ for (const entry of await fs.readdir(path.join(dist, 'assets'))) {
 }
 await fs.copyFile(path.join(output, 'build.json'), path.join(dist, 'build.json'));
 await fs.copyFile(path.join(output, 'robots.txt'), path.join(dist, 'robots.txt'));
+// The printable educator sheets (tools/make_educator.py) are plain pages beside the game; For grown-ups links to them.
+for (const name of ['educator.html', 'educador.html', 'educator.css']) await fs.copyFile(path.join(output, name), path.join(dist, name));
 if (flavor === 'playtest') {
   const preview = path.join(output, 'social-preview.jpg');
   const previewBytes = (await fs.stat(preview)).size;
@@ -154,11 +158,21 @@ if (flavor === 'playtest') {
 }
 await fs.writeFile(path.join(dist, '.nojekyll'), '');
 const files = (await walk(dist)).map(f => path.relative(dist, f).split(path.sep).join('/'));
-const precache = files.filter(f => !f.endsWith('.mp3') && !f.includes('/voice/') && f !== 'social-preview.jpg' && !/\/stops\/(?!0[12]-|manifest\.)/.test(f)
-  && !/\/locales\/(?:en|es)\/stop-(?!0[12]\.)/.test(f)
-  && !/town-map-(?:2048|2752)\./.test(f) && !f.startsWith('.vite/'));
+const shellWords = await Promise.all(['en', 'es'].map(async lang => JSON.parse(await fs.readFile(path.join(root, 'assets/playtest/locales', lang + '.json'), 'utf8'))));
+// Offline play needs the voice index and all 15 stops with their copy. Voice packs stay a grown-up's choice, and the
+// plain town-map.webp and town-map@2x.webp are never requested: the game asks for the sized town-map-<width> files.
+// Zoomed map crops in stops choose the 2048/2752 candidates, so their AVIF files are kept (not the WebP fallbacks).
+const precache = files.filter(f => !f.endsWith('.mp3') && !/\/voice\/(?!index\.)/.test(f) && f !== 'social-preview.jpg'
+  && !/\/img\/town-map(?:@2x)?\.[0-9a-f]{12}\.webp$/.test(f)
+  && !/town-map-(?:2048|2752)\.[0-9a-f]{12}\.webp$/.test(f) && !f.startsWith('.vite/'));
+const precacheBytes = (await Promise.all(precache.map(f => fs.stat(path.join(dist, f))))).reduce((total, stat) => total + stat.size, 0);
+if (precacheBytes > 3.5 * 1048576) throw new Error(`Offline precache is ${(precacheBytes / 1048576).toFixed(2)} MB; the budget is 3.5 MB`);
+for (const needed of ['assets/games/community-builders/voice/index.', 'assets/games/community-builders/stops/15-'])
+  if (!precache.some(f => f.startsWith(needed))) throw new Error(`Offline precache is missing ${needed}*`);
 const sw = await fs.readFile(path.join(root, 'tools/sw-template.js'), 'utf8');
-await fs.writeFile(path.join(dist, 'sw.js'), sw.replace('__BUILD__', buildInfo.id).replace('__PRECACHE__', JSON.stringify(precache)));
+// The worker keeps downloaded voice packs across updates but drops clips this build no longer uses.
+const voiceClips = Object.values(assetMap).filter(target => /\/voice\/(?:en|es)\/[^/]+\.mp3$/.test(target)).sort();
+await fs.writeFile(path.join(dist, 'sw.js'), sw.replace('__BUILD__', buildInfo.id).replace('__PRECACHE__', JSON.stringify(precache)).replace('__VOICE__', JSON.stringify(voiceClips)));
 for (const file of files.filter(f => f.endsWith('.html'))) {
   const html = await fs.readFile(path.join(dist, file), 'utf8');
   if (/<script\b(?![^>]*\bsrc=)[^>]*>[\s\S]*?\S[\s\S]*?<\/script>/i.test(html) || /<style\b|\sstyle\s*=/i.test(html)) throw new Error(`Inline code violates CSP: ${file}`);
@@ -166,10 +180,16 @@ for (const file of files.filter(f => f.endsWith('.html'))) {
   if (flavor === 'playtest' && !html.includes('name="twitter:card" content="summary_large_image"')) throw new Error(`Twitter card missing from deployed HTML: ${file}`);
   if (flavor === 'family' && /script\.google|pt-feedback|pt-review-tab/.test(html)) throw new Error(`Family build contains playtest connection: ${file}`);
   if (flavor === 'library' && /script\.google/.test(html)) throw new Error(`Library build must not send feedback: ${file}`);
+  // Family and library copies are not a test and never send: none of the playtest-only page copy may remain.
+  if (flavor !== 'playtest') for (const words of shellWords) {
+    const keys = ['title', 'h1', 'intro_note', 'instructions', 'foot', 'privacy', 'consent_scores', ...(flavor === 'family' ? ['review_tab', 'intro_review'] : [])];
+    const left = [words.version_badge.split('{date}')[0].trim(), ...keys.map(key => words[key])].filter(value => html.includes(value));
+    if (left.length) throw new Error(`${flavor} build shows playtest-only copy in ${file}: ${left.join(' | ')}`);
+  }
 }
 const jsBytes = await Promise.all(files.filter(f => /\.js$/.test(f) && !f.includes('/stops/') && !f.includes('/voice/')).map(async f => gzipSync(await fs.readFile(path.join(dist, f))).length));
 const cssBytes = await Promise.all(files.filter(f => /\.css$/.test(f) && !f.includes('/stops/')).map(async f => gzipSync(await fs.readFile(path.join(dist, f))).length));
-const receipt = { build: buildInfo.id, flavor, files: files.length + 1, jsGzipBytes: jsBytes.reduce((a, b) => a + b, 0), cssGzipBytes: cssBytes.reduce((a, b) => a + b, 0), criticalCssGzipBytes: styles.criticalGzipBytes, fonts: fontReceipt, assetMapEntries: Object.keys(assetMap).length };
+const receipt = { build: buildInfo.id, flavor, files: files.length + 1, precacheFiles: precache.length, precacheBytes, jsGzipBytes: jsBytes.reduce((a, b) => a + b, 0), cssGzipBytes: cssBytes.reduce((a, b) => a + b, 0), criticalCssGzipBytes: styles.criticalGzipBytes, fonts: fontReceipt, assetMapEntries: Object.keys(assetMap).length };
 if (receipt.jsGzipBytes >= 120000 || receipt.cssGzipBytes >= 40000) throw new Error('Production script or stylesheet budget exceeded');
 await fs.writeFile(path.join(root, `docs/build-receipt-${flavor}.json`), JSON.stringify(receipt, null, 2));
 if (flavor === 'playtest') await fs.writeFile(path.join(root, 'docs/build-receipt.json'), JSON.stringify(receipt, null, 2));

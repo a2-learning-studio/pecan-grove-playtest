@@ -119,6 +119,57 @@ class PlaytestBuilderTests(unittest.TestCase):
             self.assertIn("community-builders", ids)
             self.assertEqual(page.count("<noscript>"), 1)
 
+    def test_family_and_library_pages_show_no_playtest_only_copy(self):
+        for flavor in ("family", "library"):
+            for lang in ("en", "es"):
+                w = builder.WORDS[lang]
+                page = builder.page(lang, "", "local-test", flavor=flavor)
+                ids = {attrs["id"] for _, attrs in Elements(page).elements if "id" in attrs}
+                for removed in ("pt-version-tag", "pt-intro-note", "pt-guide", "pt-consent-scores", "pt-consent-auto"):
+                    self.assertNotIn(removed, ids, (flavor, lang))
+                self.assertNotIn("data-pg-consent", page, (flavor, lang))
+                for key in ("title", "h1", "intro_note", "instructions", "foot", "privacy", "consent_scores"):
+                    self.assertNotIn(html.escape(w[key]), page, (flavor, lang, key))
+                self.assertNotIn(w["version_badge"].split("{date}")[0].strip(), page)
+                for key in ("title_local", "h1_local", "foot_local"):
+                    self.assertIn(html.escape(w[key]), page, (flavor, lang, key))
+                # The credit sentences stay word for word; only the play-test description goes.
+                self.assertTrue(w["foot"].endswith(w["foot_local"]))
+                if flavor == "library":
+                    self.assertIn(html.escape(w["privacy_library"]), page)
+                    self.assertIn("pt-review-tab", ids, "library keeps its local notes")
+                    # Shared library computers keep Next player and the device panel in the For grown-ups box.
+                    parsed = Elements(page)
+                    for element_id in ("pt-feedback-new-player-top", "pt-device-open", "pt-shared-top"):
+                        self.assertIn("pt-consent-options", parsed.ancestors[element_id], (lang, element_id))
+                else:
+                    self.assertNotIn("pt-consent-options", ids, (flavor, lang))
+
+    def test_playtest_page_keeps_its_test_copy_and_starts_right_under_the_heading(self):
+        for lang in ("en", "es"):
+            w = builder.WORDS[lang]
+            page = builder.page(lang, "", "playtest-test")
+            for key in ("h1", "intro_note", "instructions", "foot"):
+                self.assertIn(html.escape(w[key]), page)
+            self.assertLess(page.index('id="pt-h"'), page.index('id="pt-quiet"'))
+            self.assertLess(page.index('id="pt-quiet"'), page.index('id="pt-start"'))
+            self.assertLess(page.index('id="pt-start"'), page.index(html.escape(w["lead"])), "Start comes before the grown-up project copy")
+            # The toolbar's Review / Feedback tab and the dock below the game already open the one feedback form.
+            self.assertNotIn("pt-feedback-jump", page)
+            self.assertIn('id="pt-review-tab"', page)
+            self.assertIn('id="pt-feedback-home"', page)
+
+    def test_every_flavor_has_a_bilingual_accessibility_statement_with_a_barrier_contact(self):
+        for flavor in ("playtest", "family", "library"):
+            for lang in ("en", "es"):
+                w = builder.WORDS[lang]
+                page = builder.page(lang, "", "access-test", flavor=flavor)
+                ids = {attrs["id"] for _, attrs in Elements(page).elements if "id" in attrs}
+                self.assertIn("pt-access", ids, (flavor, lang))
+                for key in ("access_title", "access_goal", "access_gaps", "access_contact", "access_contact_detail"):
+                    self.assertIn(html.escape(w[key]), page, (flavor, lang, key))
+                self.assertIn(f'href="mailto:{builder.ACCESS_CONTACT}"', page)
+
     def test_score_options_start_off_and_keep_native_checkbox_labels(self):
         for lang in ("en", "es"):
             parsed = Elements(builder.page(lang, ""))
@@ -241,7 +292,7 @@ class PlaytestBuilderTests(unittest.TestCase):
             self.assertIn(f'data-language-url="{destination}"', page)
             self.assertIn('id="pt-start" type="button"', page)
             self.assertIn('href="#pt-h"', page)
-            self.assertIn('<details class="pt-guide">', page)
+            self.assertIn('<details class="pt-guide" id="pt-guide">', page)
             self.assertNotIn('<details class="pt-guide" open', page)
             self.assertIn('content="test-revision"', page)
             self.assertIn('noindex, nofollow', page)
@@ -307,6 +358,28 @@ class PlaytestBuilderTests(unittest.TestCase):
         self.assertTrue(preview.is_file(), "Run npm run images to create the social preview")
         self.assertLess(preview.stat().st_size, 1_000_000)
         self.assertEqual(jpeg_size(preview.read_bytes()), (1200, 627))
+
+    def test_next_player_and_device_panel_live_in_for_grown_ups_not_beside_start(self):
+        for lang in ("en", "es"):
+            page = builder.page(lang, "")
+            parsed = Elements(page)
+            for element_id in ("pt-feedback-new-player-top", "pt-device-open", "pt-shared-top"):
+                self.assertIn("pt-consent-options", parsed.ancestors[element_id], element_id)
+            self.assertNotIn("pt-consent-options", parsed.ancestors["pt-start"])
+            self.assertIn(">" + html.escape(builder.WORDS[lang]["feedback_new_player"]) + "</button>", page)
+            self.assertIn(builder.WORDS[lang]["consent_auto_hint"], page)
+            self.assertIn("pt-feedback", parsed.ancestors["pt-feedback-device"])
+            buttons = {attrs["id"]: attrs.get("class") for tag, attrs in parsed.elements if tag == "button" and "id" in attrs}
+            # Keeping the current player is the safe default; starting the next player is the secondary choice.
+            self.assertEqual(buttons["pt-new-player-cancel"], "pt-btn")
+            self.assertEqual(buttons["pt-new-player-confirm"], "pt-btn pt-btn--secondary")
+            family = builder.page(lang, "", "family-test", flavor="family")
+            self.assertNotIn("pt-device-open", family)
+            self.assertNotIn("pt-feedback-new-player-top", family)
+
+    def test_robots_says_it_has_no_effect_under_the_subpath_and_pages_use_noindex(self):
+        self.assertIn("has no effect under /pecan-grove-playtest/", builder.robots_txt())
+        self.assertIn('<meta name="robots" content="noindex, nofollow">', builder.page("en", ""))
 
     def test_robots_allows_preview_crawlers_and_blocks_search(self):
         text = builder.robots_txt()

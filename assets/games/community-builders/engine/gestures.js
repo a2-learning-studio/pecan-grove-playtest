@@ -310,7 +310,9 @@ export class Gestures {
     }
     const token = e.target.closest?.(".cb-stop");
     if (!token || this.root.dataset.input !== "touch") return;
-    if (this.selected !== token) {
+    // The first tap previews a stop's name. The next stop is already named on
+    // its map caption, so one tap opens it.
+    if (this.selected !== token && token.dataset.state !== "next") {
       this.selected = token;
       this.focus.focus(token);
       e.preventDefault();

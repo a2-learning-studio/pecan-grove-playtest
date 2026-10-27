@@ -1,17 +1,72 @@
 export default function createStore(ctx) {
+  // A save this version cannot keep safely (one from a newer version, or one
+  // whose recovery copy could not be made) is never written over.
+  var saveLocked = false;
   var store = load();
-  function load() {
+  function isRecord(value) {
+    return !!value && typeof value === "object" && !Array.isArray(value);
+  }
+  function keepRecovery(raw) {
+    // Keep the original text before anything replaces it.
     try {
-      var s = JSON.parse(ctx.localStorage.getItem(ctx.KEY) || "null");
-      if (s && (s.version === 1 || s.version === 2) && s.players) return s;
+      var key = ctx.KEY + "-recovery",
+        earlier = ctx.localStorage.getItem(key);
+      if (!earlier) ctx.localStorage.setItem(key, raw);
+      else if (earlier !== raw)
+        ctx.localStorage.setItem(key + "-" + Date.now(), raw);
+      return true;
     } catch (e) {
-      /* storage blocked: the game still works */
+      return false;
     }
+  }
+  function usable(s) {
+    // Set aside damaged players and stop records instead of failing to start.
+    var damaged = false;
+    for (var id in s.players) {
+      var pl = s.players[id];
+      if (!isRecord(pl)) {
+        delete s.players[id];
+        damaged = true;
+        continue;
+      }
+      if (!isRecord(pl.stops)) {
+        damaged = damaged || pl.stops !== undefined;
+        pl.stops = {};
+      }
+      for (var k in pl.stops)
+        if (!isRecord(pl.stops[k])) {
+          delete pl.stops[k];
+          damaged = true;
+        }
+    }
+    return damaged;
+  }
+  function load() {
+    var raw = null;
+    try {
+      raw = ctx.localStorage.getItem(ctx.KEY);
+      var s = JSON.parse(raw || "null");
+      if (s && (s.version === 1 || s.version === 2) && isRecord(s.players)) {
+        if (usable(s) && !keepRecovery(raw)) saveLocked = true;
+        return s;
+      }
+      if (s && typeof s.version === "number" && s.version > 2)
+        saveLocked = true;
+    } catch (e) {
+      /* storage blocked or unreadable: the game still works */
+    }
+    if (raw && !keepRecovery(raw)) saveLocked = true;
     return { version: 1, players: { you: { stops: {} } }, current: "you" };
   }
   var storageWarned = false;
   function storageError(kind) {
-    if (!storageWarned && typeof ctx.root !== "undefined") {
+    // The enhanced engine shows the same notice. Keep one for screen readers.
+    if (
+      !storageWarned &&
+      typeof ctx.root !== "undefined" &&
+      !(ctx.root.dataset && ctx.root.dataset.engineMounted) &&
+      !ctx.root.querySelector(".cb-engine-save-warning")
+    ) {
       storageWarned = true;
       var note = ctx.h("p", {
         class: "cb-storage-warning",
@@ -29,6 +84,7 @@ export default function createStore(ctx) {
   }
   function save() {
     try {
+      if (saveLocked) throw new Error("A newer or unrecoverable save");
       ctx.localStorage.setItem(ctx.KEY, JSON.stringify(store));
       return true;
     } catch (e) {
@@ -100,6 +156,49 @@ export default function createStore(ctx) {
     })[0];
     return a ? a.name : ctx.W.you;
   }
+  // Another tab on the same player saved. Take its new games, finished stops
+  // and badges, so this tab's next save does not erase them.
+  function mergeSaved(raw) {
+    var other;
+    try {
+      other = JSON.parse(raw || "null");
+    } catch (e) {
+      return false;
+    }
+    if (
+      !other ||
+      !(other.version === 1 || other.version === 2) ||
+      !isRecord(other.players)
+    )
+      return false;
+    usable(other);
+    for (var id in other.players) {
+      var theirs = other.players[id],
+        ours = store.players[id];
+      if (!ours) {
+        store.players[id] = theirs;
+        continue;
+      }
+      // A game deleted and started again for the same animal is a new game.
+      if (theirs.created !== ours.created) continue;
+      if (!isRecord(ours.stops)) ours.stops = {};
+      for (var k in theirs.stops) {
+        var r = ours.stops[k];
+        if (!r || (theirs.stops[k].rounds || 0) > (r.rounds || 0))
+          ours.stops[k] = theirs.stops[k];
+      }
+      if (isRecord(theirs.badges)) {
+        if (!isRecord(ours.badges)) ours.badges = {};
+        for (var b in theirs.badges)
+          if (!ours.badges[b]) ours.badges[b] = theirs.badges[b];
+      }
+    }
+    return true;
+  }
+  if (ctx.window && ctx.window.addEventListener)
+    ctx.window.addEventListener("storage", function (event) {
+      if (event.key === ctx.KEY) mergeSaved(event.newValue);
+    });
   ctx.publish({
     load,
     storageError,
@@ -109,9 +208,11 @@ export default function createStore(ctx) {
     saveRound,
     journeyOf,
     playerLabel,
+    mergeSaved,
   });
   ctx.bind({
     store: [() => store, (value) => (store = value)],
     storageWarned: [() => storageWarned, (value) => (storageWarned = value)],
+    saveLocked: [() => saveLocked, (value) => (saveLocked = value)],
   });
 }

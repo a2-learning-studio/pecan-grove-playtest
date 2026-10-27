@@ -232,6 +232,35 @@ test("fresh default state has New game without a false Continue summary", () => 
   }
 });
 
+test("without a save, New game is the big go button under the game's name and Load game is hidden", () => {
+  const r = fixture(
+    '<div class="cb-hero__copy"><h2 class="cb-hero__lockup">Pecan Grove</h2><p class="cb-hero__lead">Intro</p><div class="cb-row"><button>Start</button></div></div>',
+  );
+  try {
+    enhanceTitle({
+      root: r.root,
+      slots: { store: () => ({ players: { you: { stops: {} } } }) },
+      api: () => ({ ANIMALS: [], STOPS: [] }),
+      i18n: r.i18n,
+      openSlots() {},
+      settings: { open() {} },
+    });
+    const row = r.root.querySelector(".cb-engine-title-actions");
+    assert.equal(
+      row.previousElementSibling.className,
+      "cb-hero__lockup",
+      "the menu starts right under the name, above the introduction",
+    );
+    const labels = [...row.querySelectorAll("button")].map(
+      (node) => node.textContent,
+    );
+    assert.deepEqual(labels, ["New game", "Settings"]);
+    assert.match(row.querySelector("button").className, /cb-btn--go/);
+  } finally {
+    r.close();
+  }
+});
+
 test("Continue shows the real saved animal, next stop and stars; New/Load/Settings keep their actions", () => {
   const r = fixture(
     '<div class="cb-hero__copy"><button class="cb-btn--onstage">Grown-ups</button></div>',

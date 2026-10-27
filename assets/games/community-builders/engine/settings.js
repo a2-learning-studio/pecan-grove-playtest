@@ -1,4 +1,4 @@
-import { h, button, safeGet, safeSet } from "./dom.js";
+import { h, button, safeGet, safeSet, storageArea } from "./dom.js";
 import { reserved } from "./bindings.js";
 import { bindingTable } from "./controls.js";
 import { motion, configureMotion } from "./motion.js";
@@ -14,7 +14,7 @@ export class Settings {
     core,
     audio,
     onChange = () => {},
-    storage = globalThis.localStorage,
+    storage = storageArea("localStorage"),
   }) {
     Object.assign(this, {
       root,
@@ -152,6 +152,11 @@ export class Settings {
       this.choose(tab, true);
       return this.dialog;
     }
+    // The game's speaker and captions buttons (and the M and C keys) save
+    // these two by themselves. Show what is really on.
+    const shared = this.core()?.getState?.().settings;
+    for (const key of ["voice", "cap"])
+      if (typeof shared?.[key] === "boolean") this.value[key] = shared[key];
     const d = h("dialog", {
       class: "cb-engine-dialog cb-engine-settings",
       "aria-labelledby": "cb-engine-settings-heading",
@@ -332,6 +337,7 @@ export class Settings {
         ]),
         this.toggle("rumble"),
         this.toggle("wasdNav"),
+        this.toggle("letterKeys"),
         this.toggle("holdConfirm"),
       );
       append(
@@ -402,6 +408,7 @@ export class Settings {
               "stickRepeat",
               "rumble",
               "wasdNav",
+              "letterKeys",
               "holdConfirm",
             ],
             accessibility: ["calm", "circles", "findCards", "focusThick"],

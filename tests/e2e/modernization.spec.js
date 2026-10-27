@@ -26,6 +26,9 @@ async function startStage(page,file='index.html',seed=42) {
   await page.locator('#pt-quiet').check();
   await page.locator('#pt-start').click();
   await expect(page.locator('.cb-hero')).toBeVisible();
+  // Library / Class mode also chooses classic find cards. These journeys keep
+  // the default inline findings; the Library case has its own test below.
+  await page.evaluate(()=>window.PecanGroveEngine.settings.update({findCards:false}));
   await waitStageReady(page,'title');
   // Start still exercises native fullscreen. Return the browser to its normal
   // window before viewport sweeps: Chromium cannot resize a fullscreen window.
@@ -130,6 +133,9 @@ async function continueJourneyCheckpoint(page,file,checkpoint){
   await page.addInitScript(checkpoint=>{if(location.origin===checkpoint.origin)for(const [key,value]of checkpoint.entries)localStorage.setItem(key,value);},checkpoint);
   await startStage(page,file);await page.locator('.cb-engine-title-actions .cb-continue').click();
   await waitStageReady(page,checkpoint.completed?'map':'stop');
+  // The game ignores a click within 350 ms of the click that changed the scene, at the same spot (a touch ghost
+  // click). Continue now sits right under the title, where the map shows the next stop, so wait that window out.
+  await page.waitForTimeout(400);
   const restored=await page.evaluate(()=>{const core=window.CommunityBuilders,state=core.getState(),feedback=window.PecanGroveFeedback;return{snapshot:core.snapshot(),player:state.store.current,playerStops:state.store.players[state.store.current].stops,session:feedback.model.active(),consent:feedback.getConsent(),drafts:feedback.model.entries()};});
   expect(restored.player).toBe(checkpoint.player);expect(restored.session).toBe(checkpoint.session);expect(restored.playerStops).toEqual(checkpoint.playerStops);expect(restored.consent.scores).toBe(false);expect(restored.consent.autoScores).toBe(false);
   if(!checkpoint.completed)expect(stableRound(restored.snapshot)).toEqual(stableRound(checkpoint.snapshot));
@@ -302,6 +308,16 @@ test('seed 42 repeats Stop2 speaker and tile order after a clean reload',async({
   async function sample() {await start(page);await stop(page,2);const first=await page.locator('.cb-s02-first').innerText();await page.locator('.cb-s02-intro .cb-btn--go').click();return{first,tiles:await page.locator('.cb-s02-tile').evaluateAll(nodes=>nodes.map(n=>[n.dataset.row,n.dataset.id]))};}
   const first=await sample();const second=await sample();expect(second).toEqual(first);
 });
+test('Library / Class mode chosen on the page keeps each Stop 1 finding on screen until the player closes it',async({page})=>{
+  await page.goto('/index.html?seed=42');await expect(page.locator('#community-builders')).toHaveAttribute('data-engine-mounted','true');
+  await page.locator('#pt-quiet').check();await page.locator('#pt-start').click();await expect(page.locator('.cb-hero')).toBeVisible();await waitStageReady(page,'title');
+  await newGame(page);await stop(page,1);await startStop1Today(page);
+  await page.waitForTimeout(400);await page.locator('.cb-s01-spot[data-spot="0"]').click();
+  const card=page.locator('dialog[open]');await expect(card).toBeVisible();await expect(card).toBeInViewport();
+  // "This game has no timers": the finding waits for the player.
+  await page.waitForTimeout(6500);await expect(card).toBeVisible();
+  await page.keyboard.press('Escape');await expect(card).toHaveCount(0);
+});
 test('language switch mid-stop retains the current step and selected tiles',async({page})=>{
   await start(page);await stop(page,2);await page.locator('.cb-s02-intro .cb-btn--go').click();await page.locator('.cb-s02-row[data-row="topic"] .cb-s02-tile').first().click();
   const selected=await page.locator('.cb-s02-tile[aria-pressed="true"]').getAttribute('data-id');
@@ -333,11 +349,77 @@ test('frame guard replaces an embedded game with a safe open link',async({page})
   await page.route('**/__frame-test.html',route=>route.fulfill({contentType:'text/html',body:'<!doctype html><html lang="en"><title>Frame test</title><iframe title="Game" src="/index.html"></iframe></html>'}));await page.goto('/__frame-test.html');const frame=page.frameLocator('iframe');await expect(frame.getByRole('heading',{name:'Open the game in its own tab'})).toBeVisible();await expect(frame.locator('#community-builders')).toHaveCount(0);await expect(frame.getByRole('link',{name:'Open Pecan Grove'})).toHaveAttribute('rel','noopener');
 });
 
+async function typeNote(page,text) {
+  await page.evaluate(value=>{const fix=document.getElementById('pt-feedback-fix');fix.value=value;fix.dispatchEvent(new Event('input',{bubbles:true}));},text);
+  await expect.poll(()=>page.evaluate(()=>window.PecanGroveFeedback.model.find('feedback',0)?.fix||'')).toBe(text);
+}
+async function openIntro(page,file) {
+  await page.goto(`/${file}`);
+  await expect(page.locator('#community-builders')).toHaveAttribute('data-engine-mounted','true');
+  await page.locator('#pt-feedback-save-draft').waitFor({state:'attached'});
+}
+for (const {lang,file} of languages) test(`${lang}: Next player starts clean, keeps the last player's note on the device, and a grown-up can go back`,async({page,noNetwork})=>{
+  await openIntro(page,file);const first=await page.evaluate(()=>window.PecanGroveFeedback.model.active());
+  await typeNote(page,'PREVIOUS CHILD SECRET');
+  // The step log (and so a progress file) belongs to one player: mark this player's log to follow it.
+  const steps=async()=>{await page.waitForFunction(()=>window.PecanGroveEngine&&window.PecanGroveEngine.steps);return page.evaluate(()=>({key:window.PecanGroveEngine.steps.key(),marked:window.PecanGroveEngine.steps.entries().some(e=>e.event==='pause'&&e.stop===7)}));};
+  await steps();await page.evaluate(()=>window.PecanGroveEngine.steps.record('pause',{stop:7}));expect(await steps()).toEqual({key:`pecan-grove-steps:${first}`,marked:true});
+  await expect(page.locator('#pt-consent-options #pt-feedback-new-player-top')).toBeVisible();
+  await page.locator('#pt-feedback-new-player-top').click();await expect(page.locator('#pt-new-player-cancel')).toBeFocused();
+  await page.locator('#pt-new-player-confirm').click();
+  await expect(page.locator('#pt-player-back')).toBeVisible();await page.locator('#pt-feedback-save-draft').waitFor({state:'attached'});
+  await expect(page.locator('#pt-feedback-fix')).toHaveValue('');
+  const next=await page.evaluate(()=>({session:window.PecanGroveFeedback.model.active(),text:window.PecanGroveFeedback.model.entries().map(e=>e.fix).join(''),kept:window.PecanGroveFeedback.model.entries(true).some(e=>e.fix==='PREVIOUS CHILD SECRET')}));
+  expect(next.session).not.toBe(first);expect(next.text).not.toContain('SECRET');expect(next.kept).toBe(true);
+  expect(await steps()).toEqual({key:`pecan-grove-steps:${next.session}`,marked:false});
+  expect(await page.evaluate(key=>localStorage.getItem(key),`pecan-grove-steps:${first}`)).toContain('"stop":7');
+  await page.locator('#pt-player-back').click();await expect(page.locator('#pt-player-back')).toHaveCount(0);
+  await page.locator('#pt-feedback-save-draft').waitFor({state:'attached'});await expect(page.locator('#pt-feedback-fix')).toHaveValue('PREVIOUS CHILD SECRET');
+  expect(await page.evaluate(()=>window.PecanGroveFeedback.model.active())).toBe(first);
+  expect(await steps()).toEqual({key:`pecan-grove-steps:${first}`,marked:true});
+  await assertLocalOnly(page,noNetwork);
+});
+test('Privacy and notes on this device shows the notice, keeps notes hidden until shown, and erases every Pecan Grove key',async({page,noNetwork})=>{
+  await openIntro(page,'index.html');await typeNote(page,'first player note');
+  await page.locator('#pt-feedback-new-player-top').click();await page.locator('#pt-new-player-confirm').click();await expect(page.locator('#pt-player-back')).toBeVisible();
+  await page.locator('#pt-device-open').click();await expect(page.locator('#pt-device-dialog')).toBeVisible();await expect(page.locator('#pt-device-title')).toBeFocused();
+  await page.locator('#pt-device-privacy > summary').click();await expect(page.locator('#pt-device-privacy')).toContainText('akeyvanf@kennesaw.edu');const cloud=await page.evaluate(()=>!!document.getElementById('pt-feedback').dataset.endpoint);
+  // CI runs this against dist-e2e, which has a placeholder receiver; a local build has none.
+  await expect(page.locator('#pt-device-privacy')).toContainText(cloud?'nothing leaves this device until a grown-up reviews a note':'This copy of the game is not connected');
+  await expect(page.locator('#pt-device-notes')).toHaveCount(0);const result=await new AxeBuilder({page}).include('#pt-device-dialog').analyze();expect(result.violations).toEqual([]);
+  await page.locator('#pt-device-show').click();await expect(page.locator('#pt-device-notes')).toContainText('first player note');
+  const earlier=await page.evaluate(()=>window.PecanGroveFeedback.model.players().map(p=>p.sessionId).concat(window.PecanGroveFeedback.model.active()));
+  await page.locator('#pt-device-erase').click();await expect(page.locator('#pt-device-erase-no')).toBeFocused();await page.locator('#pt-device-erase-yes').click();
+  await expect(page.locator('#pt-player-back')).toHaveCount(0);await page.locator('#pt-feedback-save-draft').waitFor({state:'attached'});
+  const after=await page.evaluate(()=>({notes:window.PecanGroveFeedback.model.entries(true).filter(e=>e.kind==='feedback').length,stored:Object.entries(localStorage).filter(([key])=>key.startsWith('pecan-grove')).map(pair=>pair.join(' ')).join(String.fromCharCode(10))}));
+  expect(after.notes).toBe(0);expect(after.stored).not.toContain('first player note');for(const session of earlier)expect(after.stored).not.toContain(session);
+  await assertLocalOnly(page,noNetwork);
+});
+test('turning on score sharing from the start page waits for a grown-up confirmation',async({page,noNetwork})=>{
+  await openIntro(page,'espanol.html');const box=page.locator('#pt-consent-options input[data-pg-consent="scores"]');
+  await box.click();await expect(page.locator('#pt-consent-dialog')).toBeVisible();await expect(page.locator('#pt-consent-cancel')).toBeFocused();
+  await expect(box).not.toBeChecked();expect(await page.evaluate(()=>window.PecanGroveFeedback.getConsent().scores)).toBe(false);
+  await page.keyboard.press('Escape');await expect(page.locator('#pt-consent-dialog')).toBeHidden();await expect(box).toBeFocused();await expect(box).not.toBeChecked();
+  await box.click();await page.locator('#pt-consent-confirm').click();await expect(box).toBeChecked();expect(await page.evaluate(()=>window.PecanGroveFeedback.getConsent().scores)).toBe(true);
+  await box.click();await expect(page.locator('#pt-consent-dialog')).toBeHidden();await expect(box).not.toBeChecked();
+  await assertLocalOnly(page,noNetwork);
+});
+test.describe('receiver safety net',()=>{
+  // Permission only stops the teardown assertion: the shared fixture must still abort the attempt.
+  test.use({allowFeedback:true});
+  test('every browser test aborts receiver requests unless the test mocks them',async({page,noNetwork})=>{
+    await page.goto('about:blank');
+    const outcome=await page.evaluate(()=>fetch('https://script.google.com/macros/s/e2e-safety-net-not-deployed/exec',{mode:'no-cors'}).then(()=>'reached',()=>'aborted'));
+    expect(outcome).toBe('aborted');expect(noNetwork.receiverRequests).toHaveLength(1);
+    // The aborted request is the one expected console error; any other would still fail the scenario.
+    await expect.poll(()=>noNetwork.consoleProblems.length).toBe(1);expect(noNetwork.consoleProblems[0].text).toContain('ERR_BLOCKED_BY_CLIENT');noNetwork.consoleProblems.length=0;
+  });
+});
 test.describe('explicitly approved feedback transport',()=>{
   // Receiver mocking exercises the supported offline-disabled configuration:
   // a controlling service worker can bypass page/context network interception.
   test.use({allowFeedback:true,serviceWorkers:'block'});
-  test('preview and grown-up hold are required, and only scrubbed submitted entries are sent',async({page,context,noNetwork})=>{
+  test('preview and the grown-up check are required, and only scrubbed submitted entries are sent',async({page,context,noNetwork})=>{
     await page.addInitScript(()=>{
       const disableOffline=()=>{const meta=document.querySelector('meta[name="pg-offline"]');if(!meta)return false;meta.content='disabled';return true;};
       if(disableOffline())return;
@@ -357,8 +439,10 @@ test.describe('explicitly approved feedback transport',()=>{
     });
     await start(page);await expect(page.locator('meta[name="pg-offline"]')).toHaveAttribute('content','disabled');expect(await page.evaluate(()=>navigator.serviceWorker.controller)).toBeNull();
     await page.locator('#pt-review-tab').click();await page.locator('#pt-feedback-fix').fill('Email ana@x.com or call 555-123-4567');await page.locator('#pt-feedback-submit').click();await expect(page.locator('#pt-feedback-preview')).toBeVisible();await expect(page.locator('#pt-feedback-preview-text')).not.toContainText('ana@x.com');expect(noNetwork.receiverRequests).toHaveLength(0);expect(mocked).toHaveLength(0);
-    await page.locator('#pt-feedback-send').focus();const sent=page.waitForRequest(request=>request.url().includes('/macros/')&&request.method()==='POST');await page.keyboard.down('Enter');const request=await sent;await page.keyboard.up('Enter');
-    const body=JSON.parse(request.postData());expect(JSON.stringify(body)).not.toMatch(/ana@x\.com|555-123-4567/);expect(body.entries.every(e=>e.submitted===true)).toBe(true);await expect(page.locator('#pt-feedback-status')).toContainText('received');const posts=noNetwork.receiverRequests.filter(request=>request.method()==='POST');expect(posts).toHaveLength(1);expect(mocked.filter(request=>request.method()==='POST')).toHaveLength(posts.length);expect(noNetwork.receiverRequests.every(request=>['POST','OPTIONS'].includes(request.method()))).toBe(true);expect(mocked.every(request=>['POST','OPTIONS'].includes(request.method()))).toBe(true);
+    await page.locator('#pt-feedback-send').click();await expect(page.locator('#pt-feedback-check-status')).toContainText('tick the check first');expect(mocked).toHaveLength(0);
+    // One ordinary activation of each control: keyboard, switch and screen-reader users can send (no timed hold).
+    await page.locator('#pt-feedback-confirm').check();const sent=page.waitForRequest(request=>request.url().includes('/macros/')&&request.method()==='POST');await page.locator('#pt-feedback-send').press('Enter');const request=await sent;
+    const body=JSON.parse(request.postData());expect(JSON.stringify(body)).not.toMatch(/ana@x\.com|555-123-4567/);expect(body.entries.every(e=>e.submitted===true)).toBe(true);await expect(page.locator('#pt-feedback-status')).toContainText('received');await expect(page.locator('#pt-feedback-thanks')).toHaveText('Thanks, feedback received');const posts=noNetwork.receiverRequests.filter(request=>request.method()==='POST');expect(posts).toHaveLength(1);expect(mocked.filter(request=>request.method()==='POST')).toHaveLength(posts.length);expect(noNetwork.receiverRequests.every(request=>['POST','OPTIONS'].includes(request.method()))).toBe(true);expect(mocked.every(request=>['POST','OPTIONS'].includes(request.method()))).toBe(true);
   });
 });
 

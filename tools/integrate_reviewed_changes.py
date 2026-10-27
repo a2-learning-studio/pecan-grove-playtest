@@ -1,4 +1,8 @@
-"""Plan and safely integrate reviewed source; never delete, publish or copy release exports."""
+"""Plan and safely integrate reviewed source; never delete, publish or copy release exports.
+
+Owner tool: ORIGINAL is the hub copy on the owner's computer. tools/tests/test_integrate_reviewed_changes.py tests it;
+the build, npm scripts and CI do not run it.
+"""
 import argparse
 from collections import Counter
 from datetime import datetime, timezone

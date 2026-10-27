@@ -185,8 +185,9 @@
       var tip = skipped ? S3.tipSkip(nm(skipped)) : unplanned > 3 ? S3.tipPairs : nW < 4 ? S3.tipWish : right < 4 ? S3.tipLine : S3.tip100;
       var info = saveRound(stop.id, score, { lastSet: set, allListened: nL === 6, processBadge: nL === 6 ? "process-3" : null });
       api.endPlay();
+      var gu = btn(S3.gu, "cb-btn--quiet", function () { dialog(S3.gu, [h("p", { text: S3.guText })], gu); }, "family");
       var card = scoreCard(stop, score, info, tip, S3.can, S3.real);
-      finishRound(stop.id, card, cardButtons(stop.id, api.restart(stop.id)));
+      finishRound(stop.id, card, cardButtons(stop.id, api.restart(stop.id), gu));
       say(W.score + " " + score + " / 100");
     }
     if (api.setController) api.setController({

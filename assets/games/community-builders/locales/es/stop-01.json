@@ -4,7 +4,8 @@
     "start": "Empezar a buscar",
     "story": "La familia Miller quiere vender su vieja granja junto al arroyo. Una empresa quiere construir ahí un centro de datos.",
     "todayMore": "Algunas son señales del proyecto. Otras son solo cambios comunes.",
-    "aboutH": "Sobre este módulo",
+    "whatH": "¿Qué es un centro de datos?",
+    "what": "Un centro de datos es un edificio grande lleno de computadoras. Guardan los videos, los juegos y los mensajes que usamos en internet. Usan mucha electricidad y se calientan, así que hay que enfriarlas.",
     "about": "Fíjate en las señales es la parada 1 de Constructores de comunidad de Pecan Grove, un juego gratis y bilingüe para niños de 8 a 14 años. Los jugadores comparan un camino el mes pasado y hoy, y encuentran señales pequeñas de que puede venir un proyecto grande. Aprenden que no todo cambio tiene que ver con el proyecto.",
     "past": "El mes pasado",
     "today": "Hoy",
@@ -64,7 +65,7 @@
     "tip100": "¡Qué buen ojo! Prueba una nueva ronda.",
     "real": "Con un adulto, busca esta semana una señal de cambio en tu calle o en las noticias locales. Hablen de lo que podría significar.",
     "ask": "Pregúntale a un adulto",
-    "guText": "Los niños practican notar cambios sin sacar conclusiones apresuradas. En Georgia, un cambio de zonificación casi siempre trae un aviso público en el periódico y, a menudo, un letrero en el terreno antes de la audiencia pública. Pregunten juntos: ¿qué está cambiando y dónde podemos leer más?"
+    "guText": "Los niños practican notar cambios sin sacar conclusiones apresuradas. En Georgia, la ley exige un aviso público en el periódico antes de la audiencia de un cambio de zonificación. Cuando un dueño de terreno o una empresa pide el cambio, también se exige un letrero en el terreno. Pregunten juntos: ¿qué está cambiando y dónde podemos leer más?"
   },
   "bank": {
     "b0001": "un letrero nuevo en un poste",

@@ -1,36 +1,39 @@
 # Private Drive storage for explicitly submitted Pecan Grove feedback
 
-The modernization sending policy and pending server-deployment checks are documented in [docs/feedback-endpoint.md](../../docs/feedback-endpoint.md). Drafts stay local. Sending requires a scrubbed preview and a grown-up holding Send for two seconds. Score sharing starts off for every new player. Historical verification below proves the earlier collector connection, not deployment of the new hardening changes.
+The modernization sending policy and pending server-deployment checks are documented in [docs/feedback-endpoint.md](../../docs/feedback-endpoint.md). Drafts stay local. Sending requires a scrubbed preview, a ticked grown-up check and an ordinary Send activation; there is no timed hold, so keyboard, switch and screen-reader users can send. Score sharing starts off for every new player. Historical verification below proves the earlier collector connection, not deployment of the new hardening changes.
 
-The private response workbook has been created here:
+The private response workbook belongs to the owners and stays private. Its address and ID are not in this repository: the collector reads the ID from the Apps Script property `PECAN_GROVE_SPREADSHEET_ID` (setup step 4).
 
-[Pecan Grove playtest feedback — private backup](https://docs.google.com/spreadsheets/d/YOUR_PRIVATE_SPREADSHEET_ID/edit)
+This folder contains the collector (`Code.gs`, `appsscript.json`) and its tests. An owner's machine may also keep the deployed receiver URL in `deployment.json` here; that file is git-ignored and is not part of the repository. The workbook remains private. A saved URL alone does not prove that submissions are backed up: the published website must receive a matching acknowledgement and the private workbook must contain the submitted response.
 
-This folder contains the collector for that workbook and the saved receiver URL in `deployment.json`. The workbook remains private. A saved URL alone does not prove that submissions are backed up: the published website must receive a matching acknowledgement and the private workbook must contain the submitted response.
-
-**Verified active October 12, 2026:** published build `6d3f82ee2a61` received a matching readable acknowledgement for a test note, and the private workbook contained the same row, revision, and build. See `live-published-browser-verification.json` and the handoff feedback release report. The one-time setup below is retained for maintenance or replacement; it is already complete for this receiver.
+**Verified active October 12, 2026:** published build `6d3f82ee2a61` received a matching readable acknowledgement for a test note, and the private workbook contained the same row, revision, and build. The verification record (`live-published-browser-verification.json`) and the handoff feedback release report are git-ignored owner files, not part of this repository. The one-time setup below is retained for maintenance or replacement; it is already complete for this receiver.
 
 ## One-time owner setup
 
-1. Open the private workbook above. Choose **Extensions → Apps Script**. Keep the workbook restricted to its owner and intended reviewers.
-2. Replace `Code.gs` with the supplied `Code.gs`. Its spreadsheet ID already points to the private workbook above.
+1. Open the private workbook. Choose **Extensions → Apps Script**. Keep the workbook restricted to its owner and intended reviewers.
+2. Replace `Code.gs` with the supplied `Code.gs`. It contains no workbook ID; it reads the ID from a script property (step 4).
 3. In **Project Settings**, enable **Show appsscript.json manifest file**. Replace that file with the supplied `appsscript.json`.
-4. Run `setupFeedback_` once. Approve the script's access to Google Sheets when Google asks. This collector has one OAuth scope, `spreadsheets`; it has no Drive-file, email, or account-profile scope.
-5. Choose **Deploy → New deployment → Web app**. Set **Execute as: Me** and **Who has access: Anyone**. This gives anonymous players access to this write-only collector, while the workbook itself stays private. Google Workspace administrators can restrict this deployment option.
-6. Copy the deployed URL ending in `/exec`. Save it as `feedbackEndpoint` in this folder's `deployment.json` (keep `schemaVersion` set to `1`), then rebuild and publish the generated site. Never put a Google OAuth token, account credential, or the private workbook ID into the website.
-7. Complete the smoke test below before calling explicit sending available. Use a versioned deployment, not the editor-only `/dev` testing URL. Future code changes require updating the deployed version.
+4. In **Project Settings → Script Properties**, add the property `PECAN_GROVE_SPREADSHEET_ID` with the workbook's ID (the part of the workbook address between `/d/` and `/edit`). Without it, setup and every storage request fail closed.
+5. Run `setupFeedback_` once. Approve the script's access to Google Sheets when Google asks. This collector has one OAuth scope, `spreadsheets`; it has no Drive-file, email, or account-profile scope.
+6. Choose **Deploy → New deployment → Web app**. Set **Execute as: Me** and **Who has access: Anyone**. This gives anonymous players access to this write-only collector, while the workbook itself stays private. Google Workspace administrators can restrict this deployment option.
+7. Copy the deployed URL ending in `/exec`. For the published site, set it as the GitHub Actions repository variable `PG_FEEDBACK_ENDPOINT` (**Settings → Secrets and variables → Actions → Variables**); the CI quality job refuses to build the play-test without it. For a local build, see the next section. Never put a Google OAuth token, account credential, or the private workbook ID into the website.
+8. Complete the smoke test below before calling explicit sending available. Use a versioned deployment, not the editor-only `/dev` testing URL. Future code changes require updating the deployed version.
 
 ## Rebuilding after setup
 
-Run `python tools/make_playtest.py` from the project root. The builder reuses `backend/feedback/deployment.json`, so an ordinary rebuild keeps the saved backup connection. This configuration file stays outside the public export. It contains only the deployed receiver URL; the public pages need that URL to send feedback, but never receive the private workbook ID or any credentials.
+The published site is built by CI with `npm run build` (`tools/build.mjs`), which calls `tools/make_playtest.py` and bundles the result into `dist/`. Locally, run the same command from the project root with Node 24 and the Python packages in `tools/requirements-build.txt`. The receiver URL comes from, in order:
 
-To replace the receiver for one build, pass `--feedback-endpoint "https://script.google.com/macros/s/DEPLOYMENT_ID/exec"`. To intentionally build with shared backup disabled, pass `--feedback-endpoint=` (an explicit empty value, which also works in Windows PowerShell). An explicit argument takes precedence over the saved file. If the saved file is absent, backup defaults to off. Invalid saved configuration stops the build before it changes generated output.
+1. the environment variable `PG_FEEDBACK_ENDPOINT`, which `tools/build.mjs` passes to the builder as `--feedback-endpoint` (CI sets it from the repository variable);
+2. otherwise `backend/feedback/deployment.json`, if an owner keeps one (`{"schemaVersion": 1, "feedbackEndpoint": "https://script.google.com/macros/s/DEPLOYMENT_ID/exec"}`; git-ignored);
+3. otherwise none: the build has no receiver and cannot send. This is the safe default for local and test builds.
 
-After saving a new deployment URL, complete the deployment smoke test below before describing backup as active.
+`npm run build -- --flavor=family` builds `dist-family/`, which never has a receiver. Running `python tools/make_playtest.py` alone writes only the unbundled export in `_publish/pecan-grove-playtest/`, not the deployed `dist/`. When calling it directly, `--feedback-endpoint "https://script.google.com/macros/s/DEPLOYMENT_ID/exec"` replaces the receiver for one build and `--feedback-endpoint=` (an explicit empty value, which also works in Windows PowerShell) disables it; an explicit argument takes precedence over the saved file. Invalid saved configuration stops the build before it changes generated output. The public pages need the receiver URL to send feedback, but never receive the private workbook ID or any credentials.
+
+After saving a new deployment URL, complete the deployment smoke test below before describing backup as active. `tools/smoke_feedback_endpoint.py` checks a deployed collector over HTTP for the owner; with `--write-test-records` it writes two labelled test rows to the live workbook, so only the owner runs it, never CI or a test.
 
 ## What is saved
 
-`Responses` stores one current row per `sessionId + entryId`. Feedback edits increase the revision and update that row. Retry requests and older revisions do not create duplicates or overwrite newer content. An identical retry is acknowledged; conflicting content at an equal or older revision is returned as a conflict for the client to resolve and retry. A new player receives a new anonymous session, so feedback and progress from people sharing a computer remain separate. An optional station label can identify a classroom station without asking for a player's name.
+`Responses` stores one current row per `sessionId + entryId`. Feedback edits increase the revision and update that row. Retry requests and older revisions do not create duplicates or overwrite newer content. An identical retry is acknowledged; conflicting content at an equal or older revision is returned as a conflict for the client to resolve and retry. A new player receives a new anonymous session and a new random station ID, so feedback and progress from people sharing a computer remain separate and no field links them. The station ID is chosen by the browser, not authenticated; the collector uses it only to group one request and to count requests per hour.
 
 The columns are:
 
@@ -39,10 +42,10 @@ The columns are:
 | A | Record key, anonymous session plus entry ID |
 | B–D | Session ID, entry ID, revision |
 | E–G | Created/updated client UTC times, received server UTC time |
-| H–K | Language, game build, optional station ID, entry kind |
+| H–K | Language, game build, random station ID (new for every player), entry kind |
 | L–O | Stop, optional score, rating, issue category |
 | P–R | What worked, suggested fix, screen phase |
-| S–T | Session ended flag, completed-stop scores as JSON |
+| S–T | Session ended flag; completed-stop scores as JSON (reserved) |
 | U | Canonical payload SHA-256, used to detect conflicting revisions |
 
 Only the known fields are stored. No names, email addresses, account IDs, IP addresses, or browser fingerprints are requested or added by this code. Google handles the hosting and spreadsheet service and can retain service logs according to its own policies. Free-text guidance in the game asks players not to include personal details.
@@ -74,10 +77,12 @@ Send a simple cross-origin POST with `Content-Type: text/plain;charset=UTF-8`, `
     "fix": "Explain this word.",
     "phase": "playing",
     "sessionEnded": false,
-    "scores": {"1": 100, "4": 75}
+    "submitted": true
   }]
 }
 ```
+
+This example lists exactly the fields that the v1 game sends (`tools/tests/feedback.test.mjs` checks it). The collector ignores `submitted`. Column T stays `{}` because the game sends each score as its own `progress` record (column M) and never sends `scores`; the collector still accepts that optional field. Column S becomes `TRUE` only on a player's `session` record after that player ended, which reaches the workbook when a grown-up sends that player's notes from **Privacy and notes on this device**.
 
 The required fields are session/entry IDs, revision, updated time, language, and build. IDs must contain 16–80 letters, digits, underscores, or hyphens. Revisions are positive integers. The collector accepts up to 20 entries and 65,536 UTF-8 bytes per request. Each text answer is limited to 1,200 characters. Send smaller batches when answers approach the limit.
 
@@ -95,11 +100,11 @@ Apps Script ContentService redirects its response to `script.googleusercontent.c
 
 ## Required deployment smoke test
 
-1. From the published game, type a labelled test comment. Confirm no request is sent. Choose Send, review the scrubbed text, and ask a grown-up to hold Send for two seconds. Confirm the matching acknowledgement.
+1. From the published game, type a labelled test comment. Confirm no request is sent. Choose Send, review the scrubbed text, and ask a grown-up to tick the grown-up check and choose Send now. Confirm that the thanks line appears only after the matching acknowledgement.
 2. Read `Responses` privately. Confirm exactly one row with the matching session, entry, revision, and comment.
 3. Edit the comment. Confirm it stays local until another preview and Send. Confirm the same row then receives a higher revision and the scrubbed updated text. Reload the page and confirm no duplicate response row appears.
 4. Start a new player on the same computer. Confirm the new session starts with blank feedback and fresh game progress, and the first player's responses remain in their own rows.
-5. Disconnect the network, type another comment and choose Send through the preview. Confirm no more than three total attempts occur. Switch players and reconnect. Confirm the previous player's local text is retained but is neither displayed nor sent by the next player. Score consent must reset to off.
+5. Disconnect the network, type another comment and choose Send through the preview. Confirm no more than three total attempts occur. Start the next player and reconnect. Confirm the previous player's local text is retained but is neither displayed nor sent by the next player's Send, and that **Privacy and notes on this device** lists it for a grown-up to send. Score consent must reset to off.
 6. Send a formula-like test answer such as `=1+1`. Confirm it remains text rather than a spreadsheet formula.
 7. Open the endpoint with GET. Confirm it returns only the service label/schema and never response rows or private workbook metadata.
 8. Try the published game in a signed-out browser. Confirm no player Google login is required and that a readable acknowledgement is received.
@@ -122,7 +127,8 @@ Run `node --test backend/feedback/feedback-backend.test.cjs` from the project ro
 - [Range.setValues and formula interpretation](https://developers.google.com/apps-script/reference/spreadsheet/range)
 - [Apps Script API authorization and project access](https://developers.google.com/apps-script/api/how-tos/enable)
 - [Web-app manifest access and execution settings](https://developers.google.com/apps-script/manifest/web-app-api-executable)
-# Private workbook configuration
 
-Before running setup or deploying an update, set the Apps Script project property `PECAN_GROVE_SPREADSHEET_ID` to the existing private workbook ID. Keep that value in Script Properties, outside the public source repository. This setting does not change workbook sharing. The collector fails closed if the property is missing.
+## Private workbook configuration
+
+Before running setup or deploying an update, set the Apps Script project property `PECAN_GROVE_SPREADSHEET_ID` to the existing private workbook ID (setup step 4). Keep that value in Script Properties, outside the public source repository. This setting does not change workbook sharing. The collector fails closed if the property is missing.
 

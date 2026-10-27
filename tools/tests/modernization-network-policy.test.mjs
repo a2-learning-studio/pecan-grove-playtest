@@ -4,11 +4,17 @@ import fs from 'node:fs';
 import {createRequire} from 'node:module';
 import {proveBaseline,baselineRoot,BASELINE_COMMIT} from '../privacy-baseline-proof.mjs';
 const require=createRequire(import.meta.url);
-const {classifyRequest}=require('../../tests/e2e/network-policy.cjs');
+const {classifyRequest,isReceiver}=require('../../tests/e2e/network-policy.cjs');
 const origin='https://game.test';
 
 test('same network policy rejects receiver traffic before DOMContentLoaded',()=>{
  for(const url of ['https://script.google.com/macros/s/test/exec','https://script.googleusercontent.com/macros/echo?key=test']) assert.deepEqual(classifyRequest(url,origin),{recorded:true,receiver:true,unexpected:true});
+});
+test('the browser fixture aborts every receiver URL and nothing else',()=>{
+ for(const url of ['https://script.google.com/macros/s/test/exec','https://script.googleusercontent.com/macros/echo?key=test','https://other.test/macros/s/x/exec']) assert.equal(isReceiver(url),true,url);
+ for(const url of [origin+'/assets/a.json','https://google.com/','data:text/plain,a']) assert.equal(isReceiver(url),false,url);
+ const fixture=fs.readFileSync(new URL('../../tests/e2e/fixtures.js',import.meta.url),'utf8');
+ assert.match(fixture,/\.route\(isReceiver, route => route\.abort\(/,'the shared fixture aborts receivers before any test runs');
 });
 test('first-party assets pass; unapproved external requests fail after DOMContentLoaded',()=>{
  assert.deepEqual(classifyRequest(origin+'/assets/a.json',origin,{loaded:true}),{recorded:true,receiver:false,unexpected:false});

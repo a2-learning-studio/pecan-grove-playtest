@@ -68,6 +68,8 @@
     "tipLine": "La próxima vez, lee despacio cada esperanza y cada preocupación.",
     "tip100": "¡Escuchaste muy bien! Prueba una nueva ronda.",
     "real": "Pregúntale a alguien en casa: '¿Qué te gustaría para nuestra comunidad?' Escucha toda la respuesta.",
+    "gu": "Para adultos: sobre esta parada",
+    "guText": "Los niños escuchan las esperanzas y las preocupaciones de los seis vecinos, encuentran deseos que comparten dos vecinos y luego unen cuatro frases con quien las dijo. Una preocupación a menudo muestra lo que a alguien le importa, así que buscan lo que los vecinos tienen en común. Los puntos vienen de escuchar a todos y leer con cuidado, nunca de estar de acuerdo con un solo vecino.",
     "listenedN": {
       "$args": [
         "n"

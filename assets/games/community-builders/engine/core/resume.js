@@ -172,6 +172,9 @@ export default function createResume(ctx) {
     ctx.STOPS.forEach(function (stop) {
       stop.name = stop.names[ctx.L];
     });
+    ctx.ANIMALS.forEach(function (animal) {
+      animal.name = animal.names[ctx.L];
+    });
     ctx.document.documentElement.lang = ctx.L;
     ctx.foot.textContent = ctx.W.footer;
     ctx.vIdx = (ctx.window.CB_VOICE && ctx.window.CB_VOICE[ctx.L]) || null;

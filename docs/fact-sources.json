@@ -1,0 +1,500 @@
+{
+  "schemaVersion": 1,
+  "about": "Outside sources for every real-world claim in Community Builders of Pecan Grove: Stop 10's 16 real-place cards, the grown-up notes about Georgia, and the kids' definition of a data center. Pecan Grove's own story evidence stays in the stop files (see docs/content-review.md). tools/check-fact-sources.mjs fails when a claim has no source or checked date, or when its English or Spanish wording changed after the check. The educator sheet (tools/make_educator.py) prints this register for grown-ups.",
+  "corrections": {
+    "email": "akeyvanf@kennesaw.edu",
+    "note": "The A2 Learning Studio corrections contact printed on the studio's Build the Campus educator sheet. The owners still need to confirm it for this game."
+  },
+  "sources": {
+    "google-douglas": {
+      "publisher": "Google",
+      "title": "Douglas County, Georgia data center",
+      "url": "https://datacenters.google/locations/douglas-county-georgia/",
+      "type": "operator",
+      "checked": "2026-10-27"
+    },
+    "eenews-fayette": {
+      "publisher": "E&E News by POLITICO",
+      "title": "A data center drained 30M gallons of water unnoticed, until residents complained about low water pressure",
+      "date": "2026-05-07",
+      "url": "https://www.eenews.net/articles/georgia-residents-seethe-over-30m-gallons-of-missing-water/",
+      "type": "news report of an official action",
+      "checked": "2026-10-27"
+    },
+    "meta-odense": {
+      "publisher": "Meta (Facebook Engineering)",
+      "title": "Odense data center 2",
+      "date": "2020-07-07",
+      "url": "https://tech.facebook.com/engineering/2020/7/odense-data-center-2/",
+      "type": "operator",
+      "checked": "2026-10-27"
+    },
+    "wgtc-launch": {
+      "publisher": "West Georgia Technical College",
+      "title": "West Georgia Technical College Collaborates with Microsoft to Launch Data Center Academy at Douglas Campus",
+      "date": "2024-12-04",
+      "url": "https://www.westgatech.edu/west-georgia-technical-college-collaborates-with-microsoft-to-launch-data-center-academy-at-douglas-campus/",
+      "type": "official",
+      "checked": "2026-10-27"
+    },
+    "wgtc-opening": {
+      "publisher": "West Georgia Technical College",
+      "title": "West Georgia Technical College Celebrates Opening of Microsoft Datacenter Academy",
+      "date": "2026-05-20",
+      "url": "https://www.westgatech.edu/opening-of-microsoft-datacenter-academy/",
+      "type": "official",
+      "checked": "2026-10-27"
+    },
+    "wsb-meta-wells": {
+      "publisher": "WSB-TV",
+      "title": "4 Georgia families sue Meta, claim data center construction contaminated well water",
+      "date": "2026-10-21",
+      "url": "https://www.wsbtv.com/news/local/4-georgia-families-sue-meta-claim-data-center-construction-contaminated-well-water/FVX726UR7FGJTLEAOYTQ4MDZ2Y/",
+      "type": "news report of a court filing",
+      "checked": "2026-10-27"
+    },
+    "fastco-mansfield": {
+      "publisher": "Fast Company",
+      "title": "What it's like living next to one of Meta's largest data centers",
+      "date": "2025-10-15",
+      "url": "https://www.fastcompany.com/91396678/meta-georgia-data-center-stanton-springs",
+      "type": "news",
+      "checked": "2026-10-27"
+    },
+    "fox5-hampton": {
+      "publisher": "FOX 5 Atlanta",
+      "title": "Hampton data center construction: Historic Black cemetery concerns raised",
+      "date": "2026-08-06",
+      "url": "https://www.fox5atlanta.com/news/hampton-data-center-construction-historic-black-cemetery-concerns-raised",
+      "type": "news report of an official action",
+      "checked": "2026-10-27"
+    },
+    "frederick-cba": {
+      "publisher": "Frederick County Government, Maryland",
+      "title": "County Executive Announces $110 Million Community Benefit Agreement",
+      "date": "2026-09-01",
+      "url": "https://frederickcountymd.gov/m/newsflash/home/detail/5873",
+      "type": "official",
+      "checked": "2026-10-27"
+    },
+    "frederick-reject": {
+      "publisher": "Frederick County Government, Maryland",
+      "title": "County Executive Rejects Community Benefits Agreement",
+      "date": "2026-09-14",
+      "url": "https://frederickcountymd.gov/m/newsflash/home/detail/5885",
+      "type": "official",
+      "checked": "2026-10-27"
+    },
+    "chandler-ord": {
+      "publisher": "City of Chandler, Arizona",
+      "title": "Chandler's data center ordinance now in effect",
+      "date": "2023-01-11",
+      "url": "https://www.chandleraz.gov/news-center/chandlers-data-center-ordinance-now-effect",
+      "type": "official",
+      "checked": "2026-10-27"
+    },
+    "va-deq-apg576": {
+      "publisher": "Virginia Department of Environmental Quality",
+      "title": "APG-576, Diesel Engine-Generator Set Procedure for Writing New and Modified Permits",
+      "date": "2026-04-09",
+      "url": "https://townhall.virginia.gov/L/ViewGDoc.cfm?gdid=5121",
+      "type": "official",
+      "checked": "2026-10-27"
+    },
+    "southfulton-ord": {
+      "publisher": "City of South Fulton, Georgia",
+      "title": "Ordinance No. 2026-024 (TA26-003), data center regulations, adopted August 11, 2026",
+      "date": "2026-08-11",
+      "url": "https://www.cityofsouthfultonga.gov/AgendaCenter/ViewFile/Agenda/_08112026-1869",
+      "type": "official",
+      "checked": "2026-10-27"
+    },
+    "puco-minutes": {
+      "publisher": "Public Utilities Commission of Ohio",
+      "title": "Minutes of the Commission Meeting, July 9, 2025 (case 24-508-EL-ATA, Ohio Power Company)",
+      "date": "2025-07-09",
+      "url": "https://dam.assets.ohio.gov/image/upload/puco.ohio.gov/Commission%20minutes/2025/July_9_2025.pdf",
+      "type": "official",
+      "checked": "2026-10-27"
+    },
+    "occ-datacenters": {
+      "publisher": "Office of the Ohio Consumers' Counsel",
+      "title": "Quick Facts: Data Centers in Ohio",
+      "url": "https://www.occ.ohio.gov/factsheet/quick-facts-data-centers-ohio",
+      "type": "official",
+      "checked": "2026-10-27"
+    },
+    "kake-barber": {
+      "publisher": "KAKE News",
+      "title": "Barber County finalizes deal with Google for data center project",
+      "date": "2026-08-31",
+      "url": "https://www.kake.com/home/barber-county-finalizes-deal-with-google-for-data-center-project/article_c160f315-8198-404c-83ca-a2993b6f8664.html",
+      "type": "news report of an official action",
+      "checked": "2026-10-27"
+    },
+    "kent-lc2606": {
+      "publisher": "Kent County Levy Court, Delaware",
+      "title": "Business meeting agenda and Ordinance LC26-06 (Data Centers), July 21, 2026",
+      "date": "2026-07-21",
+      "url": "https://d3n9y02raazwpg.cloudfront.net/kentcountyde/190de0b6-d5f4-11f0-bb28-005056a89546-7fbd4bcb-bf7f-44f0-9b98-0ff8438225a2-1784573847.pdf",
+      "type": "official",
+      "checked": "2026-10-27"
+    },
+    "spotlight-kent": {
+      "publisher": "Spotlight Delaware",
+      "title": "Kent County adopts data center regulations, may consider future ban",
+      "date": "2026-07-23",
+      "url": "https://spotlightdelaware.org/2026/07/23/kent-county-adopts-data-center-regulations-may-consider-future-ban/",
+      "type": "news report of an official action",
+      "checked": "2026-10-27"
+    },
+    "pa-eo-press": {
+      "publisher": "Office of the Governor of Pennsylvania",
+      "title": "Governor Shapiro Signs Executive Order on Data Center Development in PA",
+      "date": "2026-08-18",
+      "url": "https://www.pa.gov/governor/newsroom/2026-press-releases/governor-shapiro-signs-executive-order-on-data-center-developmen",
+      "type": "official",
+      "checked": "2026-10-27"
+    },
+    "pa-eo-text": {
+      "publisher": "Office of the Governor of Pennsylvania",
+      "title": "Executive Order 2026-05, Protecting Pennsylvania Consumers from Data Center Impacts",
+      "date": "2026-08-18",
+      "url": "https://www.pa.gov/content/dam/copapwp-pagov/en/governor/documents/eo2026_05_protecting%20pennsylvania%20consumers%20from%20data%20center%20impacts_final_executed.pdf",
+      "type": "official",
+      "checked": "2026-10-27"
+    },
+    "pwtimes-noise": {
+      "publisher": "Prince William Times",
+      "title": "Coming crackdown on data center noise likely won't bring relief to a community most affected",
+      "date": "2025-03-06",
+      "url": "https://www.princewilliamtimes.com/news/coming-crack-down-on-data-center-noise-likely-wont-bring-relief-to-a-community-most/article_5307ae6c-fac1-11ef-89ef-13f721478913.html",
+      "type": "news report of an official action",
+      "checked": "2026-10-27"
+    },
+    "wtop-pwc": {
+      "publisher": "WTOP News",
+      "title": "Prince William supervisors expedite vote on data center noise rules",
+      "date": "2025-10-16",
+      "url": "https://wtop.com/prince-william-county/2025/10/prince-william-supervisors-expedite-vote-on-data-center-noise-rules/",
+      "type": "news report of an official action",
+      "checked": "2026-10-27"
+    },
+    "pwc-dcoag": {
+      "publisher": "Prince William County, Virginia",
+      "title": "DPA2023-00019: Data Center Ordinance Advisory Group (archive page)",
+      "url": "https://www.pwcva.gov/department/planning-office/data-center-ordinance-advisory-group",
+      "type": "official",
+      "checked": "2026-10-27"
+    },
+    "ga-zpl": {
+      "publisher": "FindLaw (text of the Official Code of Georgia)",
+      "title": "Georgia Code Title 36, Section 36-66-4: hearings and notice for zoning decisions",
+      "url": "https://codes.findlaw.com/ga/title-36-local-government/ga-code-sect-36-66-4/",
+      "type": "statute",
+      "checked": "2026-10-27"
+    },
+    "southfulton-ta25003": {
+      "publisher": "City of South Fulton, Georgia",
+      "title": "Text Amendment TA25-003: zoning notice changes after Georgia HB 155 (2025)",
+      "url": "https://www.cityofsouthfultonga.gov/DocumentCenter/View/14517/Text-Amendment-TA25-003---HB-155",
+      "type": "official",
+      "checked": "2026-10-27"
+    },
+    "fulton-incentives": {
+      "publisher": "Fulton County Government, Georgia",
+      "title": "Fulton County Opposes Local Incentives For Data Centers",
+      "date": "2026-08-10",
+      "url": "https://fultoncountyga.gov/News/2026/08/10/Fulton-County-Opposes-Local-Incentives-For-Data-Centers",
+      "type": "official",
+      "checked": "2026-10-27"
+    },
+    "epicenter-ordinances": {
+      "publisher": "Georgia Tech Energy Policy and Innovation Center",
+      "title": "Data center land-use ordinances in Georgia",
+      "url": "https://epicenter.energy.gatech.edu/data-center/",
+      "type": "university summary of county ordinances",
+      "checked": "2026-10-27"
+    },
+    "dca-dri-rules": {
+      "publisher": "Georgia Department of Community Affairs",
+      "title": "Rules Chapter 110-12-3, Developments of Regional Impact (effective December 15, 2025)",
+      "date": "2025-12-15",
+      "url": "https://apps.dca.ga.gov/development/PlanningQualityGrowth/DOCUMENTS/Laws.Rules.Guidelines.Etc/DCARules.DRI.pdf",
+      "type": "official",
+      "checked": "2026-10-27"
+    },
+    "psc-town-hall": {
+      "publisher": "Georgia Public Service Commission",
+      "title": "Georgia Public Service Commissioners to Hold Consumer Town Hall on March 24 (what the PSC does and does not regulate)",
+      "date": "2022-03-03",
+      "url": "https://psc.ga.gov/site/assets/files/6677/news_release_consumer_town_hall.pdf",
+      "type": "official",
+      "checked": "2026-10-27"
+    },
+    "psc-electric": {
+      "publisher": "Georgia Public Service Commission",
+      "title": "Electric utilities",
+      "url": "https://psc.ga.gov/utilities/electric/",
+      "type": "official",
+      "checked": "2026-10-27"
+    },
+    "epd-air-advisory": {
+      "publisher": "Georgia Environmental Protection Division, Air Protection Branch",
+      "title": "EPD Public Advisory: air quality permit applications under review (comments due February 13, 2026)",
+      "date": "2026-01",
+      "url": "https://epd.georgia.gov/document/document/pa126-2/download",
+      "type": "official",
+      "checked": "2026-10-27"
+    },
+    "epd-water-permits": {
+      "publisher": "Georgia Environmental Protection Division",
+      "title": "Permitting and Compliance Management Strategy (water withdrawal permits over 100,000 gallons per day)",
+      "date": "2024-10",
+      "url": "https://epd.georgia.gov/document/document/permitting-and-compliance-strategy-final-october-2024pdf/download",
+      "type": "official",
+      "checked": "2026-10-27"
+    },
+    "fulton-youth": {
+      "publisher": "Fulton County Government, Georgia",
+      "title": "Fulton County Applications for the 2026-2027 Youth Commission Now Open",
+      "date": "2026-03-31",
+      "url": "https://www.fultoncountyga.gov/News/2026/03/31/Fulton-County-Applications-for-the-2026-2027-Youth-Commission-Now-Open",
+      "type": "official",
+      "checked": "2026-10-27"
+    },
+    "dca-impact-fee-rules": {
+      "publisher": "Georgia Secretary of State, Rules and Regulations",
+      "title": "Rule 110-12-2: definition of a comprehensive plan as a 20-year plan",
+      "url": "https://rules.sos.ga.gov/gac/110-12-2",
+      "type": "official",
+      "checked": "2026-10-27"
+    },
+    "fulton-2035-plan": {
+      "publisher": "Fulton County, Georgia (filed with the Georgia Department of Community Affairs)",
+      "title": "Fulton County 2035 Comprehensive Plan",
+      "date": "2016",
+      "url": "https://dca.georgia.gov/document/plans/plan-update-2016-5/download",
+      "type": "official",
+      "checked": "2026-10-27"
+    }
+  },
+  "claims": [
+    {
+      "id": "stop-10/W1",
+      "file": "stop-10",
+      "keys": ["bank.b0007", "bank.b0008"],
+      "stamp": "sun",
+      "sources": ["google-douglas"],
+      "checked": "2026-10-27",
+      "status": "confirmed",
+      "note": "Google's page dates recycled water for cooling in Georgia to 2012.",
+      "fingerprint": "56789084d9358d23"
+    },
+    {
+      "id": "stop-10/W2",
+      "file": "stop-10",
+      "keys": ["bank.b0011", "bank.b0012"],
+      "stamp": "half",
+      "sources": ["eenews-fayette"],
+      "checked": "2026-10-27",
+      "status": "confirmed",
+      "note": "Two unmetered or unbilled hookups at the QTS Fayetteville campus; the Fayette County water system billed $147,474 for about 29 million gallons on May 15, 2025, and QTS paid.",
+      "fingerprint": "55ec0cea771bc3c8"
+    },
+    {
+      "id": "stop-10/H1",
+      "file": "stop-10",
+      "keys": ["bank.b0015", "bank.b0016"],
+      "stamp": "sun",
+      "sources": ["meta-odense"],
+      "checked": "2026-10-27",
+      "status": "confirmed",
+      "note": "Meta's heat recovery feeds Fjernvarme Fyn's district heating network; Meta gives 6,900 homes for 100,000 MWh a year.",
+      "fingerprint": "b0ea4287cc349448"
+    },
+    {
+      "id": "stop-10/J1",
+      "file": "stop-10",
+      "keys": ["bank.b0019", "bank.b0020"],
+      "stamp": "hour",
+      "sources": ["wgtc-launch", "wgtc-opening"],
+      "checked": "2026-10-27",
+      "status": "confirmed",
+      "note": "The Microsoft Datacenter Academy at the Douglasville campus launched in December 2024 and opened in May 2026; no job-placement figures are published.",
+      "fingerprint": "3390a8b78b0b8c11"
+    },
+    {
+      "id": "stop-10/L1",
+      "file": "stop-10",
+      "keys": ["bank.b0023", "bank.b0024"],
+      "stamp": "seed",
+      "sources": ["wsb-meta-wells"],
+      "checked": "2026-10-27",
+      "status": "confirmed",
+      "note": "Four families sued Meta in 2026 over sediment in their wells near the Stanton Springs campus; Meta says its consultants found groundwater flows away from the homes. Still disputed.",
+      "fingerprint": "ac1841365720c920"
+    },
+    {
+      "id": "stop-10/L2",
+      "file": "stop-10",
+      "keys": ["bank.b0027", "bank.b0028"],
+      "stamp": "half",
+      "sources": ["fox5-hampton"],
+      "checked": "2026-10-27",
+      "status": "confirmed",
+      "note": "Hampton's mayor confirmed the city set a 50-foot buffer between the cemetery and the data center site.",
+      "fingerprint": "3634483fa37d60c1"
+    },
+    {
+      "id": "stop-10/L3",
+      "file": "stop-10",
+      "keys": ["bank.b0031", "bank.b0032"],
+      "stamp": "seed",
+      "sources": ["frederick-cba", "frederick-reject"],
+      "checked": "2026-10-27",
+      "status": "corrected",
+      "note": "Corrected in October 2026. The card said a proposed 2026 deal would shrink a project by about 20%. The County Executive rejected that agreement on September 14, 2026 and extended the pause on data center applications to July 1, 2027. The stamp changed from Too early to tell to Not tested yet.",
+      "fingerprint": "e7100487b41d5923"
+    },
+    {
+      "id": "stop-10/N1",
+      "file": "stop-10",
+      "keys": ["bank.b0035", "bank.b0036"],
+      "stamp": "hour",
+      "sources": ["chandler-ord"],
+      "checked": "2026-10-27",
+      "status": "confirmed",
+      "note": "In effect January 5, 2023: a sound study before building, then a yearly noise study for five years. No published results found.",
+      "fingerprint": "9591e956dd0c2279"
+    },
+    {
+      "id": "stop-10/N2",
+      "file": "stop-10",
+      "keys": ["bank.b0039", "bank.b0040"],
+      "stamp": "hour",
+      "sources": ["va-deq-apg576"],
+      "checked": "2026-10-27",
+      "status": "confirmed",
+      "note": "Tier 4-equivalent controls are the presumptive best technology for data center generators in air permit applications received on or after July 1, 2026.",
+      "fingerprint": "e54c0f627ad79818"
+    },
+    {
+      "id": "stop-10/N3",
+      "file": "stop-10",
+      "keys": ["bank.b0023", "bank.b0043"],
+      "stamp": "half",
+      "sources": ["fastco-mansfield"],
+      "checked": "2026-10-27",
+      "status": "not-confirmed",
+      "note": "Left unchanged. Fast Company (October 2025) says the perimeter spotlights near Mansfield were later switched off, but no source found says when, or that neighbors asked; a 2026 lawsuit still alleges bright lights. Needs a primary source or a rewrite.",
+      "fingerprint": "5c74b4410cdabe8f"
+    },
+    {
+      "id": "stop-10/N4",
+      "file": "stop-10",
+      "keys": ["bank.b0046", "bank.b0047"],
+      "stamp": "hour",
+      "sources": ["southfulton-ord"],
+      "checked": "2026-10-27",
+      "status": "corrected",
+      "note": "Corrected in October 2026. The card gave the repealed 2024 rule (100 to 150 feet). Ordinance 2026-024, adopted August 11, 2026, sets a 1,320-foot minimum setback from property zoned or used for homes or mixed use, plus a 100-foot landscaped buffer.",
+      "fingerprint": "e948f5f908511281"
+    },
+    {
+      "id": "stop-10/M1",
+      "file": "stop-10",
+      "keys": ["bank.b0050", "bank.b0051"],
+      "stamp": "hour",
+      "sources": ["puco-minutes", "occ-datacenters"],
+      "checked": "2026-10-27",
+      "status": "confirmed",
+      "note": "PUCO approved AEP Ohio's data center tariff 5-0 on July 9, 2025: new large data centers pay for at least 85% of contracted capacity for up to 12 years. No bill results published.",
+      "fingerprint": "665babb578cd99e2"
+    },
+    {
+      "id": "stop-10/M2",
+      "file": "stop-10",
+      "keys": ["bank.b0054", "bank.b0055"],
+      "stamp": "hour",
+      "sources": ["kake-barber"],
+      "checked": "2026-10-27",
+      "status": "confirmed",
+      "note": "The county commission approved the development agreement 2-0 on August 31, 2026: Google pays 100% of ad valorem property taxes plus $5.5 million in community benefit payments.",
+      "fingerprint": "7f529e58f44a7a7a"
+    },
+    {
+      "id": "stop-10/M3",
+      "file": "stop-10",
+      "keys": ["bank.b0058", "bank.b0059"],
+      "stamp": "seed",
+      "sources": ["kent-lc2606", "spotlight-kent"],
+      "checked": "2026-10-27",
+      "status": "confirmed",
+      "note": "Ordinance LC26-06, adopted unanimously on July 21, 2026, requires a bond, surety or letter of credit for 100% of decommissioning and site restoration costs.",
+      "fingerprint": "ef2e93b523ce87ec"
+    },
+    {
+      "id": "stop-10/V1",
+      "file": "stop-10",
+      "keys": ["bank.b0062", "bank.b0063"],
+      "stamp": "hour",
+      "sources": ["pa-eo-press", "pa-eo-text"],
+      "checked": "2026-10-27",
+      "status": "corrected",
+      "note": "Made precise in October 2026. Executive Order 2026-05 (August 18, 2026) bars non-disclosure agreements on data center projects for agencies under the Governor's jurisdiction; it does not cover local officials.",
+      "fingerprint": "2348b48f0f56a79d"
+    },
+    {
+      "id": "stop-10/V2",
+      "file": "stop-10",
+      "keys": ["bank.b0066", "bank.b0067"],
+      "stamp": "half",
+      "sources": ["pwtimes-noise", "wtop-pwc", "pwc-dcoag"],
+      "checked": "2026-10-27",
+      "status": "corrected",
+      "note": "Corrected in October 2026. Industry members left the advisory group after residents' complaints in late 2024; the Board of County Supervisors disbanded the group on October 7, 2025 (4-2). The stamp changed from Too early to tell to Partly; the neutrality reviewer should confirm that call.",
+      "fingerprint": "82f6c6be4e19dde8"
+    },
+    {
+      "id": "stop-01/what",
+      "file": "stop-01",
+      "keys": ["T.what"],
+      "sources": ["southfulton-ord", "va-deq-apg576"],
+      "checked": "2026-10-27",
+      "status": "confirmed",
+      "note": "Kids' definition, simplified from the legal definitions of a data center: computers that store, process and send data, with backup power and cooling.",
+      "fingerprint": "a9d8cc4b6ca36d7d"
+    },
+    {
+      "id": "stop-01/guText",
+      "file": "stop-01",
+      "keys": ["T.guText"],
+      "sources": ["ga-zpl", "southfulton-ta25003"],
+      "checked": "2026-10-27",
+      "status": "corrected",
+      "note": "Corrected in October 2026: notice is required, not usual. O.C.G.A. 36-66-4 requires a newspaper notice before a zoning hearing and, for a rezoning someone other than the local government asks for, a sign on the property. Day counts were left out because Georgia HB 155 (2025) changed parts of the Zoning Procedures Law and its final text was not re-checked.",
+      "fingerprint": "36ee56f6e3c1e461"
+    },
+    {
+      "id": "stop-06/guText",
+      "file": "stop-06",
+      "keys": ["T.guText"],
+      "sources": ["fulton-incentives", "epicenter-ordinances", "dca-dri-rules", "psc-town-hall", "psc-electric", "epd-air-advisory", "epd-water-permits", "southfulton-ord"],
+      "checked": "2026-10-27",
+      "status": "corrected",
+      "note": "Corrected in October 2026: the PSC sets Georgia Power's rates, not those of electric cooperatives or city utilities; EPD is spelled out; people can comment on EPD permit applications; building permits come after the local zoning vote. The size of Fulton County's remaining unincorporated area was not re-checked.",
+      "fingerprint": "8d915ca1f6068884"
+    },
+    {
+      "id": "stop-15/guText",
+      "file": "stop-15",
+      "keys": ["WORDS.guText"],
+      "sources": ["fulton-youth", "dca-impact-fee-rules", "fulton-2035-plan"],
+      "checked": "2026-10-27",
+      "status": "confirmed",
+      "note": "The Youth Commission takes students in grades 9 to 11; county comprehensive plans are 20-year plans updated every five years to keep Qualified Local Government status.",
+      "fingerprint": "46ee86bde900588e"
+    }
+  ]
+}

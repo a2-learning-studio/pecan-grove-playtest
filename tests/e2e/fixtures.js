@@ -1,5 +1,5 @@
 const { test: base, expect } = require('@playwright/test');
-const { classifyRequest } = require('./network-policy.cjs');
+const { classifyRequest, isReceiver } = require('./network-policy.cjs');
 
 /** Every test gets a clean context; explicit transport supplies its own isolated mock. */
 const test = base.extend({
@@ -20,6 +20,10 @@ const test = base.extend({
         });
       });
     });
+    // No browser test may reach a feedback receiver, even when CI tests a build that names one. Every receiver
+    // request is aborted here; a test that approves transport installs its own mock later, which runs first.
+    // The request listener below still records each attempt, and the assertions fail unapproved ones.
+    await page.context().route(isReceiver, route => route.abort('blockedbyclient'));
     let loaded = false;
     page.on('domcontentloaded', () => { loaded = true; });
     page.on('request', request => {

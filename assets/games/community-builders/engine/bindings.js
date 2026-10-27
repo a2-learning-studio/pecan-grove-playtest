@@ -1,4 +1,4 @@
-import { safeGet, safeSet } from "./dom.js";
+import { safeGet, safeSet, storageArea } from "./dom.js";
 export const DEFAULT_BINDINGS = Object.freeze({
   "nav.up": ["ArrowUp", "KeyW"],
   "nav.down": ["ArrowDown", "KeyS"],
@@ -59,7 +59,7 @@ export function keyName(code, display) {
   );
 }
 export class Bindings {
-  constructor(storage = globalThis.localStorage) {
+  constructor(storage = storageArea("localStorage")) {
     this.storage = storage;
     this.listeners = new Set();
     this.defaults = structuredClone(DEFAULT_BINDINGS);

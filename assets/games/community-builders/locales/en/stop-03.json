@@ -66,6 +66,8 @@
     "tipLine": "Next time, read each hope and worry slowly.",
     "tip100": "Great listening! Try a new round.",
     "real": "Ask someone at home: 'What do you hope for our neighborhood?' Listen to the whole answer.",
+    "gu": "For grown-ups: about this stop",
+    "guText": "Kids hear the hopes and worries of all six neighbors, find wishes that two neighbors share, then match four quotes to who said them. A worry often shows what someone cares about, so kids look for what neighbors have in common. Points come from listening to everyone and reading carefully, never from agreeing with one neighbor.",
     "listenedN": {
       "$args": [
         "n"

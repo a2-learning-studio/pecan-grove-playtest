@@ -295,6 +295,48 @@ test("device events, active scope and native Enter behavior stay intact", () => 
   input.destroy();
 });
 
+test("one-key shortcuts can be turned off while arrows keep moving focus (WCAG 2.1.4)", () => {
+  const doc = new EventTarget(),
+    root = rootStub();
+  let letterKeys = true;
+  const input = new Input({
+    root,
+    document: doc,
+    scope: () => root,
+    bindings: new Bindings(storage()),
+    settings: () => ({ letterKeys }),
+  });
+  const seen = [];
+  for (const action of ["voice.toggle", "choice.1", "help", "nav.up"])
+    input.on(action, () => {
+      seen.push(action);
+      return true;
+    });
+  const press = (code, name) =>
+    input.keydown({
+      ...key(code, name),
+      target: {
+        tagName: "BUTTON",
+        closest: (selector) =>
+          selector.includes("textarea")
+            ? null
+            : selector.includes("button")
+              ? {}
+              : null,
+      },
+      preventDefault() {},
+      stopPropagation() {},
+    });
+  press("KeyM", "m");
+  assert.deepEqual(seen, ["voice.toggle"]);
+  letterKeys = false;
+  press("KeyM", "m");
+  press("Digit1", "1");
+  press("Slash", "?");
+  press("ArrowUp", "ArrowUp");
+  assert.deepEqual(seen, ["voice.toggle", "nav.up"]);
+  input.destroy();
+});
 test("hold to confirm fires once per key hold, cancels on focus change and preserves native feedback controls", () => {
   const oldSet = globalThis.setTimeout,
     oldClear = globalThis.clearTimeout,
@@ -829,16 +871,68 @@ test("a suspended audio context leaves voice on the element until it is running"
   const element = { volume: 0, paused: true, addEventListener() {} };
   const playing = { volume: 0.5, paused: false, addEventListener() {} };
   assert.equal(mixer.unlock(), true);
-  mixer.attachVoice(element);
   mixer.attachVoice(playing);
+  assert.ok(playing.volume > 0 && playing.volume < 1);
+  mixer.attachVoice(element);
   assert.equal(created.length, 0);
   assert.ok(element.volume > 0);
-  assert.ok(playing.volume > 0 && playing.volume < 1);
   await Promise.resolve();
   await Promise.resolve();
   assert.deepEqual(created, [element]);
   assert.equal(element.volume, 1);
   assert.ok(playing.volume > 0 && playing.volume < 1);
+});
+test("each new voice clip releases the previous clip's listeners, mixer node and blob URL", () => {
+  const disconnected = [],
+    revoked = [];
+  class Gain {
+    constructor() {
+      this.gain = { value: 0, setTargetAtTime() {}, setValueAtTime() {} };
+    }
+    connect() {}
+  }
+  class Context {
+    constructor() {
+      this.state = "running";
+      this.currentTime = 0;
+      this.destination = {};
+    }
+    createGain() {
+      return new Gain();
+    }
+    createMediaElementSource(element) {
+      return { connect() {}, disconnect: () => disconnected.push(element) };
+    }
+  }
+  const mixer = new AudioMixer({
+    window: {
+      AudioContext: Context,
+      URL: { revokeObjectURL: (url) => revoked.push(url) },
+    },
+  });
+  mixer.unlock();
+  const clip = (n) => {
+    const listeners = new Map();
+    return {
+      n,
+      volume: 1,
+      paused: true,
+      _blobUrl: "blob:clip-" + n,
+      addEventListener: (type, fn) => listeners.set(type, fn),
+      removeEventListener: (type, fn) => {
+        if (listeners.get(type) === fn) listeners.delete(type);
+      },
+      listeners,
+    };
+  };
+  const clips = Array.from({ length: 48 }, (_, i) => clip(i));
+  for (const element of clips) mixer.attachVoice(element);
+  assert.equal(mixer.elements.size, 1, "only the current line stays attached");
+  assert.equal(mixer.listeners.size, 1);
+  assert.equal(disconnected.length, 47);
+  assert.equal(revoked.length, 47);
+  assert.equal(clips[0].listeners.size, 0);
+  assert.equal(clips.at(-1).listeners.size, 3);
 });
 test("Calm hard gate follows both device and player preference", () => {
   let calm = false,
@@ -893,6 +987,12 @@ test("engine EN and ES keys, plurals and placeholders have parity", async () => 
   const i18n = new I18n("es", es);
   assert.equal(i18n.t("starsCount", { count: 1 }), "1 estrella");
   assert.equal(i18n.t("starsCount", { count: 2 }), "2 estrellas");
+  // The star announcement agrees with its number in both languages.
+  assert.equal(i18n.t("starsEarned", { count: 1 }), "Ganaste 1 estrella");
+  assert.equal(i18n.t("starsEarned", { count: 2 }), "Ganaste 2 estrellas");
+  const english = new I18n("en", en);
+  assert.equal(english.t("starsEarned", { count: 1 }), "You earned 1 star");
+  assert.equal(english.t("starsEarned", { count: 3 }), "You earned 3 stars");
   assert.equal(i18n.list(["Ana", "Luis"]), "Ana y Luis");
   assert.equal(
     i18n.relative("2026-10-11T10:00:00Z", Date.parse("2026-10-12T10:00:00Z")),

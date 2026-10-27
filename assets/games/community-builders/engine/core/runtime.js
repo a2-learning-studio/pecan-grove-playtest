@@ -77,6 +77,9 @@ export default function createRuntime(ctx) {
         },
         function () {
           loading.finish();
+          // A page left open across a release asks for files that release
+          // removed; the offline layer checks for it and offers a restart.
+          ctx.emit("cb:stop-unavailable", { id: id });
           if (ctx.feedbackStop === id)
             ctx.screen([
               ctx.h("div", { class: "cb-board" }, [

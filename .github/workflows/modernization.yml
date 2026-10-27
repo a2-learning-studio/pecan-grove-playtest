@@ -37,6 +37,14 @@ jobs:
       - run: npm run check:fact-sources
       - run: node tools/readability.mjs
       - run: npm run images
+      # Browser tests use this copy. Its receiver is a placeholder that is never deployed, so even a send
+      # regression that slipped past the test fixture's abort could not reach the real collector.
+      - name: Build the browser-test copy with a placeholder receiver
+        run: |
+          npm run build
+          mv dist dist-e2e
+        env:
+          PG_FEEDBACK_ENDPOINT: https://script.google.com/macros/s/e2e-placeholder-not-deployed/exec
       - name: Build playtest with its configured receiver
         run: |
           test -n "$PG_FEEDBACK_ENDPOINT"
@@ -45,11 +53,14 @@ jobs:
           PG_FEEDBACK_ENDPOINT: ${{ vars.PG_FEEDBACK_ENDPOINT }}
       - run: npm run test:privacy-copy
       - run: npm run build -- --flavor=family
+      # The library copy is not deployed; building it runs its flavor checks.
+      - run: npm run build -- --flavor=library
       - uses: actions/upload-artifact@v7
         with:
           name: checked-builds
           path: |
             dist
+            dist-e2e
             dist-family
           retention-days: 7
       - uses: actions/upload-artifact@v7
@@ -101,6 +112,10 @@ jobs:
       - run: npm run test:e2e -- --project=${{ matrix.project }} --shard=${{ matrix.shard }}/2
         env:
           PG_FAMILY_BASE_URL: http://127.0.0.1:8892
+          PG_E2E_DIST: dist-e2e
+      - name: Report tests that passed only on retry
+        if: always()
+        run: node tools/report-flaky.mjs test-results/results.json
       - uses: actions/upload-artifact@v7
         if: always()
         with:

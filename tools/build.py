@@ -6,6 +6,10 @@ Also writes sitemap.xml (with hreflang alternates), robots.txt, llms.txt, 404.ht
 then checks internal links, language pairs and length limits.
 
 Run:  python -I tools/build.py          (from the site folder)
+
+Hub-only: this copy is kept for the Know Your Data Center hub project and is not part of the Pecan Grove build, tests
+or CI. It empties docs/ before writing, and in this repository docs/ holds review records, so it refuses to run
+unless the hub's content/ and templates/ folders are present. Build the game with `npm run build`.
 """
 import html
 import json
@@ -14,6 +18,12 @@ import shutil
 import sys
 from datetime import date
 from pathlib import Path
+
+if __name__ == "__main__":
+    _site = Path(__file__).resolve().parent.parent
+    if not ((_site / "content").is_dir() and (_site / "templates" / "base.html").is_file()):
+        sys.exit("tools/build.py is the Know Your Data Center hub generator and empties docs/. This folder has no "
+                 "content/ or templates/, so nothing was changed. Build the game with: npm run build")
 
 import markdown
 from jinja2 import Environment, FileSystemLoader, select_autoescape

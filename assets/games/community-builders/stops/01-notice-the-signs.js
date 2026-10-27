@@ -349,7 +349,7 @@
           h("p", { "class": "cb-s01-lead", text: T.lead }),
           h("p", { "class": "cb-s01-story", text: T.story }),
           h("div", { "class": "cb-row" }, [api.btn(T.start, "cb-btn--go cb-btn--big", look, "go", true)]),
-          h("section", { "class": "cb-s01-about", "aria-labelledby": aid }, [h("h3", { id: aid, text: T.aboutH }), h("p", { text: T.about })])])])])]);
+          h("section", { "class": "cb-s01-about", "aria-labelledby": aid }, [h("h3", { id: aid, text: T.whatH }), h("p", { text: T.what })])])])])]);
       api.frame();
     }
 
@@ -418,7 +418,7 @@
       if (meta) meta.parentNode.insertBefore(stats, meta.nextSibling); else card.appendChild(stats);
       if (score >= 90) card.classList.add("cb-s01-card--3");
       var gu = api.btn(T.ask, "cb-btn--quiet", function () {
-        api.dialog(api.W.grownups, [h("p", { text: T.guText })], gu);
+        api.dialog(api.W.grownups, [h("p", { text: T.about }), h("p", { text: T.guText })], gu);
       }, "family");
       api.finishRound(stop.id, card, api.cardButtons(stop.id, api.restart(stop.id), gu));
       api.say(api.W.score + " " + score + " / 100");

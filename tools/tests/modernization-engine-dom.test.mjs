@@ -34,7 +34,7 @@ test("script URL policy admits only authored local game modules and caches the s
   window.trustedTypes = {
     createPolicy(name, rules) {
       creations++;
-      assert.equal(name, "pg-svg");
+      assert.equal(name, "pg-game-scripts");
       assert.deepEqual(Object.keys(rules), ["createScriptURL"]);
       return {
         createScriptURL: (value) => ({ trusted: rules.createScriptURL(value) }),
@@ -693,6 +693,11 @@ test("touch pinch, drag, two taps, preview and settings swipe have button equiva
     assert.equal(prevented, 1);
     g.click(click);
     assert.equal(prevented, 1);
+    // The next stop is named on its map caption: the first tap opens it.
+    const next = map.querySelectorAll(".cb-stop")[1];
+    next.dataset.state = "next";
+    g.click({ ...click, target: next });
+    assert.equal(prevented, 1, "one tap opens the next stop");
     g.preview(token);
     let preview = [...h.root.querySelectorAll("dialog[open]")].at(-1);
     assert.match(preview.textContent, /Stop 1/);

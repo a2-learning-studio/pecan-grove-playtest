@@ -2,6 +2,8 @@
 const BUILD = '__BUILD__';
 const CACHE = 'pecan-grove-' + BUILD;
 const PRECACHE = __PRECACHE__;
+// This build's content-addressed voice clips. A re-recorded line has a new name, so an older copy is never served.
+const VOICE = new Set(__VOICE__);
 // Android Chrome's media player sends Range and rejects a 200 body for that
 // request. A cached whole clip has to be sliced into a real 206 response.
 function rangeHeader(request) {
@@ -48,8 +50,19 @@ function bufferedMedia(response) {
   });
 }
 self.addEventListener('install', event => event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(PRECACHE))));
+// Downloaded voice packs survive updates (a grown-up chose them), minus clips this build no longer uses.
+async function pruneVoice(key) {
+  const cache = await caches.open(key), scope = new URL(self.registration.scope).pathname;
+  for (const request of await cache.keys()) {
+    const path = new URL(request.url).pathname;
+    if (!path.startsWith(scope) || !VOICE.has(path.slice(scope.length))) await cache.delete(request);
+  }
+}
 self.addEventListener('activate', event => event.waitUntil((async () => {
-  for (const key of await caches.keys()) if (key.startsWith('pecan-grove-') && key !== CACHE && !key.startsWith('pecan-grove-voice-')) await caches.delete(key);
+  for (const key of await caches.keys()) {
+    if (key.startsWith('pecan-grove-voice-')) await pruneVoice(key);
+    else if (key.startsWith('pecan-grove-') && key !== CACHE) await caches.delete(key);
+  }
   await self.clients.claim();
 })()));
 self.addEventListener('message', event => {
