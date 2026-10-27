@@ -15,15 +15,20 @@
   function clean(s, max) { return typeof s === "string" ? s.replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/g, "").slice(0, max) : ""; }
   // Children's details beyond contact patterns. Each rule needs a clear cue ("my name is", "years old", "Elementary",
   // a full date or a birthday), so ordinary sentences and the game's own characters stay intact.
-  var LETTERS = "A-Za-zÀ-ÖØ-öø-ÿ", WORD = "[" + LETTERS + "][" + LETTERS + "'’-]*", CAP = "[A-ZÀ-ÖØ-Þ][" + LETTERS + ".'’-]*";
+  var LETTERS = "A-Za-zÀ-ÖØ-öø-ÿ", WORD = "[" + LETTERS + "][" + LETTERS + "0-9_'’-]*", CAP = "[A-ZÀ-ÖØ-Þ][" + LETTERS + ".'’-]*";
   var MONTHS = "jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|june?|july?|aug(?:ust)?|sept?(?:ember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?";
   var MESES = "enero|febrero|marzo|abril|mayo|junio|julio|agosto|sep?tiembre|octubre|noviembre|diciembre";
   var AGES = "\\d{1,2}|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen";
   var EDADES = "\\d{1,2}|cinco|seis|siete|ocho|nueve|diez|once|doce|trece|catorce|quince|diecis[eé]is|diecisiete|dieciocho";
   var KIN = "friend|teacher|brother|sister|mom|mum|dad|mother|father|cousin|grandma|grandpa|grandmother|grandfather";
   var PARIENTES = "amig[oa]|maestr[oa]|profe(?:sor|sora)?|herman[oa]|mam[aá]|pap[aá]|prim[oa]|abuel[oa]|t[ií][oa]";
-  var NAME_STOP = /^(?:a|an|the|and|or|but|so|not|no|very|really|too|kind|sort|like|i|im|i'm|i’m|me|my|you|it|is|was|from|in|at|on|to|of|for|with|also|y|o|pero|que|muy|un|una|el|la|los|las|lo|de|del|en|con|por|para|al|mi|tu|su|es|era|yo|se|también|mr|mrs|ms|mx|miss|dr|coach|sr|sra|srta|prof|profe|maestro|maestra)$/i;
+  var NAME_STOP = /^(?:a|an|the|and|or|but|so|not|no|very|really|too|kind|sort|like|i|im|i'm|i’m|me|my|you|it|is|was|from|in|at|on|to|of|for|with|also|y|o|pero|que|muy|mucho|mucha|tanto|un|una|el|la|los|las|lo|de|del|en|con|por|para|al|mi|tu|su|es|era|yo|se|también|mr|mrs|ms|mx|miss|dr|coach|sr|sra|srta|prof|profe|maestro|maestra)$/i;
+  // Lower-case words that end a name after a cue ("my name is sofia garcia" ends nowhere, "jake liked it" ends at liked).
+  var NAME_NEXT = /^(?:am|are|were|have|has|had|like[ds]?|love[ds]?|think|thought|play(?:ed|ing|s)?|go|goes|went|got|get|want(?:ed|s)?|did|do|does|said|say|says|made|make|found|saw|see|hope|wish|know|need(?:ed)?|enjoy(?:ed)?|feel|felt|tengo|tiene|tienen|soy|vivo|voy|estoy|está|juego|jugué|jugue|quiero|creo|pienso|siento|te|le|gusta|gustó|gusto|encanta|encantó|fue|hice|hago|dijo|ayudó)$/;
   var NAME_LINK = /^(?:de|del|la|las|los|y|van|von|da|di|le)$/i, UPPER = /^[A-ZÀ-ÖØ-Þ]/;
+  // Numbers right after "stop" or "parada" are the game's stops, never a house number or a phone number.
+  var AFTER_STOP = /\b(?:stops?|paradas?)\s*(?:#|no\.?|n[uú]m(?:ero)?\.?)?\s*$/i, STOP_LIST = /^\d{1,2}(?:[\s.-]+\d{1,2})*$/;
+  function afterStop(all, offset) { return AFTER_STOP.test(all.slice(0, offset)); }
   var DATE = "(?:(?:" + MONTHS + ")\\.?\\s+\\d{1,2}(?:st|nd|rd|th)?(?:,?\\s+\\d{4})?\\b|\\d{1,2}(?:st|nd|rd|th)?\\s+(?:of\\s+)?(?:" + MONTHS + ")\\b\\.?(?:,?\\s+\\d{4})?|(?:el\\s+)?\\d{1,2}\\s+de\\s+(?:" + MESES + ")(?:\\s+del?\\s+\\d{4})?\\b|\\d{1,2}[\\/.-]\\d{1,2}(?:[\\/.-]\\d{2,4})?\\b|\\d{4}\\b|(?:" + MONTHS + "|" + MESES + ")\\b)";
   var CHILD_RULES = [
     // Full dates with a year: 3/14/2015, March 14, 2015, 14 de marzo de 2015.
@@ -41,18 +46,18 @@
     [new RegExp("\\b(?!(?:The|A|An|My|Our|This|That|Your|Their|His|Her|In|At|High|Middle|Elementary|Junior|School|Academy)\\s)(?:" + CAP + "\\s+){1,3}(?:(?:Elementary|Middle|High|Intermediate|Primary|Junior High|Charter|Magnet|Montessori)\\s+School|Elementary|Academy|School)\\b", "g")],
     [new RegExp("\\b(?:[Ee]scuela|[Cc]olegio|[Ii]nstituto|[Ll]iceo|[Aa]cademia|[Pp]rimaria|[Ss]ecundaria)(?:\\s+(?:[Pp]rimaria|[Ss]ecundaria|[Pp][uú]blica|[Pp]rivada|[Tt][eé]cnica|[Nn][uú]mero|[Nn]o\\.?|de|del|la|el)){0,3}\\s+(?:" + CAP + "|\\d{1,4})(?:\\s+(?:(?:de|del|de la|la|los|las|y)\\s+)?" + CAP + "){0,3}", "g")]
   ];
-  // A name after a clear cue. The first word may be lower case; later words must be capitalized.
-  var NAME_CUE = new RegExp("(\\b(?:(?:my name(?:'s|’s|\\s+is)|my names is|i am called|i'm called|i’m called|im called|they call me|my (?:best )?(?:" + KIN + ")(?:(?:'s|’s) name is|\\s+is (?:named|called))|me llamo|mi nombre es|me dicen|me llaman|mi (?:mejor )?(?:" + PARIENTES + ") se llama|el nombre de mi (?:mejor )?(?:" + PARIENTES + ") es)\\s+|(?:my |first |last |full |mi )?(?:name|nombre)\\s*:\\s*)(?:(?:mr|mrs|ms|miss|dr|coach|sr|sra|srta|profe|maestr[oa])\\.?\\s+)?)(" + WORD + "(?:\\s+" + WORD + "){0,3})", "gi");
+  // A name after a clear cue: every word up to the punctuation, an everyday word or four words, capitalized or not.
+  var NAME_CUE = new RegExp("(\\b(?:(?:my name(?:'s|’s|\\s+is)|my names is|i am called|i'm called|i’m called|im called|they call me|my (?:best )?(?:" + KIN + ")(?:(?:'s|’s) name is|\\s+is (?:named|called))|me llamo|mi nombre es|me dicen|me llaman|mi (?:mejor )?(?:" + PARIENTES + ") se llama|el nombre de mi (?:mejor )?(?:" + PARIENTES + ") es)\\s*:?\\s+|(?:my |first |last |full |mi )?(?:name|nombre)\\s*:\\s*)(?:(?:mr|mrs|ms|miss|dr|coach|sr|sra|srta|profe|maestr[oa])\\.?\\s+)?)(" + WORD + "(?:\\s+" + WORD + "){0,3})", "gi");
   function scrubNames(text, removed) {
     return text.replace(NAME_CUE, function (match, cue, words) {
       var parts = words.split(/(\s+)/), tokens = parts.filter(function (_, i) { return i % 2 === 0; }), count = 1;
       if (NAME_STOP.test(tokens[0])) return match;
       while (count < tokens.length) {
+        // "María de la Cruz": linking words belong to the name only when another name word follows them.
         var link = count;
         while (link < tokens.length && NAME_LINK.test(tokens[link])) link++;
-        if (link > count && link < tokens.length && UPPER.test(tokens[link])) { count = link + 1; continue; }
-        if (!UPPER.test(tokens[count]) || NAME_STOP.test(tokens[count])) break;
-        count++;
+        if (link >= tokens.length || NAME_STOP.test(tokens[link]) || NAME_NEXT.test(tokens[link])) break;
+        count = link + 1;
       }
       return cue + removed + parts.slice(count * 2 - 1).join("");
     });
@@ -62,24 +67,51 @@
     var scrubbed = clean(text, 1200)
       .replace(/(?:https?:\/\/|www\.)[^\s<>]+/gi, removed)
       .replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi, removed)
-      .replace(/\b\d{1,6}\s+(?:calle|avenida|carrera|camino|paseo|carretera)\s+(?:[A-Za-zÀ-ÿ.'-]+(?:[ \t]+|$)){1,4}/gi, removed)
-      .replace(/\b\d{1,6}\s+(?:[A-Za-zÀ-ÿ.'-]+\s+){0,4}(?:street|st|road|rd|avenue|ave|lane|ln|drive|dr|boulevard|blvd|way|court|ct|calle|avenida|av|carrera|camino|paseo|carretera)\b(?:\s+(?:apt|unit|piso|n[oú]mero)\.?\s*[A-Za-z0-9-]+)?/gi, removed)
-      .replace(/\b(?:calle|avenida|carrera|camino|paseo|carretera)\s+(?:[A-Za-zÀ-ÿ.'-]+\s+){0,4}\d{1,6}\b/gi, removed)
-      .replace(/(?:\+?\d|\(\d)[\d\s().-]{5,}\d/g, function (value) { return value.replace(/\D/g, "").length >= 7 ? removed : value; })
+      .replace(/\b\d{1,6}\s+(?:calle|avenida|carrera|camino|paseo|carretera)\s+(?:[A-Za-zÀ-ÿ.'-]+(?:[ \t]+|$)){1,4}/gi, function (value, offset, all) { return afterStop(all, offset) ? value : removed; })
+      // A street name is not made of everyday words: "2 was a good way" and "3 kids on the street" stay.
+      .replace(/\b\d{1,6}\s+(?:(?!(?:the|a|an|and|or|but|of|on|in|at|to|for|with|from|by|was|were|is|are|it|my|our|your|this|that|same|el|la|los|las|un|una|y|en|es|fue|con|por)\s)[A-Za-zÀ-ÿ.'-]+\s+){0,4}(?:street|st|road|rd|avenue|ave|lane|ln|drive|dr|boulevard|blvd|way|court|ct|calle|avenida|av|carrera|camino|paseo|carretera)\b(?:\s+(?:apt|unit|piso|n[oú]mero)\.?\s*[A-Za-z0-9-]+)?/gi, function (value, offset, all) { return afterStop(all, offset) ? value : removed; })
+      .replace(/\b(?:calle|avenida|carrera|camino|paseo|carretera)\s+(?:[A-Za-zÀ-ÿ.'-]+\s+){0,4}\d{1,6}\b/gi, function (value) { return afterStop(value, value.search(/\d+$/)) ? value : removed; })
+      .replace(/(?:\+?\d|\(\d)[\d\s().-]{5,}\d/g, function (value, offset, all) { return value.replace(/\D/g, "").length >= 7 && !(afterStop(all, offset) && STOP_LIST.test(value)) ? removed : value; })
       .replace(/(^|[^A-Za-z0-9_])@[A-Za-z0-9_.-]{1,50}/g, function (_, prefix) { return prefix + removed; });
     CHILD_RULES.forEach(function (rule) {
       scrubbed = scrubbed.replace(rule[0], function (match, cue) { return (rule[1] ? cue : "") + removed; });
     });
     return scrubNames(scrubbed, removed);
   }
-  // Words the scrubber leaves but a grown-up should still check. The game's own titled characters are not flagged.
-  var CAST = /^(?:ana|patel|lee|johnson)$/i;
+  // Words the scrubber leaves but a grown-up should still check. The game's own characters, animals, town and stops
+  // are not flagged.
+  var CAST = /^(?:ana|patel|lee|johnson|ruth|jayden|fox|owl|turtle|rabbit|deer|heron|bee|otter|zorro|búho|buho|tortuga|conejo|venado|garza|abeja|nutria|pecan|grove|georgia|stops?|paradas?)$/i;
   var TITLED = /\b(?:[Mm]rs?|[Mm][sx]|Miss|[Dd]r|Coach|[Ss]ra?|[Ss]rta|[Pp]rofe?|[Mm]aestr[oa]|[Ss]eñor(?:a|ita)?|[Dd]oña|Don)\.?\s+([A-Za-zÀ-ÖØ-öø-ÿ'’-]+)/g;
   var CHECK_WORDS = /\b(?:school|teacher|birthday|born|years old|my name|name is|live on|live at|escuela|colegio|maestr[oa]|profe(?:sor|sora)?|cumpleaños|nac[ií]|me llamo|mi nombre|vivo en)(?![A-Za-zÀ-ÖØ-öø-ÿ])/gi;
+  // Capitalized words the scrubber cannot tell from ordinary ones: after "I'm", "soy", "this is" or "es", after a
+  // relative or a friend, and in a sign-off ("-Emma", "Gracias, Valentina").
+  var FEW = WORD + "(?:\\s+" + WORD + "){0,2}";
+  var INTRO = new RegExp("\\b(?:i['’]?m|i am|this is|soy|es)\\s+(" + FEW + ")", "gi");
+  var KIN_NAME = new RegExp("\\b(" + KIN + "|" + PARIENTES + ")s?\\s+(" + FEW + ")", "gi");
+  var SIGN_OFF = new RegExp("(?:^|[\\s.!?,])(?:[-–—~]+\\s*|(?:thanks|thank you|thx|love|sincerely|from|by|bye|cheers|gracias|saludos|atentamente|besos|abrazos|con cariño|de parte de)\\s*,?\\s+)(" + FEW + ")(?=\\s*(?:[,.!?()]|$))", "gim");
+  // A social handle after its app ("my snap is mayal22"), and a school written in lower case ("lincoln elementary").
+  var HANDLE = /\b(?:my|mi)\s+(?:snap(?:chat)?|insta(?:gram)?|ig|tik ?tok|discord|roblox|fortnite|minecraft|xbox|psn|twitch|youtube|yt|gamertag|username|user name|usuario|nombre de usuario)(?:\s+(?:name|username|user|handle|id|tag|account|cuenta))?(?:\s+(?:is|es)|\s*[:=])?\s+([A-Za-z0-9_.]{2,30})/gi;
+  var SCHOOL_NAME = new RegExp("\\b((?:" + WORD + "\\s+){1,3})(elementary|middle school|high school|primary school|academy)\\b", "gi");
+  function capitalized(words) {
+    var names = [];
+    words.split(/\s+/).every(function (word) { var ok = UPPER.test(word) && !NAME_STOP.test(word) && !CAST.test(word); if (ok) names.push(word); return ok; });
+    return names.join(" ");
+  }
   function privacyFlags(text) {
     var found = [];
-    function add(value) { value = value.replace(/\s+/g, " ").trim(); if (value && found.every(function (f) { return f.toLowerCase() !== value.toLowerCase(); })) found.push(value); }
+    function add(value) { value = value.replace(/\s+/g, " ").trim(); if (value && found.every(function (f) { return f.toLowerCase().indexOf(value.toLowerCase()) === -1; })) found.push(value); }
     String(text || "").replace(TITLED, function (match, name) { name = name.replace(/['’]s$/i, ""); if (!CAST.test(name) && !NAME_STOP.test(name)) add(match); return match; });
+    String(text || "").replace(INTRO, function (match, words) { add(capitalized(words)); return match; });
+    String(text || "").replace(KIN_NAME, function (match, kin, words) { var name = capitalized(words); if (name) add(kin + " " + name); return match; });
+    String(text || "").replace(SIGN_OFF, function (match, words) { var name = capitalized(words); if (name === words.replace(/\s+/g, " ")) add(name); return match; });
+    String(text || "").replace(HANDLE, function (match, handle) { if (!NAME_STOP.test(handle)) add(handle); return match; });
+    String(text || "").replace(SCHOOL_NAME, function (match, words, kind) {
+      // Only the words right before "elementary" name it: "at lincoln elementary" flags "lincoln elementary".
+      var name = [], list = words.trim().split(/\s+/);
+      while (list.length && !NAME_STOP.test(list[list.length - 1])) name.unshift(list.pop());
+      if (name.length) add(name.join(" ") + " " + kind);
+      return match;
+    });
     String(text || "").replace(CHECK_WORDS, function (match, offset, all) {
       // A cue whose detail was already removed, or a word inside a flagged name, adds nothing to check.
       var removedNext = /^\s*(?:is|es|:)?\s*\[(?:removed|quitado)\]/i.test(all.slice(offset + match.length));
@@ -137,6 +169,8 @@
     // Old queued drafts have no explicit submission and remain local after migration.
     state.entries.forEach(function (e) { e.submitted = e.submitted === true; });
     var warning = loaded.warning, changedSession = false, fresh = !loaded.state && !loaded.warning, recovery = !!loaded.recovery || !!state.recoveryAvailable, recoveryBlocked = false;
+    // False until this player is on the device: with blocked site data nothing is ever saved, and a reload starts over.
+    var saved = !!loaded.state;
     if (recovery) state.recoveryAvailable = true;
     function keepRecovery(raw) {
       try {
@@ -160,7 +194,7 @@
         if (disk.recovery && !keepRecovery(disk.recovery)) { warning = "storage"; return false; }
         state.entries = mergeEntries(disk.state.entries, state.entries);
       }
-      try { storage.setItem(KEY, JSON.stringify(state)); warning = ""; return true; }
+      try { storage.setItem(KEY, JSON.stringify(state)); warning = ""; saved = true; return true; }
       catch (e) { warning = "storage"; return false; }
     }
     function archive() {
@@ -257,13 +291,21 @@
       if (!state.previousSession) return true;
       delete state.previousSession; return persist();
     }
-    function switchBack() {
-      var p = previousPlayer(); if (!p || changedSession || warning) return null;
+    function restore(id) {
+      // The close-out view brings back an earlier player, for a Next player chosen by mistake. The player playing now
+      // ends and stays saved on this device.
+      if (changedSession || warning || !ID.test(id || "") || id === active()) return null;
       var disk = readState(storage);
-      if (disk.state && disk.state.activeSession !== active()) { changedSession = true; return null; }
-      var current = active(), station = state.stationId, earlier = state.entries.find(function (e) { return e.sessionId === p.id && ID.test(e.stationId || ""); });
-      state.activeSession = p.id; state.stationId = earlier ? earlier.stationId : station; delete state.previousSession;
-      if (!persist(true)) { state.activeSession = current; state.stationId = station; state.previousSession = p; return null; }
+      if (disk.state) {
+        if (disk.state.activeSession !== active()) { changedSession = true; return null; }
+        state.entries = mergeEntries(disk.state.entries, state.entries);
+      }
+      if (!state.entries.some(function (e) { return e.sessionId === id; })) return null;
+      upsert("session", 0, { sessionEnded: true });
+      if (changedSession || warning) return null;
+      var current = active(), station = state.stationId, previous = state.previousSession, earlier = state.entries.find(function (e) { return e.sessionId === id && ID.test(e.stationId || ""); });
+      state.activeSession = id; state.stationId = earlier ? earlier.stationId : makeId(); delete state.previousSession;
+      if (!persist(true)) { state.activeSession = current; state.stationId = station; if (previous) state.previousSession = previous; return null; }
       upsert("session", 0, { sessionEnded: false }); return active();
     }
     function unsubmit(target) {
@@ -272,8 +314,15 @@
       // A new local revision, so merging with the saved copy cannot restore the submission.
       e.submitted = false; e.revision++; e.updatedAt = now(); return persist();
     }
-    function submitAll(includeScores) {
-      // A grown-up reviewed every listed note at once. Scrub each one as the single-note preview does.
+    function waiting() {
+      // Every player's notes the playtest team has not received, as the close-out list shows them: scrubbed.
+      return state.entries.filter(function (e) { return e.kind === "feedback" && hasContent(e) && !received(e); }).map(function (e) {
+        return { sessionId: e.sessionId, entryId: e.entryId, revision: e.revision, worked: scrubPII(e.worked, e.language), fix: scrubPII(e.fix, e.language) };
+      });
+    }
+    function submitAll(includeScores, reviewed) {
+      // A grown-up read the listed notes at once. Only a note still exactly as listed is sent: one written or changed
+      // after the list was shown, in this tab or another, stays a local draft. Scrub each one as the single-note preview does.
       var disk = readState(storage);
       if (disk.state) {
         if (disk.state.activeSession !== active()) { changedSession = true; return 0; }
@@ -283,6 +332,8 @@
       state.entries.forEach(function (e) {
         if (e.kind !== "feedback" || !hasContent(e) || received(e)) return;
         var worked = scrubPII(e.worked, e.language), fix = scrubPII(e.fix, e.language);
+        var read = (Array.isArray(reviewed) ? reviewed : []).some(function (r) { return r && r.sessionId === e.sessionId && r.entryId === e.entryId && r.revision === e.revision && r.worked === worked && r.fix === fix; });
+        if (!read) return;
         if (worked !== e.worked || fix !== e.fix) { e.worked = worked; e.fix = fix; e.revision++; e.updatedAt = stamp; }
         e.submitted = true; sessions.add(e.sessionId); count++;
       });
@@ -292,7 +343,8 @@
       });
       return persist() ? count : 0;
     }
-    function players() {
+    function players(all) {
+      // With all, also the players who left no notes: the close-out view can bring any of them back.
       var map = new Map();
       state.entries.forEach(function (e) {
         var p = map.get(e.sessionId) || { sessionId: e.sessionId, updatedAt: "", notes: [] };
@@ -300,7 +352,7 @@
         if (e.kind === "feedback" && hasContent(e)) p.notes.push(e);
         map.set(e.sessionId, p);
       });
-      return Array.from(map.values()).filter(function (p) { return p.notes.length || p.sessionId === active(); })
+      return Array.from(map.values()).filter(function (p) { return all || p.notes.length || p.sessionId === active(); })
         .sort(function (a, b) { return (b.sessionId === active()) - (a.sessionId === active()) || b.updatedAt.localeCompare(a.updatedAt); });
     }
     function resolveConflicts(list) {
@@ -321,10 +373,10 @@
     }
     return { active: active, entries: entries, find: find, upsert: upsert, persist: persist, refresh: refresh, archive: archive, acknowledge: acknowledge, rotate: rotate,
       stash: function (kind, stop, fields) { return upsert(kind, stop, fields, true); },
-      previousPlayer: previousPlayer, forgetPrevious: forgetPrevious, switchBack: switchBack, unsubmit: unsubmit, submitAll: submitAll, players: players,
+      previousPlayer: previousPlayer, forgetPrevious: forgetPrevious, restore: restore, unsubmit: unsubmit, waiting: waiting, submitAll: submitAll, players: players,
       resolveConflicts: resolveConflicts, submit: submit, submitProgress: submitProgress, withdrawScores: withdrawScores,
       pending: function (all) { return entries(!!all).filter(function (e) { return e.submitted === true && (e.ackRevision || 0) < e.revision; }); },
-      warning: function () { return warning; }, changedSession: function () { return changedSession; }, fresh: fresh, recovery: recovery,
+      warning: function () { return warning; }, saved: function () { return saved; }, changedSession: function () { return changedSession; }, fresh: fresh, recovery: recovery,
       storageFailed: function () { warning = "storage"; } };
   }
   function payload(e) {
@@ -463,7 +515,8 @@
         if (!sessionReloading) { sessionReloading = true; window.location.reload(); }
         return;
       }
-      if (model.warning()) { status.textContent = W.storage; if (useNewDialog && newDialog.open) newMessage.textContent = W.storage; return; }
+      // With nothing saved at all (blocked site data), Next player starts over instead of waiting for saving to work.
+      if (model.warning()) { status.textContent = model.saved() ? W.storage : W.storageUnsaved; if (useNewDialog && newDialog.open && model.saved()) newMessage.textContent = W.storage; return; }
       var pending = model.pending().length > 0, acknowledged = model.entries().some(function (e) { return e.submitted && (e.ackRevision || 0) >= e.revision; });
       // After a reload nothing retries by itself, so an unconfirmed note says so instead of "waiting".
       var others = endpointAllowed(endpoint) && model.pending(true).some(function (e) { return e.sessionId !== model.active(); });
@@ -669,12 +722,15 @@
       if ((next !== "en" && next !== "es") || next === lang) return;
       var wasPreviewing = preview && !preview.hidden;
       flush(); lang = next; W = WORDS[lang]; translateForm(); render();
-      if (playerReady) { playerReady.textContent = W.playerReady; playerBack.textContent = W.switchBack; }
+      if (playerReady) playerReady.textContent = W.playerReady;
       if (deviceDialog && deviceDialog.open) renderDevice();
+      // A redrawn close-out list clears the grown-up check: read it again in the new language.
+      if (closeoutDialog && closeoutDialog.open) { renderCloseout(""); closeoutTitle.focus(); }
+      if (askDialog && askDialog.open) renderAsk().focus();
       // A language change clears the grown-up check; review the newly translated preview.
       if (wasPreviewing) showPreview();
     });
-    [rating, category, worked, fix].forEach(function (input) { input.addEventListener("input", function () { invalidatePreview(); releaseSendLock(); forgetUndo(); window.clearTimeout(saveTimer); saveTimer = window.setTimeout(flush, 350); }); input.addEventListener("change", function () { invalidatePreview(); releaseSendLock(); flush(); }); });
+    [rating, category, worked, fix].forEach(function (input) { input.addEventListener("input", function () { invalidatePreview(); releaseSendLock(); forgetReady(); window.clearTimeout(saveTimer); saveTimer = window.setTimeout(flush, 350); }); input.addEventListener("change", function () { invalidatePreview(); releaseSendLock(); flush(); }); });
     stop.addEventListener("change", function () { var n = Math.max(0, Math.min(15, Number(stop.value) || 0)); flush(); loadContext(n); });
     document.addEventListener("cb:screen", function (event) {
       var d = event.detail || {}, n = Math.max(0, Math.min(15, Number(d.stopN) || 0));
@@ -704,7 +760,8 @@
     }
     function confirmNewPlayer() {
       flush();
-      if (model.warning() || model.changedSession()) return;
+      if (model.changedSession()) return;
+      if (model.warning()) { if (!model.saved()) startOver(); return; }
       if (!model.rotate()) { setStatus(); return; }
       // The note is already saved for the player who just left. Clear the form and stop saving, so the
       // reload's page-hide save cannot copy it into the next player's session.
@@ -714,13 +771,22 @@
       resetConsentFor(model.active());
       window.location.reload();
     }
+    function startOver() {
+      // Nothing of this player was ever saved, so a reload is the next player: new random codes, an empty form, a new game.
+      leaving = true; clearForm();
+      closeNewPlayerDialog();
+      window.clearTimeout(syncTimer);
+      window.location.reload();
+    }
     function unsentNotes() {
       return endpointAllowed(endpoint) ? model.entries().filter(function (e) { return e.kind === "feedback" && hasContent(e) && !received(e); }).length : 0;
     }
     function newPlayer(event) {
       flush();
-      if (model.warning() || model.changedSession()) return;
-      var unsent = unsentNotes(), message = W.newConfirm + (unsent ? " " + W.newUnsent.replace("{count}", unsent) : "");
+      if (model.changedSession() || (model.warning() && model.saved())) return;
+      // With blocked site data nothing is saved, so the next player can still start; this player's game and notes go.
+      var unsaved = !!model.warning(), unsent = unsaved ? 0 : unsentNotes();
+      var message = unsaved ? W.newUnsaved : W.newConfirm + (unsent ? " " + W.newUnsent.replace("{count}", unsent) : "");
       if (!useNewDialog) { if (window.confirm(message)) confirmNewPlayer(); return; }
       if (newDialog.open) return;
       newOpener = event && event.currentTarget || document.activeElement;
@@ -734,26 +800,19 @@
       newDialog.addEventListener("close", function () { if (!newDialog.open) { suspendNewPlayerVoice(false); restoreNewPlayerFocus(); } });
     }
     [el("new-player"), el("new-player-top")].forEach(function (button) { if (button) button.addEventListener("click", newPlayer); });
-    // Right after Next player, a grown-up can undo a mistaken switch until the new player starts or types.
-    var undoHost = el("new-player-top"), playerReady = null, playerBack = null, previous = model.previousPlayer();
-    if (previous && undoHost && undoHost.parentNode && Date.now() - Date.parse(previous.at) < 600000 && model.entries().every(function (e) { return e.kind === "session"; })) {
+    // Right after Next player, one line confirms the switch until the new player starts or types. A player chosen
+    // by mistake comes back only from the close-out view, never from a button the next child can press.
+    var readyHost = el("new-player-top"), playerReady = null, previous = model.previousPlayer();
+    if (previous && readyHost && readyHost.parentNode && Date.now() - Date.parse(previous.at) < 600000 && model.entries().every(function (e) { return e.kind === "session"; })) {
       playerReady = document.createElement("p"); playerReady.id = "pt-player-ready"; playerReady.className = "pt-privacy"; playerReady.setAttribute("role", "status"); playerReady.textContent = W.playerReady;
-      playerBack = document.createElement("button"); playerBack.id = "pt-player-back"; playerBack.type = "button"; playerBack.className = "pt-btn pt-btn--secondary"; playerBack.textContent = W.switchBack;
       // Below the For grown-ups buttons, outside their row.
-      var spot = undoHost.parentNode.parentNode || undoHost.parentNode, backRow = document.createElement("div"); backRow.className = "pt-actions";
-      backRow.appendChild(playerBack); spot.appendChild(playerReady); spot.appendChild(backRow);
-      playerBack.addEventListener("click", function () {
-        flush();
-        if (model.warning() || model.changedSession() || !model.switchBack()) { setStatus(); return; }
-        leaving = true; clearForm(); resetConsentFor(model.active());
-        window.location.reload();
-      });
+      (readyHost.parentNode.parentNode || readyHost.parentNode).appendChild(playerReady);
       var startButton = document.getElementById("pt-start");
-      if (startButton) startButton.addEventListener("click", forgetUndo);
+      if (startButton) startButton.addEventListener("click", forgetReady);
     } else if (previous) model.forgetPrevious();
-    function forgetUndo() {
+    function forgetReady() {
       if (!playerReady) return;
-      model.forgetPrevious(); playerReady.remove(); playerBack.parentNode.remove(); playerReady = playerBack = null;
+      model.forgetPrevious(); playerReady.remove(); playerReady = null;
     }
     function saveExcel(list, name, target, done) {
       try {
@@ -793,51 +852,27 @@
       if (allow && next) setConsent(next); else updateConsentControls();
       if (opener && typeof opener.focus === "function" && opener.isConnected !== false) opener.focus();
     }
-    // For grown-ups: the privacy notice and every player's notes on this shared device.
-    var deviceDialog = null, deviceOpener = null, deviceShown = false, eraseAsked = false;
-    function waitingNotes() { return model.players().reduce(function (n, p) { return n + p.notes.filter(function (e) { return !received(e); }).length; }, 0); }
+    // For grown-ups on a shared device: the privacy notice, how many notes are saved here, and erase. Notes can be
+    // private, so this panel only counts them; their text, Send, the Excel for every player and bringing a player
+    // back are in the close-out view below.
+    var deviceDialog = null, deviceStatus = null, deviceOpener = null, eraseAsked = false;
+    function waitingNotes() { return model.waiting().length; }
+    function politeStatus(id) { var out = node("p", "pt-device__status", "", id); out.setAttribute("role", "status"); out.setAttribute("aria-live", "polite"); return out; }
+    // A redraw keeps the dialog's one polite region in place, so its next message is announced.
+    function fill(d, keep, before, after) {
+      Array.from(d.childNodes || []).forEach(function (n) { if (n !== keep) d.removeChild(n); });
+      if (keep.parentNode !== d) d.appendChild(keep);
+      before.forEach(function (n) { d.insertBefore(n, keep); });
+      after.forEach(function (n) { d.appendChild(n); });
+    }
+    function noteCount(everyone) { return everyone.reduce(function (n, p) { return n + p.notes.length; }, 0); }
     function renderDevice(message) {
-      var d = deviceDialog, cloud = endpointAllowed(endpoint), everyone = model.players();
-      var notes = everyone.reduce(function (n, p) { return n + p.notes.length; }, 0), waiting = waitingNotes();
-      while (d.firstChild) d.removeChild(d.firstChild);
+      var cloud = endpointAllowed(endpoint), everyone = model.players(), notes = noteCount(everyone), waiting = waitingNotes();
       var title = node("h2", "", W.deviceOpen, "pt-device-title"); title.tabIndex = -1;
       var notice = node("details", "pt-device__privacy", "", "pt-device-privacy");
       notice.appendChild(node("summary", "", W.privacyTitle));
       [W.privacyStored, cloud ? W.privacySentCloud : W.privacySentLocal, cloud ? W.privacyWho : "", W.privacyContact, W.privacyDelete].forEach(function (text) { if (text) notice.appendChild(node("p", "", text)); });
-      [title, node("p", "", W.deviceIntro), notice, node("h3", "", W.deviceNotesTitle),
-        node("p", "", W.deviceSummary.replace("{players}", everyone.length).replace("{notes}", notes).replace("{waiting}", waiting))].forEach(function (n) { d.appendChild(n); });
-      var out = node("p", "pt-device__status", message || "", "pt-device-status"); out.setAttribute("role", "status"); out.setAttribute("aria-live", "polite");
-      if (!deviceShown) {
-        // Notes can be private; they stay hidden until the grown-up chooses to read them.
-        d.appendChild(node("p", "", W.deviceGate));
-        if (notes) d.appendChild(action(W.deviceShow, "pt-btn pt-btn--secondary", "pt-device-show", function () { deviceShown = true; renderDevice(); focusId("pt-device-notes"); }));
-      } else {
-        var players = node("ul", "pt-device__players", "", "pt-device-notes"); players.tabIndex = -1;
-        everyone.filter(function (p) { return p.notes.length; }).forEach(function (p) {
-          var item = node("li", "pt-device__player"), inner = node("ul", "pt-device__notes");
-          item.appendChild(node("strong", "", W.player + " " + p.sessionId.slice(-6).toUpperCase() + (p.sessionId === model.active() ? " " + W.deviceCurrent : "")));
-          p.notes.forEach(function (e) {
-            var entry = node("li", "pt-feedback__entry"), text = [scrubPII(e.worked, e.language), scrubPII(e.fix, e.language)].filter(Boolean), flags = privacyFlags(text.join("\n"));
-            entry.appendChild(node("strong", "", label(e.stop) + (e.rating ? " · " + W[e.rating] : "")));
-            entry.appendChild(node("p", "", text.join(" / ") || W.noText));
-            if (flags.length) entry.appendChild(node("p", "pt-feedback__flags", W.flagged.replace("{words}", flags.join(", "))));
-            entry.appendChild(node("span", "pt-feedback__entry-state", received(e) ? W.backed : (e.submitted ? W.pending : W.draft)));
-            inner.appendChild(entry);
-          });
-          item.appendChild(inner); players.appendChild(item);
-        });
-        if (!notes) players.appendChild(node("li", "", W.deviceNone));
-        d.appendChild(players);
-        if (cloud && waiting) {
-          var check = node("label", "pt-feedback__check"), box = node("input", "", "", "pt-device-confirm"); box.type = "checkbox";
-          box.addEventListener("keydown", function (event) { if (event.key === "Enter") event.preventDefault(); });
-          check.appendChild(box); check.appendChild(node("span", "", W.deviceCheck));
-          d.appendChild(check);
-          d.appendChild(action(W.deviceSend.replace("{count}", waiting), "pt-btn", "pt-device-send", function () { sendDevice(box, out); }));
-        } else if (!cloud && notes) d.appendChild(node("p", "", W.deviceLocal));
-        if (notes) d.appendChild(action(W.deviceDownload, "pt-btn pt-btn--secondary", "pt-device-download", function () { flush(); saveExcel(model.entries(true), "pecan-grove-feedback-all-players.xlsx", out, W.deviceDownloaded); }));
-      }
-      d.appendChild(out);
+      deviceStatus.textContent = message || "";
       var erase = node("div", "pt-device__erase");
       if (!eraseAsked) erase.appendChild(action(W.erase, "pt-btn pt-btn--secondary", "pt-device-erase", function () { eraseAsked = true; renderDevice(); focusId("pt-device-erase-no"); }));
       else {
@@ -845,18 +880,21 @@
         erase.appendChild(action(W.eraseNo, "pt-btn", "pt-device-erase-no", function () { eraseAsked = false; renderDevice(); focusId("pt-device-erase"); }));
         erase.appendChild(action(W.eraseYes, "pt-btn pt-btn--secondary", "pt-device-erase-yes", eraseDevice));
       }
-      d.appendChild(erase);
-      var actions = node("div", "pt-actions"); actions.appendChild(action(W.close, "pt-btn", "pt-device-close", closeDevice)); d.appendChild(actions);
+      var actions = node("div", "pt-actions"); actions.appendChild(action(W.close, "pt-btn", "pt-device-close", closeDevice));
+      fill(deviceDialog, deviceStatus, [title, node("p", "", W.deviceIntro), notice, node("h3", "", W.deviceNotesTitle),
+        node("p", "", W.deviceSummary.replace("{players}", everyone.length).replace("{notes}", notes).replace("{waiting}", waiting), "pt-device-summary"),
+        node("p", "", W.deviceCloseout)], [erase, actions]);
     }
     function openDevice(opener) {
       flush();
       if (!deviceDialog) {
         deviceDialog = node("dialog", "pt-player-dialog pt-device", "", "pt-device-dialog"); deviceDialog.setAttribute("aria-labelledby", "pt-device-title");
         deviceDialog.addEventListener("cancel", function (event) { event.preventDefault(); closeDevice(); });
+        deviceStatus = politeStatus("pt-device-status"); deviceDialog.appendChild(deviceStatus);
         dialogHost().appendChild(deviceDialog);
       }
       if (deviceDialog.open) return;
-      deviceOpener = opener || document.activeElement; deviceShown = false; eraseAsked = false;
+      deviceOpener = opener || document.activeElement; eraseAsked = false;
       renderDevice();
       if (typeof deviceDialog.showModal === "function") deviceDialog.showModal(); else deviceDialog.open = true;
       suspendNewPlayerVoice(true); focusId("pt-device-title");
@@ -864,18 +902,124 @@
     function closeDevice() {
       if (!deviceDialog) return;
       if (deviceDialog.open) { if (typeof deviceDialog.close === "function") deviceDialog.close(); else deviceDialog.open = false; }
-      suspendNewPlayerVoice(false); deviceShown = false; eraseAsked = false;
+      suspendNewPlayerVoice(false); eraseAsked = false;
       var opener = deviceOpener; deviceOpener = null;
       if (opener && typeof opener.focus === "function" && opener.isConnected !== false) opener.focus();
     }
-    async function sendDevice(box, out) {
-      if (!endpointAllowed(endpoint)) return;
-      if (inflight || sending) { out.textContent = W.sending; return; }
-      if (!box.checked) { out.textContent = W.checkFirst; box.focus(); return; }
+    // The close-out view for the grown-up running the play-test: every player's notes to read, send and download, and
+    // the earlier players to bring back. It opens only from the address switch ?closeout=1 (index.html?closeout=1 or
+    // espanol.html?closeout=1) after a grown-up confirms. That keeps it out of a child's reach in the normal game; it
+    // is not security, since anyone who knows the address can open it.
+    var askDialog = null, closeoutDialog = null, closeoutTitle = null, closeoutIntro = null, closeoutBody = null, closeoutStatus = null, closeoutClose = null, closeoutSend = null, reviewed = [];
+    function closeoutRequested() { try { return new window.URL(window.location.href).searchParams.get("closeout") === "1"; } catch (_) { return false; } }
+    function forgetCloseoutSwitch() {
+      // One confirmation per visit: the reload after Next player, bringing a player back or erasing opens the game page.
+      try { var url = new window.URL(window.location.href); url.searchParams.delete("closeout"); window.history.replaceState(window.history.state, "", url.href); }
+      catch (_) { /* The address keeps the switch, so the next load asks again. */ }
+    }
+    function renderAsk() {
+      while (askDialog.firstChild) askDialog.removeChild(askDialog.firstChild);
+      var actions = node("div", "pt-actions"), no = action(W.closeoutNo, "pt-btn", "pt-closeout-ask-cancel", function () { answerCloseout(false); });
+      actions.appendChild(no); actions.appendChild(action(W.closeoutYes, "pt-btn pt-btn--secondary", "pt-closeout-ask-confirm", function () { answerCloseout(true); }));
+      [node("h2", "", W.closeoutAskTitle, "pt-closeout-ask-title"), node("p", "", W.closeoutAsk, "pt-closeout-ask-message"), actions].forEach(function (n) { askDialog.appendChild(n); });
+      return no;
+    }
+    function askCloseout() {
+      if (!askDialog) {
+        askDialog = node("dialog", "pt-player-dialog", "", "pt-closeout-ask"); askDialog.setAttribute("aria-labelledby", "pt-closeout-ask-title"); askDialog.setAttribute("aria-describedby", "pt-closeout-ask-message");
+        askDialog.addEventListener("cancel", function (event) { event.preventDefault(); answerCloseout(false); });
+        dialogHost().appendChild(askDialog);
+      }
+      if (typeof askDialog.showModal !== "function") { var yes = window.confirm(W.closeoutAsk); forgetCloseoutSwitch(); if (yes) openCloseout(); return; }
+      if (askDialog.open) return;
+      var no = renderAsk(); askDialog.showModal(); suspendNewPlayerVoice(true); no.focus();
+    }
+    function answerCloseout(yes) {
+      if (askDialog && askDialog.open) askDialog.close();
+      forgetCloseoutSwitch();
+      if (yes) openCloseout(); else suspendNewPlayerVoice(false);
+    }
+    function playerCode(session) { return session.slice(-6).toUpperCase(); }
+    function lastSaved(at) {
+      try { return new Date(at).toLocaleString(lang, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }); }
+      catch (_) { return String(at).slice(0, 16).replace("T", " "); }
+    }
+    function renderCloseout(message) {
+      var cloud = endpointAllowed(endpoint), everyone = model.players(), notes = noteCount(everyone);
+      // Send may send exactly the notes listed here, as listed; a later change in any tab draws the list again.
+      reviewed = model.waiting();
+      closeoutTitle.textContent = W.closeoutTitle; closeoutIntro.textContent = W.closeoutIntro; closeoutClose.textContent = W.close;
+      if (message !== undefined) closeoutStatus.textContent = message;
+      var body = closeoutBody; closeoutSend = null;
+      while (body.firstChild) body.removeChild(body.firstChild);
+      body.appendChild(node("h3", "", W.deviceNotesTitle));
+      body.appendChild(node("p", "", W.deviceSummary.replace("{players}", everyone.length).replace("{notes}", notes).replace("{waiting}", reviewed.length)));
+      var players = node("ul", "pt-device__players", "", "pt-closeout-notes");
+      everyone.filter(function (p) { return p.notes.length; }).forEach(function (p) {
+        var item = node("li", "pt-device__player"), inner = node("ul", "pt-device__notes");
+        item.appendChild(node("strong", "", W.player + " " + playerCode(p.sessionId) + (p.sessionId === model.active() ? " " + W.deviceCurrent : "")));
+        p.notes.forEach(function (e) {
+          var entry = node("li", "pt-feedback__entry"), text = [scrubPII(e.worked, e.language), scrubPII(e.fix, e.language)].filter(Boolean), flags = privacyFlags(text.join("\n"));
+          entry.appendChild(node("strong", "", label(e.stop) + (e.rating ? " · " + W[e.rating] : "")));
+          entry.appendChild(node("p", "", text.join(" / ") || W.noText));
+          if (flags.length) entry.appendChild(node("p", "pt-feedback__flags", W.flagged.replace("{words}", flags.join(", "))));
+          entry.appendChild(node("span", "pt-feedback__entry-state", received(e) ? W.backed : (e.submitted ? W.pending : W.draft)));
+          inner.appendChild(entry);
+        });
+        item.appendChild(inner); players.appendChild(item);
+      });
+      if (!notes) players.appendChild(node("li", "", W.deviceNone));
+      body.appendChild(players);
+      if (cloud && reviewed.length) {
+        var check = node("label", "pt-feedback__check"), box = node("input", "", "", "pt-closeout-confirm"); box.type = "checkbox";
+        box.addEventListener("keydown", function (event) { if (event.key === "Enter") event.preventDefault(); });
+        check.appendChild(box); check.appendChild(node("span", "", W.deviceCheck));
+        body.appendChild(check);
+        closeoutSend = action(W.deviceSend.replace("{count}", reviewed.length), "pt-btn", "pt-closeout-send", function () { sendCloseout(box); });
+        body.appendChild(closeoutSend);
+      } else if (!cloud && notes) body.appendChild(node("p", "", W.deviceLocal));
+      if (notes) body.appendChild(action(W.deviceDownload, "pt-btn pt-btn--secondary", "pt-closeout-download", function () { flush(); saveExcel(model.entries(true), "pecan-grove-feedback-all-players.xlsx", closeoutStatus, W.deviceDownloaded); }));
+      // A Next player chosen by mistake: bring back an earlier player's game and notes.
+      var earlier = model.players(true).filter(function (p) { return p.sessionId !== model.active(); });
+      body.appendChild(node("h3", "", W.restoreTitle));
+      body.appendChild(node("p", "", earlier.length ? W.restoreIntro : W.restoreNone));
+      if (earlier.length) {
+        var restore = node("div", "pt-actions pt-closeout__restore");
+        earlier.forEach(function (p) { restore.appendChild(action(W.restorePlayer.replace("{code}", playerCode(p.sessionId)).replace("{time}", lastSaved(p.updatedAt)), "pt-btn pt-btn--secondary", "", function () { restorePlayer(p.sessionId); })); });
+        body.appendChild(restore);
+      }
+    }
+    function openCloseout() {
       flush();
-      if (!model.submitAll(consent.scores)) { if (model.changedSession() || model.warning()) { setStatus(); return; } }
-      var sendButton = document.getElementById("pt-device-send"); if (sendButton) sendButton.disabled = true;
-      inflight = true; out.textContent = W.sending;
+      if (!closeoutDialog) {
+        closeoutDialog = node("dialog", "pt-player-dialog pt-device", "", "pt-closeout-dialog"); closeoutDialog.setAttribute("aria-labelledby", "pt-closeout-title");
+        closeoutDialog.addEventListener("cancel", function (event) { event.preventDefault(); closeCloseout(); });
+        closeoutTitle = node("h2", "", "", "pt-closeout-title"); closeoutTitle.tabIndex = -1;
+        closeoutIntro = node("p"); closeoutBody = node("div", "pt-closeout__body", "", "pt-closeout-body"); closeoutStatus = politeStatus("pt-closeout-status");
+        var actions = node("div", "pt-actions"); closeoutClose = action(W.close, "pt-btn", "pt-closeout-close", closeCloseout); actions.appendChild(closeoutClose);
+        [closeoutTitle, closeoutIntro, closeoutBody, closeoutStatus, actions].forEach(function (n) { closeoutDialog.appendChild(n); });
+        dialogHost().appendChild(closeoutDialog);
+      }
+      if (closeoutDialog.open) return;
+      renderCloseout("");
+      if (typeof closeoutDialog.showModal === "function") closeoutDialog.showModal(); else closeoutDialog.open = true;
+      suspendNewPlayerVoice(true); closeoutTitle.focus();
+    }
+    function closeCloseout() {
+      if (!closeoutDialog) return;
+      if (closeoutDialog.open) { if (typeof closeoutDialog.close === "function") closeoutDialog.close(); else closeoutDialog.open = false; }
+      suspendNewPlayerVoice(false); reviewed = [];
+    }
+    async function sendCloseout(box) {
+      if (!endpointAllowed(endpoint)) return;
+      if (inflight || sending) { closeoutStatus.textContent = W.sending; return; }
+      if (!box.checked) { closeoutStatus.textContent = W.checkFirst; box.focus(); return; }
+      flush();
+      var listed = reviewed.length, count = model.submitAll(consent.scores, reviewed);
+      if (!count && (model.changedSession() || model.warning())) { setStatus(); return; }
+      // Send keeps focus while it works; a second press only repeats "Sending".
+      if (closeoutSend) closeoutSend.setAttribute("aria-disabled", "true");
+      inflight = true; closeoutStatus.textContent = W.sending;
       // One request per batch of up to 20 records; a failed request stops and leaves the rest saved here.
       var rounds = Math.ceil(model.pending(true).length / 20) + 3;
       try {
@@ -887,8 +1031,18 @@
         }
       } catch (_) { /* Anything not acknowledged stays on this device and is listed again. */ }
       inflight = false; render();
-      var left = waitingNotes();
-      if (deviceDialog && deviceDialog.open) renderDevice(left ? W.deviceFailed.replace("{count}", left) : W.deviceSent);
+      var left = waitingNotes(), result = left ? W.deviceFailed.replace("{count}", left) : W.deviceSent;
+      if (count < listed) result += " " + W.closeoutChanged;
+      if (!closeoutDialog || !closeoutDialog.open) return;
+      renderCloseout(result);
+      // The list is drawn again; focus stays in the dialog, on Send while notes are left, otherwise on its title.
+      (closeoutSend || closeoutTitle).focus();
+    }
+    function restorePlayer(session) {
+      flush();
+      if (model.warning() || model.changedSession() || !model.restore(session)) { setStatus(); if (closeoutDialog && closeoutDialog.open) renderCloseout(model.warning() ? W.storage : W.closeoutChanged); return; }
+      leaving = true; clearForm(); resetConsentFor(model.active()); forgetCloseoutSwitch();
+      window.location.reload();
     }
     function eraseDevice() {
       leaving = true; window.clearTimeout(syncTimer); if (controller) controller.abort(); clearForm();
@@ -905,12 +1059,19 @@
       // Another tab erased this device: reload without writing this tab's copy back.
       if (event.key === KEY && event.newValue === null) { leaving = true; window.location.reload(); return; }
       // Storage events only read: writing from here could undo another tab's New player.
-      if (event.key === KEY) { if (model.refresh()) syncForm(); render(); }
+      if (event.key === KEY) {
+        if (model.refresh()) syncForm();
+        render();
+        // A note written or changed in another tab while the close-out list is open: draw the list again, which
+        // clears the grown-up check, so Send can only send what the grown-up has read.
+        if (closeoutDialog && closeoutDialog.open && !inflight && JSON.stringify(model.waiting()) !== JSON.stringify(reviewed)) renderCloseout(W.closeoutChanged);
+      }
       if (event.key === CONSENT_KEY) { consent = readConsent(storage, model.active()); if (!consent.scores) model.withdrawScores(true); updateConsentControls(); }
     });
     model.upsert("session", 0, { phase: "start", language: lang });
     var initial = game && Number(game.dataset.currentStop);
     translateForm(); loadContext(Number.isInteger(initial) && initial >= 0 && initial <= 15 ? initial : 0); updateConsentControls();
+    if (closeoutRequested()) askCloseout();
     var runtime = { model: model, flush: flush, sync: sync, getConsent: consentCopy, setConsent: setConsent, showPreview: showPreview, openDevice: openDevice,
       requestNewPlayer: function (opener) { newPlayer({ currentTarget: opener }); } };
     window.PecanGroveFeedback = Object.assign({}, api, runtime);

@@ -73,6 +73,13 @@ class EducatorSheetTest(unittest.TestCase):
             self.assertIn(sheets.PLAY[lang], hrefs)
             self.assertIn("mailto:" + REGISTER["corrections"]["email"], hrefs)
 
+    def test_copies_with_notes_name_the_grown_up_close_out_switch_and_the_family_copy_does_not(self):
+        for flavor, shown in (("playtest", True), ("library", True), ("family", False)):
+            files = self.built(flavor)
+            for lang, name in (("en", "educator.html"), ("es", "educador.html")):
+                text = Text(files[name]).joined()
+                self.assertEqual(sheets.PLAY[lang] + "?closeout=1" in text, shown, (flavor, lang))
+
     def test_sheets_have_no_script_or_inline_style_and_a_strict_policy(self):
         for name, markup in self.built().items():
             if not name.endswith(".html"):

@@ -16,6 +16,7 @@ class Node {
   addEventListener(name, fn) { if (!this.listeners.has(name)) this.listeners.set(name, []); this.listeners.get(name).push(fn); }
   fire(name, detail, extra = {}) { const event = {target: this, currentTarget: this, detail, preventDefault() {}, ...extra}; for (const fn of this.listeners.get(name) || []) fn(event); return event; }
   appendChild(node) { this.children.push(node); node.parentNode = this; return node; }
+  insertBefore(node, ref) { const at = this.children.indexOf(ref); this.children.splice(at < 0 ? this.children.length : at, 0, node); node.parentNode = this; return node; }
   removeChild(node) { this.children.splice(this.children.indexOf(node), 1); }
   get firstChild() { return this.children[0]; }
   get childNodes() { return this.children; }
@@ -27,7 +28,7 @@ class Node {
   showModal() { this.open = true; }
   close() { this.open = false; this.fire('close'); }
 }
-function browser({lang = 'en', store = storage(), failure = false, autoMount = true} = {}) {
+function browser({lang = 'en', store = storage(), failure = false, autoMount = true, closeout = false} = {}) {
   const nodes = [];
   const doc = new Node(); doc.body = new Node('body'); doc.visibilityState = 'visible';
   doc.createElement = tag => { const n = new Node(tag); n.document = doc; nodes.push(n); return n; };
@@ -56,13 +57,14 @@ function browser({lang = 'en', store = storage(), failure = false, autoMount = t
   const win = new Node(); win.localStorage = store; win.crypto = {randomUUID: id}; win.AbortController = AbortController;
   win.setTimeout = (fn, delay) => { timers.set(++next, {fn, at: time + delay, delay}); return next; };
   win.clearTimeout = key => timers.delete(key);
-  win.location = {reload() { win.reloads = (win.reloads || 0) + 1; }};
+  win.location = {href: 'https://game.test/index.html' + (closeout ? '?closeout=1' : ''), reload() { win.reloads = (win.reloads || 0) + 1; }};
+  win.history = {state: null, replaceState(state, title, url) { win.location.href = url; }};
   win.confirm = () => true; win.CustomEvent = class { constructor(type, options = {}) { this.type = type; this.detail = options.detail; } };
-  win.Blob = Blob; win.URL = {createObjectURL: () => 'blob:test', revokeObjectURL() {}};
+  win.Blob = Blob; win.URL = Object.assign(class extends URL {}, {createObjectURL: () => 'blob:test', revokeObjectURL() {}});
   win.fetch = async (url, options) => { requests.push({url, body: JSON.parse(options.body)}); if (failure) throw Error('offline'); return {ok: true, json: async () => ({ok: true, schemaVersion: 1, acknowledged: JSON.parse(options.body).entries.map(e => ({sessionId:e.sessionId,entryId:e.entryId,revision:e.revision}))})}; };
   const app = autoMount ? api.mount(doc, win) : null;
   async function tick(ms) { const end = time + ms; for (;;) { const pending = [...timers].filter(([, item]) => item.at <= end).sort((a,b) => a[1].at - b[1].at); if (!pending.length) break; const [key, item] = pending[0]; timers.delete(key); time = item.at; item.fn(); await Promise.resolve(); await Promise.resolve(); await Promise.resolve(); } time = end; }
-  return {app,doc,win,store,requests,timers,tick,el: name => doc.getElementById('pt-feedback-' + name),id: name => doc.getElementById(name),game,queries,panel};
+  return {app,doc,win,store,requests,timers,tick,el: name => doc.getElementById('pt-feedback-' + name),id: name => doc.getElementById(name),game,queries,panel,allNodes: () => nodes};
 }
 // The grown-up check plus one ordinary activation replaces the timed hold.
 function approve(b) { b.el('confirm').checked = true; b.el('confirm').fire('change'); b.el('send').click(); }
@@ -183,7 +185,12 @@ const childSamples = [
   ['es','mi cumpleaños es el 3 de mayo','mi cumpleaños es el [quitado]'],
   ['es','me llamo María de la Cruz','me llamo [quitado]'],
   ['es','Tengo once años de edad','Tengo [quitado]'],
-  ['es','Mi nombre es Diego, voy al Colegio San José','Mi nombre es [quitado], voy al [quitado]']
+  ['es','Mi nombre es Diego, voy al Colegio San José','Mi nombre es [quitado], voy al [quitado]'],
+  // Every word after a name cue goes, capitalized or not, up to the punctuation or an everyday word.
+  ['en','my name is sofia garcia','my name is [removed]'], ['en','my name is sofia garcia and my snap is mayal22','my name is [removed] and my snap is mayal22'],
+  ['en','my name is jake123 and i liked it','my name is [removed] and i liked it'], ['en','My name is Jake liked the map','My name is [removed] liked the map'],
+  ['es','me llamo sofia garcia','me llamo [quitado]'], ['es','me llamo juan pablo','me llamo [quitado]'], ['es','Mi nombre es: Pedro','Mi nombre es: [quitado]'],
+  ['es','me llamo maría de la cruz y tengo 9 años','me llamo [quitado] y tengo [quitado]']
 ];
 for (const [lang, input, expected] of childSamples) test(`child details ${lang}: ${input}`, () => {
   assert.equal(api.scrubPII(input, lang), expected);
@@ -194,7 +201,13 @@ const ordinary = [
   ['en','The High School Tech League part was fun'], ['en','my name is not important'], ['en','I may play again in March'],
   ['en','I am so happy with the map'], ['en','The school stop needs bigger words'], ['en','I miss playing at the library'],
   ['es','la escuela es divertida'], ['es','Lo jugué hace 2 años'], ['es','Me dicen que es fácil'], ['es','Me gustó la Sra. Lee'],
-  ['es','me llamo la atencion el mapa'], ['es','La parada 12 tiene 3 preguntas']
+  ['es','me llamo la atencion el mapa'], ['es','La parada 12 tiene 3 preguntas'],
+  // Numbers after stop or parada are stops, and everyday words are not a street name.
+  ['en','Stop 2 was a good way to learn'], ['en','stop 10 11 12 13 were hard'], ['en','stop 7 had a long way to go'], ['en','I liked stop 3 because the court was fun'],
+  ['en','my favorite was stop 12 the way it worked'], ['en','the 3 kids on the street'], ['en','I tried 2 times the same way'], ['en','I like the 4 animals on Main St'],
+  ['en','I got 3 stars on stop 4 and 2 stars on stop 5 7 8'], ['en','Stop 6: the drive to the park'], ['en',"I'm so happy"], ['en','This is Stop 3 and it was fun'],
+  ['es','La parada 2 fue una buena manera'], ['es','Me gustó la parada 10 de 16'], ['es','las paradas 3 4 5 6 7 8 9 fueron fáciles'], ['es','La parada 4 es la calle del mercado'],
+  ['es','Me llamo mucho la atención'], ['es','soy feliz con el mapa']
 ];
 for (const [lang, input] of ordinary) test(`ordinary ${lang} sentence stays intact: ${input}`, () => assert.equal(api.scrubPII(input, lang), input));
 test('every contact and child sample is unchanged by a second scrub', () => {
@@ -236,6 +249,16 @@ test('the preview removes children\'s details and flags names it cannot remove, 
   assert.doesNotMatch(e.el('preview-text').textContent, /Sofía|2015|9 años/); assert.match(e.el('preview-flags').textContent, /^Revisa estas palabras antes de enviar: .*maestra Pérez/);
   const plainNote = browser(); plainNote.el('worked').value = 'The map was easy'; plainNote.el('form').fire('submit'); assert.equal(plainNote.el('preview-flags').hidden, true);
 });
+test('the preview flags names it cannot remove: introductions, relatives and friends, sign-offs, handles and lower-case schools', () => {
+  for (const [lang, input, flags] of [
+    ['en', "Hi I'm Maya Lopez", ['Maya Lopez']], ['en', 'Im Lily', ['Lily']], ['es', 'soy Mateo', ['Mateo']], ['en', 'This is Liam. I liked stop 3', ['Liam']],
+    ['en', 'my brother Sam helped me', ['brother Sam']], ['en', 'My friend Ethan and I played', ['friend Ethan']], ['es', 'Mi hermano Juan me ayudó', ['hermano Juan']], ['es', 'Mi amiga Lucía jugó conmigo', ['amiga Lucía']],
+    ['en', 'I liked it. -Emma', ['Emma']], ['es', 'Gracias, Valentina', ['Valentina']], ['en', 'sincerely, Olivia Brown', ['Olivia Brown']], ['es', 'Me gustó. Saludos, Sofía Pérez', ['Sofía Pérez']],
+    ['en', 'i am in 4th grade at lincoln elementary', ['lincoln elementary']], ['en', 'my snap is mayal22', ['mayal22']], ['es', 'mi tiktok es lucia_baila', ['lucia_baila']]
+  ]) assert.deepEqual(api.privacyFlags(api.scrubPII(input, lang)), flags, input);
+  for (const [lang, input] of [['en', "I'm Ana from the game"], ['en', 'I am so happy'], ['en', 'Grandma Ruth was kind'], ['es', 'soy feliz'], ['en', 'This is Stop 3'], ['en', 'Thanks for the game!'],
+    ['es', 'La abuela Ruth me ayudó'], ['en', 'my insta is not working'], ['en', 'the elementary kids liked it'], ['es', 'Gracias por el juego'], ['en', 'I am the Fox']]) assert.deepEqual(api.privacyFlags(api.scrubPII(input, lang)), [], input);
+});
 test('turning on score sharing waits for a grown-up confirmation; turning it off does not', () => {
   const b = browser(), box = b.id('consent-scores'), auto = b.id('consent-autoScores');
   box.checked = true; b.doc.fire('change', null, {target: box});
@@ -248,42 +271,97 @@ test('turning on score sharing waits for a grown-up confirmation; turning it off
   box.checked = false; b.doc.fire('change', null, {target: box}); assert.equal(dialog.open, false); assert.equal(b.app.getConsent().scores, false); assert.equal(b.app.getConsent().autoScores, false);
   assert.equal(b.requests.length, 0);
 });
-test('Privacy and notes on this device: notes stay hidden until shown, one grown-up check sends every player\'s waiting notes, Excel covers every player, and erase removes everything', async () => {
+// The next child on a shared computer must never read, download, send or bring back the last child's notes.
+test('Privacy and notes on this device shows the notice and only counts notes: no note text, Send, Excel for every player or way back to the last player', async () => {
   const b = browser(); b.el('fix').value = 'first player note with sam@example.com'; b.app.flush(); b.el('new-player').click();
   const c = browser({store: b.store}); c.el('worked').value = 'second player note'; c.app.flush();
+  assert.equal(c.id('pt-player-back'), null, 'no button brings back the last player');
   c.el('device').click();
   const dialog = c.id('pt-device-dialog'); assert.equal(dialog.open, true); assert.equal(c.doc.activeElement, c.id('pt-device-title'));
   const notice = textOf(c.id('pt-device-privacy'));
-  for (const fact of [/akeyvanf@kennesaw\.edu/, /Google Apps Script/, /nothing leaves this device until a grown-up reviews a note/, /random codes/, /Erase all Pecan Grove data on this device/]) assert.match(notice, fact);
+  for (const fact of [/akeyvanf@kennesaw\.edu/, /Google Apps Script/, /nothing leaves this device until a grown-up reviews a note/, /random codes/, /when it started and last changed, and whether it has ended/, /eight most recent players/, /Erase all Pecan Grove data on this device/]) assert.match(notice, fact);
   assert.match(textOf(dialog), /Players: 2\. Notes: 2\. Not received by the playtest team: 2\./);
-  assert.equal(c.id('pt-device-notes'), null, 'notes stay hidden until a grown-up chooses to read them');
-  c.id('pt-device-show').click();
-  const listed = textOf(c.id('pt-device-notes')); assert.match(listed, /first player note with \[removed\]/); assert.match(listed, /second player note/); assert.match(listed, /\(playing now\)/);
-  c.id('pt-device-send').click(); await settle(); assert.equal(c.requests.length, 0); assert.match(c.id('pt-device-status').textContent, /tick the check first/);
-  c.id('pt-device-confirm').checked = true; c.id('pt-device-send').click(); await settle();
-  assert.equal(c.requests.length, 2, 'one request per player device code');
-  for (const request of c.requests) assert.equal(new Set(request.body.entries.map(e => e.stationId)).size, 1);
-  assert.doesNotMatch(JSON.stringify(c.requests), /sam@example\.com/);
-  assert.match(c.id('pt-device-status').textContent, /received every note on this device/);
-  let saved = null; c.win.Blob = class { constructor(parts) { saved = Buffer.from(parts[0]); } };
-  c.id('pt-device-download').click();
-  assert.ok(saved.includes(Buffer.from('first player note'))); assert.ok(saved.includes(Buffer.from('second player note')));
+  assert.match(textOf(dialog), /only counts them.*close-out view/);
+  assert.doesNotMatch(textOf(dialog), /first player note|second player note|sam@example\.com/);
+  for (const id of ['pt-device-show', 'pt-device-notes', 'pt-device-confirm', 'pt-device-send', 'pt-device-download']) assert.equal(c.id(id), null, id);
+  const status = c.id('pt-device-status');
   c.id('pt-device-erase').click(); assert.equal(c.doc.activeElement, c.id('pt-device-erase-no'));
+  assert.equal(c.id('pt-device-status'), status, 'the polite status region is never replaced');
+  assert.match(c.id('pt-device-erase-message').textContent, /Notes not received by the playtest team: 2\. Erasing deletes them\. .*download them first in the close-out view/);
   c.id('pt-device-erase-yes').click();
   assert.equal(c.win.reloads, 1); assert.equal([...c.store.data.keys()].some(key => key.startsWith('pecan-grove')), false);
   c.win.fire('pagehide'); c.doc.visibilityState = 'hidden'; c.doc.fire('visibilitychange');
   assert.equal([...c.store.data.keys()].some(key => key.startsWith('pecan-grove')), false, 'the closing page does not write notes back');
+  assert.equal(c.requests.length, 0);
 });
-test('right after Next player, a grown-up can go back to the last player until the new player types', () => {
+test('the close-out view opens only from ?closeout=1 after a grown-up confirms, and that confirmation is asked once', () => {
+  const plain = browser(); assert.equal(plain.id('pt-closeout-ask'), null); assert.equal(plain.id('pt-closeout-dialog'), null);
+  const b = browser({closeout: true}), ask = b.id('pt-closeout-ask');
+  assert.equal(ask.open, true); assert.equal(b.doc.activeElement, b.id('pt-closeout-ask-cancel')); assert.equal(b.id('pt-closeout-dialog'), null);
+  assert.match(textOf(ask), /only for the grown-up running the play-test/);
+  b.id('pt-closeout-ask-cancel').click();
+  assert.equal(ask.open, false); assert.equal(b.id('pt-closeout-dialog'), null); assert.equal(b.win.location.href, 'https://game.test/index.html');
+  const e = browser({closeout: true, lang: 'es'}); assert.equal(e.id('pt-closeout-ask-confirm').textContent, 'Soy el adulto que dirige la prueba');
+  const escape = e.id('pt-closeout-ask').fire('cancel'); assert.ok(escape); assert.equal(e.id('pt-closeout-ask').open, false); assert.equal(e.id('pt-closeout-dialog'), null);
+});
+test('close-out: a grown-up reads every player\'s notes, one check sends them, focus stays in the dialog, and Excel covers every player', async () => {
+  const b = browser(); b.el('fix').value = 'first player note with sam@example.com'; b.app.flush(); b.el('new-player').click();
+  const c = browser({store: b.store, closeout: true}); c.el('worked').value = 'second player note'; c.app.flush();
+  c.id('pt-closeout-ask-confirm').click();
+  const dialog = c.id('pt-closeout-dialog'); assert.equal(dialog.open, true); assert.equal(c.doc.activeElement, c.id('pt-closeout-title'));
+  assert.equal(c.win.location.href, 'https://game.test/index.html', 'the address switch is used once');
+  const listed = textOf(c.id('pt-closeout-notes')); assert.match(listed, /first player note with \[removed\]/); assert.match(listed, /second player note/); assert.match(listed, /\(playing now\)/);
+  assert.doesNotMatch(listed, /sam@example\.com/);
+  const status = c.id('pt-closeout-status');
+  c.id('pt-closeout-send').click(); await settle(); assert.equal(c.requests.length, 0); assert.match(status.textContent, /tick the check first/);
+  c.id('pt-closeout-confirm').checked = true; c.id('pt-closeout-send').click(); await settle();
+  assert.equal(c.requests.length, 2, 'one request per player device code');
+  for (const request of c.requests) assert.equal(new Set(request.body.entries.map(e => e.stationId)).size, 1);
+  assert.doesNotMatch(JSON.stringify(c.requests), /sam@example\.com/);
+  assert.equal(c.id('pt-closeout-status'), status, 'the result goes to the same polite region');
+  assert.match(status.textContent, /received every note on this device/);
+  assert.equal(c.doc.activeElement, c.id('pt-closeout-title'), 'focus stays in the dialog after the list is drawn again');
+  let saved = null; c.win.Blob = class { constructor(parts) { saved = Buffer.from(parts[0]); } };
+  c.id('pt-closeout-download').click();
+  assert.ok(saved.includes(Buffer.from('first player note'))); assert.ok(saved.includes(Buffer.from('second player note')));
+  c.id('pt-closeout-close').click(); assert.equal(dialog.open, false);
+});
+test('close-out with two tabs: a note written in another tab after the list was shown is never sent without being read', async () => {
+  const b = browser(); b.el('fix').value = 'read note'; b.app.flush();
+  const c = browser({store: b.store, closeout: true}); c.id('pt-closeout-ask-confirm').click();
+  assert.match(c.id('pt-closeout-send').textContent, /\(1\)/);
+  // Another tab adds a note, and its storage event redraws the list: the check is cleared and Send sends nothing.
+  c.id('pt-closeout-confirm').checked = true;
+  const other = browser({store: b.store}); other.doc.fire('cb:screen', {stopN: 5, phase: 'playing'}); other.el('worked').value = 'unread note from the other tab'; other.app.flush();
+  c.win.fire('storage', null, {key: api.KEY});
+  assert.match(textOf(c.id('pt-closeout-notes')), /unread note from the other tab/);
+  assert.match(c.id('pt-closeout-status').textContent, /changed after this list was shown/);
+  assert.equal(!!c.id('pt-closeout-confirm').checked, false); assert.match(c.id('pt-closeout-send').textContent, /\(2\)/);
+  c.id('pt-closeout-send').click(); await settle(); assert.equal(c.requests.length, 0);
+  // Without a storage event in time, Send still sends only the note as it was listed.
+  other.el('worked').value = 'edited after the list was shown'; other.app.flush();
+  c.id('pt-closeout-confirm').checked = true; c.id('pt-closeout-send').click(); await settle();
+  assert.equal(c.requests.length, 1);
+  const sent = c.requests[0].body.entries.filter(e => e.kind === 'feedback');
+  assert.deepEqual(sent.map(e => e.fix || e.worked), ['read note']);
+  assert.doesNotMatch(JSON.stringify(c.requests), /edited after the list was shown|unread note/);
+  const left = c.app.model.entries(true).find(e => e.stop === 5 && e.kind === 'feedback');
+  assert.equal(left.worked, 'edited after the list was shown'); assert.equal(left.submitted, false, 'the unread note stays a local draft');
+  assert.match(c.id('pt-closeout-status').textContent, /Notes not received: 1\..*changed after this list was shown/);
+});
+test('Next player shows no way back to a child; the close-out view brings back a player chosen by mistake', () => {
   const b = browser(), first = b.app.model.active(); b.el('fix').value = 'first player draft'; b.el('new-player').click();
-  const c = browser({store: b.store}), back = c.id('pt-player-back');
-  assert.ok(back); assert.match(c.id('pt-player-ready').textContent, /next player is ready/);
-  back.click(); assert.equal(c.win.reloads, 1);
-  const d = browser({store: b.store}); assert.equal(d.app.model.active(), first); assert.equal(d.el('fix').value, 'first player draft'); assert.equal(d.id('pt-player-back'), null);
-  assert.equal(d.app.getConsent().scores, false);
-  d.el('new-player').click();
-  const e = browser({store: b.store}), again = e.id('pt-player-back'); assert.ok(again);
-  e.el('worked').value = 'new player typed'; e.el('worked').fire('input');
-  assert.equal(textOf(e.panel).includes('Go back to the last player'), false, 'typing as the new player removes the way back');
-  const f = browser({store: b.store}); assert.equal(f.id('pt-player-back'), null);
+  const c = browser({store: b.store}), second = c.app.model.active();
+  assert.equal(c.id('pt-player-back'), null); assert.match(c.id('pt-player-ready').textContent, /next player is ready/);
+  assert.equal(textOf(c.panel).includes('Go back to the last player'), false);
+  c.el('worked').value = 'second player typed'; c.el('worked').fire('input'); c.app.flush(); assert.equal(c.id('pt-player-ready').parentNode.children.includes(c.id('pt-player-ready')), false, 'typing removes the ready line');
+  const d = browser({store: b.store, closeout: true}); d.id('pt-closeout-ask-confirm').click();
+  assert.match(textOf(d.id('pt-closeout-body')), /Bring back a player/);
+  const bring = d.allNodes().findLast(n => n.tagName === 'BUTTON' && n.textContent.startsWith('Bring back player ' + first.slice(-6).toUpperCase() + ' (last saved '));
+  assert.ok(bring, 'every earlier player can be brought back');
+  bring.click(); assert.equal(d.win.reloads, 1); assert.equal(d.win.location.href, 'https://game.test/index.html');
+  const e = browser({store: b.store}); assert.equal(e.app.model.active(), first); assert.equal(e.el('fix').value, 'first player draft');
+  assert.equal(e.app.getConsent().scores, false);
+  assert.ok(e.app.model.entries(true).some(x => x.sessionId === second && x.kind === 'session' && x.sessionEnded), 'the player who was playing stays saved and ends');
+  assert.ok(e.app.model.entries(true).some(x => x.sessionId === second && x.worked === 'second player typed'));
 });

@@ -10,7 +10,6 @@ export const PROGRESS_FORMAT = "pecan-grove-progress";
 export const PROGRESS_VERSION = 1;
 export const PROGRESS_MAX_BYTES = 512 * 1024;
 const SLOT_IDS = ["you", ...ANIMAL_IDS];
-const RECORD_KEYS = ["best", "first", "rounds", "last5", "all"];
 const UNSAFE_KEYS = ["__proto__", "constructor", "prototype"];
 const plain = (value) =>
   !!value && typeof value === "object" && !Array.isArray(value);
@@ -37,7 +36,56 @@ function simple(value, depth = 0) {
     )
   );
 }
-function cleanRecord(record) {
+const short = (value) => typeof value === "string" && value.length <= 200;
+const number = (value) => Number.isFinite(value);
+const flag = (value) => typeof value === "boolean";
+const code = (value) => short(value) || number(value);
+const list = (value) =>
+  Array.isArray(value) && value.length <= 50 && value.every(code);
+const map = (value) => plain(value) && simple(value);
+const badge = (value) => value === null || /^process-\d{1,2}$/.test(value);
+// What each stop keeps about its last round, by stop number: the names and
+// types the stops read back. A file's other or wrong-typed extras are dropped,
+// so a damaged or hostile file cannot make a stop fail.
+const EXTRAS = {
+  1: {
+    lastRound: short,
+    allSigns: flag,
+    extraTaps: number,
+    processBadge: badge,
+  },
+  2: { lastRound: list, lastOrder: list },
+  3: { lastSet: short, allListened: flag, processBadge: badge },
+  4: { lastClaims: list, allSources: flag, processBadge: badge },
+  5: { lastRound: list },
+  6: { lastQs: list, lastDesks: short },
+  7: { lastSpark: code, lastTiles: list },
+  8: { lastRound: short, lastTopic: short, lastPair: list, sides: map },
+  9: {
+    processBadge: badge,
+    lastRound: short,
+    lastPeople: list,
+    lastWays: list,
+  },
+  10: { processBadge: badge, lastRound: list, lastOpen: code },
+  11: { processBadge: badge, lastRound: map, lastOrder: list },
+  12: { lastRound: short, lastSet: short, processBadge: badge, lastHard: list },
+  13: {
+    allSources: flag,
+    processBadge: badge,
+    lastRumor: number,
+    lastOld: number,
+    lastFacts: list,
+  },
+  14: { processBadge: badge, lastPath: short, noClue: map, lastRound: short },
+  15: {
+    processBadge: badge,
+    lastRound: short,
+    lastDeal: map,
+    lastGuests: list,
+  },
+};
+function cleanRecord(record, n) {
   if (
     !plain(record) ||
     !score(record.best) ||
@@ -54,14 +102,9 @@ function cleanRecord(record) {
       .slice(-5),
     all: (Array.isArray(record.all) ? record.all : []).filter(score).slice(-50),
   };
+  const extras = EXTRAS[n] || {};
   for (const [key, value] of Object.entries(record))
-    if (
-      !RECORD_KEYS.includes(key) &&
-      !UNSAFE_KEYS.includes(key) &&
-      key !== "stop" &&
-      Object.keys(out).length < 30 &&
-      simple(value)
-    )
+    if (Object.keys(extras).includes(key) && extras[key](value))
       out[key] = value;
   return out;
 }
@@ -82,7 +125,7 @@ export function progressFile(
     if (id === "you" && isEmptyPlaceholder(player)) continue;
     const records = {};
     for (const [stopId, record] of Object.entries(player.stops || {})) {
-      const clean = numbers[stopId] && cleanRecord(record);
+      const clean = numbers[stopId] && cleanRecord(record, numbers[stopId]);
       if (clean) records[stopId] = { stop: numbers[stopId], ...clean };
     }
     players[id] = {
@@ -104,7 +147,8 @@ export function progressFile(
   };
 }
 // Returns { players, current } or { error: "invalid" | "newer" }. Nothing in
-// the file is trusted: unknown stops are skipped, anything else is refused.
+// the file is trusted: unknown stops and extras are skipped, a damaged score or
+// player is refused.
 export function readProgressFile(text, { stops = [], now = new Date() } = {}) {
   let file;
   if (typeof text !== "string" || text.length > PROGRESS_MAX_BYTES)
@@ -123,7 +167,7 @@ export function readProgressFile(text, { stops = [], now = new Date() } = {}) {
   if (file.version > PROGRESS_VERSION) return { error: "newer" };
   if (file.version !== PROGRESS_VERSION || !plain(file.players))
     return { error: "invalid" };
-  const known = new Set(stops.map((stop) => stop.id)),
+  const numbers = Object.fromEntries(stops.map((stop) => [stop.id, stop.n])),
     players = {};
   for (const [id, player] of Object.entries(file.players)) {
     if (
@@ -135,8 +179,8 @@ export function readProgressFile(text, { stops = [], now = new Date() } = {}) {
       return { error: "invalid" };
     const records = {};
     for (const [stopId, record] of Object.entries(player.stops ?? {})) {
-      if (!known.has(stopId)) continue;
-      const clean = cleanRecord(record);
+      if (!numbers[stopId]) continue;
+      const clean = cleanRecord(record, numbers[stopId]);
       if (!clean) return { error: "invalid" };
       records[stopId] = clean;
     }
@@ -227,10 +271,17 @@ export function progressControls({
       return;
     }
     const result = mergeProgress(slots.store(), read);
-    slots.save();
+    const saved = slots.save();
     onChange(result);
+    // The real outcome: nothing added, open only in this tab, or saved here.
     status.textContent = i18n.t(
-      result.skipped ? "progressFull" : "progressOpened",
+      !result.opened
+        ? "progressNothing"
+        : !saved
+          ? "progressUnsaved"
+          : result.skipped
+            ? "progressFull"
+            : "progressOpened",
     );
   });
   const save = button(i18n.t("progressSave"), () => {

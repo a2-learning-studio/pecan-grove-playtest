@@ -202,6 +202,8 @@
   "progressSaveFailed": "No se pudo guardar el archivo de progreso. Inténtalo otra vez.",
   "progressOpened": "Archivo de progreso abierto. Sus partidas ya están en este dispositivo.",
   "progressFull": "Se abrió el archivo de progreso, pero algunas partidas no cupieron. Este dispositivo ya tiene ocho partidas guardadas.",
+  "progressUnsaved": "El archivo de progreso está abierto por ahora, pero este navegador no puede guardarlo. Mantén esta pestaña abierta para jugar estas partidas.",
+  "progressNothing": "No se agregó ninguna partida de este archivo de progreso, así que nada cambió. Puede que no tenga partidas guardadas o que este dispositivo ya tenga ocho.",
   "progressInvalid": "Este no es un archivo de progreso de Pecan Grove, o está dañado. No cambió nada.",
   "progressNewer": "Este archivo de progreso es de una versión más nueva del juego. No cambió nada."
 }

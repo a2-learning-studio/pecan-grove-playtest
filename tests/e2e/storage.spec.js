@@ -80,6 +80,42 @@ test('blocked site data still starts the game, with one save notice', async ({ p
   await expect(notices).toHaveCount(1);
 });
 
+test('blocked site data: Next player asks first, then the next player starts with nothing kept', async ({ page }) => {
+  await page.addInitScript(() => {
+    for (const name of ['localStorage', 'sessionStorage']) {
+      try {
+        Object.defineProperty(window, name, { configurable: true, get() { throw new DOMException('The operation is insecure.', 'SecurityError'); } });
+      } catch (_) { /* checked below */ }
+    }
+  });
+  await page.goto('/index.html?seed=42');
+  const blocked = await page.evaluate(() => { try { void window.localStorage; return false; } catch (_) { return true; } });
+  test.skip(!blocked, 'This browser does not let a page script stand in for blocked site data');
+  await expect(page.locator('#community-builders')).toHaveAttribute('data-engine-mounted', 'true');
+  await page.locator('#pt-feedback-save-draft').waitFor({ state: 'attached' });
+  const before = await code(page);
+  await page.evaluate(() => { const fix = document.getElementById('pt-feedback-fix'); fix.value = 'never saved anywhere'; fix.dispatchEvent(new Event('input', { bubbles: true })); });
+  await expect(page.locator('#pt-feedback-status')).toContainText('not saving anything on this device');
+  await page.locator('#pt-quiet').check();
+  await page.locator('#pt-start').click();
+  await expect(page.locator('.cb-hero')).toBeVisible();
+  await page.evaluate(() => { const api = window.CommunityBuilders.getAPI(); api.saveRound(api.STOPS[0].id, 90, {}); });
+  await page.locator('#pt-exit').click();
+  await page.locator('#pt-feedback-new-player-top').click();
+  await expect(page.locator('#pt-new-player-dialog')).toBeVisible();
+  await expect(page.locator('#pt-new-player-cancel')).toBeFocused();
+  await expect(page.locator('#pt-new-player-message')).toContainText("not saving anything on this device, so this player's game and notes will be gone");
+  const reloaded = page.waitForEvent('load');
+  await page.locator('#pt-new-player-confirm').click();
+  await reloaded;
+  await expect(page.locator('#community-builders')).toHaveAttribute('data-engine-mounted', 'true');
+  await page.locator('#pt-feedback-save-draft').waitFor({ state: 'attached' });
+  await expect(page.locator('#pt-feedback-player')).toHaveText(PLAYER);
+  expect(await code(page), 'a new player with a new code').not.toBe(before);
+  await expect(page.locator('#pt-feedback-fix')).toHaveValue('');
+  expect(await page.evaluate(() => { const store = window.CommunityBuilders.getState().store; return Object.keys(store.players[store.current].stops); })).toEqual([]);
+});
+
 test('a grown-up saves a progress file and opens it on another device', async ({ page, browser, baseURL }) => {
   const AxeBuilder = require('@axe-core/playwright').default;
   async function grownups(target) {

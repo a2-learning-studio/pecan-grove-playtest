@@ -357,7 +357,7 @@ test('The in-page New player confirmation is fully localized in Spanish', () => 
   assert.equal(b.newPlayer('title').textContent, '¿Listo para otro jugador?');
   assert.equal(b.newPlayer('cancel').textContent, 'Seguir jugando');
   assert.equal(b.newPlayer('confirm').textContent, 'Empezar con el siguiente jugador');
-  assert.match(b.newPlayer('message').textContent, /se quedan guardadas en este dispositivo, pero el siguiente jugador no las verá/);
+  assert.match(b.newPlayer('message').textContent, /se quedan guardadas en este dispositivo. Solo la vista de cierre del adulto que dirige la prueba muestra las notas/);
 });
 test('Blocked storage aborts New player without reload and keeps typed notes available for Excel', () => {
   const b = browser(); const active = b.app.model.active(); b.store.blocked = true; b.field('fix').value = 'must not lose'; b.field('new-player').click();
@@ -451,10 +451,12 @@ for (const lang of ['en', 'es']) test(`New player clears the on-screen note so t
   assert.ok(loaded.entries(true).some(e => e.sessionId === previous && e.fix === 'PREVIOUS CHILD SECRET'));
   assert.equal(browser({ store: b.store, lang }).field('fix').value, '');
 });
-test('Going back to the last player restores that player, their device code and their notes', () => {
+test('Bringing back an earlier player restores that player, their device code and their notes, and ends the player who was playing', () => {
   const store = storage(), m = model(store), first = m.active(), station = comment(m, 2, 'first player note').stationId;
-  m.rotate(); assert.equal(m.previousPlayer().id, first);
-  assert.equal(m.switchBack(), first); assert.equal(m.active(), first); assert.equal(m.previousPlayer(), null);
+  const second = m.rotate(); assert.equal(m.previousPlayer().id, first);
+  assert.equal(m.restore('not-a-known-player-0000001'), null); assert.equal(m.restore(second), null, 'the player playing now is not brought back');
+  assert.equal(m.restore(first), first); assert.equal(m.active(), first); assert.equal(m.previousPlayer(), null);
+  assert.ok(m.entries(true).some(e => e.sessionId === second && e.kind === 'session' && e.sessionEnded === true));
   assert.equal(m.find('feedback', 2).worked, 'first player note'); assert.equal(m.find('session', 0).sessionEnded, false);
   assert.equal(comment(m, 3, 'more').stationId, station);
   assert.equal(model(store).active(), first);
@@ -462,7 +464,8 @@ test('Going back to the last player restores that player, their device code and 
 test('A grown-up can send every waiting note on the device, one device code per request; earlier scores stay local', async () => {
   const m = model(); comment(m, 1, 'first player'); m.upsert('progress', 1, { score: 80, phase: 'result' });
   m.rotate(); comment(m, 2, 'second player, email kid@example.com'); m.upsert('feedback', 3, { rating: 'good' }); m.upsert('feedback', 4, { worked: '  ' });
-  assert.equal(m.submitAll(false), 3, 'blank notes are not sent');
+  assert.equal(m.submitAll(false), 0, 'nothing is sent that a grown-up did not read in the list');
+  assert.equal(m.submitAll(false, m.waiting()), 3, 'blank notes are not sent');
   const bodies = [];
   while (m.pending(true).length) await api.sendBatch(m, endpoint, async (url, options) => { bodies.push(JSON.parse(options.body)); return acknowledgeBody(options); }, null, true);
   assert.equal(bodies.length, 2);
@@ -472,6 +475,38 @@ test('A grown-up can send every waiting note on the device, one device code per 
   assert.doesNotMatch(JSON.stringify(sent), /kid@example\.com/);
   assert.ok(sent.some(e => e.kind === 'session' && e.sessionEnded === true), 'an ended player record now fills Session ended');
   assert.ok(m.players().every(p => p.notes.every(e => e.ackRevision >= e.revision)));
+});
+test('Close-out Send sends only the notes still exactly as the grown-up read them, even when another tab changes or adds one', async () => {
+  const store = storage(), a = model(store); comment(a, 1, 'listed note'); comment(a, 2, 'listed then edited');
+  const reviewed = a.waiting();
+  assert.deepEqual(plain(reviewed.map(e => e.worked)), ['listed note', 'listed then edited']);
+  const other = model(store); comment(other, 2, 'edited in the other tab'); comment(other, 3, 'added in the other tab');
+  assert.equal(a.submitAll(false, reviewed), 1);
+  const bodies = [];
+  while (a.pending(true).length) await api.sendBatch(a, endpoint, async (url, options) => { bodies.push(JSON.parse(options.body)); return acknowledgeBody(options); }, null, true);
+  assert.deepEqual(bodies.flatMap(body => body.entries).filter(e => e.kind === 'feedback').map(e => e.worked), ['listed note']);
+  const loaded = model(store);
+  for (const stop of [2, 3]) assert.equal(loaded.find('feedback', stop).submitted, false, `stop ${stop} stays a local draft`);
+  assert.equal(loaded.find('feedback', 2).worked, 'edited in the other tab');
+  assert.deepEqual(plain(loaded.waiting().map(e => e.worked)).sort(), ['added in the other tab', 'edited in the other tab']);
+});
+test('With site data blocked from the start, Next player asks first and then starts over as a new player', () => {
+  for (const dialog of [false, true]) {
+    const store = storage(); store.blocked = true;
+    const b = browser({ store, dialog }); b.field('fix').value = 'never saved'; b.field('fix').fire('input');
+    assert.match(b.field('status').textContent, /not saving anything on this device/);
+    let asked = ''; b.win.confirm = message => { asked = message; return true; };
+    b.field('new-player-top').click();
+    if (dialog) {
+      assert.equal(b.newPlayer('dialog').open, true); assert.equal(b.win.location.reloads, 0);
+      asked = b.newPlayer('message').textContent; b.newPlayer('confirm').click();
+    }
+    assert.match(asked, /not saving anything on this device, so this player's game and notes will be gone/);
+    assert.equal(b.win.location.reloads, 1); assert.equal(b.field('fix').value, '', 'the form is cleared before the reload');
+  }
+  const store = storage(); store.blocked = true;
+  const c = browser({ store, dialog: true }); c.field('fix').value = 'keep me'; c.field('new-player').click(); c.newPlayer('cancel').click();
+  assert.equal(c.win.location.reloads, 0); assert.equal(c.field('fix').value, 'keep me'); assert.equal(c.app.model.find('feedback', 0).fix, 'keep me');
 });
 test('Queued text that never passed the preview scrub goes back to a local draft instead of being sent', async () => {
   const store = storage(), m = model(store), e = submittedComment(m, 1, 'clean note');

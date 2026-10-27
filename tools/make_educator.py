@@ -52,6 +52,8 @@ TEXT = {
         "teams": "Two teams. In the same place, choose {team}. Each team picks an animal and plays the same stop in "
                  "turn; then both score cards appear side by side.",
         "quiet": "A quiet room. {note}",
+        "closeout": "To close out, the grown-up running the play-test opens {address} and confirms, to review "
+                    "every player's notes or bring a player back.",
         "words_h": "Words to know",
         "data_center": "Data center",
         "boards": "Pecan Grove and its boards are made up. In Stop 6, kids match each question to one of these desks; "
@@ -104,6 +106,8 @@ TEXT = {
         "teams": "Dos equipos. En el mismo lugar, elijan {team}. Cada equipo elige un animal y juega la misma parada "
                  "por turnos; luego las dos tarjetas de puntaje aparecen lado a lado.",
         "quiet": "Un salón en silencio. {note}",
+        "closeout": "Al terminar, el adulto que dirige la prueba abre {address} y confirma para revisar las notas "
+                    "de todos o traer de vuelta a un jugador.",
         "words_h": "Palabras para saber",
         "data_center": "Centro de datos",
         "boards": "Pecan Grove y sus juntas son inventados. En la parada 6, los niños unen cada pregunta con uno de "
@@ -353,7 +357,9 @@ def sheet(lang, flavor="playtest", privacy="", root=ROOT, site_url="", image_alt
     email = register["corrections"]["email"]
     other = "es" if lang == "en" else "en"
     address = f'<a href="{PLAY[lang]}">{e(site_url + PLAY[lang] if site_url else PLAY[lang])}</a>'
-    privacy_line = f'<p><b>{e(t["privacy"])}</b> {e(privacy)}</p>' if privacy else ""
+    # Copies with the feedback panel name the grown-up close-out view's address switch beside their privacy line.
+    closeout = " " + t["closeout"].format(address=PLAY[lang] + "?closeout=1") if flavor in ("playtest", "library") else ""
+    privacy_line = f'<p><b>{e(t["privacy"])}</b> {e(privacy + closeout)}</p>' if privacy else ""
     return f"""<!doctype html>
 <html lang="{lang}">
 <head>

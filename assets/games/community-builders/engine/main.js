@@ -72,6 +72,8 @@ export async function mount(
   });
   const slots = new Slots({ state });
   const steps = new StepLog({ state });
+  // A shared computer keeps the step logs of the most recent players only.
+  steps.prune();
   slots.store();
   slots.save();
   const toastHost = h("div", {

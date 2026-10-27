@@ -202,6 +202,8 @@
   "progressSaveFailed": "The progress file could not be saved. Try again.",
   "progressOpened": "Progress file opened. Its games are on this device now.",
   "progressFull": "Progress file opened, but some games did not fit. This device already has eight saved games.",
+  "progressUnsaved": "Progress file opened for now, but this browser cannot save it. Keep this tab open to play these games.",
+  "progressNothing": "No games from this progress file were added, so nothing changed. It may have no saved games, or this device already has eight.",
   "progressInvalid": "This is not a Pecan Grove progress file, or it is damaged. Nothing changed.",
   "progressNewer": "This progress file is from a newer version of the game. Nothing changed."
 }

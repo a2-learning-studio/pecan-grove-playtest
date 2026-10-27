@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import vm from 'node:vm';
 import { createRequire } from 'node:module';
 import { spawnSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { JSDOM } from 'jsdom';
 const require = createRequire(import.meta.url);
 const { mount } = require('../../assets/playtest/shell.js');
@@ -58,7 +59,7 @@ test('family shell starts and exits without feedback elements or a receiver', ()
   dom.window.close();
 });
 
-function worker({ fetcher, putError, putWait } = {}) {
+function worker({ fetcher, putError, putWait, voice = ['assets/games/community-builders/voice/en/hello.0123456789ab.mp3'] } = {}) {
   const handlers = {}, stores = new Map(), network = [], waits = [], deleted = [];
   const key = value => typeof value === 'string' ? value : value.url;
   const caches = { keys: async () => [...stores.keys()], delete: async name => { deleted.push(name); return stores.delete(name); },
@@ -72,8 +73,8 @@ function worker({ fetcher, putError, putWait } = {}) {
   const self = { location: { origin: 'https://example.test' }, registration: { scope: 'https://example.test/game/' },
     clients: { claim: async () => {} }, skipWaiting() { self.skipped = true; }, addEventListener: (name, handler) => { handlers[name] = handler; } };
   let offline = false;
-  const source = fs.readFileSync(new URL('tools/sw-template.js', root), 'utf8').replace('__BUILD__', 'test').replace('__PRECACHE__', JSON.stringify(['index.html', 'espanol.html', 'assets/map.webp'])).replace('__VOICE__', JSON.stringify(['assets/games/community-builders/voice/en/hello.0123456789ab.mp3']));
-  vm.runInNewContext(source, { self, caches, URL, Response, Headers, AbortController, setTimeout, clearTimeout,
+  const source = fs.readFileSync(new URL('tools/sw-template.js', root), 'utf8').replace('__BUILD__', 'test').replace('__PRECACHE__', JSON.stringify(['index.html', 'espanol.html', 'assets/map.webp'])).replace('__VOICE__', JSON.stringify(voice));
+  vm.runInNewContext(source, { self, caches, crypto: globalThis.crypto, URL, Response, Headers, AbortController, setTimeout, clearTimeout,
     fetch: async (request, options) => { network.push(key(request)); if (offline) throw new Error('offline'); return fetcher ? fetcher(request, options) : new Response('fresh'); } });
   async function fetchEvent(url, options = {}) {
     let response;
@@ -108,6 +109,18 @@ test('activation keeps a downloaded voice pack but drops clips a re-recording re
   let activated; w.handlers.activate({ waitUntil: value => { activated = value; } }); await activated;
   assert.deepEqual([...w.stores.get('pecan-grove-voice-en').keys()], [base + 'hello.0123456789ab.mp3']);
   assert.equal(w.deleted.includes('pecan-grove-voice-en'), false, 'the pack itself stays');
+});
+test('activation moves a voice pack downloaded under the old unhashed names to its content-addressed names, without downloading', async () => {
+  const base = 'https://example.test/game/assets/games/community-builders/voice/en/', bytes = 'the recorded line';
+  const hash = createHash('sha256').update(bytes).digest('hex').slice(0, 12);
+  const w = worker({ voice: [`assets/games/community-builders/voice/en/intro.${hash}.mp3`, 'assets/games/community-builders/voice/en/retake.0123456789ab.mp3'] });
+  w.stores.set('pecan-grove-voice-en', new Map([[base + 'intro.mp3', new Response(bytes, { headers: { 'Content-Type': 'audio/mpeg' } })], [base + 'retake.mp3', new Response('an older take of a re-recorded line')]]));
+  let activated; w.handlers.activate({ waitUntil: value => { activated = value; } }); await activated;
+  assert.deepEqual([...w.stores.get('pecan-grove-voice-en').keys()], [base + `intro.${hash}.mp3`], 'a matching clip moves; a re-recorded one is dropped');
+  w.offline();
+  const clip = await w.fetchEvent(base + `intro.${hash}.mp3`);
+  assert.equal(await clip.text(), bytes); assert.equal(clip.headers.get('Content-Type'), 'audio/mpeg');
+  assert.deepEqual(w.network, [], 'the pack plays offline without downloading it again');
 });
 test('a waiting worker can name its build without activating', () => {
   const w = worker();

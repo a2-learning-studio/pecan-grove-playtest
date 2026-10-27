@@ -229,7 +229,7 @@ test("Continue says every stop is done instead of naming Stop 15 again", async (
 
 const { progressFile, readProgressFile, mergeProgress, PROGRESS_MAX_BYTES } =
   await import("../../assets/games/community-builders/engine/progress-file.js");
-const { StepLog, STEP_LIMIT, stepKey } =
+const { StepLog, STEP_LIMIT, STEP_PLAYERS, stepKey } =
   await import("../../assets/games/community-builders/engine/interaction-log.js");
 const STOPS = [
   { id: "notice-the-signs", n: 1 },
@@ -239,8 +239,13 @@ function memory() {
   const values = new Map();
   return {
     values,
+    get length() {
+      return values.size;
+    },
+    key: (i) => [...values.keys()][i] ?? null,
     getItem: (key) => values.get(key) ?? null,
     setItem: (key, value) => values.set(key, String(value)),
+    removeItem: (key) => values.delete(key),
   };
 }
 
@@ -259,6 +264,7 @@ test("a progress file keeps scores, badges and steps, with no names, and opens e
             last5: [60, 90],
             all: [60, 90],
             lastRound: "b-3",
+            allSigns: true,
             lastOrder: [3, 1, 2],
           },
           "retired-stop": { best: 50, rounds: 1 },
@@ -312,8 +318,13 @@ test("a progress file keeps scores, badges and steps, with no names, and opens e
     last5: [60, 90],
     all: [60, 90],
     lastRound: "b-3",
-    lastOrder: [3, 1, 2],
+    allSigns: true,
   });
+  assert.equal(
+    fox.stops["notice-the-signs"].lastOrder,
+    undefined,
+    "a stop keeps only the extras it reads back",
+  );
 });
 
 test("opening a progress file is checked first and only ever adds progress", () => {
@@ -409,6 +420,119 @@ test("opening a progress file is checked first and only ever adds progress", () 
   assert.equal(Object.keys(store.players).length, 8);
 });
 
+// The reviewer's hostile file: wrong-typed extras made Stop 2 and Stop 4 fail every time they started.
+const HOSTILE_STOPS = [
+  { id: "notice-the-signs", n: 1 },
+  { id: "ask-a-good-question", n: 2 },
+  { id: "listen-to-every-neighbor", n: 3 },
+  { id: "fact-or-rumor", n: 4 },
+  { id: "weigh-the-tradeoffs", n: 11 },
+];
+const hostileFile = (stops) =>
+  JSON.stringify({
+    format: "pecan-grove-progress",
+    version: 1,
+    savedAt: "2026-10-27T10:00:00.000Z",
+    language: "en",
+    current: "fox",
+    players: {
+      fox: {
+        created: "2026-10-01T00:00:00Z",
+        updated: "2026-10-01T00:00:00Z",
+        badges: {},
+        stops: {
+          [stops[1].id]: { best: 50, rounds: 1, lastOrder: 5, lastRound: 7 },
+          [stops[3].id]: { best: 50, rounds: 1, lastClaims: "boom", allSources: "yes", processBadge: "<b>x</b>" },
+        },
+      },
+    },
+  });
+test("a hostile progress file only adds clean data: unknown and wrong-typed extras are dropped", () => {
+  const read = readProgressFile(hostileFile(HOSTILE_STOPS), { stops: HOSTILE_STOPS });
+  assert.equal(read.error, undefined);
+  const clean = { best: 50, first: 50, rounds: 1, last5: [], all: [] };
+  assert.deepEqual(read.players.fox.stops["ask-a-good-question"], clean);
+  assert.deepEqual(read.players.fox.stops["fact-or-rumor"], clean);
+  const good = readProgressFile(
+    JSON.stringify({
+      format: "pecan-grove-progress",
+      version: 1,
+      players: {
+        fox: {
+          stops: {
+            "notice-the-signs": { best: 60, rounds: 2, lastRound: "a,b", allSigns: true, extraTaps: 0, processBadge: "process-1", lastClaims: [1, 2] },
+            "fact-or-rumor": { best: 70, rounds: 1, lastClaims: [3, 1], allSources: true, processBadge: null },
+            "weigh-the-tradeoffs": { best: 40, rounds: 1, lastRound: { a: { g: [0, 1], h: [2, 3] } }, lastOrder: ["a", "b"], lastClaims: [1] },
+          },
+        },
+      },
+    }),
+    { stops: HOSTILE_STOPS },
+  );
+  const stops = good.players.fox.stops;
+  assert.deepEqual(stops["notice-the-signs"], { best: 60, first: 60, rounds: 2, last5: [], all: [], lastRound: "a,b", allSigns: true, extraTaps: 0, processBadge: "process-1" }, "a stop keeps its own extras, never another stop's");
+  assert.deepEqual(stops["fact-or-rumor"].lastClaims, [3, 1]);
+  assert.equal(stops["fact-or-rumor"].processBadge, null);
+  assert.deepEqual(stops["weigh-the-tradeoffs"].lastRound, { a: { g: [0, 1], h: [2, 3] } });
+  assert.equal(stops["weigh-the-tradeoffs"].lastClaims, undefined);
+  // Opened on a device, the new game holds only the clean records.
+  const store = { version: 2, current: "you", players: { you: { stops: {}, badges: {} } } };
+  mergeProgress(store, read);
+  assert.deepEqual(store.players.fox.stops["fact-or-rumor"], clean);
+});
+test("a hostile progress file cannot make a stop fail in the mounted game", async () => {
+  const r = await mountedGame("en");
+  try {
+    r.core.showTitle();
+    const stops = r.core.getAPI().STOPS;
+    r.root.querySelector(".cb-hero .cb-btn--onstage").click();
+    const box = r.root.querySelector("dialog[open] .cb-progress-file"), status = box.querySelector("[role=status]");
+    const picker = box.querySelector("input[type=file]"), text = hostileFile(stops);
+    Object.defineProperty(picker, "files", { configurable: true, value: [{ size: text.length, text: async () => text }] });
+    picker.dispatchEvent(new r.w.Event("change"));
+    await until(() => status.textContent !== "", "The result is announced");
+    assert.match(status.textContent, /Progress file opened/);
+    r.root.querySelector("dialog[open]").close();
+    for (const n of [2, 4]) {
+      r.errors.length = 0;
+      r.core.startStop(stops[n - 1].id);
+      // A stop that fails to draw its round goes back to the map a moment after it starts.
+      await new Promise((resolve) => setTimeout(resolve, 1200));
+      const state = r.core.getState();
+      assert.deepEqual([state.mode, state.inStop], ["stop", true], `Stop ${n} must not fail`);
+      assert.deepEqual(r.errors.map(String), []);
+      r.core.showMap();
+    }
+  } finally {
+    r.close();
+  }
+});
+test("opening a progress file reports the real outcome when nothing is added or nothing can be saved", async () => {
+  for (const blockStorage of [false, true]) {
+    const r = await mountedGame("en", null, { blockStorage });
+    try {
+      r.core.showTitle();
+      r.root.querySelector(".cb-hero .cb-btn--onstage").click();
+      const box = r.root.querySelector("dialog[open] .cb-progress-file"), status = box.querySelector("[role=status]");
+      const picker = box.querySelector("input[type=file]");
+      const choose = async (text) => {
+        status.textContent = "";
+        Object.defineProperty(picker, "files", { configurable: true, value: [{ size: text.length, text: async () => text }] });
+        picker.dispatchEvent(new r.w.Event("change"));
+        await until(() => status.textContent !== "", "The result is announced");
+      };
+      await choose(JSON.stringify({ format: "pecan-grove-progress", version: 1, players: {} }));
+      assert.match(status.textContent, /No games from this progress file were added, so nothing changed/);
+      const stopId = r.core.getAPI().STOPS[0].id;
+      await choose(JSON.stringify({ format: "pecan-grove-progress", version: 1, current: "otter", players: { otter: { stops: { [stopId]: { best: 80, rounds: 1 } } } } }));
+      if (blockStorage) assert.match(status.textContent, /opened for now, but this browser cannot save it/);
+      else assert.match(status.textContent, /Its games are on this device now/);
+      assert.equal(r.core.getState().store.current, "otter", "the games are open in this tab either way");
+    } finally {
+      r.close();
+    }
+  }
+});
 test("the step log keeps fixed game values only, skips repeats and stays small", () => {
   const storage = memory(),
     state = () => ({ storageKey: KEY });
@@ -442,6 +566,25 @@ test("the step log keeps fixed game values only, skips repeats and stays small",
   assert.ok(storage.values.get(stepKey(KEY)).length < 40000);
 });
 
+test("a shared computer keeps the step logs of this player and the most recent others only", () => {
+  const storage = memory();
+  const at = (n) => `2026-10-${String(n).padStart(2, "0")}T10:00:00Z`;
+  const session = (n) => `player_session_${String(n).padStart(16, "0")}`;
+  for (let n = 1; n <= 12; n++)
+    storage.setItem(`pecan-grove-steps:${session(n)}`, JSON.stringify([{ at: at(n), event: "screen", stop: 1 }]));
+  storage.setItem("pecan-grove-settings", "{}");
+  storage.setItem(`pecan-grove-journey:${session(1)}`, "{}");
+  const mine = `pecan-grove-journey:${session(2)}`;
+  const log = new StepLog({ state: () => ({ storageKey: mine }), storage, target: null });
+  assert.equal(STEP_PLAYERS, 8);
+  assert.equal(log.prune(), 4);
+  const kept = [...storage.values.keys()].filter((key) => key.startsWith("pecan-grove-steps"));
+  assert.equal(kept.length, 8);
+  assert.ok(kept.includes(stepKey(mine)), "this player's log stays even though it is old");
+  for (let n = 6; n <= 12; n++) assert.ok(kept.includes(`pecan-grove-steps:${session(n)}`), `recent player ${n} stays`);
+  for (const key of ["pecan-grove-settings", `pecan-grove-journey:${session(1)}`]) assert.ok(storage.values.has(key), key);
+  assert.equal(log.prune(), 0, "pruning again removes nothing");
+});
 test("For grown-ups saves and opens a progress file in the mounted game", async () => {
   const r = await mountedGame("en");
   const realCreate = URL.createObjectURL,
