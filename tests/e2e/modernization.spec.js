@@ -252,14 +252,28 @@ for(const {lang,file} of languages) {
   // that real work in bounded phases; capture only genuinely durable progress.
   test.describe.serial(`${lang}: private persisted reference journey`,()=>{
     let checkpoint;
-    test('Stop1 intro, Today and pointer findings0-5',async({page,noNetwork})=>{
+    // Desktop WebKit (Desktop Safari: 1280x720 at device scale 2) is much slower here than every other project,
+    // and two of these cases outgrow the shared 45 s cap on the CI runner. Nothing hangs: the traces show steady
+    // progress, each click slow because Playwright waits for the element to hold still across frames.
+    // A local probe of this profile measured the title and map, whose looping decorations keep repainting, at
+    // about 0.6 s a frame (26 ms at device scale 1, 17 ms in Chromium); Stop 1 itself idles at full rate.
+    // CI durations of the Stop 2 case: 44.7 s and 42.7 s (run 1), 44.2 s es and an en timeout at 46.7 s (run 2)
+    // whose trace ends on its last click, Review close, at 45.2 s. The Stop 1 case timed out on its first try in
+    // both runs (49.8 s, 49.1 s; in run 2 beside the five-seed Stop 2 case): intro button 7.7 s to settle,
+    // findings 0-3 0.6-3.3 s each, finding 4 started 0.5 s before the cap. Its retries pass in 37-39 s. The same
+    // cases in run 2 took 20-27 s on iPhone and 6-9 s in Chromium and Firefox. 90 s is about 1.7 times the
+    // slowest projected need (about 52 s) and applies to desktop WebKit only; the other projects keep 45 s.
+    const desktopWebKitBudget=testInfo=>{if(testInfo.project.name==='webkit')test.setTimeout(90000);};
+    test('Stop1 intro, Today and pointer findings0-5',async({page,noNetwork},testInfo)=>{
+      desktopWebKitBudget(testInfo);
       checkpoint=null;await start(page,file);await stop(page,1);await startStop1Today(page);await findStop1Items(page,0,6);
       checkpoint=await captureJourneyCheckpoint(page);expect([...checkpoint.snapshot.state.found,...checkpoint.snapshot.state.tapped]).toHaveLength(6);await assertLocalOnly(page,noNetwork);
     });
     test('Continue Stop1 pointer findings6-11, result and local draft',async({page,noNetwork})=>{
       await continueJourneyCheckpoint(page,file,checkpoint);await findStop1Items(page,6,12);await finishStop1(page);await saveReferenceDraft(page,lang);await backToMap(page);checkpoint=await captureJourneyCheckpoint(page,'notice-the-signs');await assertLocalOnly(page,noNetwork);
     });
-    test('Continue to Stop2 pointer completion and retained local drafts',async({page,noNetwork})=>{
+    test('Continue to Stop2 pointer completion and retained local drafts',async({page,noNetwork},testInfo)=>{
+      desktopWebKitBudget(testInfo);
       await continueJourneyCheckpoint(page,file,checkpoint);await completeStop2(page);await saveReferenceDraft(page,lang);await assertLocalOnly(page,noNetwork);
     });
   });
