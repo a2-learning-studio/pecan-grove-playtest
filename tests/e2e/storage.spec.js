@@ -149,6 +149,13 @@ test('a grown-up saves a progress file and opens it on another device', async ({
     await target.locator('#pt-quiet').check();
     await target.locator('#pt-start').click();
     await expect(target.locator('.cb-hero')).toBeVisible();
+    // Start opens native fullscreen. Firefox and Safari keep the first Escape to leave it, so the Escape below
+    // would never reach For grown-ups; leave fullscreen first, as a grown-up's first Escape would.
+    await target.evaluate(async () => {
+      const exit = document.exitFullscreen || document.webkitExitFullscreen;
+      if ((document.fullscreenElement || document.webkitFullscreenElement) && exit) await exit.call(document);
+    });
+    await expect.poll(() => target.evaluate(() => !!(document.fullscreenElement || document.webkitFullscreenElement))).toBe(false);
     await target.locator('.cb-hero .cb-btn--onstage').click();
     await expect(target.locator('dialog[open] .cb-progress-file')).toBeVisible();
     return target.locator('dialog[open] .cb-progress-file');

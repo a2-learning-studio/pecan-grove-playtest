@@ -31,9 +31,14 @@ async function startStage(page,file='index.html',seed=42) {
   // the default inline findings; the Library case has its own test below.
   await page.evaluate(()=>window.PecanGroveEngine.settings.update({findCards:false}));
   await waitStageReady(page,'title');
-  // Start still exercises native fullscreen. Return the browser to its normal
-  // window before viewport sweeps: Chromium cannot resize a fullscreen window.
-  // The game's expanded view must remain open after that native exit.
+  await leaveNativeFullscreen(page);
+}
+// Start still exercises native fullscreen. Return the browser to its normal
+// window before viewport sweeps (Chromium cannot resize a fullscreen window) and
+// before pressing Escape: Firefox and Safari keep that first Escape to leave
+// fullscreen, so the page never sees it. The game's expanded view must remain
+// open after that native exit.
+async function leaveNativeFullscreen(page) {
   await page.evaluate(async()=>{
     const exit=document.exitFullscreen||document.webkitExitFullscreen;
     if((document.fullscreenElement||document.webkitFullscreenElement)&&exit)await exit.call(document);
@@ -312,6 +317,7 @@ test('seed 42 repeats Stop2 speaker and tile order after a clean reload',async({
 test('Library / Class mode chosen on the page keeps each Stop 1 finding on screen until the player closes it',async({page})=>{
   await page.goto('/index.html?seed=42');await expect(page.locator('#community-builders')).toHaveAttribute('data-engine-mounted','true');
   await page.locator('#pt-quiet').check();await page.locator('#pt-start').click();await expect(page.locator('.cb-hero')).toBeVisible();await waitStageReady(page,'title');
+  await leaveNativeFullscreen(page);
   await newGame(page);await stop(page,1);await startStop1Today(page);
   await page.waitForTimeout(400);await page.locator('.cb-s01-spot[data-spot="0"]').click();
   const card=page.locator('dialog[open]');await expect(card).toBeVisible();await expect(card).toBeInViewport();
@@ -324,7 +330,7 @@ test('language switch mid-stop retains the current step and selected tiles',asyn
   const selected=await page.locator('.cb-s02-tile[aria-pressed="true"]').getAttribute('data-id');
   const language=page.locator('.cb-stophud .cb-language[lang="es"]');
   if(await language.isVisible())await language.click();
-  else{await page.locator('.cb-hud-more').click();await page.locator('.cb-hud-more-dialog').getByRole('button',{name:'Español',exact:true}).click();}
+  else{await page.locator('.cb-hud-more').click();await page.locator('.cb-hud-more-dialog').getByRole('button',{name:'ES, Español',exact:true}).click();}
   await expect(page.locator('html')).toHaveAttribute('lang','es');await expect(page.locator('.cb-s02-play')).toBeVisible();await expect(page.locator('.cb-s02-tile[aria-pressed="true"]')).toHaveAttribute('data-id',selected);
   await page.locator('#pt-review-tab').click();await expect(page.locator('#pt-feedback-h')).toHaveText('Comentarios de la prueba');await expect(page.locator('#pt-feedback-save-draft')).toHaveText('Guardar borrador en este dispositivo');await expect(page.locator('#pt-feedback-category option[value="art"]')).toHaveText('Imágenes o diseño');
 });
