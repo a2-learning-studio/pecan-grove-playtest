@@ -11,8 +11,9 @@ only explicitly submitted, reviewed feedback.
     python tools/make_playtest.py                      # reuse the saved feedback deployment, when present
     python tools/make_playtest.py --form https://forms.office.com/r/XXXX
     python tools/make_playtest.py --feedback-endpoint "" # intentionally disable shared backup
+    PG_CLOSEOUT_CODE=... python tools/make_playtest.py  # add the facilitator's close-out (playtest flavor only)
 """
-import argparse, hashlib, html, importlib.util, json, os, re, shutil, subprocess
+import argparse, hashlib, html, importlib.util, json, os, re, secrets, shutil, subprocess
 from datetime import date
 from pathlib import Path
 from urllib.parse import urlsplit
@@ -110,6 +111,32 @@ def resolve_feedback_endpoint(cli_value, config_path=None):
     return checked_feedback_endpoint(config["feedbackEndpoint"])
 
 
+def checked_closeout_code(value):
+    """The facilitator's close-out code: at least 6 characters, no spaces at either end, no control characters."""
+    if not value:
+        return ""
+    if (not isinstance(value, str) or len(value) < 6 or len(value) > 200 or value != value.strip()
+            or any(ord(c) < 32 or ord(c) == 127 for c in value)):
+        raise ValueError("The close-out code must have 6 to 200 characters, with no spaces at either end.")
+    return value
+
+
+def resolve_closeout_code(cli_value, flavor):
+    """An explicit argument wins; otherwise PG_CLOSEOUT_CODE, read like CI's secret. Family and library: never."""
+    if flavor in {"family", "library"}:
+        return ""
+    return checked_closeout_code(cli_value if cli_value is not None else os.environ.get("PG_CLOSEOUT_CODE", ""))
+
+
+def closeout_lock(code):
+    """A random salt for this build and the SHA-256 of salt and code. The page never carries the code itself."""
+    code = checked_closeout_code(code)
+    if not code:
+        return ""
+    salt = secrets.token_hex(16)
+    return salt + ":" + hashlib.sha256((salt + ":" + code).encode("utf-8")).hexdigest()
+
+
 def page_csp(feedback_endpoint):
     checked_feedback_endpoint(feedback_endpoint)
     return CSP.replace("connect-src 'self'", "connect-src 'self' https://script.google.com https://script.googleusercontent.com") if feedback_endpoint else CSP
@@ -123,7 +150,7 @@ def family_boot(source):
     return result
 
 
-def build_id(form="", form_es="", feedback_endpoint="", flavor="playtest"):
+def build_id(form="", form_es="", feedback_endpoint="", flavor="playtest", closeout=False):
     digest = hashlib.sha256()
     def content(p):
         value = p.read_bytes()
@@ -141,7 +168,8 @@ def build_id(form="", form_es="", feedback_endpoint="", flavor="playtest"):
             digest.update(content(p))
     # The educator sheets print the real-world fact register.
     digest.update(content(ROOT / "docs" / "fact-sources.json"))
-    digest.update(json.dumps([form, form_es, feedback_endpoint, flavor], separators=(",", ":")).encode())
+    # Whether the build has a close-out code, never the code or its salted hash: the salt is new in every build.
+    digest.update(json.dumps([form, form_es, feedback_endpoint, flavor] + ([True] if closeout else []), separators=(",", ":")).encode())
     return digest.hexdigest()[:12]
 
 
@@ -160,7 +188,7 @@ def git_commit():
     except (OSError, subprocess.CalledProcessError):
         return ""
 
-def feedback_panel(lang, revision, endpoint, form=""):
+def feedback_panel(lang, revision, endpoint, form="", closeout=""):
     w = WORDS[lang]; e = html.escape
     options = '<option value="0">' + e(w["feedback_general"]) + '</option>'
     options += "".join(f'<option value="{n}">{e(w["feedback_stop"])} {n}</option>' for n in range(1, 16))
@@ -171,7 +199,10 @@ def feedback_panel(lang, revision, endpoint, form=""):
         ("spanish", "feedback_spanish"), ("art", "feedback_art"), ("other", "feedback_other")))
     external = (f'<p class="pt-cta"><a class="pt-btn" href="{e(form)}" target="_blank" rel="noopener">{e(w["form"])}</a></p>'
                 f'<p class="pt-privacy">{e(w["external"])}</p>') if form else ""
-    return f'''  <section class="pt-note pt-feedback" id="pt-feedback" aria-labelledby="pt-feedback-h" data-lang="{lang}" data-build="{e(revision)}" data-endpoint="{e(endpoint)}">
+    lock = f' data-closeout="{e(closeout)}"' if closeout else ""
+    # A copy that sends never offers a child the per-player Excel file; a copy that never sends keeps it as the backup.
+    download = "" if endpoint else f'<button class="pt-btn pt-btn--secondary" id="pt-feedback-download" type="button">{e(w["feedback_download"])}</button>'
+    return f'''  <section class="pt-note pt-feedback" id="pt-feedback" aria-labelledby="pt-feedback-h" data-lang="{lang}" data-build="{e(revision)}" data-endpoint="{e(endpoint)}"{lock}>
     <h2 id="pt-feedback-h">{e(w["feedback"])}</h2>
     <p>{e(w["feedback_intro"])}</p>
     <p class="pt-feedback__player">{e(w["feedback_player"])} <span id="pt-feedback-player">{e(w["feedback_player_loading"])}</span></p>
@@ -190,7 +221,7 @@ def feedback_panel(lang, revision, endpoint, form=""):
     </form>
     <p id="pt-feedback-status" role="status" aria-live="polite">{e(w["feedback_auto_status"] if endpoint else w["feedback_status"])}</p>
     <details class="pt-feedback-more"><summary>{e(w['more'])}</summary>
-    <div class="pt-feedback__actions"><button class="pt-btn pt-btn--secondary" id="pt-feedback-download" type="button">{e(w["feedback_download"])}</button><button class="pt-btn pt-btn--secondary" id="pt-feedback-new-player" type="button" aria-haspopup="dialog" aria-describedby="pt-feedback-shared">{e(w["feedback_new_player"])}</button><button class="pt-btn pt-btn--secondary" id="pt-feedback-device" type="button" aria-haspopup="dialog">{e(w["device_open"])}</button></div>
+    <div class="pt-feedback__actions">{download}<button class="pt-btn pt-btn--secondary" id="pt-feedback-new-player" type="button" aria-haspopup="dialog" aria-describedby="pt-feedback-shared">{e(w["feedback_new_player"])}</button><button class="pt-btn pt-btn--secondary" id="pt-feedback-device" type="button" aria-haspopup="dialog">{e(w["device_open"])}</button></div>
     <p class="pt-privacy" id="pt-feedback-shared">{e(w["feedback_shared"])}</p>
     <details class="pt-feedback__saved"><summary>{e(w["feedback_notes"])}</summary><ul id="pt-feedback-entries"><li>{e(w["feedback_empty"])}</li></ul></details>
     </details>
@@ -236,11 +267,14 @@ def social_tags(lang):
     return "\n".join(f'<meta {attr}="{name}" content="{e(value)}">' for attr, name, value in pairs)
 
 
-def page(lang, form, revision="preview", build_date=None, feedback_endpoint="", flavor="playtest", commit=""):
+def page(lang, form, revision="preview", build_date=None, feedback_endpoint="", flavor="playtest", commit="", closeout=""):
     if flavor not in {"playtest", "family", "library"}:
         raise ValueError("Unknown game flavor")
     if flavor in {"family", "library"}:
-        feedback_endpoint = ""
+        # Family and library copies never send and never have the facilitator's close-out.
+        feedback_endpoint = closeout = ""
+    if closeout and not re.fullmatch(r"[0-9a-f]{32}:[0-9a-f]{64}", closeout):
+        raise ValueError("The close-out lock must be a salt and a SHA-256 hash from closeout_lock().")
     w = WORDS[lang]; e = html.escape
     form = checked_form(form)
     feedback_endpoint = checked_feedback_endpoint(feedback_endpoint)
@@ -248,6 +282,7 @@ def page(lang, form, revision="preview", build_date=None, feedback_endpoint="", 
     tag = ("Play-test version · " if lang == "en" else "Versión de prueba · ") + day.isoformat()
     social = "\n" + social_tags(lang) if flavor == "playtest" else ""
     steps = "".join(f"<li>{e(s)}</li>" for s in w["steps"])
+    closeout_open = f'<button class="pt-btn pt-btn--secondary" id="pt-closeout-open" type="button" aria-haspopup="dialog">{e(w["closeout_open"])}</button>' if closeout else ""
     markup = f"""<!doctype html>
 <html lang="{lang}" data-flavor="{flavor}">
 <head>
@@ -300,7 +335,7 @@ def page(lang, form, revision="preview", build_date=None, feedback_endpoint="", 
     <fieldset class="pt-consent" id="pt-consent-options"><legend>{e(w['grownups_tab'])}</legend>
       <label class="pt-quiet-choice" id="pt-consent-scores"><input type="checkbox" data-pg-consent="scores"><span><b>{e(w['consent_scores'])}</b><small>{e(w['consent_hint'])}</small></span></label>
       <label class="pt-quiet-choice" id="pt-consent-auto"><input type="checkbox" data-pg-consent="autoScores"><span>{e(w['consent_auto'])}<small>{e(w['consent_auto_hint'])}</small></span></label>
-      <div class="pt-actions"><button class="pt-btn pt-btn--secondary" id="pt-feedback-new-player-top" type="button" aria-haspopup="dialog" aria-describedby="pt-shared-top">{e(w["feedback_new_player"])}</button><button class="pt-btn pt-btn--secondary" id="pt-device-open" type="button" aria-haspopup="dialog">{e(w["device_open"])}</button></div>
+      <div class="pt-actions"><button class="pt-btn pt-btn--secondary" id="pt-feedback-new-player-top" type="button" aria-haspopup="dialog" aria-describedby="pt-shared-top">{e(w["feedback_new_player"])}</button><button class="pt-btn pt-btn--secondary" id="pt-device-open" type="button" aria-haspopup="dialog">{e(w["device_open"])}</button>{closeout_open}</div>
       <p class="pt-privacy" id="pt-shared-top">{e(w["feedback_shared"])}</p>
     </fieldset>
     <p class="pt-privacy">{e(w["privacy"])}</p>
@@ -336,7 +371,7 @@ def page(lang, form, revision="preview", build_date=None, feedback_endpoint="", 
           <button class="pt-tool" id="pt-feedback-dock-collapse" type="button" aria-expanded="true" aria-controls="pt-feedback" data-collapse-label="{e(w['collapse_docked_feedback'])}" data-expand-label="{e(w['expand_docked_feedback'])}">{e(w['collapse_docked_feedback'])}</button>
           <button class="pt-tool" id="pt-feedback-dock-float" type="button" aria-haspopup="dialog" aria-controls="pt-review-dialog">{e(w['floating'])}</button>
         </div>
-{feedback_panel(lang, revision, feedback_endpoint, form)}
+{feedback_panel(lang, revision, feedback_endpoint, form, closeout)}
       </div>
     </div>
     <dialog class="pt-review-dialog" id="pt-review-dialog" aria-label="{e(w['review_view'])}">
@@ -467,10 +502,13 @@ def main(argv=None):
     ap.add_argument("--feedback-endpoint", default=None, help="Deployed Google Apps Script URL; defaults to backend/feedback/deployment.json. Pass an empty string to disable shared backup.")
     ap.add_argument("--build-date", type=date.fromisoformat, default=date.today())
     ap.add_argument("--flavor", choices=["playtest", "family", "library"], default="playtest")
+    # Usually left out: PG_CLOSEOUT_CODE carries it, as CI does with its secret, so it stays out of command lines and logs.
+    ap.add_argument("--closeout-code", default=None, help="Facilitator's close-out code (6+ characters); defaults to PG_CLOSEOUT_CODE. Family and library copies never have one.")
     a = ap.parse_args(argv)
     try:
         checked_form(a.form); checked_form(a.form_es)
         a.feedback_endpoint = "" if a.flavor in {"family", "library"} else resolve_feedback_endpoint(a.feedback_endpoint)
+        code = resolve_closeout_code(a.closeout_code, a.flavor)
     except ValueError as exc:
         ap.error(str(exc))
     # Validate before touching generated output. No package download is needed.
@@ -478,7 +516,8 @@ def main(argv=None):
     if not node:
         raise SystemExit("Node.js is required to validate the game before building.")
     subprocess.run([node, str(ROOT / "tools/validate_game.mjs"), "--root", str(ROOT)], check=True)
-    revision = build_id(a.form, a.form_es, a.feedback_endpoint, a.flavor)
+    revision = build_id(a.form, a.form_es, a.feedback_endpoint, a.flavor, bool(code))
+    lock = closeout_lock(code)
     commit = git_commit()
     out_names = {"family": "pecan-grove-family", "library": "pecan-grove-library"}
     OUT = ROOT / "_publish" / out_names.get(a.flavor, "pecan-grove-playtest")
@@ -511,7 +550,7 @@ def main(argv=None):
         shutil.copytree(ROOT / "assets/icons", OUT / "assets/icons", dirs_exist_ok=True)
     for lang in ("en", "es"):
         form = (a.form_es or a.form) if lang == "es" else a.form
-        (OUT / WORDS[lang]["file"]).write_text(page(lang, form, revision, a.build_date, a.feedback_endpoint, a.flavor, commit), encoding="utf-8", newline="\n")
+        (OUT / WORDS[lang]["file"]).write_text(page(lang, form, revision, a.build_date, a.feedback_endpoint, a.flavor, commit, lock), encoding="utf-8", newline="\n")
         manifest = {"name": WORDS[lang]["brand"], "short_name": "Pecan Grove", "lang": lang,
                     "start_url": "./?source=pwa" if lang == "en" else "./espanol.html?source=pwa", "scope": "./",
                     "display": "standalone", "display_override": ["fullscreen", "standalone"],
@@ -542,7 +581,7 @@ def main(argv=None):
         encoding="utf-8", newline="\n")
     subprocess.run([node, str(ROOT / "tools/validate_game.mjs"), "--root", str(ROOT), "--site", str(OUT)], check=True)
     n = sum(1 for _ in OUT.rglob("*") if _.is_file() and ".git" not in _.parts)
-    print(f"play-test built: {OUT} ({n} files){' with form link' if a.form else ' (no form link yet)'}{'; git history kept' if keep_git else ''}")
+    print(f"play-test built: {OUT} ({n} files){' with form link' if a.form else ' (no form link yet)'}{'; facilitator close-out on' if lock else ''}{'; git history kept' if keep_git else ''}")
 
 
 if __name__ == "__main__":

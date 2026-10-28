@@ -198,7 +198,15 @@ export default function createDialog(ctx) {
       var next = ctx.btn(ctx.W.nextPlayer, "", function () {
         playersApi.requestNewPlayer(next);
       });
-      wrap.appendChild(ctx.h("div", { class: "cb-row" }, [next, device]));
+      var row = [next, device];
+      // Only a build with a facilitator's close-out code has this; it asks for the code before showing any note.
+      if (playersApi.openCloseout) {
+        var closeout = ctx.btn(ctx.W.facilitatorCloseout, "", function () {
+          playersApi.openCloseout(closeout);
+        });
+        row.push(closeout);
+      }
+      wrap.appendChild(ctx.h("div", { class: "cb-row" }, row));
     }
     // The engine adds Save / Open progress file, a local copy for grown-ups.
     var engine = ctx.window.PecanGroveEngine;

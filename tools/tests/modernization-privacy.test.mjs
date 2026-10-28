@@ -28,7 +28,10 @@ class Node {
   showModal() { this.open = true; }
   close() { this.open = false; this.fire('close'); }
 }
-function browser({lang = 'en', store = storage(), failure = false, autoMount = true, closeout = false} = {}) {
+// A build's close-out lock: a random salt and the SHA-256 of salt and code, as tools/make_playtest.py writes it.
+const CODE = 'maple-heron-42';
+function lock(code) { const salt = crypto.randomBytes(16).toString('hex'); return salt + ':' + crypto.createHash('sha256').update(salt + ':' + code).digest('hex'); }
+function browser({lang = 'en', store = storage(), failure = false, autoMount = true, closeout = '', dialog = false, cloud = true, tab = storage()} = {}) {
   const nodes = [];
   const doc = new Node(); doc.body = new Node('body'); doc.visibilityState = 'visible';
   doc.createElement = tag => { const n = new Node(tag); n.document = doc; nodes.push(n); return n; };
@@ -38,11 +41,18 @@ function browser({lang = 'en', store = storage(), failure = false, autoMount = t
   doc.querySelectorAll = () => nodes.filter(n => n.getAttribute('data-pg-consent'));
   doc.dispatchEvent = event => doc.fire(event.type, event.detail);
   function add(name, tag = 'div') { const n = doc.createElement(tag); n.id = name; return n; }
-  const panel = add('pt-feedback'); panel.dataset = {lang, build: 'privacy-test', endpoint};
+  const panel = add('pt-feedback'); panel.dataset = {lang, build: 'privacy-test', endpoint: cloud ? endpoint : ''};
+  if (closeout) panel.dataset.closeout = lock(closeout);
   const queries = new Map(); panel.querySelector = selector => queries.get(selector) || null;
   const game = add('community-builders'); game.dataset.currentStop = '0';
   const form = add('pt-feedback-form', 'form'); panel.appendChild(form);
-  for (const name of ['stop','rating','category','worked','fix','status','entries','context','player','new-player','new-player-top','download','device','submit']) form.appendChild(add('pt-feedback-' + name));
+  // A copy that sends has no per-player Excel button.
+  for (const name of ['stop','rating','category','worked','fix','status','entries','context','player','new-player','new-player-top', ...(cloud ? [] : ['download']),'device','submit']) form.appendChild(add('pt-feedback-' + name));
+  if (dialog) {
+    const box = add('pt-new-player-dialog', 'dialog'), row = doc.createElement('div');
+    for (const name of ['title', 'message']) box.appendChild(add('pt-new-player-' + name));
+    box.appendChild(row); for (const name of ['cancel', 'confirm']) row.appendChild(add('pt-new-player-' + name, 'button'));
+  }
   for (const name of ['h','privacy','hint','shared']) panel.appendChild(add('pt-feedback-' + name));
   queries.set('h2 + p', doc.createElement('p'));
   for (const name of ['stop','rating','category','worked','fix']) {
@@ -54,11 +64,11 @@ function browser({lang = 'en', store = storage(), failure = false, autoMount = t
   for (const name of ['scores','autoScores']) { const n = add('consent-' + name, 'input'); n.setAttribute('data-pg-consent', name); }
   let time = 0, next = 0;
   const timers = new Map(), requests = [];
-  const win = new Node(); win.localStorage = store; win.crypto = {randomUUID: id}; win.AbortController = AbortController;
+  const win = new Node(); win.localStorage = store; win.sessionStorage = tab; win.crypto = {randomUUID: id, subtle: crypto.webcrypto.subtle}; win.AbortController = AbortController;
   win.setTimeout = (fn, delay) => { timers.set(++next, {fn, at: time + delay, delay}); return next; };
   win.clearTimeout = key => timers.delete(key);
-  win.location = {href: 'https://game.test/index.html' + (closeout ? '?closeout=1' : ''), reload() { win.reloads = (win.reloads || 0) + 1; }};
-  win.history = {state: null, replaceState(state, title, url) { win.location.href = url; }};
+  win.location = {href: 'https://game.test/index.html', reload() { win.reloads = (win.reloads || 0) + 1; }};
+  win.history = {state: null, replaceState(state, title, url) { win.replaced = (win.replaced || 0) + 1; win.location.href = url; }};
   win.confirm = () => true; win.CustomEvent = class { constructor(type, options = {}) { this.type = type; this.detail = options.detail; } };
   win.Blob = Blob; win.URL = Object.assign(class extends URL {}, {createObjectURL: () => 'blob:test', revokeObjectURL() {}});
   win.fetch = async (url, options) => { requests.push({url, body: JSON.parse(options.body)}); if (failure) throw Error('offline'); return {ok: true, json: async () => ({ok: true, schemaVersion: 1, acknowledged: JSON.parse(options.body).entries.map(e => ({sessionId:e.sessionId,entryId:e.entryId,revision:e.revision}))})}; };
@@ -69,6 +79,11 @@ function browser({lang = 'en', store = storage(), failure = false, autoMount = t
 // The grown-up check plus one ordinary activation replaces the timed hold.
 function approve(b) { b.el('confirm').checked = true; b.el('confirm').fire('change'); b.el('send').click(); }
 async function settle() { for (let i = 0; i < 30; i++) await Promise.resolve(); }
+// SHA-256 in Web Crypto finishes outside the microtask queue.
+async function digestDone() { for (let i = 0; i < 4; i++) await new Promise(resolve => setTimeout(resolve, 5)); await settle(); }
+async function openCloseout(b, code = CODE) { b.app.openCloseout(); b.id('pt-closeout-code').value = code; b.id('pt-closeout-ask-confirm').click(); await digestDone(); }
+// Next player for a player whose note the playtest team has not received: keep it for the facilitator's close-out.
+function keepForFacilitator(b) { b.el('new-player').click(); b.id('pt-new-player-keep').click(); }
 const textOf = node => !node ? '' : [node.textContent, ...(node.children || []).map(textOf)].join(' ');
 const samples = [
   ['en','email sam@example.com','email [removed]'], ['es','mi correo es ana@x.com','mi correo es [quitado]'],
@@ -143,10 +158,10 @@ test('consent is off by default, opt-in creates one local score, and revocation 
  assert.equal(b.app.model.find('progress',3).revision,1); assert.equal(b.app.model.pending().length,0); assert.equal(b.requests.length,0);
  b.app.model.submitProgress(3); b.app.setConsent({scores:false}); assert.equal(b.app.model.pending().length,0); b.doc.fire('cb:screen',{stopN:4,phase:'result',score:90}); assert.equal(b.app.model.find('progress',4),undefined);
 });
-test('auto score option needs both switches; new player resets consent and hides prior drafts', async () => {
- const b=browser(); b.app.setConsent({scores:false,autoScores:true}); assert.equal(b.app.getConsent().autoScores,false);
+test('auto score option needs both switches; new player resets consent and keeps prior drafts only for the facilitator', async () => {
+ const b=browser({dialog:true,closeout:CODE}); b.app.setConsent({scores:false,autoScores:true}); assert.equal(b.app.getConsent().autoScores,false);
  b.app.setConsent({scores:true,autoScores:true}); b.doc.fire('cb:screen',{stopN:5,phase:'result',score:88}); await b.tick(0); assert.equal(b.requests.length,1); assert.ok(b.requests[0].body.entries.every(e=>e.kind==='progress'));
- b.el('fix').value='previous player'; b.el('new-player').click(); const next=browser({store:b.store}); assert.equal(next.app.getConsent().scores,false); assert.equal(next.app.getConsent().autoScores,false); assert.equal(next.app.model.entries().some(e=>e.fix==='previous player'),false); assert.ok(next.app.model.entries(true).some(e=>e.fix==='previous player'));
+ b.el('fix').value='previous player'; keepForFacilitator(b); const next=browser({store:b.store}); assert.equal(next.app.getConsent().scores,false); assert.equal(next.app.getConsent().autoScores,false); assert.equal(next.app.model.entries().some(e=>e.fix==='previous player'),false); assert.ok(next.app.model.entries(true).some(e=>e.fix==='previous player'));
 });
 test('explicit-send failures stop after three total attempts and reload does not restart retrying', async () => {
  const b=browser({failure:true}); b.el('fix').value='retry this explicit send'; b.el('form').fire('submit'); approve(b); await settle(); assert.equal(b.requests.length,1);
@@ -190,7 +205,11 @@ const childSamples = [
   ['en','my name is sofia garcia','my name is [removed]'], ['en','my name is sofia garcia and my snap is mayal22','my name is [removed] and my snap is mayal22'],
   ['en','my name is jake123 and i liked it','my name is [removed] and i liked it'], ['en','My name is Jake liked the map','My name is [removed] liked the map'],
   ['es','me llamo sofia garcia','me llamo [quitado]'], ['es','me llamo juan pablo','me llamo [quitado]'], ['es','Mi nombre es: Pedro','Mi nombre es: [quitado]'],
-  ['es','me llamo maría de la cruz y tengo 9 años','me llamo [quitado] y tengo [quitado]']
+  ['es','me llamo maría de la cruz y tengo 9 años','me llamo [quitado] y tengo [quitado]'],
+  // An apartment number after a street and a direction, a Discord tag, and a pet's name after a clear cue.
+  ['en','I live at 1234 Peachtree Rd NE apt 5','I live at [removed] NE [removed]'], ['es','vivo en el apto 4B','vivo en el [quitado]'],
+  ['en','add me on discord: coolkid#1234','add me on discord: [removed]'], ['es','agrégame en discord: nina_22#0042','agrégame en discord: [quitado]'],
+  ['es','mi perro se llama Toby','mi perro se llama [quitado]'], ['en',"my dog's name is Biscuit","my dog's name is [removed]"]
 ];
 for (const [lang, input, expected] of childSamples) test(`child details ${lang}: ${input}`, () => {
   assert.equal(api.scrubPII(input, lang), expected);
@@ -207,7 +226,10 @@ const ordinary = [
   ['en','my favorite was stop 12 the way it worked'], ['en','the 3 kids on the street'], ['en','I tried 2 times the same way'], ['en','I like the 4 animals on Main St'],
   ['en','I got 3 stars on stop 4 and 2 stars on stop 5 7 8'], ['en','Stop 6: the drive to the park'], ['en',"I'm so happy"], ['en','This is Stop 3 and it was fun'],
   ['es','La parada 2 fue una buena manera'], ['es','Me gustó la parada 10 de 16'], ['es','las paradas 3 4 5 6 7 8 9 fueron fáciles'], ['es','La parada 4 es la calle del mercado'],
-  ['es','Me llamo mucho la atención'], ['es','soy feliz con el mapa']
+  ['es','Me llamo mucho la atención'], ['es','soy feliz con el mapa'],
+  // A list of scores is not a phone number, and these words after a name cue are not a name.
+  ['en','my scores were 100 90 80 70 at the stops'], ['es','mi puntaje fue 100 90 80 70'], ['en','they call me when it is my turn'],
+  ['en','my name is spelled wrong on the badge'], ['en','Name: Stop 3 feedback'], ['es','mi nombre es importante para mí'], ['es','Nombre: parada 3']
 ];
 for (const [lang, input] of ordinary) test(`ordinary ${lang} sentence stays intact: ${input}`, () => assert.equal(api.scrubPII(input, lang), input));
 test('every contact and child sample is unchanged by a second scrub', () => {
@@ -225,14 +247,19 @@ test('Send says "Sending" until the matching acknowledgement and thanks only aft
   assert.equal(f.requests.length, 3); assert.match(f.el('thanks').textContent, /Todavía no se envió/); assert.doesNotMatch(f.el('thanks').textContent, /Gracias|recibimos/); assert.equal(f.el('submit').disabled, false);
   assert.match(textOf(f.el('entries')), /En espera: aún no recibida/);
 });
-test('after a reload an unconfirmed note says it has not reached the team, nothing retries by itself, and the next player sees earlier notes are waiting', async () => {
+test('after a reload an unconfirmed note says it has not reached the team and nothing retries by itself; Next player deletes it, or keeps it for the facilitator', async () => {
   const b = browser({failure: true}); b.el('fix').value = 'stranded'; b.el('form').fire('submit'); approve(b); await settle(); b.win.fire('pagehide');
   const next = browser({store: b.store}); await next.tick(600000);
   assert.equal(next.requests.length, 0); assert.match(next.el('status').textContent, /has not reached the playtest team yet/);
   let warned = ''; next.win.confirm = message => { warned = message; return true; }; next.el('new-player').click();
-  assert.match(warned, /has not received: 1/);
-  const after = browser({store: b.store}); assert.match(after.el('status').textContent, /Notes from earlier players on this device have not been sent/);
-  assert.equal(after.requests.length, 0);
+  assert.match(warned, /has not received: 1\. Delete them\? Nobody can bring them back\./);
+  const after = browser({store: b.store}); assert.doesNotMatch(after.el('status').textContent, /earlier players/); assert.equal(after.app.model.waiting().length, 0);
+  assert.doesNotMatch([...b.store.data.values()].join(''), /stranded/); assert.equal(after.requests.length, 0);
+  // With a close-out code the grown-up can keep the note instead; the next player is told it waits for the facilitator.
+  const k = browser({failure: true, dialog: true, closeout: CODE}); k.el('fix').value = 'kept'; k.el('form').fire('submit'); approve(k); await settle();
+  keepForFacilitator(k); assert.equal(k.win.reloads, 1);
+  const later = browser({store: k.store, closeout: CODE}); assert.match(later.el('status').textContent, /Notes from earlier players are saved on this device for Facilitator close-out\./);
+  assert.equal(later.requests.length, 0);
 });
 test('a blank note opens no preview and cannot be sent; a rating alone is a note', async () => {
   const b = browser(); b.el('form').fire('submit');
@@ -254,10 +281,21 @@ test('the preview flags names it cannot remove: introductions, relatives and fri
     ['en', "Hi I'm Maya Lopez", ['Maya Lopez']], ['en', 'Im Lily', ['Lily']], ['es', 'soy Mateo', ['Mateo']], ['en', 'This is Liam. I liked stop 3', ['Liam']],
     ['en', 'my brother Sam helped me', ['brother Sam']], ['en', 'My friend Ethan and I played', ['friend Ethan']], ['es', 'Mi hermano Juan me ayudó', ['hermano Juan']], ['es', 'Mi amiga Lucía jugó conmigo', ['amiga Lucía']],
     ['en', 'I liked it. -Emma', ['Emma']], ['es', 'Gracias, Valentina', ['Valentina']], ['en', 'sincerely, Olivia Brown', ['Olivia Brown']], ['es', 'Me gustó. Saludos, Sofía Pérez', ['Sofía Pérez']],
-    ['en', 'i am in 4th grade at lincoln elementary', ['lincoln elementary']], ['en', 'my snap is mayal22', ['mayal22']], ['es', 'mi tiktok es lucia_baila', ['lucia_baila']]
+    ['en', 'i am in 4th grade at lincoln elementary', ['lincoln elementary']], ['en', 'my snap is mayal22', ['mayal22']], ['es', 'mi tiktok es lucia_baila', ['lucia_baila']],
+    // Lower-case names after a greeting or "my brother", a last sign-off, pets, short school names and handles.
+    ['en', 'hi im maya lopez and i liked stop 3', ['maya lopez']], ['es', 'hola soy valentina gomez y me gustó la parada 2', ['valentina gomez']],
+    ['en', 'my little brother noah played too', ['brother noah']], ['es', 'mi hermano luis jugó también', ['hermano luis']],
+    ['en', 'thanks, from ava r.', ['ava r']], ['en', 'love it bye Liam', ['Liam']], ['es', 'muchas gracias, de parte de sofi', ['sofi']],
+    ['en', 'my dog Biscuit would like this game', ['dog Biscuit']], ['es', 'mi perro Toby es chistoso', ['perro Toby']],
+    ['en', 'Mrs. Johnson is my teacher at Dickerson Middle', ['Dickerson Middle', 'teacher']], ['en', "We play this in Ms. Rivera's class at Pope High", ["Ms. Rivera's", 'Pope High']],
+    ['en', 'I go to lincoln elementary in marietta', ['lincoln elementary', 'marietta']], ['en', 'add me on roblox: coolkid', ['coolkid']],
+    // A real surname or second name after a game character's first name.
+    ['en', 'me and my friend Jayden Smith liked it', ['friend Jayden Smith']], ['en', 'my sister Ana Sofia', ['sister Ana Sofia']], ['es', 'mi hermana Ana Sofía nos ayudó', ['hermana Ana Sofía']]
   ]) assert.deepEqual(api.privacyFlags(api.scrubPII(input, lang)), flags, input);
   for (const [lang, input] of [['en', "I'm Ana from the game"], ['en', 'I am so happy'], ['en', 'Grandma Ruth was kind'], ['es', 'soy feliz'], ['en', 'This is Stop 3'], ['en', 'Thanks for the game!'],
-    ['es', 'La abuela Ruth me ayudó'], ['en', 'my insta is not working'], ['en', 'the elementary kids liked it'], ['es', 'Gracias por el juego'], ['en', 'I am the Fox']]) assert.deepEqual(api.privacyFlags(api.scrubPII(input, lang)), [], input);
+    ['es', 'La abuela Ruth me ayudó'], ['en', 'my insta is not working'], ['en', 'the elementary kids liked it'], ['es', 'Gracias por el juego'], ['en', 'I am the Fox'],
+    ['en', 'my brother helped me'], ['en', 'hi im so happy'], ['en', 'made by kids.'], ['es', 'mi mamá dice que es bueno'], ['en', 'my dog ate my homework'], ['es', 'hola soy de Guatemala'],
+    ['en', 'I liked Grandma Ruth and Jayden'], ['en', 'Thanks, Ana!'], ['en', 'The High School Tech League part was fun']]) assert.deepEqual(api.privacyFlags(api.scrubPII(input, lang)).filter(word => word !== 'School'), [], input);
 });
 test('turning on score sharing waits for a grown-up confirmation; turning it off does not', () => {
   const b = browser(), box = b.id('consent-scores'), auto = b.id('consent-autoScores');
@@ -273,43 +311,70 @@ test('turning on score sharing waits for a grown-up confirmation; turning it off
 });
 // The next child on a shared computer must never read, download, send or bring back the last child's notes.
 test('Privacy and notes on this device shows the notice and only counts notes: no note text, Send, Excel for every player or way back to the last player', async () => {
-  const b = browser(); b.el('fix').value = 'first player note with sam@example.com'; b.app.flush(); b.el('new-player').click();
-  const c = browser({store: b.store}); c.el('worked').value = 'second player note'; c.app.flush();
+  const b = browser({dialog: true, closeout: CODE}); b.el('fix').value = 'first player note with sam@example.com'; b.app.flush(); keepForFacilitator(b);
+  const c = browser({store: b.store, closeout: CODE}); c.el('worked').value = 'second player note'; c.app.flush();
   assert.equal(c.id('pt-player-back'), null, 'no button brings back the last player');
   c.el('device').click();
   const dialog = c.id('pt-device-dialog'); assert.equal(dialog.open, true); assert.equal(c.doc.activeElement, c.id('pt-device-title'));
   const notice = textOf(c.id('pt-device-privacy'));
-  for (const fact of [/akeyvanf@kennesaw\.edu/, /Google Apps Script/, /nothing leaves this device until a grown-up reviews a note/, /random codes/, /when it started and last changed, and whether it has ended/, /eight most recent players/, /Erase all Pecan Grove data on this device/]) assert.match(notice, fact);
+  for (const fact of [/akeyvanf@kennesaw\.edu/, /Google Apps Script/, /nothing leaves this device until a grown-up reviews a note/, /random codes/, /when it started and last changed, and whether it has ended/, /eight most recent players/, /Erase all Pecan Grove data on this device/,
+    /names of files downloaded during the current player's turn/, /review and send them, keep them on this device for Facilitator close-out, which opens only with the facilitator's code, or delete them/, /Notes the team has received stay on this device as they were sent/]) assert.match(notice, fact);
   assert.match(textOf(dialog), /Players: 2\. Notes: 2\. Not received by the playtest team: 2\./);
-  assert.match(textOf(dialog), /only counts them.*close-out view/);
-  assert.doesNotMatch(textOf(dialog), /first player note|second player note|sam@example\.com/);
+  assert.match(textOf(dialog), /only counts them\. The facilitator reads them in Facilitator close-out, under For grown-ups, with the facilitator's code\./);
+  assert.doesNotMatch(textOf(dialog), /first player note|second player note|sam@example\.com|closeout=|close-out view/);
   for (const id of ['pt-device-show', 'pt-device-notes', 'pt-device-confirm', 'pt-device-send', 'pt-device-download']) assert.equal(c.id(id), null, id);
   const status = c.id('pt-device-status');
   c.id('pt-device-erase').click(); assert.equal(c.doc.activeElement, c.id('pt-device-erase-no'));
   assert.equal(c.id('pt-device-status'), status, 'the polite status region is never replaced');
-  assert.match(c.id('pt-device-erase-message').textContent, /Notes not received by the playtest team: 2\. Erasing deletes them\. .*download them first in the close-out view/);
+  assert.match(c.id('pt-device-erase-message').textContent, /Notes not received by the playtest team: 2\. Erasing deletes them\. To keep them, the facilitator can send or download them first in Facilitator close-out\./);
   c.id('pt-device-erase-yes').click();
   assert.equal(c.win.reloads, 1); assert.equal([...c.store.data.keys()].some(key => key.startsWith('pecan-grove')), false);
   c.win.fire('pagehide'); c.doc.visibilityState = 'hidden'; c.doc.fire('visibilitychange');
   assert.equal([...c.store.data.keys()].some(key => key.startsWith('pecan-grove')), false, 'the closing page does not write notes back');
   assert.equal(c.requests.length, 0);
+  // A copy with no close-out code never mentions it, and says notes are sent or deleted.
+  const plain = browser(); plain.el('device').click();
+  assert.doesNotMatch(textOf(plain.id('pt-device-dialog')), /close-out|Facilitator/); assert.match(textOf(plain.id('pt-device-privacy')), /review and send them, or delete them\./);
+  const local = browser({cloud: false}); local.el('device').click();
+  assert.match(textOf(local.id('pt-device-privacy')), /At Next player, a grown-up deletes them, so download Excel first to keep them\. What is sent: nothing\. This copy of the game is not connected to the playtest team\. Questions/);
 });
-test('the close-out view opens only from ?closeout=1 after a grown-up confirms, and that confirmation is asked once', () => {
-  const plain = browser(); assert.equal(plain.id('pt-closeout-ask'), null); assert.equal(plain.id('pt-closeout-dialog'), null);
-  const b = browser({closeout: true}), ask = b.id('pt-closeout-ask');
-  assert.equal(ask.open, true); assert.equal(b.doc.activeElement, b.id('pt-closeout-ask-cancel')); assert.equal(b.id('pt-closeout-dialog'), null);
-  assert.match(textOf(ask), /only for the grown-up running the play-test/);
-  b.id('pt-closeout-ask-cancel').click();
-  assert.equal(ask.open, false); assert.equal(b.id('pt-closeout-dialog'), null); assert.equal(b.win.location.href, 'https://game.test/index.html');
-  const e = browser({closeout: true, lang: 'es'}); assert.equal(e.id('pt-closeout-ask-confirm').textContent, 'Soy el adulto que dirige la prueba');
-  const escape = e.id('pt-closeout-ask').fire('cancel'); assert.ok(escape); assert.equal(e.id('pt-closeout-ask').open, false); assert.equal(e.id('pt-closeout-dialog'), null);
+test('Facilitator close-out exists only with a close-out code: a dialog asks for the code, five wrong codes wait a minute, and the address never changes', async () => {
+  const plain = browser(); assert.equal(plain.app.openCloseout, undefined); assert.equal(plain.id('pt-closeout-ask'), null); assert.equal(plain.id('pt-closeout-dialog'), null);
+  const tab = storage(), b = browser({closeout: CODE, tab}), opener = b.doc.createElement('button');
+  b.app.openCloseout(opener);
+  const ask = b.id('pt-closeout-ask'); assert.equal(ask.open, true); assert.equal(b.doc.activeElement, b.id('pt-closeout-code'));
+  assert.match(textOf(ask), /Facilitator close-out .*Type the close-out code .*If you are a player, choose Not now\./);
+  assert.equal(b.id('pt-closeout-code').type, 'text', 'never a password field a browser could offer to save'); assert.equal(b.id('pt-closeout-code').getAttribute('autocomplete'), 'off');
+  b.id('pt-closeout-ask-confirm').click(); await digestDone(); assert.match(b.id('pt-closeout-ask-status').textContent, /Type the close-out code first/);
+  for (let i = 1; i <= 4; i++) {
+    b.id('pt-closeout-code').value = 'wrong-code-' + i; b.id('pt-closeout-ask-confirm').click(); await digestDone();
+    assert.equal(b.id('pt-closeout-ask-status').textContent, 'That code is not right. Tries left before a one-minute wait: ' + (5 - i) + '.'); assert.equal(b.id('pt-closeout-code').value, '');
+  }
+  b.id('pt-closeout-code').value = 'wrong-code-5'; b.id('pt-closeout-ask-confirm').click(); await digestDone();
+  assert.equal(b.id('pt-closeout-ask-status').textContent, 'Too many tries. Wait one minute, then try again.');
+  b.id('pt-closeout-code').value = CODE; b.id('pt-closeout-ask-confirm').click(); await digestDone();
+  assert.equal(b.id('pt-closeout-dialog'), null, 'even the right code waits');
+  // The wait is kept for this tab, also across a reload.
+  const wait = JSON.parse(tab.getItem(api.TRIES_KEY)); assert.ok(wait.until > Date.now() + 50000);
+  const again = browser({store: b.store, closeout: CODE, tab}); again.app.openCloseout(); assert.match(again.id('pt-closeout-ask-status').textContent, /Too many tries/);
+  // A minute later the right code opens the close-out, with spaces around it trimmed.
+  tab.setItem(api.TRIES_KEY, JSON.stringify({count: 0, until: Date.now() - 1}));
+  again.id('pt-closeout-code').value = '  ' + CODE + ' '; again.id('pt-closeout-ask-confirm').click(); await digestDone();
+  assert.equal(again.id('pt-closeout-dialog').open, true); assert.equal(again.id('pt-closeout-ask').open, false); assert.equal(again.doc.activeElement, again.id('pt-closeout-title'));
+  assert.equal(again.id('pt-closeout-code').value, ''); assert.deepEqual(JSON.parse(tab.getItem(api.TRIES_KEY)), {count: 0, until: 0});
+  for (const page of [b, again]) { assert.equal(page.win.location.href, 'https://game.test/index.html'); assert.equal(page.win.replaced || 0, 0); }
+  // Escape closes the question, forgets what was typed and returns focus.
+  const e = browser({closeout: CODE, lang: 'es'}), back = e.doc.createElement('button'); e.app.openCloseout(back);
+  assert.equal(e.id('pt-closeout-ask-confirm').textContent, 'Abrir el cierre'); assert.match(textOf(e.id('pt-closeout-ask')), /Cierre para facilitadores .*Si eres un jugador, elige Ahora no\./);
+  e.id('pt-closeout-code').value = 'typed'; const escape = e.id('pt-closeout-ask').fire('cancel'); assert.ok(escape);
+  assert.equal(e.id('pt-closeout-ask').open, false); assert.equal(e.id('pt-closeout-code').value, ''); assert.equal(e.doc.activeElement, back); assert.equal(e.id('pt-closeout-dialog'), null);
 });
-test('close-out: a grown-up reads every player\'s notes, one check sends them, focus stays in the dialog, and Excel covers every player', async () => {
-  const b = browser(); b.el('fix').value = 'first player note with sam@example.com'; b.app.flush(); b.el('new-player').click();
-  const c = browser({store: b.store, closeout: true}); c.el('worked').value = 'second player note'; c.app.flush();
-  c.id('pt-closeout-ask-confirm').click();
+test("close-out: a grown-up reads every player's notes, one check sends them, focus stays in the dialog, and the Excel for every player is scrubbed", async () => {
+  const b = browser({dialog: true, closeout: CODE}); b.el('fix').value = 'first player note with sam@example.com'; b.app.flush(); keepForFacilitator(b);
+  const c = browser({store: b.store, closeout: CODE}); c.el('worked').value = 'second player note'; c.app.flush();
+  await openCloseout(c);
   const dialog = c.id('pt-closeout-dialog'); assert.equal(dialog.open, true); assert.equal(c.doc.activeElement, c.id('pt-closeout-title'));
-  assert.equal(c.win.location.href, 'https://game.test/index.html', 'the address switch is used once');
+  assert.equal(c.win.location.href, 'https://game.test/index.html', 'nothing reaches the address or the history');
   const listed = textOf(c.id('pt-closeout-notes')); assert.match(listed, /first player note with \[removed\]/); assert.match(listed, /second player note/); assert.match(listed, /\(playing now\)/);
   assert.doesNotMatch(listed, /sam@example\.com/);
   const status = c.id('pt-closeout-status');
@@ -323,12 +388,17 @@ test('close-out: a grown-up reads every player\'s notes, one check sends them, f
   assert.equal(c.doc.activeElement, c.id('pt-closeout-title'), 'focus stays in the dialog after the list is drawn again');
   let saved = null; c.win.Blob = class { constructor(parts) { saved = Buffer.from(parts[0]); } };
   c.id('pt-closeout-download').click();
-  assert.ok(saved.includes(Buffer.from('first player note'))); assert.ok(saved.includes(Buffer.from('second player note')));
-  c.id('pt-closeout-close').click(); assert.equal(dialog.open, false);
+  assert.ok(saved.includes(Buffer.from('first player note with [removed]'))); assert.ok(saved.includes(Buffer.from('second player note'))); assert.ok(!saved.includes(Buffer.from('sam@example.com')));
+  assert.ok(saved.includes(Buffer.from('Check before sharing.')));
+  // Closing first says to delete the downloaded file; the second Close closes and leaves no note text in the page.
+  c.id('pt-closeout-close').click(); assert.equal(dialog.open, true);
+  assert.equal(c.id('pt-closeout-files').textContent, 'Files were downloaded on this computer during this turn: pecan-grove-feedback-all-players.xlsx. Delete them from the Downloads folder before a child uses this computer.');
+  assert.doesNotMatch(textOf(dialog), /player note/);
+  c.id('pt-closeout-close').click(); assert.equal(dialog.open, false); assert.doesNotMatch(textOf(dialog), /player note|Downloads folder/);
 });
 test('close-out with two tabs: a note written in another tab after the list was shown is never sent without being read', async () => {
   const b = browser(); b.el('fix').value = 'read note'; b.app.flush();
-  const c = browser({store: b.store, closeout: true}); c.id('pt-closeout-ask-confirm').click();
+  const c = browser({store: b.store, closeout: CODE}); await openCloseout(c);
   assert.match(c.id('pt-closeout-send').textContent, /\(1\)/);
   // Another tab adds a note, and its storage event redraws the list: the check is cleared and Send sends nothing.
   c.id('pt-closeout-confirm').checked = true;
@@ -349,13 +419,13 @@ test('close-out with two tabs: a note written in another tab after the list was 
   assert.equal(left.worked, 'edited after the list was shown'); assert.equal(left.submitted, false, 'the unread note stays a local draft');
   assert.match(c.id('pt-closeout-status').textContent, /Notes not received: 1\..*changed after this list was shown/);
 });
-test('Next player shows no way back to a child; the close-out view brings back a player chosen by mistake', () => {
-  const b = browser(), first = b.app.model.active(); b.el('fix').value = 'first player draft'; b.el('new-player').click();
+test('Next player shows no way back to a child; the facilitator close-out brings back a player chosen by mistake', async () => {
+  const b = browser({dialog: true, closeout: CODE}), first = b.app.model.active(); b.el('fix').value = 'first player draft'; keepForFacilitator(b);
   const c = browser({store: b.store}), second = c.app.model.active();
-  assert.equal(c.id('pt-player-back'), null); assert.match(c.id('pt-player-ready').textContent, /next player is ready/);
+  assert.equal(c.id('pt-player-back'), null); assert.equal(c.id('pt-player-ready').textContent, 'The next player is ready.');
   assert.equal(textOf(c.panel).includes('Go back to the last player'), false);
   c.el('worked').value = 'second player typed'; c.el('worked').fire('input'); c.app.flush(); assert.equal(c.id('pt-player-ready').parentNode.children.includes(c.id('pt-player-ready')), false, 'typing removes the ready line');
-  const d = browser({store: b.store, closeout: true}); d.id('pt-closeout-ask-confirm').click();
+  const d = browser({store: b.store, closeout: CODE}); await openCloseout(d);
   assert.match(textOf(d.id('pt-closeout-body')), /Bring back a player/);
   const bring = d.allNodes().findLast(n => n.tagName === 'BUTTON' && n.textContent.startsWith('Bring back player ' + first.slice(-6).toUpperCase() + ' (last saved '));
   assert.ok(bring, 'every earlier player can be brought back');
@@ -364,4 +434,117 @@ test('Next player shows no way back to a child; the close-out view brings back a
   assert.equal(e.app.getConsent().scores, false);
   assert.ok(e.app.model.entries(true).some(x => x.sessionId === second && x.kind === 'session' && x.sessionEnded), 'the player who was playing stays saved and ends');
   assert.ok(e.app.model.entries(true).some(x => x.sessionId === second && x.worked === 'second player typed'));
+});
+
+// Next player never leaves a player's notes behind: they are sent after a grown-up's review, deleted, or (with a
+// close-out code) kept for the facilitator.
+test('Next player with notes not received: Keep playing is the default, and Review and send now sends only this player\'s notes after the grown-up check, then starts the next player', async () => {
+  const b = browser({dialog: true, closeout: CODE}); b.el('fix').value = 'first player note'; b.app.flush(); keepForFacilitator(b);
+  const c = browser({store: b.store, dialog: true, closeout: CODE}), second = c.app.model.active();
+  c.doc.fire('cb:screen', {stopN: 2, phase: 'playing'}); c.el('worked').value = 'my sister Ana Sofia liked stop 2, email me at kid@example.com'; c.app.flush();
+  const opener = c.el('new-player'); opener.focus(); opener.click();
+  const dialog = c.id('pt-new-player-dialog'); assert.equal(dialog.open, true); assert.equal(c.doc.activeElement, c.id('pt-new-player-cancel'));
+  assert.equal(c.id('pt-new-player-message').textContent, 'Notes from this player that the playtest team has not received: 1. Choose what happens to them before the next player starts.');
+  for (const [id, label] of [['pt-new-player-send', 'Review and send now'], ['pt-new-player-keep', 'Keep them for the facilitator'], ['pt-new-player-delete', 'Delete them']]) { assert.equal(c.id(id).hidden, false, id); assert.equal(c.id(id).textContent, label); }
+  assert.equal(c.id('pt-new-player-confirm').hidden, true, 'nothing starts the next player before the notes are handled');
+  c.id('pt-new-player-cancel').click(); assert.equal(dialog.open, false); assert.equal(c.win.reloads || 0, 0); assert.equal(c.doc.activeElement, opener);
+  opener.click(); c.id('pt-new-player-send').click();
+  assert.equal(c.doc.activeElement, c.id('pt-new-player-review')); const listed = textOf(c.id('pt-new-player-notes'));
+  assert.match(listed, /email me at \[removed\]/); assert.doesNotMatch(listed, /kid@example\.com|first player note/);
+  assert.match(textOf(c.id('pt-new-player-body')), /Please check these words before sending: sister Ana Sofia/);
+  assert.equal(c.id('pt-new-player-confirm').textContent, 'Send now');
+  c.id('pt-new-player-confirm').click(); await settle(); assert.equal(c.requests.length, 0); assert.match(c.id('pt-new-player-status').textContent, /tick the check first/);
+  c.id('pt-new-player-check').checked = true; c.id('pt-new-player-confirm').click(); await settle();
+  assert.equal(c.requests.length, 1); const sent = c.requests[0].body.entries;
+  assert.ok(sent.every(e => e.sessionId === second), 'only this player\'s records leave');
+  assert.deepEqual(sent.filter(e => e.kind === 'feedback').map(e => e.worked), ['my sister Ana Sofia liked stop 2, email me at [removed]']);
+  assert.equal(c.win.reloads, 1); assert.notEqual(c.app.model.active(), second); assert.equal(dialog.open, false);
+  assert.doesNotMatch(textOf(dialog), /Ana Sofia|stop 2/, 'the closed dialog keeps no note text');
+  assert.ok(c.app.model.entries(true).some(e => e.worked === 'first player note' || e.fix === 'first player note'), 'the kept note of the earlier player is untouched');
+});
+test('a review that does not reach the team keeps this player: the dialog says how many notes are left and the next player does not start', async () => {
+  const c = browser({dialog: true, failure: true}), me = c.app.model.active(); c.el('worked').value = 'note that cannot be sent'; c.app.flush();
+  c.el('new-player').click(); assert.equal(c.id('pt-new-player-keep').hidden, true, 'no close-out code, no keeping'); c.id('pt-new-player-send').click();
+  c.id('pt-new-player-check').checked = true; c.id('pt-new-player-confirm').click(); await settle();
+  assert.equal(c.requests.length, 1); assert.equal(c.app.model.active(), me); assert.equal(c.win.reloads || 0, 0); assert.equal(c.id('pt-new-player-dialog').open, true);
+  assert.match(c.id('pt-new-player-status').textContent, /Notes not received: 1\./); assert.equal(!!c.id('pt-new-player-check').checked, false, 'a new try needs the check again');
+});
+test('Delete them asks again with Keep playing as the default, then leaves no text of this player\'s notes on the device', () => {
+  const c = browser({dialog: true}), me = c.app.model.active(); c.el('worked').value = 'delete me please'; c.app.flush(); c.doc.fire('cb:screen', {stopN: 4, phase: 'playing'}); c.el('fix').value = 'and me'; c.app.flush();
+  c.el('new-player').click(); c.id('pt-new-player-delete').click();
+  assert.equal(c.doc.activeElement, c.id('pt-new-player-cancel'), 'Keep playing is the safe default');
+  assert.equal(c.id('pt-new-player-message').textContent, 'Notes from this player that the playtest team has not received: 2. Delete them? Nobody can bring them back.');
+  assert.equal(c.id('pt-new-player-confirm').textContent, 'Delete and start the next player');
+  c.id('pt-new-player-cancel').click(); assert.equal(c.win.reloads || 0, 0); assert.equal(c.app.model.find('feedback', 4).fix, 'and me');
+  c.el('new-player').click(); c.id('pt-new-player-delete').click(); c.id('pt-new-player-confirm').click();
+  assert.equal(c.win.reloads, 1); assert.notEqual(c.app.model.active(), me); assert.equal(c.requests.length, 0);
+  assert.doesNotMatch([...c.store.data.values()].join(''), /delete me please|and me/);
+});
+test('Keep them for the facilitator needs a close-out code and Review and send now a receiver; with nothing to handle, Next player only confirms', () => {
+  for (const [cloud, closeout, offered] of [[true, CODE, ['send', 'keep', 'delete']], [true, '', ['send', 'delete']], [false, CODE, ['keep', 'delete']]]) {
+    const b = browser({dialog: true, cloud, closeout}); b.el('worked').value = 'a note'; b.app.flush(); b.el('new-player').click();
+    for (const id of ['send', 'keep', 'delete']) assert.equal(b.id('pt-new-player-' + id).hidden, !offered.includes(id), cloud + ' ' + closeout + ' ' + id);
+  }
+  // A copy with neither asks only to delete, and says how to keep a copy first.
+  const local = browser({dialog: true, cloud: false}); local.el('worked').value = 'a note'; local.app.flush(); local.el('new-player').click();
+  assert.equal(local.id('pt-new-player-send').hidden, true); assert.equal(local.id('pt-new-player-confirm').textContent, 'Delete and start the next player');
+  assert.match(local.id('pt-new-player-message').textContent, /Delete them\? Nobody can bring them back\. To keep the notes, choose Keep playing and download Excel first\./);
+  const empty = browser({dialog: true, closeout: CODE}); empty.el('new-player').click();
+  assert.equal(empty.id('pt-new-player-confirm').hidden, false); assert.equal(empty.id('pt-new-player-confirm').textContent, 'Start next player');
+  assert.match(empty.id('pt-new-player-message').textContent, /This player's game stays saved on this device\. Only Facilitator close-out, with the facilitator's code, can bring this player back\.$/);
+  // A note saved in another tab while the question is open is handled before the next player starts.
+  const other = browser({store: empty.store}); other.el('worked').value = 'written in the other tab'; other.app.flush();
+  empty.id('pt-new-player-confirm').click(); assert.equal(empty.win.reloads || 0, 0); assert.match(empty.id('pt-new-player-message').textContent, /has not received: 1\. Choose what happens/);
+  empty.id('pt-new-player-keep').click(); assert.equal(empty.win.reloads, 1);
+  const plain = browser({dialog: true}); plain.el('new-player').click(); assert.doesNotMatch(plain.id('pt-new-player-message').textContent, /Facilitator|close-out/);
+});
+test('when saving stops working after this player saved, Next player opens with the storage message and offers to erase and start over', () => {
+  const store = storage(), b = browser({store, dialog: true}); b.el('worked').value = 'saved once'; b.app.flush();
+  store.setItem = () => { throw new DOMException('full', 'QuotaExceededError'); };
+  b.el('worked').value = 'saved once, then more'; b.el('new-player').click();
+  assert.equal(b.id('pt-new-player-dialog').open, true); assert.equal(b.doc.activeElement, b.id('pt-new-player-cancel'));
+  assert.match(b.id('pt-new-player-message').textContent, /cannot save on this device right now, so the next player cannot start the usual way\. You can erase this device's Pecan Grove data and start over\./);
+  assert.equal(b.id('pt-new-player-confirm').textContent, 'Erase and start over'); assert.match(b.el('status').textContent, /cannot save feedback on this device right now/);
+  b.id('pt-new-player-cancel').click(); assert.equal(b.el('worked').value, 'saved once, then more', 'Keep playing keeps the form');
+  b.el('new-player').click(); b.id('pt-new-player-confirm').click();
+  assert.equal(b.win.reloads, 1); assert.equal([...store.data.keys()].some(key => key.startsWith('pecan-grove')), false);
+  // Where even erasing fails, the dialog says so and the form stays as it was.
+  const blocked = storage(), c = browser({store: blocked, dialog: true}); c.el('worked').value = 'keep me'; c.app.flush();
+  blocked.setItem = () => { throw Error('full'); }; blocked.removeItem = () => { throw Error('denied'); };
+  c.el('worked').value = 'keep me too'; c.el('new-player').click(); c.id('pt-new-player-confirm').click();
+  assert.equal(c.win.reloads || 0, 0); assert.match(c.id('pt-new-player-status').textContent, /could not erase Pecan Grove's data/); assert.equal(c.el('worked').value, 'keep me too');
+});
+test('files downloaded during this turn: Next player says to delete them from Downloads, and the next player starts with none', () => {
+  const b = browser({dialog: true, cloud: false, closeout: CODE}); b.el('worked').value = 'local note'; b.app.flush();
+  b.el('download').click(); assert.match(b.el('status').textContent, /^Excel downloaded for this player\. Before the next player starts, delete it from the Downloads folder or move it somewhere private\.$/);
+  b.doc.fire('pg:file-saved', {name: 'pecan-grove-progress-2026-10-27.json'});
+  b.el('new-player').click();
+  assert.match(b.id('pt-new-player-files').textContent, /^Files were downloaded on this computer during this player's turn: pecan-grove-feedback-[0-9a-z]{6}\.xlsx, pecan-grove-progress-2026-10-27\.json\. Before the next player starts, delete them from the Downloads folder or move them somewhere private\.$/);
+  // A reload in the same turn still remembers the files; the next player starts with none.
+  b.id('pt-new-player-cancel').click();
+  const again = browser({store: b.store, dialog: true, cloud: false, closeout: CODE}); again.el('new-player').click(); assert.match(again.id('pt-new-player-files').textContent, /pecan-grove-progress-2026-10-27\.json/);
+  again.id('pt-new-player-keep').click(); assert.equal(again.store.getItem(api.FILES_KEY), null);
+  const next = browser({store: b.store, dialog: true, cloud: false}); next.el('new-player').click(); assert.equal(next.id('pt-new-player-files'), null);
+});
+test('leaving the page closes and empties every dialog and the form; Back or Forward shows the same player again, or reloads when the player changed', async () => {
+  const b = browser({dialog: true, closeout: CODE}); b.el('worked').value = 'first note'; b.app.flush(); keepForFacilitator(b);
+  const c = browser({store: b.store, dialog: true, closeout: CODE}); c.el('worked').value = 'mine, my sister Ana Sofia'; c.app.flush(); c.el('form').fire('submit'); assert.match(c.el('preview-flags').textContent, /Ana Sofia/);
+  await openCloseout(c); assert.match(textOf(c.id('pt-closeout-notes')), /first note/);
+  c.win.fire('pagehide');
+  assert.equal(c.id('pt-closeout-dialog').open, false); assert.doesNotMatch(textOf(c.id('pt-closeout-dialog')), /first note|mine/);
+  assert.equal(c.el('worked').value, ''); assert.doesNotMatch(textOf(c.el('entries')), /mine/); assert.equal(c.el('preview-text').textContent, ''); assert.equal(c.el('preview-flags').textContent, '');
+  assert.equal(c.app.model.find('feedback', 0).worked, 'mine, my sister Ana Sofia', 'the note stays saved');
+  // The same player in the back-forward cache: the form and the list come back from storage, without a reload.
+  c.win.fire('pageshow', null, {persisted: true}); assert.equal(c.win.reloads || 0, 0); assert.equal(c.el('worked').value, 'mine, my sister Ana Sofia'); assert.match(textOf(c.el('entries')), /mine/);
+  // The code question and Next player's list of notes empty too.
+  c.app.openCloseout(); c.id('pt-closeout-code').value = 'half typed';
+  c.win.fire('pagehide'); assert.equal(c.id('pt-closeout-ask').open, false); assert.equal(c.id('pt-closeout-code').value, '');
+  c.win.fire('pageshow', null, {persisted: true});
+  c.el('new-player').click(); c.id('pt-new-player-send').click(); assert.match(textOf(c.id('pt-new-player-notes')), /mine/);
+  c.win.fire('pagehide'); assert.equal(c.id('pt-new-player-dialog').open, false); assert.doesNotMatch(textOf(c.id('pt-new-player-dialog')), /mine/);
+  // Another tab starts a player while this page waits in the back-forward cache: showing it again reloads.
+  browser({store: b.store}).app.model.rotate();
+  c.win.fire('pageshow', null, {persisted: true}); assert.equal(c.win.reloads, 1);
+  // A normal first show does nothing.
+  const d = browser(); d.win.fire('pageshow', null, {persisted: false}); assert.equal(d.win.reloads || 0, 0);
 });

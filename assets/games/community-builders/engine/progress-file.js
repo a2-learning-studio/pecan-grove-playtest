@@ -305,6 +305,10 @@ export function progressControls({
       link.remove();
       setTimeout(() => URL.revokeObjectURL(url), 30000);
       status.textContent = i18n.t("progressSaved");
+      // The feedback layer lists files saved during this player's turn, so Next player can say to delete them.
+      document.dispatchEvent(
+        new CustomEvent("pg:file-saved", { detail: { name: link.download } }),
+      );
     } catch {
       status.textContent = i18n.t("progressSaveFailed");
     }

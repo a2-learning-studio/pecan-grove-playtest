@@ -157,7 +157,8 @@
     "consentAutoScores": "También enviar cada puntaje al terminar una parada",
     "consentAutoDetails": "Se envía enseguida, sin revisión de un adulto. Nunca notas ni nombres.",
     "devicePanel": "Privacidad y notas de este dispositivo",
-    "nextPlayer": "Siguiente jugador en esta computadora"
+    "nextPlayer": "Siguiente jugador en esta computadora",
+    "facilitatorCloseout": "Cierre para facilitadores"
   },
   "X": {
     "parts3": [

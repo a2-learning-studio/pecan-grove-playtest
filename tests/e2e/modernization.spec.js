@@ -1,4 +1,5 @@
 const { test, expect } = require('./fixtures');
+const { isReceiver } = require('./network-policy.cjs');
 const AxeBuilder = require('@axe-core/playwright').default;
 const {renderedLabelContrast}=require('./contrast-probe.cjs');
 const {settleFiniteAnimations,accessibilityDiagnostics}=require('./settle-animations.cjs');
@@ -358,25 +359,33 @@ async function openIntro(page,file) {
   await expect(page.locator('#community-builders')).toHaveAttribute('data-engine-mounted','true');
   await page.locator('#pt-feedback-save-draft').waitFor({state:'attached'});
 }
-// The close-out view: an address switch plus a grown-up confirmation, never a button in the normal game.
+// Facilitator close-out exists only in a build made with PG_CLOSEOUT_CODE. CI builds dist-e2e with this test code.
+const CLOSEOUT_CODE=process.env.PG_E2E_CLOSEOUT_CODE||'e2e-closeout-test-code';
+const hasCloseout=async page=>(await page.locator('#pt-closeout-open').count())>0;
+const CLOSEOUT_NEEDED='Needs a build with a close-out code, like CI\'s dist-e2e.';
 async function openCloseout(page,file){
-  await page.goto(`/${file}?closeout=1`);
-  await expect(page.locator('#community-builders')).toHaveAttribute('data-engine-mounted','true');
-  await expect(page.locator('#pt-closeout-ask')).toBeVisible();await expect(page.locator('#pt-closeout-ask-cancel')).toBeFocused();
-  await page.locator('#pt-closeout-ask-confirm').click();
+  await openIntro(page,file);
+  await page.locator('#pt-closeout-open').click();
+  await expect(page.locator('#pt-closeout-ask')).toBeVisible();await expect(page.locator('#pt-closeout-code')).toBeFocused();
+  await page.locator('#pt-closeout-code').fill(CLOSEOUT_CODE);await page.locator('#pt-closeout-ask-confirm').click();
   await expect(page.locator('#pt-closeout-dialog')).toBeVisible();await expect(page.locator('#pt-closeout-title')).toBeFocused();
-  expect(new URL(page.url()).searchParams.has('closeout'),'the switch is used once').toBe(false);
+  expect(page.url(),'the code never goes into the address').not.toMatch(/closeout|e2e-closeout/);
 }
-for (const {lang,file} of languages) test(`${lang}: Next player starts clean, keeps the last player's note on the device, and only the close-out view brings that player back`,async({page,noNetwork})=>{
-  await openIntro(page,file);const first=await page.evaluate(()=>window.PecanGroveFeedback.model.active());
+const storedText=page=>page.evaluate(()=>Object.entries(localStorage).filter(([key])=>key.startsWith('pecan-grove')).map(pair=>pair.join(' ')).join(String.fromCharCode(10)));
+async function afterReload(page){await expect(page.locator('#community-builders')).toHaveAttribute('data-engine-mounted','true');await page.locator('#pt-feedback-save-draft').waitFor({state:'attached'});}
+for (const {lang,file} of languages) test(`${lang}: Next player keeps the last player's note only for the facilitator, and only Facilitator close-out brings that player back`,async({page,noNetwork})=>{
+  await openIntro(page,file);test.skip(!(await hasCloseout(page)),CLOSEOUT_NEEDED);const first=await page.evaluate(()=>window.PecanGroveFeedback.model.active());
   await typeNote(page,'PREVIOUS CHILD SECRET');
   // The step log (and so a progress file) belongs to one player: mark this player's log to follow it.
   const steps=async()=>{await page.waitForFunction(()=>window.PecanGroveEngine&&window.PecanGroveEngine.steps);return page.evaluate(()=>({key:window.PecanGroveEngine.steps.key(),marked:window.PecanGroveEngine.steps.entries().some(e=>e.event==='pause'&&e.stop===7)}));};
   await steps();await page.evaluate(()=>window.PecanGroveEngine.steps.record('pause',{stop:7}));expect(await steps()).toEqual({key:`pecan-grove-steps:${first}`,marked:true});
   await expect(page.locator('#pt-consent-options #pt-feedback-new-player-top')).toBeVisible();
   await page.locator('#pt-feedback-new-player-top').click();await expect(page.locator('#pt-new-player-cancel')).toBeFocused();
-  await expect(page.locator('#pt-new-player-message')).toContainText(lang==='en'?'Only the close-out view':'Solo la vista de cierre');
-  await page.locator('#pt-new-player-confirm').click();
+  await expect(page.locator('#pt-new-player-message')).toContainText(lang==='en'?'has not received: 1. Choose what happens to them':'no ha recibido: 1. Elige qué pasa con ellas');
+  // Nothing starts the next player until the note is handled.
+  await expect(page.locator('#pt-new-player-confirm')).toBeHidden();
+  const result=await new AxeBuilder({page}).include('#pt-new-player-dialog').analyze();expect(result.violations).toEqual([]);
+  await page.locator('#pt-new-player-keep').click();
   await expect(page.locator('#pt-player-ready')).toBeVisible();await page.locator('#pt-feedback-save-draft').waitFor({state:'attached'});
   await expect(page.locator('#pt-player-back')).toHaveCount(0);
   await expect(page.locator('#pt-feedback-fix')).toHaveValue('');
@@ -386,43 +395,106 @@ for (const {lang,file} of languages) test(`${lang}: Next player starts clean, ke
   expect(await page.evaluate(key=>localStorage.getItem(key),`pecan-grove-steps:${first}`)).toContain('"stop":7');
   await openCloseout(page,file);
   await page.locator('#pt-closeout-dialog').getByRole('button',{name:new RegExp(`${first.slice(-6).toUpperCase()}`)}).click();
-  await expect(page.locator('#community-builders')).toHaveAttribute('data-engine-mounted','true');
-  await page.locator('#pt-feedback-save-draft').waitFor({state:'attached'});await expect(page.locator('#pt-feedback-fix')).toHaveValue('PREVIOUS CHILD SECRET');
-  await expect(page.locator('#pt-closeout-ask')).toHaveCount(0);
+  await afterReload(page);await expect(page.locator('#pt-feedback-fix')).toHaveValue('PREVIOUS CHILD SECRET');
+  await expect(page.locator('#pt-closeout-ask')).toHaveCount(0);await expect(page.locator('#pt-closeout-dialog')).toHaveCount(0);
   expect(await page.evaluate(()=>window.PecanGroveFeedback.model.active())).toBe(first);
   expect(await steps()).toEqual({key:`pecan-grove-steps:${first}`,marked:true});
   await assertLocalOnly(page,noNetwork);
 });
+test('Next player: Delete them asks again with Keep playing first, and leaves none of the note on the device',async({page,noNetwork})=>{
+  await openIntro(page,'index.html');await typeNote(page,'DELETE ME SECRET');const first=await page.evaluate(()=>window.PecanGroveFeedback.model.active());
+  await page.locator('#pt-feedback-new-player-top').click();
+  // With a receiver or a close-out code Next player first asks what happens; otherwise it asks only to delete.
+  const remove=page.locator('#pt-new-player-delete');if(await remove.isVisible())await remove.click();
+  await expect(page.locator('#pt-new-player-cancel')).toBeFocused();await expect(page.locator('#pt-new-player-message')).toContainText('Delete them? Nobody can bring them back.');
+  await expect(page.locator('#pt-new-player-confirm')).toHaveText('Delete and start the next player');
+  expect((await new AxeBuilder({page}).include('#pt-new-player-dialog').analyze()).violations).toEqual([]);
+  const reloaded=page.waitForEvent('load');await page.locator('#pt-new-player-confirm').click();await reloaded;await afterReload(page);
+  expect(await page.evaluate(()=>window.PecanGroveFeedback.model.active())).not.toBe(first);
+  expect(await storedText(page)).not.toContain('DELETE ME SECRET');
+  await assertLocalOnly(page,noNetwork);
+});
 test('Privacy and notes on this device shows the notice and only counts notes, and erases every Pecan Grove key',async({page,noNetwork})=>{
-  await openIntro(page,'index.html');await typeNote(page,'first player note');
-  await page.locator('#pt-feedback-new-player-top').click();await page.locator('#pt-new-player-confirm').click();await expect(page.locator('#pt-player-ready')).toBeVisible();
+  await openIntro(page,'index.html');await typeNote(page,'first player note');const keep=await hasCloseout(page);
+  await page.locator('#pt-feedback-new-player-top').click();
+  if(keep)await page.locator('#pt-new-player-keep').click();
+  else{const remove=page.locator('#pt-new-player-delete');if(await remove.isVisible())await remove.click();await page.locator('#pt-new-player-confirm').click();}
+  await expect(page.locator('#pt-player-ready')).toBeVisible();
   await page.locator('#pt-device-open').click();await expect(page.locator('#pt-device-dialog')).toBeVisible();await expect(page.locator('#pt-device-title')).toBeFocused();
   await page.locator('#pt-device-privacy > summary').click();await expect(page.locator('#pt-device-privacy')).toContainText('akeyvanf@kennesaw.edu');const cloud=await page.evaluate(()=>!!document.getElementById('pt-feedback').dataset.endpoint);
-  // CI runs this against dist-e2e, which has a placeholder receiver; a local build has none.
+  // CI runs this against dist-e2e, which has a placeholder receiver and a test close-out code; a local build may have neither.
   await expect(page.locator('#pt-device-privacy')).toContainText(cloud?'nothing leaves this device until a grown-up reviews a note':'This copy of the game is not connected');
+  if(keep)await expect(page.locator('#pt-device-privacy')).toContainText('keep them on this device for Facilitator close-out, which opens only with the facilitator\'s code');
+  else await expect(page.locator('#pt-device-dialog')).not.toContainText('close-out');
   // The next child sees how many notes are waiting, never their text, Send or the Excel for every player.
-  await expect(page.locator('#pt-device-dialog')).toContainText('Notes: 1. Not received by the playtest team: 1.');
+  await expect(page.locator('#pt-device-dialog')).toContainText(keep?'Notes: 1. Not received by the playtest team: 1.':'Notes: 0. Not received by the playtest team: 0.');
   await expect(page.locator('#pt-device-dialog')).not.toContainText('first player note');
   for(const id of ['pt-device-show','pt-device-notes','pt-device-send','pt-device-download'])await expect(page.locator('#'+id)).toHaveCount(0);
   const result=await new AxeBuilder({page}).include('#pt-device-dialog').analyze();expect(result.violations).toEqual([]);
   const earlier=await page.evaluate(()=>window.PecanGroveFeedback.model.players(true).map(p=>p.sessionId).concat(window.PecanGroveFeedback.model.active()));
   await page.locator('#pt-device-erase').click();await expect(page.locator('#pt-device-erase-no')).toBeFocused();await page.locator('#pt-device-erase-yes').click();
   await expect(page.locator('#pt-player-ready')).toHaveCount(0);await page.locator('#pt-feedback-save-draft').waitFor({state:'attached'});
-  const after=await page.evaluate(()=>({notes:window.PecanGroveFeedback.model.entries(true).filter(e=>e.kind==='feedback').length,stored:Object.entries(localStorage).filter(([key])=>key.startsWith('pecan-grove')).map(pair=>pair.join(' ')).join(String.fromCharCode(10))}));
-  expect(after.notes).toBe(0);expect(after.stored).not.toContain('first player note');for(const session of earlier)expect(after.stored).not.toContain(session);
+  const after=await page.evaluate(()=>window.PecanGroveFeedback.model.entries(true).filter(e=>e.kind==='feedback').length),stored=await storedText(page);
+  expect(after).toBe(0);expect(stored).not.toContain('first player note');for(const session of earlier)expect(stored).not.toContain(session);
   await assertLocalOnly(page,noNetwork);
 });
-test('the close-out view asks a grown-up first and is accessible',async({page,noNetwork})=>{
-  await openIntro(page,'espanol.html');await typeNote(page,'nota del jugador');
-  await page.goto('/espanol.html?closeout=1');await expect(page.locator('#pt-closeout-ask')).toBeVisible();
-  await expect(page.locator('#pt-closeout-ask')).toContainText('Es solo para el adulto que dirige la prueba');
-  await page.keyboard.press('Escape');await expect(page.locator('#pt-closeout-ask')).toBeHidden();await expect(page.locator('#pt-closeout-dialog')).toHaveCount(0);
-  expect(new URL(page.url()).searchParams.has('closeout')).toBe(false);
+test('Facilitator close-out asks for the code in a dialog, never in the address, warns about downloads and is accessible',async({page,noNetwork})=>{
+  await openIntro(page,'espanol.html');test.skip(!(await hasCloseout(page)),CLOSEOUT_NEEDED);await typeNote(page,'nota del jugador, correo ana@x.com');
+  // Nothing about the close-out is in the page's copy until a grown-up asks for it.
+  expect(await page.content()).not.toMatch(/[?&]closeout=|e2e-closeout-test-code/);
+  await page.locator('#pt-closeout-open').click();await expect(page.locator('#pt-closeout-ask')).toBeVisible();
+  await expect(page.locator('#pt-closeout-ask')).toContainText('Si eres un jugador, elige Ahora no.');
+  expect((await new AxeBuilder({page}).include('#pt-closeout-ask').analyze()).violations).toEqual([]);
+  await page.locator('#pt-closeout-code').fill('no-es-el-codigo');await page.locator('#pt-closeout-code').press('Enter');
+  await expect(page.locator('#pt-closeout-ask-status')).toHaveText('Ese código no es correcto. Intentos antes de esperar un minuto: 4.');
+  await expect(page.locator('#pt-closeout-dialog')).toHaveCount(0);await expect(page.locator('#pt-closeout-code')).toHaveValue('');
+  await page.keyboard.press('Escape');await expect(page.locator('#pt-closeout-ask')).toBeHidden();await expect(page.locator('#pt-closeout-open')).toBeFocused();
   await openCloseout(page,'espanol.html');
-  await expect(page.locator('#pt-closeout-notes')).toContainText('nota del jugador');
+  await expect(page.locator('#pt-closeout-notes')).toContainText('nota del jugador, correo [quitado]');
   const result=await new AxeBuilder({page}).include('#pt-closeout-dialog').analyze();expect(result.violations).toEqual([]);
-  await page.locator('#pt-closeout-close').click();await expect(page.locator('#pt-closeout-dialog')).toBeHidden();
+  // The Excel for every player has each note as Send would send it, under a check-before-sharing row.
+  const [download]=await Promise.all([page.waitForEvent('download'),page.locator('#pt-closeout-download').click()]);
+  expect(download.suggestedFilename()).toBe('pecan-grove-feedback-all-players.xlsx');
+  const workbook=require('node:fs').readFileSync(await download.path()).toString('utf8');
+  expect(workbook).toContain('Revisa antes de compartir.');expect(workbook).toContain('correo [quitado]');expect(workbook).not.toContain('ana@x.com');
+  // Closing first says to delete the downloaded file from Downloads.
+  await page.locator('#pt-closeout-close').click();await expect(page.locator('#pt-closeout-files')).toContainText('pecan-grove-feedback-all-players.xlsx');
+  await expect(page.locator('#pt-closeout-dialog')).not.toContainText('nota del jugador');
+  await page.locator('#pt-closeout-close').click();await expect(page.locator('#pt-closeout-dialog')).toBeHidden();await expect(page.locator('#pt-closeout-open')).toBeFocused();
+  expect(await page.evaluate(()=>document.getElementById('pt-closeout-dialog').textContent)).not.toContain('nota del jugador');
+  expect(page.url()).not.toMatch(/closeout/);
   await assertLocalOnly(page,noNetwork);
+});
+test('Facilitator close-out is also under the game\'s For grown-ups, behind the same code',async({page,noNetwork})=>{
+  await openIntro(page,'index.html');test.skip(!(await hasCloseout(page)),CLOSEOUT_NEEDED);
+  await page.locator('#pt-quiet').check();await page.locator('#pt-start').click();await expect(page.locator('.cb-hero')).toBeVisible();
+  await page.locator('.cb-hero .cb-btn--onstage').click();
+  const button=page.locator('dialog[open]').getByRole('button',{name:'Facilitator close-out',exact:true});await button.click();
+  await expect(page.locator('#pt-closeout-ask')).toBeVisible();await page.locator('#pt-closeout-code').fill(CLOSEOUT_CODE);await page.locator('#pt-closeout-ask-confirm').click();
+  await expect(page.locator('#pt-closeout-dialog')).toBeVisible();await page.locator('#pt-closeout-close').click();
+  await expect(page.locator('#pt-closeout-dialog')).toBeHidden();await expect(button).toBeFocused();
+  await assertLocalOnly(page,noNetwork);
+});
+test('leaving Facilitator close-out and coming back with Back shows no note text',async({playwright,browserName,baseURL})=>{
+  test.skip(browserName!=='chromium','Only Chromium takes the switch that keeps its back-forward cache on.');
+  // Playwright turns the back-forward cache off by default; a real browser keeps it on, so Back can show a page exactly as
+  // it was left. This browser keeps it on, and aborts every receiver request like the shared fixture.
+  const browser=await playwright.chromium.launch({channel:test.info().project.use.channel,ignoreDefaultArgs:['--disable-back-forward-cache']});
+  try{
+    const context=await browser.newContext({baseURL});await context.route(isReceiver,route=>route.abort('blockedbyclient'));
+    const page=await context.newPage(),problems=[];page.on('pageerror',error=>problems.push(error.message));
+    await openIntro(page,'index.html');test.skip(!(await hasCloseout(page)),CLOSEOUT_NEEDED);await typeNote(page,'BFCACHE SECRET NOTE');
+    await openCloseout(page,'index.html');await expect(page.locator('#pt-closeout-notes')).toContainText('BFCACHE SECRET NOTE');
+    await page.evaluate(()=>{window.__sameDocument=true;});
+    await page.goto('/educator.html');await page.goBack({waitUntil:'commit'});await afterReload(page);
+    const restored=await page.evaluate(()=>window.__sameDocument===true);
+    test.info().annotations.push({type:'back-forward cache',description:restored?'restored':'reloaded'});
+    await expect(page.locator('#pt-closeout-dialog[open]')).toHaveCount(0);
+    expect(await page.evaluate(()=>document.getElementById('pt-closeout-dialog')?.textContent||'')).not.toContain('BFCACHE SECRET NOTE');
+    // The player's own note comes back into the form from storage.
+    await expect(page.locator('#pt-feedback-fix')).toHaveValue('BFCACHE SECRET NOTE');
+    expect(problems).toEqual([]);
+  }finally{await browser.close();}
 });
 test('turning on score sharing from the start page waits for a grown-up confirmation',async({page,noNetwork})=>{
   await openIntro(page,'espanol.html');const box=page.locator('#pt-consent-options input[data-pg-consent="scores"]');
@@ -494,7 +566,7 @@ test.describe('explicitly approved feedback transport',()=>{
       await route.fulfill({status:200,headers,contentType:'application/json',body:JSON.stringify({ok:true,schemaVersion:1,acknowledged:body.entries.map(e=>({sessionId:e.sessionId,entryId:e.entryId,revision:e.revision}))})});
     });
     const other=await context.newPage();
-    await openIntro(page,'index.html');await typeNote(page,'Stop 3 was fun');
+    await openIntro(page,'index.html');test.skip(!(await hasCloseout(page)),CLOSEOUT_NEEDED);await typeNote(page,'Stop 3 was fun');
     await openCloseout(page,'index.html');await openIntro(other,'index.html');
     await expect(page.locator('#pt-closeout-notes')).toContainText('Stop 3 was fun');await expect(page.locator('#pt-closeout-send')).toContainText('(1)');
     await page.locator('#pt-closeout-confirm').check();
@@ -515,6 +587,36 @@ test.describe('explicitly approved feedback transport',()=>{
     expect(noNetwork.receiverRequests.every(request=>['POST','OPTIONS'].includes(request.method()))).toBe(true);
     await other.close();
   });
+  test('Next player: Review and send now sends only this player\'s notes after the grown-up check, then the next player starts',async({page,context,noNetwork})=>{
+    test.skip(!process.env.CI&&!(await (await page.request.get('/index.html')).text()).includes('data-endpoint="https://'),'Needs a build with a receiver address, like CI\'s dist-e2e.');
+    await context.addInitScript(()=>{
+      const disableOffline=()=>{const meta=document.querySelector('meta[name="pg-offline"]');if(!meta)return false;meta.content='disabled';return true;};
+      if(disableOffline())return;
+      const observer=new MutationObserver(()=>{if(disableOffline())observer.disconnect();});
+      observer.observe(document,{childList:true,subtree:true});
+      document.addEventListener('DOMContentLoaded',()=>observer.disconnect(),{once:true});
+    });
+    const posts=[];
+    await context.route(/^https:\/\/script\.google(?:usercontent)?\.com\//,async route=>{
+      const request=route.request(),headers={'Access-Control-Allow-Origin':'*','Access-Control-Allow-Methods':'POST, OPTIONS','Access-Control-Allow-Headers':'content-type'};
+      if(request.method()==='OPTIONS'){await route.fulfill({status:204,headers,body:''});return;}
+      const body=JSON.parse(request.postData());posts.push(body);
+      await route.fulfill({status:200,headers,contentType:'application/json',body:JSON.stringify({ok:true,schemaVersion:1,acknowledged:body.entries.map(e=>({sessionId:e.sessionId,entryId:e.entryId,revision:e.revision}))})});
+    });
+    await openIntro(page,'index.html');const first=await page.evaluate(()=>window.PecanGroveFeedback.model.active());
+    await typeNote(page,'my brother noah liked stop 3, call 404 555 0199');
+    await page.locator('#pt-feedback-new-player-top').click();await page.locator('#pt-new-player-send').click();
+    await expect(page.locator('#pt-new-player-review')).toBeFocused();await expect(page.locator('#pt-new-player-notes')).toContainText('call [removed]');
+    await expect(page.locator('#pt-new-player-body')).toContainText('Please check these words before sending: brother noah.');
+    expect((await new AxeBuilder({page}).include('#pt-new-player-dialog').analyze()).violations).toEqual([]);
+    await page.locator('#pt-new-player-confirm').click();await expect(page.locator('#pt-new-player-status')).toContainText('tick the check first');expect(posts).toHaveLength(0);
+    await page.locator('#pt-new-player-check').check();const reloaded=page.waitForEvent('load');await page.locator('#pt-new-player-confirm').click();await reloaded;await afterReload(page);
+    const sent=posts.flatMap(body=>body.entries);
+    expect(sent.every(e=>e.sessionId===first),'only the leaving player\'s records').toBe(true);
+    expect(sent.filter(e=>e.kind==='feedback').map(e=>e.fix)).toEqual(['my brother noah liked stop 3, call [removed]']);
+    expect(await page.evaluate(()=>window.PecanGroveFeedback.model.active())).not.toBe(first);
+    expect(noNetwork.receiverRequests.every(request=>['POST','OPTIONS'].includes(request.method()))).toBe(true);
+  });
 });
 
 test.describe('separately built family flavor',()=>{
@@ -522,6 +624,8 @@ test.describe('separately built family flavor',()=>{
   test('family flavor has no feedback or endpoint',async({page,noNetwork})=>{
     test.skip(!process.env.PG_FAMILY_BASE_URL,'Set PG_FAMILY_BASE_URL to run the separately built family flavor. Structural family tests always run in Python.');
     await page.goto('/');await expect(page.locator('html')).toHaveAttribute('data-flavor','family');await expect(page.locator('#pt-feedback')).toHaveCount(0);await expect(page.locator('#pt-review-tab')).toHaveCount(0);expect(await page.content()).not.toContain('script.google.com');expect(noNetwork.receiverRequests).toHaveLength(0);
+    // The family copy never has the facilitator's close-out or its code.
+    await expect(page.locator('#pt-closeout-open')).toHaveCount(0);expect(await page.content()).not.toMatch(/data-closeout|closeout=/);
   });
 });
 

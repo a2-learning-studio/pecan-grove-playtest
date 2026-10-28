@@ -27,7 +27,7 @@ class FeedbackExcelTests(unittest.TestCase):
                  "fix": '=HYPERLINK("https://example.invalid","text")', "score": 90,
                  "phase": "result", "ackRevision": 2, "sessionEnded": False}
         script = ("const api=require('./assets/playtest/feedback.js');"
-                  "process.stdout.write(Buffer.from(api.excel(" + json.dumps([entry]) + ")).toString('base64'));" )
+                  "process.stdout.write(Buffer.from(api.excel(" + json.dumps([entry]) + ", api.WORDS.es.excelCheck)).toString('base64'));" )
         result = subprocess.run([shutil.which("node") or r"C:\Program Files\nodejs\node.exe", "-e", script],
                                 cwd=ROOT, check=True, text=True, capture_output=True)
         return base64.b64decode(result.stdout), entry
@@ -40,8 +40,12 @@ class FeedbackExcelTests(unittest.TestCase):
                 ET.fromstring(archive.read(name))
             sheet = ET.fromstring(archive.read("xl/worksheets/sheet1.xml"))
             ns = {"s": "http://schemas.openxmlformats.org/spreadsheetml/2006/main"}
-            self.assertEqual(sheet.find("s:sheetData/s:row[@r='2']/s:c[@r='L2']/s:is/s:t", ns).text, entry["worked"])
-            self.assertEqual(sheet.find("s:sheetData/s:row[@r='2']/s:c[@r='M2']/s:is/s:t", ns).text, entry["fix"])
+            # Row 1 asks to check the file before sharing; the headers are row 2 and the notes start in row 3.
+            self.assertTrue(sheet.find("s:sheetData/s:row[@r='1']/s:c[@r='A1']/s:is/s:t", ns).text.startswith("Revisa antes de compartir."))
+            self.assertEqual(sheet.find("s:sheetData/s:row[@r='2']/s:c[@r='L2']/s:is/s:t", ns).text, "What worked")
+            self.assertEqual(sheet.find("s:sheetData/s:row[@r='3']/s:c[@r='L3']/s:is/s:t", ns).text, entry["worked"])
+            # Every note has the scrub a sent note has: the link in this formula-like text is removed.
+            self.assertEqual(sheet.find("s:sheetData/s:row[@r='3']/s:c[@r='M3']/s:is/s:t", ns).text, '=HYPERLINK("[quitado]')
             self.assertEqual(sheet.findall(".//s:f", ns), [])
 
     @unittest.skipUnless(openpyxl, "optional independent Excel reader is unavailable")
@@ -49,14 +53,15 @@ class FeedbackExcelTests(unittest.TestCase):
         data, entry = self.workbook()
         book = openpyxl.load_workbook(io.BytesIO(data))
         sheet = book.active
-        self.assertEqual(sheet["L2"].value, entry["worked"])
-        self.assertEqual(sheet["M2"].value, entry["fix"])
-        self.assertEqual(sheet["M2"].data_type, "s")
-        self.assertEqual(sheet.freeze_panes, "A2")
-        self.assertEqual(sheet.auto_filter.ref, "A1:R2")
-        self.assertEqual(sheet["D2"].value, 3)
-        self.assertEqual(sheet["I2"].value, 2)
-        self.assertEqual(sheet["N2"].value, 90)
+        self.assertTrue(sheet["A1"].value.startswith("Revisa antes de compartir."))
+        self.assertEqual(sheet["L3"].value, entry["worked"])
+        self.assertEqual(sheet["M3"].value, '=HYPERLINK("[quitado]')
+        self.assertEqual(sheet["M3"].data_type, "s")
+        self.assertEqual(sheet.freeze_panes, "A3")
+        self.assertEqual(sheet.auto_filter.ref, "A2:R3")
+        self.assertEqual(sheet["D3"].value, 3)
+        self.assertEqual(sheet["I3"].value, 2)
+        self.assertEqual(sheet["N3"].value, 90)
 
 
 if __name__ == "__main__":

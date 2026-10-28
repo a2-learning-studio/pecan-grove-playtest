@@ -39,18 +39,23 @@ jobs:
       - run: npm run images
       # Browser tests use this copy. Its receiver is a placeholder that is never deployed, so even a send
       # regression that slipped past the test fixture's abort could not reach the real collector.
+      # The browser-test copy also has the facilitator's close-out, with the known test code the browser tests type.
       - name: Build the browser-test copy with a placeholder receiver
         run: |
           npm run build
           mv dist dist-e2e
         env:
           PG_FEEDBACK_ENDPOINT: https://script.google.com/macros/s/e2e-placeholder-not-deployed/exec
+          PG_CLOSEOUT_CODE: e2e-closeout-test-code
+      # The facilitator's close-out code comes from a repository secret when one is set; without it the deployed copy
+      # has no close-out. The page gets only a salted hash of it.
       - name: Build playtest with its configured receiver
         run: |
           test -n "$PG_FEEDBACK_ENDPOINT"
           npm run build
         env:
           PG_FEEDBACK_ENDPOINT: ${{ vars.PG_FEEDBACK_ENDPOINT }}
+          PG_CLOSEOUT_CODE: ${{ secrets.PG_CLOSEOUT_CODE }}
       - run: npm run test:privacy-copy
       - run: npm run build -- --flavor=family
       # The library copy is not deployed; building it runs its flavor checks.

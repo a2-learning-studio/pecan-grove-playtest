@@ -19,7 +19,12 @@ const shellLocales = spawnSync(process.execPath, ['tools/generate-shell-locales.
 if (shellLocales.status !== 0) process.exit(shellLocales.status || 1);
 const buildArgs = ['-B', 'tools/make_playtest.py', '--flavor', flavor];
 if (process.env.PG_FEEDBACK_ENDPOINT) buildArgs.push('--feedback-endpoint', process.env.PG_FEEDBACK_ENDPOINT);
-const python = spawnSync('python', buildArgs, { cwd: root, stdio: 'inherit' });
+// PG_CLOSEOUT_CODE (the facilitator's close-out code) reaches make_playtest.py only through the environment, never the
+// command line, and only for the playtest flavor. The page gets a salted hash of it, never the code.
+const closeoutCode = flavor === 'playtest' ? process.env.PG_CLOSEOUT_CODE || '' : '';
+const pythonEnv = { ...process.env };
+if (flavor !== 'playtest') delete pythonEnv.PG_CLOSEOUT_CODE;
+const python = spawnSync('python', buildArgs, { cwd: root, stdio: 'inherit', env: pythonEnv });
 if (python.status !== 0) process.exit(python.status || 1);
 const fonts = spawnSync('python', ['-B', 'tools/subset_fonts.py', output], { cwd: root, encoding: 'utf8' });
 if (fonts.status !== 0) { process.stderr.write(fonts.stderr); process.exit(fonts.status || 1); }
@@ -158,6 +163,8 @@ if (flavor === 'playtest') {
 }
 await fs.writeFile(path.join(dist, '.nojekyll'), '');
 const files = (await walk(dist)).map(f => path.relative(dist, f).split(path.sep).join('/'));
+// How a facilitator closes out is documented only in the README and docs/, which never ship.
+if (files.some(f => /\.md$/i.test(f) || f.startsWith('docs/'))) throw new Error('The built site must not ship the README or docs/');
 const shellWords = await Promise.all(['en', 'es'].map(async lang => JSON.parse(await fs.readFile(path.join(root, 'assets/playtest/locales', lang + '.json'), 'utf8'))));
 // Offline play needs the voice index and all 15 stops with their copy. Voice packs stay a grown-up's choice, and the
 // plain town-map.webp and town-map@2x.webp are never requested: the game asks for the sized town-map-<width> files.
@@ -180,6 +187,11 @@ for (const file of files.filter(f => f.endsWith('.html'))) {
   if (flavor === 'playtest' && !html.includes('name="twitter:card" content="summary_large_image"')) throw new Error(`Twitter card missing from deployed HTML: ${file}`);
   if (flavor === 'family' && /script\.google|pt-feedback|pt-review-tab/.test(html)) throw new Error(`Family build contains playtest connection: ${file}`);
   if (flavor === 'library' && /script\.google/.test(html)) throw new Error(`Library build must not send feedback: ${file}`);
+  // The close-out has no address switch in any copy. Only a playtest copy built with a code has it, as a salted hash.
+  if (/[?&]closeout=|closeout=1/.test(html)) throw new Error(`The close-out must not have an address switch: ${file}`);
+  if (flavor !== 'playtest' && /data-closeout|pt-closeout-open/.test(html)) throw new Error(`${flavor} build has the facilitator's close-out: ${file}`);
+  if (/^(?:index|espanol)\.html$/.test(file) && Boolean(closeoutCode) !== /data-closeout="[0-9a-f]{32}:[0-9a-f]{64}"/.test(html)) throw new Error(`Close-out lock does not match PG_CLOSEOUT_CODE: ${file}`);
+  if (closeoutCode && /data-closeout="[^"]*"/.exec(html)?.[0].includes(closeoutCode)) throw new Error(`The close-out code itself is in the page: ${file}`);
   // Family and library copies are not a test and never send: none of the playtest-only page copy may remain.
   if (flavor !== 'playtest') for (const words of shellWords) {
     const keys = ['title', 'h1', 'intro_note', 'instructions', 'foot', 'privacy', 'consent_scores', ...(flavor === 'family' ? ['review_tab', 'intro_review'] : [])];

@@ -99,6 +99,64 @@ class PlaytestBuilderTests(unittest.TestCase):
         self.assertNotIn(builder.WORDS["en"]["feedback_local"], cloud)
         self.assertNotEqual(builder.build_id(), builder.build_id(feedback_endpoint=endpoint))
 
+    def test_a_copy_that_sends_has_no_per_player_excel_button_and_a_local_copy_keeps_it(self):
+        endpoint = "https://script.google.com/macros/s/AKfycb_test-123/exec"
+        for lang in ("en", "es"):
+            ids = lambda page: {attrs["id"] for _, attrs in Elements(page).elements if "id" in attrs}
+            self.assertNotIn("pt-feedback-download", ids(builder.page(lang, "", feedback_endpoint=endpoint)))
+            self.assertIn("pt-feedback-download", ids(builder.page(lang, "")))
+            self.assertIn("pt-feedback-download", ids(builder.page(lang, "", feedback_endpoint=endpoint, flavor="library")))
+
+    def test_close_out_code_is_embedded_only_as_a_salted_hash_with_a_new_salt_every_build(self):
+        code = "maple-heron-42"
+        first, second = builder.closeout_lock(code), builder.closeout_lock(code)
+        self.assertRegex(first, r"^[0-9a-f]{32}:[0-9a-f]{64}$")
+        self.assertNotEqual(first.split(":")[0], second.split(":")[0], "a random salt per build")
+        for lock in (first, second):
+            salt, digest = lock.split(":")
+            self.assertEqual(hashlib.sha256((salt + ":" + code).encode("utf-8")).hexdigest(), digest)
+        self.assertEqual(builder.closeout_lock(""), "")
+        for lang in ("en", "es"):
+            page = builder.page(lang, "", "test-revision", feedback_endpoint="https://script.google.com/macros/s/AKfycb_test-123/exec", closeout=first)
+            self.assertIn(f'data-closeout="{first}"', page)
+            self.assertNotIn(code, page)
+            ids = {attrs["id"] for _, attrs in Elements(page).elements if "id" in attrs}
+            self.assertIn("pt-closeout-open", ids)
+            self.assertIn("pt-consent-options", Elements(page).ancestors["pt-closeout-open"])
+            self.assertIn(html.escape(builder.WORDS[lang]["closeout_open"]), page)
+            plain = builder.page(lang, "", "test-revision")
+            self.assertNotIn("data-closeout", plain)
+            self.assertNotIn("pt-closeout-open", plain)
+            # Family and library copies never have the close-out, even if a lock is passed.
+            for flavor in ("family", "library"):
+                local = builder.page(lang, "", "test-revision", closeout=first, flavor=flavor)
+                self.assertNotIn("data-closeout", local, flavor)
+                self.assertNotIn("pt-closeout-open", local, flavor)
+        with self.assertRaises(ValueError):
+            builder.page("en", "", closeout="not-a-lock")
+        # The build ID says only whether a code is set, so a rebuild with the same code keeps it.
+        self.assertEqual(builder.build_id(closeout=True), builder.build_id(closeout=True))
+        self.assertNotEqual(builder.build_id(), builder.build_id(closeout=True))
+
+    def test_close_out_code_needs_six_characters_and_no_spaces_at_either_end(self):
+        self.assertEqual(builder.checked_closeout_code(""), "")
+        self.assertEqual(builder.checked_closeout_code("abc123"), "abc123")
+        for value in ("abc12", " abc123", "abc123 ", "abc\n123", "x" * 201):
+            with self.subTest(value=value), self.assertRaises(ValueError):
+                builder.checked_closeout_code(value)
+
+    def test_the_close_out_code_comes_from_the_environment_and_never_reaches_family_or_library(self):
+        with patch.dict(builder.os.environ, {"PG_CLOSEOUT_CODE": "maple-heron-42"}):
+            self.assertEqual(builder.resolve_closeout_code(None, "playtest"), "maple-heron-42")
+            self.assertEqual(builder.resolve_closeout_code("", "playtest"), "", "an explicit empty argument turns it off")
+            for flavor in ("family", "library"):
+                self.assertEqual(builder.resolve_closeout_code(None, flavor), "", flavor)
+                self.assertEqual(builder.resolve_closeout_code("other-code-1", flavor), "", flavor)
+        with patch.dict(builder.os.environ, {"PG_CLOSEOUT_CODE": "short"}), self.assertRaises(ValueError):
+            builder.resolve_closeout_code(None, "playtest")
+        with patch.dict(builder.os.environ, {}, clear=True):
+            self.assertEqual(builder.resolve_closeout_code(None, "playtest"), "")
+
     def test_family_flavor_removes_endpoint_and_feedback_ui_in_both_languages(self):
         endpoint = "https://script.google.com/macros/s/AKfycb_test-123/exec"
         for lang in ("en", "es"):

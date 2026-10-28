@@ -45,4 +45,8 @@
 .pt-device__player > strong { display: block; margin-bottom: .4rem; }
 .pt-device__status:empty { display: none; }
 .pt-device__erase { margin-block: 1rem; }
+/* The facilitator's close-out code: typed into the dialog, shown as dots, never kept by the browser. */
+.pt-closeout__field { display: flex; flex-direction: column; gap: .4rem; margin-block: .75rem; font-weight: 700; }
+.pt-closeout__code { box-sizing: border-box; width: 100%; min-height: 44px; font: inherit; font-weight: 400; color: var(--pg-color-213c2e); background: var(--pg-color-fff); border: 1px solid var(--pg-color-91aa99); border-radius: .65rem; padding: .7rem .8rem; -webkit-text-security: disc; }
+.pt-closeout__code:focus-visible { outline: 3px solid var(--pg-color-996821); outline-offset: 3px; }
 @media (forced-colors: active) { .pt-feedback__check, .pt-feedback__flags { border-color: CanvasText; } }

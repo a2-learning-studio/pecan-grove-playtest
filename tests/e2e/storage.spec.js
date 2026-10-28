@@ -116,6 +116,33 @@ test('blocked site data: Next player asks first, then the next player starts wit
   expect(await page.evaluate(() => { const store = window.CommunityBuilders.getState().store; return Object.keys(store.players[store.current].stops); })).toEqual([]);
 });
 
+test('storage that fills after the first save: Next player says so and erases this device\'s Pecan Grove data to start over', async ({ page }) => {
+  await page.addInitScript(() => {
+    const set = Storage.prototype.setItem;
+    Storage.prototype.setItem = function (key, value) { if (window.__full) throw new DOMException('full', 'QuotaExceededError'); return set.call(this, key, value); };
+  });
+  await ready(page);
+  const before = await code(page);
+  const note = text => page.evaluate(value => { const worked = document.getElementById('pt-feedback-worked'); worked.value = value; worked.dispatchEvent(new Event('input', { bubbles: true })); document.getElementById('pt-feedback-save-draft').click(); }, text);
+  await note('saved before the storage filled');
+  await page.evaluate(() => { window.__full = true; });
+  await note('typed after it filled');
+  await expect(page.locator('#pt-feedback-status')).toContainText('cannot save feedback on this device right now');
+  await page.locator('#pt-feedback-new-player-top').click();
+  await expect(page.locator('#pt-new-player-dialog')).toBeVisible();
+  await expect(page.locator('#pt-new-player-cancel')).toBeFocused();
+  await expect(page.locator('#pt-new-player-message')).toContainText("You can erase this device's Pecan Grove data and start over.");
+  await expect(page.locator('#pt-new-player-confirm')).toHaveText('Erase and start over');
+  const reloaded = page.waitForEvent('load');
+  await page.locator('#pt-new-player-confirm').click();
+  await reloaded;
+  await expect(page.locator('#community-builders')).toHaveAttribute('data-engine-mounted', 'true');
+  await page.locator('#pt-feedback-save-draft').waitFor({ state: 'attached' });
+  expect(await code(page), 'a new player with a new code').not.toBe(before);
+  await expect(page.locator('#pt-feedback-worked')).toHaveValue('');
+  expect(await page.evaluate(() => Object.values(localStorage).join(''))).not.toContain('storage filled');
+});
+
 test('a grown-up saves a progress file and opens it on another device', async ({ page, browser, baseURL }) => {
   const AxeBuilder = require('@axe-core/playwright').default;
   async function grownups(target) {

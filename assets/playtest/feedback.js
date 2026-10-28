@@ -2,6 +2,8 @@
 (function (host) {
   "use strict";
   var KEY = "pecan-grove-feedback-v1", GAME_KEY = "pecan-grove-journey", CONSENT_KEY = "pecan-grove-consent-v1", ERASE_FLAG = "pecan-grove-erase";
+  // Files downloaded during the current player's turn (names only), and this tab's wrong close-out code tries.
+  var FILES_KEY = "pecan-grove-files-v1", TRIES_KEY = "pecan-grove-closeout-tries", CODE_TRIES = 5, CODE_WAIT = 60000;
   var ID = /^[A-Za-z0-9_-]{16,80}$/;
   var RATINGS = ["", "unclear", "okay", "good"], CATEGORIES = ["", "clarity", "bug", "voice", "spanish", "art", "other"];
   function uid(crypto) {
@@ -22,13 +24,22 @@
   var EDADES = "\\d{1,2}|cinco|seis|siete|ocho|nueve|diez|once|doce|trece|catorce|quince|diecis[eé]is|diecisiete|dieciocho";
   var KIN = "friend|teacher|brother|sister|mom|mum|dad|mother|father|cousin|grandma|grandpa|grandmother|grandfather";
   var PARIENTES = "amig[oa]|maestr[oa]|profe(?:sor|sora)?|herman[oa]|mam[aá]|pap[aá]|prim[oa]|abuel[oa]|t[ií][oa]";
-  var NAME_STOP = /^(?:a|an|the|and|or|but|so|not|no|very|really|too|kind|sort|like|i|im|i'm|i’m|me|my|you|it|is|was|from|in|at|on|to|of|for|with|also|y|o|pero|que|muy|mucho|mucha|tanto|un|una|el|la|los|las|lo|de|del|en|con|por|para|al|mi|tu|su|es|era|yo|se|también|mr|mrs|ms|mx|miss|dr|coach|sr|sra|srta|prof|profe|maestro|maestra)$/i;
+  // A pet's name can point to a child as well: "my dog Biscuit", "mi perro se llama Toby".
+  var PETS = "dog|puppy|cat|kitten|pet|bunny|hamster|horse|bird|parrot|fish|turtle|rabbit";
+  var MASCOTAS = "perr[oa]|perrit[oa]|gat[oa]|gatit[oa]|mascota|conej[oa]|h[aá]mster|caballo|p[aá]jaro|loro|pez|tortuga";
+  var NAME_STOP = /^(?:a|an|the|and|or|but|so|not|no|very|really|too|kind|sort|like|i|im|i'm|i’m|me|my|you|it|is|was|from|in|at|on|to|of|for|with|also|when|where|what|why|how|who|if|because|after|before|back|up|out|again|stop|stops|y|o|pero|que|muy|mucho|mucha|tanto|un|una|el|la|los|las|lo|de|del|en|con|por|para|al|mi|tu|su|es|era|yo|se|también|cuando|donde|porque|si|parada|paradas|mr|mrs|ms|mx|miss|dr|coach|sr|sra|srta|prof|profe|maestro|maestra)$/i;
   // Lower-case words that end a name after a cue ("my name is sofia garcia" ends nowhere, "jake liked it" ends at liked).
   var NAME_NEXT = /^(?:am|are|were|have|has|had|like[ds]?|love[ds]?|think|thought|play(?:ed|ing|s)?|go|goes|went|got|get|want(?:ed|s)?|did|do|does|said|say|says|made|make|found|saw|see|hope|wish|know|need(?:ed)?|enjoy(?:ed)?|feel|felt|tengo|tiene|tienen|soy|vivo|voy|estoy|está|juego|jugué|jugue|quiero|creo|pienso|siento|te|le|gusta|gustó|gusto|encanta|encantó|fue|hice|hago|dijo|ayudó)$/;
+  // Words that say something about the name itself, never a name: "my name is spelled wrong", "mi nombre es importante".
+  var NOT_NAME = /^(?:spelled|misspelled|written|wrong|right|missing|shown|printed|listed|correct|incorrect|blank|empty|there|here|important|long|short|hard|weird|funny|cool|ok|okay|fine|same|different|new|cut|hidden|importante|largo|corto|raro|correcto|incorrecto|igual|mal|bien|dif[ií]cil|f[aá]cil|bonito|feo|nuevo|nueva|viejo)$/i;
+  // Lower-case words that read as an action or a feeling after "my brother" or "hi im", not as a name.
+  var NOT_NAME_LOWER = /^(?:says|thinks|plays|wants|helps|likes|loves|gets|makes|goes|does|is|was|knows|needs|tries|reads|uses|calls|lives|works|came|told|gave|took|ate|eats|ran|runs|sleeps|barks|bit|sat|can|could|will|would|should|might|must|just|always|never|still|that|which|happy|glad|sad|mad|bored|stuck|lost|done|sorry|sure|ready|great|good|awesome|amazing|nice|bad|best|super|easy|dice|dijo|juega|jugo|come|duerme|corre|ladra|quiere|tiene|va|vino|está|esta|son|ayuda|piensa|cree|sabe|vive|siempre|nunca|quien|feliz|triste|list[oa]|genial|divertid[oa]|buen[oa]|incre[ií]ble)$/i;
+  function notNameLower(word) { return NAME_STOP.test(word) || NAME_NEXT.test(word) || NOT_NAME.test(word) || NOT_NAME_LOWER.test(word) || /(?:ed|ing|ó|aron|ieron|aba|ando|iendo)$/i.test(word); }
   var NAME_LINK = /^(?:de|del|la|las|los|y|van|von|da|di|le)$/i, UPPER = /^[A-ZÀ-ÖØ-Þ]/;
   // Numbers right after "stop" or "parada" are the game's stops, never a house number or a phone number.
   var AFTER_STOP = /\b(?:stops?|paradas?)\s*(?:#|no\.?|n[uú]m(?:ero)?\.?)?\s*$/i, STOP_LIST = /^\d{1,2}(?:[\s.-]+\d{1,2})*$/;
   function afterStop(all, offset) { return AFTER_STOP.test(all.slice(0, offset)); }
+  function scoreList(value) { var parts = value.trim().split(/\s+/); return parts.length >= 3 && parts.every(function (part) { return /^\d{1,3}$/.test(part) && Number(part) <= 100; }); }
   var DATE = "(?:(?:" + MONTHS + ")\\.?\\s+\\d{1,2}(?:st|nd|rd|th)?(?:,?\\s+\\d{4})?\\b|\\d{1,2}(?:st|nd|rd|th)?\\s+(?:of\\s+)?(?:" + MONTHS + ")\\b\\.?(?:,?\\s+\\d{4})?|(?:el\\s+)?\\d{1,2}\\s+de\\s+(?:" + MESES + ")(?:\\s+del?\\s+\\d{4})?\\b|\\d{1,2}[\\/.-]\\d{1,2}(?:[\\/.-]\\d{2,4})?\\b|\\d{4}\\b|(?:" + MONTHS + "|" + MESES + ")\\b)";
   var CHILD_RULES = [
     // Full dates with a year: 3/14/2015, March 14, 2015, 14 de marzo de 2015.
@@ -47,11 +58,11 @@
     [new RegExp("\\b(?:[Ee]scuela|[Cc]olegio|[Ii]nstituto|[Ll]iceo|[Aa]cademia|[Pp]rimaria|[Ss]ecundaria)(?:\\s+(?:[Pp]rimaria|[Ss]ecundaria|[Pp][uú]blica|[Pp]rivada|[Tt][eé]cnica|[Nn][uú]mero|[Nn]o\\.?|de|del|la|el)){0,3}\\s+(?:" + CAP + "|\\d{1,4})(?:\\s+(?:(?:de|del|de la|la|los|las|y)\\s+)?" + CAP + "){0,3}", "g")]
   ];
   // A name after a clear cue: every word up to the punctuation, an everyday word or four words, capitalized or not.
-  var NAME_CUE = new RegExp("(\\b(?:(?:my name(?:'s|’s|\\s+is)|my names is|i am called|i'm called|i’m called|im called|they call me|my (?:best )?(?:" + KIN + ")(?:(?:'s|’s) name is|\\s+is (?:named|called))|me llamo|mi nombre es|me dicen|me llaman|mi (?:mejor )?(?:" + PARIENTES + ") se llama|el nombre de mi (?:mejor )?(?:" + PARIENTES + ") es)\\s*:?\\s+|(?:my |first |last |full |mi )?(?:name|nombre)\\s*:\\s*)(?:(?:mr|mrs|ms|miss|dr|coach|sr|sra|srta|profe|maestr[oa])\\.?\\s+)?)(" + WORD + "(?:\\s+" + WORD + "){0,3})", "gi");
+  var NAME_CUE = new RegExp("(\\b(?:(?:my name(?:'s|’s|\\s+is)|my names is|i am called|i'm called|i’m called|im called|they call me|my (?:best )?(?:" + KIN + "|" + PETS + ")(?:(?:'s|’s) name is|\\s+is (?:named|called))|me llamo|mi nombre es|me dicen|me llaman|mi (?:mejor )?(?:" + PARIENTES + "|" + MASCOTAS + ") se llama|el nombre de mi (?:mejor )?(?:" + PARIENTES + "|" + MASCOTAS + ") es)\\s*:?\\s+|(?:my |first |last |full |mi )?(?:name|nombre)\\s*:\\s*)(?:(?:mr|mrs|ms|miss|dr|coach|sr|sra|srta|profe|maestr[oa])\\.?\\s+)?)(" + WORD + "(?:\\s+" + WORD + "){0,3})", "gi");
   function scrubNames(text, removed) {
     return text.replace(NAME_CUE, function (match, cue, words) {
       var parts = words.split(/(\s+)/), tokens = parts.filter(function (_, i) { return i % 2 === 0; }), count = 1;
-      if (NAME_STOP.test(tokens[0])) return match;
+      if (NAME_STOP.test(tokens[0]) || NOT_NAME.test(tokens[0])) return match;
       while (count < tokens.length) {
         // "María de la Cruz": linking words belong to the name only when another name word follows them.
         var link = count;
@@ -71,7 +82,12 @@
       // A street name is not made of everyday words: "2 was a good way" and "3 kids on the street" stay.
       .replace(/\b\d{1,6}\s+(?:(?!(?:the|a|an|and|or|but|of|on|in|at|to|for|with|from|by|was|were|is|are|it|my|our|your|this|that|same|el|la|los|las|un|una|y|en|es|fue|con|por)\s)[A-Za-zÀ-ÿ.'-]+\s+){0,4}(?:street|st|road|rd|avenue|ave|lane|ln|drive|dr|boulevard|blvd|way|court|ct|calle|avenida|av|carrera|camino|paseo|carretera)\b(?:\s+(?:apt|unit|piso|n[oú]mero)\.?\s*[A-Za-z0-9-]+)?/gi, function (value, offset, all) { return afterStop(all, offset) ? value : removed; })
       .replace(/\b(?:calle|avenida|carrera|camino|paseo|carretera)\s+(?:[A-Za-zÀ-ÿ.'-]+\s+){0,4}\d{1,6}\b/gi, function (value) { return afterStop(value, value.search(/\d+$/)) ? value : removed; })
-      .replace(/(?:\+?\d|\(\d)[\d\s().-]{5,}\d/g, function (value, offset, all) { return value.replace(/\D/g, "").length >= 7 && !(afterStop(all, offset) && STOP_LIST.test(value)) ? removed : value; })
+      // An apartment or suite number, also after a direction such as "Rd NE apt 5".
+      .replace(/\b(?:apt|apartment|suite|ste|depto|departamento|apartamento|apto)\.?\s*(?:#|no\.?|n[uú]m(?:ero)?\.?)?\s*\d{1,5}[A-Za-z]?\b/gi, removed)
+      // A list of scores ("100 90 80 70") is not a phone number: every part is a number up to 100.
+      .replace(/(?:\+?\d|\(\d)[\d\s().-]{5,}\d/g, function (value, offset, all) { return value.replace(/\D/g, "").length >= 7 && !(afterStop(all, offset) && STOP_LIST.test(value)) && !scoreList(value) ? removed : value; })
+      // A Discord tag ("coolkid#1234") is a contact handle like "@sam".
+      .replace(/(^|[^A-Za-z0-9_])[A-Za-z0-9_.]{2,32}#\d{4}\b/g, function (_, prefix) { return prefix + removed; })
       .replace(/(^|[^A-Za-z0-9_])@[A-Za-z0-9_.-]{1,50}/g, function (_, prefix) { return prefix + removed; });
     CHILD_RULES.forEach(function (rule) {
       scrubbed = scrubbed.replace(rule[0], function (match, cue) { return (rule[1] ? cue : "") + removed; });
@@ -87,14 +103,31 @@
   // relative or a friend, and in a sign-off ("-Emma", "Gracias, Valentina").
   var FEW = WORD + "(?:\\s+" + WORD + "){0,2}";
   var INTRO = new RegExp("\\b(?:i['’]?m|i am|this is|soy|es)\\s+(" + FEW + ")", "gi");
+  // After a greeting, "im" or "soy" introduces a name even in lower case: "hi im maya lopez", "hola soy valentina".
+  var GREETING = new RegExp("\\b(?:hi|hello|hey|hiya|howdy|hola|buenas|buenos d[ií]as)\\b[\\s,!.]*(?:i['’]?m|i am|im|this is|it['’]?s|soy|es)\\s+(" + FEW + ")", "gi");
   var KIN_NAME = new RegExp("\\b(" + KIN + "|" + PARIENTES + ")s?\\s+(" + FEW + ")", "gi");
-  var SIGN_OFF = new RegExp("(?:^|[\\s.!?,])(?:[-–—~]+\\s*|(?:thanks|thank you|thx|love|sincerely|from|by|bye|cheers|gracias|saludos|atentamente|besos|abrazos|con cariño|de parte de)\\s*,?\\s+)(" + FEW + ")(?=\\s*(?:[,.!?()]|$))", "gim");
-  // A social handle after its app ("my snap is mayal22"), and a school written in lower case ("lincoln elementary").
-  var HANDLE = /\b(?:my|mi)\s+(?:snap(?:chat)?|insta(?:gram)?|ig|tik ?tok|discord|roblox|fortnite|minecraft|xbox|psn|twitch|youtube|yt|gamertag|username|user name|usuario|nombre de usuario)(?:\s+(?:name|username|user|handle|id|tag|account|cuenta))?(?:\s+(?:is|es)|\s*[:=])?\s+([A-Za-z0-9_.]{2,30})/gi;
-  var SCHOOL_NAME = new RegExp("\\b((?:" + WORD + "\\s+){1,3})(elementary|middle school|high school|primary school|academy)\\b", "gi");
+  // "my little brother noah", "mi hermano luis", "my dog Biscuit": after "my" or "mi", a lower-case name is flagged too.
+  var MY_KIN = new RegExp("\\b(?:my|our|mi|mis|nuestr[oa]s?)\\s+(?:(?:little|big|older|younger|baby|best|twin|step|new|old|peque[ñn][oa]|mayor|menor|mejor)\\s+)?(" + KIN + "|" + PETS + "|" + PARIENTES + "|" + MASCOTAS + ")\\s+(" + FEW + ")", "gi");
+  // A sign-off ("-Emma", "Gracias, Valentina"). The lookahead lets "love it bye Liam" find its last sign-off too.
+  var SIGN_OFF = new RegExp("(?:^|[\\s.!?,])(?=([-–—~]+\\s*|(?:thanks|thank you|thx|love|sincerely|from|by|bye|cheers|gracias|saludos|atentamente|besos|abrazos|con cariño|de parte de)\\s*,?\\s+)(" + FEW + ")(\\s*(?:[,.!?()]|$)))", "gim");
+  var SIGN_OFF_LOWER = /^(?:[-–—~]+\s*|(?:from|by|bye|love|de parte de)\s+)$/i;
+  var EVERYDAY = /^(?:you|all|everyone|everybody|now|kids|us|them|team|game|games|everything|fun|lots|lot|much|later|today|soon|friends|guys|todos|todas|ustedes|ti|juego|equipo|pronto|luego|hoy)$/i;
+  // A social handle after its app ("my snap is mayal22", "add me on roblox: kid22"), and a school written in lower case
+  // ("lincoln elementary") or without "School" ("Dickerson Middle", "Pope High").
+  var HANDLE = /\b(?:my|mi|(?:add|follow|friend|find|message|dm)\s+me\s+on|ag?r[eé]game\s+en|s[ií]gueme\s+en|b[uú]scame\s+en)\s+(?:snap(?:chat)?|insta(?:gram)?|ig|tik ?tok|discord|roblox|fortnite|minecraft|xbox|psn|twitch|youtube|yt|gamertag|username|user name|usuario|nombre de usuario)(?:\s+(?:name|username|user|handle|id|tag|account|cuenta))?(?:\s+(?:is|es)|\s*[:=])?\s+([A-Za-z0-9_.]{2,30})/gi;
+  var SCHOOL_NAME = new RegExp("\\b((?:" + WORD + "\\s+){1,3})(elementary|middle school|high school|primary school|academy)\\b(?:\\s+in\\s+(" + WORD + "))?", "gi");
+  var SCHOOL_SHORT = /\b([A-ZÀ-ÖØ-Þ][A-Za-zÀ-ÖØ-öø-ÿ'’-]+)\s+(Middle|High|Elementary|Intermediate|Primary)\b(?!\s+[Ss]chool)/g;
+  var REMOVED_TOWN = /\[(?:removed|quitado)\]\s+(?:in|en)\s+([A-ZÀ-ÖØ-Þ][A-Za-zÀ-ÖØ-öø-ÿ'’-]+)/g;
   function capitalized(words) {
+    // A real surname or second name after a game character's first name still counts: "Jayden Smith", "Ana Sofia".
     var names = [];
-    words.split(/\s+/).every(function (word) { var ok = UPPER.test(word) && !NAME_STOP.test(word) && !CAST.test(word); if (ok) names.push(word); return ok; });
+    words.split(/\s+/).every(function (word) { var ok = UPPER.test(word) && !NAME_STOP.test(word); if (ok) names.push(word); return ok; });
+    return names.every(function (word) { return CAST.test(word); }) ? "" : names.join(" ");
+  }
+  function lowerName(words) {
+    // Up to two words that read as a name, not as an action, a feeling or one of the game's own words.
+    var names = [];
+    words.split(/\s+/).slice(0, 2).every(function (word) { var ok = !notNameLower(word) && !CAST.test(word) && !EVERYDAY.test(word); if (ok) names.push(word); return ok; });
     return names.join(" ");
   }
   function privacyFlags(text) {
@@ -102,14 +135,26 @@
     function add(value) { value = value.replace(/\s+/g, " ").trim(); if (value && found.every(function (f) { return f.toLowerCase().indexOf(value.toLowerCase()) === -1; })) found.push(value); }
     String(text || "").replace(TITLED, function (match, name) { name = name.replace(/['’]s$/i, ""); if (!CAST.test(name) && !NAME_STOP.test(name)) add(match); return match; });
     String(text || "").replace(INTRO, function (match, words) { add(capitalized(words)); return match; });
+    String(text || "").replace(GREETING, function (match, words) { add(capitalized(words) || lowerName(words)); return match; });
     String(text || "").replace(KIN_NAME, function (match, kin, words) { var name = capitalized(words); if (name) add(kin + " " + name); return match; });
-    String(text || "").replace(SIGN_OFF, function (match, words) { var name = capitalized(words); if (name === words.replace(/\s+/g, " ")) add(name); return match; });
+    String(text || "").replace(MY_KIN, function (match, kin, words) { var name = capitalized(words) || lowerName(words); if (name) add(kin + " " + name); return match; });
+    String(text || "").replace(SIGN_OFF, function (match, cue, words, end, offset, all) {
+      var name = capitalized(words);
+      // A lower-case sign-off name counts only at the very end: "thanks, from ava r." but not "made by kids at stop 2".
+      if (!name && SIGN_OFF_LOWER.test(cue) && /^\s*[.!?]*\s*$/.test(all.slice(offset + match.length + cue.length + words.length))) name = lowerName(words) === words.split(/\s+/).slice(0, 2).join(" ") ? lowerName(words) : "";
+      if (name === words.replace(/\s+/g, " ")) add(name);
+      return match;
+    });
     String(text || "").replace(HANDLE, function (match, handle) { if (!NAME_STOP.test(handle)) add(handle); return match; });
-    String(text || "").replace(SCHOOL_NAME, function (match, words, kind) {
-      // Only the words right before "elementary" name it: "at lincoln elementary" flags "lincoln elementary".
+    String(text || "").replace(SCHOOL_SHORT, function (match, name, kind) { if (!NAME_STOP.test(name) && !CAST.test(name)) add(name + " " + kind); return match; });
+    String(text || "").replace(REMOVED_TOWN, function (match, town) { if (!NAME_STOP.test(town) && !CAST.test(town)) add(town); return match; });
+    String(text || "").replace(SCHOOL_NAME, function (match, words, kind, town) {
+      // Only the words right before "elementary" name it: "at lincoln elementary" flags "lincoln elementary", and the
+      // town after it ("in marietta") is flagged too.
       var name = [], list = words.trim().split(/\s+/);
       while (list.length && !NAME_STOP.test(list[list.length - 1])) name.unshift(list.pop());
       if (name.length) add(name.join(" ") + " " + kind);
+      if (town && !NAME_STOP.test(town) && !CAST.test(town) && !EVERYDAY.test(town)) add(town);
       return match;
     });
     String(text || "").replace(CHECK_WORDS, function (match, offset, all) {
@@ -292,8 +337,8 @@
       delete state.previousSession; return persist();
     }
     function restore(id) {
-      // The close-out view brings back an earlier player, for a Next player chosen by mistake. The player playing now
-      // ends and stays saved on this device.
+      // The facilitator's close-out brings back an earlier player, for a Next player chosen by mistake. The player
+      // playing now ends and stays saved on this device.
       if (changedSession || warning || !ID.test(id || "") || id === active()) return null;
       var disk = readState(storage);
       if (disk.state) {
@@ -344,7 +389,7 @@
       return persist() ? count : 0;
     }
     function players(all) {
-      // With all, also the players who left no notes: the close-out view can bring any of them back.
+      // With all, also the players who left no notes: the facilitator's close-out can bring any of them back.
       var map = new Map();
       state.entries.forEach(function (e) {
         var p = map.get(e.sessionId) || { sessionId: e.sessionId, updatedAt: "", notes: [] };
@@ -432,11 +477,13 @@
     chunks = chunks.concat(directory, [end]); var total = chunks.reduce(function (n, a) { return n + a.length; }, 0), out = bytes(total), at = 0;
     chunks.forEach(function (a) { out.set(a, at); at += a.length; }); return out;
   }
-  function excel(entries) {
+  function excel(entries, notice) {
     var headers = ["Anonymous session", "Entry ID", "Type", "Stop", "Language", "Build", "Created UTC", "Updated UTC", "Revision", "Rating", "Category", "What worked", "What to improve", "Score", "Phase", "Backup state", "Session ended", "Anonymous station"];
-    var rows = [headers].concat(entries.map(function (e) { return [e.sessionId, e.entryId, e.kind, e.stop, e.language, e.build, e.createdAt, e.updatedAt, e.revision, e.rating, e.category, e.worked, e.fix, e.score, e.phase, (e.ackRevision || 0) >= e.revision ? "confirmed" : (e.submitted ? "pending" : "local draft"), e.sessionEnded ? "yes" : "no", e.stationId || ""]; }));
+    // A file can stay behind in a shared computer's Downloads, so every note in it has the same scrub as a sent note,
+    // under a first row that asks to check it before sharing.
+    var rows = [[notice || (WORDS.en && WORDS.en.excelCheck) || "Check before sharing."], headers].concat(entries.map(function (e) { return [e.sessionId, e.entryId, e.kind, e.stop, e.language, e.build, e.createdAt, e.updatedAt, e.revision, e.rating, e.category, scrubPII(e.worked, e.language), scrubPII(e.fix, e.language), e.score, e.phase, (e.ackRevision || 0) >= e.revision ? "confirmed" : (e.submitted ? "pending" : "local draft"), e.sessionEnded ? "yes" : "no", e.stationId || ""]; }));
     function column(i) { var s = ""; do { s = String.fromCharCode(65 + i % 26) + s; i = Math.floor(i / 26) - 1; } while (i >= 0); return s; }
-    var sheet = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetViews><sheetView workbookViewId="0"><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews><cols><col min="1" max="11" width="22" customWidth="1"/><col min="12" max="13" width="55" customWidth="1"/><col min="14" max="18" width="22" customWidth="1"/></cols><sheetData>' + rows.map(function (row, i) { return '<row r="' + (i + 1) + '">' + row.map(function (v, j) { var ref = column(j) + (i + 1); return typeof v === "number" && Number.isFinite(v) ? '<c r="' + ref + '"><v>' + v + '</v></c>' : '<c r="' + ref + '" t="inlineStr"><is><t xml:space="preserve">' + xml(v) + '</t></is></c>'; }).join("") + '</row>'; }).join("") + '</sheetData><autoFilter ref="A1:R' + rows.length + '"/></worksheet>';
+    var sheet = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetViews><sheetView workbookViewId="0"><pane ySplit="2" topLeftCell="A3" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews><cols><col min="1" max="11" width="22" customWidth="1"/><col min="12" max="13" width="55" customWidth="1"/><col min="14" max="18" width="22" customWidth="1"/></cols><sheetData>' + rows.map(function (row, i) { return '<row r="' + (i + 1) + '">' + row.map(function (v, j) { var ref = column(j) + (i + 1); return typeof v === "number" && Number.isFinite(v) ? '<c r="' + ref + '"><v>' + v + '</v></c>' : '<c r="' + ref + '" t="inlineStr"><is><t xml:space="preserve">' + xml(v) + '</t></is></c>'; }).join("") + '</row>'; }).join("") + '</sheetData><autoFilter ref="A2:R' + rows.length + '"/></worksheet>';
     return zip({
       "[Content_Types].xml": '<?xml version="1.0" encoding="UTF-8"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/></Types>',
       "_rels/.rels": '<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>',
@@ -446,15 +493,21 @@
     });
   }
   var WORDS = {};
-  if (typeof module !== "undefined" && module.exports && typeof require === "function") {
-    WORDS.en = require("./locales/feedback-en.json");
-    WORDS.es = require("./locales/feedback-es.json");
+  if (typeof window === "undefined" && typeof module !== "undefined" && module.exports && typeof require === "function") {
+    // Node and the tests read the locales from disk. A browser never runs this (the bundler may give it a module
+    // object) and fetches them below, so through this alias the bundler leaves both files out of the shipped script.
+    var readLocale = require;
+    WORDS.en = readLocale("./locales/feedback-en.json");
+    WORDS.es = readLocale("./locales/feedback-es.json");
   }
   function mount(document, window) {
     var root = document.getElementById("pt-feedback"); if (!root) return null;
     var documentLanguage = document.documentElement && document.documentElement.lang;
     var lang = (documentLanguage || root.dataset.lang) === "es" ? "es" : "en", W = WORDS[lang], endpoint = root.dataset.endpoint || "";
-    var storage; try { storage = window.localStorage; } catch (e) { storage = { getItem: function () { throw e; }, setItem: function () { throw e; } }; }
+    var storage; try { storage = window.localStorage; } catch (e) { storage = { getItem: function () { throw e; }, setItem: function () { throw e; }, removeItem: function () { throw e; } }; }
+    var tabStorage = null; try { tabStorage = window.sessionStorage || null; } catch (_) { tabStorage = null; }
+    // A build with a close-out code carries only a random salt and the SHA-256 of salt and code, never the code.
+    var lock = /^([0-9a-f]{32}):([0-9a-f]{64})$/.exec(root.dataset.closeout || ""), closeoutReady = !!lock;
     var model = createModel({ storage: storage, language: lang, build: root.dataset.build || "", id: function () { return uid(window.crypto); } });
     var game = document.getElementById("community-builders");
     if (game) {
@@ -516,11 +569,16 @@
         return;
       }
       // With nothing saved at all (blocked site data), Next player starts over instead of waiting for saving to work.
-      if (model.warning()) { status.textContent = model.saved() ? W.storage : W.storageUnsaved; if (useNewDialog && newDialog.open && model.saved()) newMessage.textContent = W.storage; return; }
+      if (model.warning()) {
+        status.textContent = model.saved() ? W.storage : W.storageUnsaved + (el("download") ? " " + W.downloadFirst : "");
+        if (useNewDialog && newDialog.open && model.saved() && newState !== "storage") renderNewPlayer("storage");
+        return;
+      }
       var pending = model.pending().length > 0, acknowledged = model.entries().some(function (e) { return e.submitted && (e.ackRevision || 0) >= e.revision; });
-      // After a reload nothing retries by itself, so an unconfirmed note says so instead of "waiting".
-      var others = endpointAllowed(endpoint) && model.pending(true).some(function (e) { return e.sessionId !== model.active(); });
-      status.textContent = (model.recovery ? W.recovery : "") + (!endpointAllowed(endpoint) ? W.local : (pending ? (retry ? (attempts < 3 ? W.retrying : W.failed) : (inflight || sending ? W.queued : W.unsent)) : (acknowledged ? W.synced : W.draftSaved))) + (others ? " " + W.othersWaiting : "");
+      // After a reload nothing retries by itself, so an unconfirmed note says so instead of "waiting". Earlier players'
+      // notes are left only for the facilitator's close-out, or by an older version of the game.
+      var others = model.entries(true).some(function (e) { return e.sessionId !== model.active() && e.kind === "feedback" && hasContent(e) && !received(e); });
+      status.textContent = (model.recovery ? W.recovery : "") + (!endpointAllowed(endpoint) ? W.local : (pending ? (retry ? (attempts < 3 ? W.retrying : W.failed) : (inflight || sending ? W.queued : W.unsent)) : (acknowledged ? W.synced : W.draftSaved))) + (others ? " " + (closeoutReady ? W.othersKept : W.othersWaiting) : "");
     }
     function render() {
       if (player) player.textContent = W.player + " " + model.active().slice(-6).toUpperCase();
@@ -667,7 +725,7 @@
       showResult(resultKey);
       if (preview) preview.setAttribute("aria-label", W.preview);
       text(send, W.sendNow); text(edit, W.edit); text(checkStatus, W.checkStatus); text(el("check-text"), W.check);
-      if (useNewDialog) { text(newTitle, W.newTitle); text(newCancel, W.newCancel); text(newConfirm, W.newConfirmLabel); text(newMessage, W.newConfirm); }
+      if (useNewDialog) { text(newTitle, W.newTitle); text(newCancel, W.newCancel); if (!newDialog.open) text(newConfirm, W.newConfirmLabel); }
       root.dataset.lang = lang; root.setAttribute("lang", lang);
     }
     function invalidatePreview() {
@@ -725,8 +783,10 @@
       if (playerReady) playerReady.textContent = W.playerReady;
       if (deviceDialog && deviceDialog.open) renderDevice();
       // A redrawn close-out list clears the grown-up check: read it again in the new language.
-      if (closeoutDialog && closeoutDialog.open) { renderCloseout(""); closeoutTitle.focus(); }
+      if (closeoutDialog && closeoutDialog.open) { filesWarned = false; renderCloseout(""); closeoutTitle.focus(); }
       if (askDialog && askDialog.open) renderAsk().focus();
+      // Next player in the new language; a listed review clears its grown-up check, like the close-out list.
+      if (useNewDialog && newDialog.open) renderNewPlayer(newState);
       // A language change clears the grown-up check; review the newly translated preview.
       if (wasPreviewing) showPreview();
     });
@@ -752,24 +812,162 @@
     }
     function closeNewPlayerDialog() {
       if (!useNewDialog || !newDialog.open) return;
-      newDialog.close(); suspendNewPlayerVoice(false); restoreNewPlayerFocus();
+      newDialog.close(); emptyNewPlayer(); suspendNewPlayerVoice(false); restoreNewPlayerFocus();
     }
     function clearForm() { [rating, category, worked, fix].forEach(function (input) { input.value = ""; }); invalidatePreview(); }
     function resetConsentFor(session) {
       try { storage.setItem(CONSENT_KEY, JSON.stringify({ scores: false, autoScores: false, at: new Date().toISOString(), build: root.dataset.build || "", sessionId: session })); } catch (_) { model.storageFailed(); }
     }
-    function confirmNewPlayer() {
+    // Next player never leaves this player's notes behind for the next child. Notes the playtest team has not
+    // received are first reviewed and sent, deleted, or (only in a build with a close-out code) kept for the
+    // facilitator's close-out, the one place that can read them or bring this player back.
+    var newState = "", newCount = 0, newBody = null, newStatus = null, newSendButton = null, newKeepButton = null, newDeleteButton = null, newCheck = null, newReviewed = [];
+    function unhandled() { return model.entries().filter(function (e) { return e.kind === "feedback" && hasContent(e) && !received(e); }); }
+    function noteState() { return endpointAllowed(endpoint) || closeoutReady ? "choose" : "delete"; }
+    function newText(state) {
+      var notes = W.newNotes.replace("{count}", unhandled().length), download = el("download") ? " " + W.newDownloadFirst : "";
+      if (state === "unsaved") return W.newUnsaved + download;
+      if (state === "storage") return W.newStorage;
+      if (state === "review") return W.newReview;
+      if (state === "choose") return notes + " " + W.newChoose;
+      if (state === "delete") return notes + " " + W.newDeleteAsk + download;
+      return W.newConfirm + (closeoutReady ? " " + W.newRestore : "");
+    }
+    function newButton(text, id, run) {
+      var button = action(text, "pt-btn pt-btn--secondary", id, run), row = newConfirm.parentNode;
+      if (row && row.insertBefore) row.insertBefore(button, newConfirm); else newDialog.appendChild(button);
+      return button;
+    }
+    function emptyNewPlayer() {
+      // A closed Next player dialog keeps no note text in the page.
+      newReviewed = []; newCheck = null;
+      if (newBody) { fill(newBody, newStatus, [], []); newStatus.textContent = ""; }
+      if (newMessage) newMessage.textContent = "";
+    }
+    function noteItem(e) {
+      // One note as Send would send it: scrubbed, with the words a grown-up should still check.
+      var entry = node("li", "pt-feedback__entry"), text = [scrubPII(e.worked, e.language), scrubPII(e.fix, e.language)].filter(Boolean), flags = privacyFlags(text.join("\n"));
+      entry.appendChild(node("strong", "", label(e.stop) + (e.rating ? " · " + W[e.rating] : "")));
+      entry.appendChild(node("p", "", text.join(" / ") || W.noText));
+      if (flags.length) entry.appendChild(node("p", "pt-feedback__flags", W.flagged.replace("{words}", flags.join(", "))));
+      entry.appendChild(node("span", "pt-feedback__entry-state", received(e) ? W.backed : (e.submitted ? W.pending : W.draft)));
+      return entry;
+    }
+    function renderNewPlayer(state, message) {
+      if (!newBody) {
+        newBody = node("div", "pt-new-player__body", "", "pt-new-player-body"); newStatus = politeStatus("pt-new-player-status"); newBody.appendChild(newStatus);
+        if (newMessage.parentNode && newMessage.parentNode.insertBefore) newMessage.parentNode.insertBefore(newBody, newMessage.nextSibling || null); else newDialog.appendChild(newBody);
+        newSendButton = newButton(W.newSendNotes, "pt-new-player-send", function () { showNewPlayer("review"); });
+        newKeepButton = newButton(W.newKeepNotes, "pt-new-player-keep", keepForFacilitator);
+        newDeleteButton = newButton(W.newDeleteNotes, "pt-new-player-delete", function () { showNewPlayer("delete"); });
+      }
+      newState = state; newCheck = null; newReviewed = []; newCount = unhandled().length;
+      newDialog.className = "pt-player-dialog" + (state === "review" ? " pt-device" : "");
+      newTitle.textContent = W.newTitle; newCancel.textContent = W.newCancel; newMessage.textContent = newText(state);
+      newSendButton.textContent = W.newSendNotes; newKeepButton.textContent = W.newKeepNotes; newDeleteButton.textContent = W.newDeleteNotes;
+      var before = [], files = downloadedFiles(), focus = newCancel;
+      // A file saved during this turn stays in Downloads, where the next child could open it.
+      if (files.length) before.push(node("p", "pt-feedback__flags", W.newFiles.replace("{files}", files.join(", ")), "pt-new-player-files"));
+      if (state === "review") {
+        // Send sends exactly these notes, as listed; a change in another tab draws the list again.
+        newReviewed = model.waiting().filter(function (e) { return e.sessionId === model.active(); });
+        var heading = node("h3", "", W.preview, "pt-new-player-review"), notes = node("ul", "pt-device__notes", "", "pt-new-player-notes"), check = node("label", "pt-feedback__check");
+        heading.tabIndex = -1; focus = heading;
+        unhandled().forEach(function (e) { notes.appendChild(noteItem(e)); });
+        newCheck = node("input", "", "", "pt-new-player-check"); newCheck.type = "checkbox";
+        newCheck.addEventListener("keydown", function (event) { if (event.key === "Enter") event.preventDefault(); });
+        check.appendChild(newCheck); check.appendChild(node("span", "", W.deviceCheck));
+        before.push(heading, node("p", "", W.removed), notes, check);
+      }
+      fill(newBody, newStatus, before, []);
+      newStatus.textContent = message || "";
+      var choosing = state === "choose";
+      newSendButton.hidden = !(choosing && endpointAllowed(endpoint));
+      newKeepButton.hidden = !(choosing && closeoutReady);
+      newDeleteButton.hidden = !choosing;
+      newConfirm.hidden = choosing; newConfirm.setAttribute("aria-disabled", "false");
+      newConfirm.textContent = state === "storage" ? W.newEraseYes : state === "delete" ? W.newDeleteYes : state === "review" ? W.sendNow : W.newConfirmLabel;
+      focus.focus();
+    }
+    function showNewPlayer(state, message) {
+      if (!useNewDialog) {
+        // Without an in-page dialog the browser's confirm asks once; Cancel keeps playing, and notes can only be deleted.
+        if (state === "choose") state = "delete";
+        if (state === "review" || !window.confirm(newText(state))) return;
+        if (state === "unsaved") startOver(); else if (state === "storage") eraseDevice(setStatus); else if (state === "delete") deleteNotes(); else confirmNewPlayer();
+        return;
+      }
+      if (!newDialog.open) { newDialog.showModal(); suspendNewPlayerVoice(true); }
+      renderNewPlayer(state, message);
+    }
+    function canLeave() {
+      // Save the last keystrokes first; storage that stopped working offers the erase instead.
       flush();
-      if (model.changedSession()) return;
-      if (model.warning()) { if (!model.saved()) startOver(); return; }
+      if (model.changedSession()) return false;
+      if (model.warning()) { if (!model.saved()) startOver(); else showNewPlayer("storage"); return false; }
+      return true;
+    }
+    function startNext() {
+      // This player's notes are sent, deleted or kept for the facilitator. Clear the form and stop saving, so the
+      // reload's page-hide save cannot copy anything into the next player's session.
       if (!model.rotate()) { setStatus(); return; }
-      // The note is already saved for the player who just left. Clear the form and stop saving, so the
-      // reload's page-hide save cannot copy it into the next player's session.
       leaving = true; clearForm();
       closeNewPlayerDialog();
       window.clearTimeout(syncTimer);
-      resetConsentFor(model.active());
+      resetConsentFor(model.active()); forgetFiles();
       window.location.reload();
+    }
+    function confirmNewPlayer() {
+      if (!canLeave()) return;
+      // A note saved since the question was asked, in this tab or another, is handled first.
+      if (unhandled().length) { showNewPlayer(noteState()); return; }
+      startNext();
+    }
+    function keepForFacilitator() {
+      if (!closeoutReady || !canLeave()) return;
+      startNext();
+    }
+    function deleteNotes() {
+      if (!canLeave()) return;
+      // Each note becomes an empty newer revision rather than a removed record, so an older copy in another tab can
+      // never bring its text back.
+      unhandled().forEach(function (e) { model.upsert("feedback", e.stop, { rating: "", category: "", worked: "", fix: "" }); });
+      if (model.warning() || model.changedSession()) { setStatus(); return; }
+      loadContext(contextStop);
+      startNext();
+    }
+    async function sendAndNext() {
+      if (!endpointAllowed(endpoint) || newState !== "review" || !newCheck) return;
+      if (inflight || sending) { newStatus.textContent = W.sending; return; }
+      if (!newCheck.checked) { newStatus.textContent = W.checkFirst; newCheck.focus(); return; }
+      if (!canLeave()) return;
+      var listed = newReviewed.length, count = model.submitAll(consent.scores, newReviewed);
+      if (!count && (model.changedSession() || model.warning())) { setStatus(); return; }
+      // Send keeps focus while it works; a second press only repeats "Sending".
+      newConfirm.setAttribute("aria-disabled", "true");
+      inflight = true; newStatus.textContent = W.sending;
+      var rounds = Math.ceil(model.pending().length / 20) + 3;
+      try {
+        while (model.pending().length && rounds-- > 0) {
+          controller = window.AbortController ? new window.AbortController() : null;
+          var timeout = window.setTimeout(function () { if (controller) controller.abort(); }, 15000);
+          try { await sendBatch(model, endpoint, window.fetch.bind(window), controller && controller.signal); }
+          finally { window.clearTimeout(timeout); controller = null; }
+        }
+      } catch (_) { /* Anything not acknowledged stays on this device; Next player waits for it. */ }
+      inflight = false; render();
+      if (!newDialog.open || newState !== "review") return;
+      var left = unhandled().length;
+      // Only when the team has every note of this player does the next player start.
+      if (!left) { startNext(); return; }
+      renderNewPlayer("review", W.deviceFailed.replace("{count}", left) + (count < listed ? " " + W.closeoutChanged : ""));
+    }
+    function confirmNewState() {
+      if (newState === "unsaved") startOver();
+      else if (newState === "storage") eraseDevice(function () { renderNewPlayer("storage", W.eraseFailed); });
+      else if (newState === "delete") deleteNotes();
+      else if (newState === "review") sendAndNext();
+      else confirmNewPlayer();
     }
     function startOver() {
       // Nothing of this player was ever saved, so a reload is the next player: new random codes, an empty form, a new game.
@@ -778,30 +976,23 @@
       window.clearTimeout(syncTimer);
       window.location.reload();
     }
-    function unsentNotes() {
-      return endpointAllowed(endpoint) ? model.entries().filter(function (e) { return e.kind === "feedback" && hasContent(e) && !received(e); }).length : 0;
-    }
     function newPlayer(event) {
       flush();
-      if (model.changedSession() || (model.warning() && model.saved())) return;
-      // With blocked site data nothing is saved, so the next player can still start; this player's game and notes go.
-      var unsaved = !!model.warning(), unsent = unsaved ? 0 : unsentNotes();
-      var message = unsaved ? W.newUnsaved : W.newConfirm + (unsent ? " " + W.newUnsent.replace("{count}", unsent) : "");
-      if (!useNewDialog) { if (window.confirm(message)) confirmNewPlayer(); return; }
-      if (newDialog.open) return;
+      if (model.changedSession() || (useNewDialog && newDialog.open)) return;
       newOpener = event && event.currentTarget || document.activeElement;
-      newMessage.textContent = message;
-      newDialog.showModal(); suspendNewPlayerVoice(true); newCancel.focus();
+      // With blocked site data nothing is saved, so the next player can still start; this player's game and notes go.
+      // Saving that stopped working after this player saved offers to erase this device's Pecan Grove data instead.
+      showNewPlayer(model.warning() ? (model.saved() ? "storage" : "unsaved") : (unhandled().length ? noteState() : "confirm"));
     }
     if (useNewDialog) {
       newCancel.addEventListener("click", closeNewPlayerDialog);
-      newConfirm.addEventListener("click", confirmNewPlayer);
+      newConfirm.addEventListener("click", confirmNewState);
       newDialog.addEventListener("cancel", function (event) { event.preventDefault(); closeNewPlayerDialog(); });
-      newDialog.addEventListener("close", function () { if (!newDialog.open) { suspendNewPlayerVoice(false); restoreNewPlayerFocus(); } });
+      newDialog.addEventListener("close", function () { if (!newDialog.open) { emptyNewPlayer(); suspendNewPlayerVoice(false); restoreNewPlayerFocus(); } });
     }
     [el("new-player"), el("new-player-top")].forEach(function (button) { if (button) button.addEventListener("click", newPlayer); });
     // Right after Next player, one line confirms the switch until the new player starts or types. A player chosen
-    // by mistake comes back only from the close-out view, never from a button the next child can press.
+    // by mistake comes back only from the facilitator's close-out, never from a button the next child can press.
     var readyHost = el("new-player-top"), playerReady = null, previous = model.previousPlayer();
     if (previous && readyHost && readyHost.parentNode && Date.now() - Date.parse(previous.at) < 600000 && model.entries().every(function (e) { return e.kind === "session"; })) {
       playerReady = document.createElement("p"); playerReady.id = "pt-player-ready"; playerReady.className = "pt-privacy"; playerReady.setAttribute("role", "status"); playerReady.textContent = W.playerReady;
@@ -814,14 +1005,36 @@
       if (!playerReady) return;
       model.forgetPrevious(); playerReady.remove(); playerReady = null;
     }
+    // The names of files saved during this player's turn, so Next player and closing the close-out can say to delete
+    // them from Downloads. Kept for the current player only; an unavailable store keeps this page's own list.
+    var downloads = [];
+    function downloadedFiles() {
+      var names = downloads.slice();
+      try {
+        var kept = JSON.parse(storage.getItem(FILES_KEY) || "null");
+        if (kept && kept.sessionId === model.active() && Array.isArray(kept.files)) kept.files.forEach(function (name) { if (typeof name === "string" && names.indexOf(name.slice(0, 80)) === -1) names.push(name.slice(0, 80)); });
+      } catch (_) { /* This page's own list still warns. */ }
+      return names.slice(0, 10);
+    }
+    function recordFile(name) {
+      name = String(name || "").slice(0, 80);
+      if (!name) return;
+      if (downloads.indexOf(name) === -1) downloads.push(name);
+      try { storage.setItem(FILES_KEY, JSON.stringify({ sessionId: model.active(), files: downloadedFiles() })); } catch (_) { /* This page's own list still warns. */ }
+    }
+    function forgetFiles() { downloads = []; try { storage.removeItem(FILES_KEY); } catch (_) { /* The list belongs to the player who left. */ } }
+    document.addEventListener("pg:file-saved", function (event) { recordFile(event.detail && event.detail.name); });
     function saveExcel(list, name, target, done) {
       try {
-        var blob = new window.Blob([excel(list)], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+        var blob = new window.Blob([excel(list, W.excelCheck)], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
         var url = window.URL.createObjectURL(blob), a = document.createElement("a"); a.href = url; a.download = name;
         document.body.appendChild(a); a.click(); a.remove(); window.setTimeout(function () { window.URL.revokeObjectURL(url); }, 30000); target.textContent = done;
+        recordFile(name);
       } catch (e) { target.textContent = W.downloadError; }
     }
-    el("download").addEventListener("click", function () {
+    // Only a copy that never sends keeps the per-player Excel button; with a receiver it is not built.
+    var download = el("download");
+    if (download) download.addEventListener("click", function () {
       flush(); saveExcel(model.entries(), "pecan-grove-feedback-" + model.active().slice(-6) + ".xlsx", status, W.download);
     });
     function node(tag, className, text, id) { var n = document.createElement(tag); if (className) n.className = className; if (text) n.textContent = text; if (id) n.id = id; return n; }
@@ -854,7 +1067,7 @@
     }
     // For grown-ups on a shared device: the privacy notice, how many notes are saved here, and erase. Notes can be
     // private, so this panel only counts them; their text, Send, the Excel for every player and bringing a player
-    // back are in the close-out view below.
+    // back are in the facilitator's close-out below, which exists only in a build with a close-out code.
     var deviceDialog = null, deviceStatus = null, deviceOpener = null, eraseAsked = false;
     function waitingNotes() { return model.waiting().length; }
     function politeStatus(id) { var out = node("p", "pt-device__status", "", id); out.setAttribute("role", "status"); out.setAttribute("aria-live", "polite"); return out; }
@@ -871,19 +1084,21 @@
       var title = node("h2", "", W.deviceOpen, "pt-device-title"); title.tabIndex = -1;
       var notice = node("details", "pt-device__privacy", "", "pt-device-privacy");
       notice.appendChild(node("summary", "", W.privacyTitle));
-      [W.privacyStored, cloud ? W.privacySentCloud : W.privacySentLocal, cloud ? W.privacyWho : "", W.privacyContact, W.privacyDelete].forEach(function (text) { if (text) notice.appendChild(node("p", "", text)); });
+      // Each line says what this copy does: with or without a receiver, and with or without a close-out code.
+      var notesKept = cloud ? (closeoutReady ? W.privacyNotesCloudKeep : W.privacyNotesCloud) : (closeoutReady ? W.privacyNotesLocalKeep : W.privacyNotesLocal);
+      [W.privacyStored, notesKept, cloud ? W.privacySentCloud : W.privacySentLocal, cloud ? W.privacyWho : "", W.privacyContact, W.privacyDelete].forEach(function (text) { if (text) notice.appendChild(node("p", "", text)); });
       deviceStatus.textContent = message || "";
       var erase = node("div", "pt-device__erase");
       if (!eraseAsked) erase.appendChild(action(W.erase, "pt-btn pt-btn--secondary", "pt-device-erase", function () { eraseAsked = true; renderDevice(); focusId("pt-device-erase-no"); }));
       else {
-        erase.appendChild(node("p", "", W.eraseConfirm + (waiting ? " " + W.eraseUnsent.replace("{count}", waiting) : ""), "pt-device-erase-message"));
+        erase.appendChild(node("p", "", W.eraseConfirm + (waiting ? " " + W.eraseUnsent.replace("{count}", waiting) + (closeoutReady ? " " + W.eraseKeep : "") : ""), "pt-device-erase-message"));
         erase.appendChild(action(W.eraseNo, "pt-btn", "pt-device-erase-no", function () { eraseAsked = false; renderDevice(); focusId("pt-device-erase"); }));
         erase.appendChild(action(W.eraseYes, "pt-btn pt-btn--secondary", "pt-device-erase-yes", eraseDevice));
       }
       var actions = node("div", "pt-actions"); actions.appendChild(action(W.close, "pt-btn", "pt-device-close", closeDevice));
       fill(deviceDialog, deviceStatus, [title, node("p", "", W.deviceIntro), notice, node("h3", "", W.deviceNotesTitle),
         node("p", "", W.deviceSummary.replace("{players}", everyone.length).replace("{notes}", notes).replace("{waiting}", waiting), "pt-device-summary"),
-        node("p", "", W.deviceCloseout)], [erase, actions]);
+        node("p", "", W.deviceCloseout + (closeoutReady ? " " + W.deviceCloseoutCode : ""))], [erase, actions]);
     }
     function openDevice(opener) {
       flush();
@@ -906,38 +1121,82 @@
       var opener = deviceOpener; deviceOpener = null;
       if (opener && typeof opener.focus === "function" && opener.isConnected !== false) opener.focus();
     }
-    // The close-out view for the grown-up running the play-test: every player's notes to read, send and download, and
-    // the earlier players to bring back. It opens only from the address switch ?closeout=1 (index.html?closeout=1 or
-    // espanol.html?closeout=1) after a grown-up confirms. That keeps it out of a child's reach in the normal game; it
-    // is not security, since anyone who knows the address can open it.
-    var askDialog = null, closeoutDialog = null, closeoutTitle = null, closeoutIntro = null, closeoutBody = null, closeoutStatus = null, closeoutClose = null, closeoutSend = null, reviewed = [];
-    function closeoutRequested() { try { return new window.URL(window.location.href).searchParams.get("closeout") === "1"; } catch (_) { return false; } }
-    function forgetCloseoutSwitch() {
-      // One confirmation per visit: the reload after Next player, bringing a player back or erasing opens the game page.
-      try { var url = new window.URL(window.location.href); url.searchParams.delete("closeout"); window.history.replaceState(window.history.state, "", url.href); }
-      catch (_) { /* The address keeps the switch, so the next load asks again. */ }
+    // The facilitator's close-out: every player's notes to read, send and download, and the earlier players to bring
+    // back. It exists only in a build made with PG_CLOSEOUT_CODE, and opens from Facilitator close-out (For grown-ups)
+    // after the facilitator types that code into a dialog, never into the address, so nothing reaches the browser's
+    // history. Wrong codes are limited per tab. The page holds only a salted hash, so this keeps children out; someone
+    // with the page source and time could still try codes offline.
+    var askDialog = null, askInput = null, askStatus = null, askOpener = null, checking = false, codeTries = { count: 0, until: 0 };
+    var closeoutDialog = null, closeoutTitle = null, closeoutIntro = null, closeoutBody = null, closeoutStatus = null, closeoutClose = null, closeoutSend = null, reviewed = [], filesWarned = false;
+    function readTries() {
+      try { var kept = JSON.parse(tabStorage.getItem(TRIES_KEY) || "null"); if (kept && Number.isInteger(kept.count) && Number.isFinite(kept.until)) codeTries = { count: kept.count, until: kept.until }; }
+      catch (_) { /* This page keeps its own count. */ }
+      if (codeTries.until && codeTries.until <= Date.now()) codeTries = { count: 0, until: 0 };
+      return codeTries;
+    }
+    function writeTries(tries) {
+      codeTries = tries;
+      try { tabStorage.setItem(TRIES_KEY, JSON.stringify(tries)); } catch (_) { /* This page keeps its own count. */ }
+    }
+    function sha256(text) {
+      var subtle = window.crypto && window.crypto.subtle;
+      if (!subtle || typeof subtle.digest !== "function") return Promise.reject(Error("No SHA-256 in this browser"));
+      return subtle.digest("SHA-256", new TextEncoder().encode(text)).then(function (buffer) {
+        return Array.from(new Uint8Array(buffer), function (n) { return n.toString(16).padStart(2, "0"); }).join("");
+      });
     }
     function renderAsk() {
       while (askDialog.firstChild) askDialog.removeChild(askDialog.firstChild);
-      var actions = node("div", "pt-actions"), no = action(W.closeoutNo, "pt-btn", "pt-closeout-ask-cancel", function () { answerCloseout(false); });
-      actions.appendChild(no); actions.appendChild(action(W.closeoutYes, "pt-btn pt-btn--secondary", "pt-closeout-ask-confirm", function () { answerCloseout(true); }));
-      [node("h2", "", W.closeoutAskTitle, "pt-closeout-ask-title"), node("p", "", W.closeoutAsk, "pt-closeout-ask-message"), actions].forEach(function (n) { askDialog.appendChild(n); });
-      return no;
+      var field = node("label", "pt-closeout__field", "", "pt-closeout-code-label"), actions = node("div", "pt-actions");
+      askInput = node("input", "pt-closeout__code", "", "pt-closeout-code");
+      // Never a password field: a browser could offer to save the code and fill it in for the next child.
+      askInput.type = "text"; askInput.setAttribute("autocomplete", "off"); askInput.setAttribute("autocapitalize", "off"); askInput.setAttribute("spellcheck", "false"); askInput.setAttribute("aria-describedby", "pt-closeout-ask-message pt-closeout-ask-status");
+      askInput.addEventListener("keydown", function (event) { if (event.key === "Enter") { event.preventDefault(); checkCode(); } });
+      field.appendChild(node("span", "", W.codeLabel)); field.appendChild(askInput);
+      askStatus = politeStatus("pt-closeout-ask-status");
+      actions.appendChild(action(W.closeoutNo, "pt-btn", "pt-closeout-ask-cancel", function () { answerCloseout(false); }));
+      actions.appendChild(action(W.codeOpen, "pt-btn pt-btn--secondary", "pt-closeout-ask-confirm", checkCode));
+      [node("h2", "", W.closeoutTitle, "pt-closeout-ask-title"), node("p", "", W.codeAsk, "pt-closeout-ask-message"), field, askStatus, actions].forEach(function (n) { askDialog.appendChild(n); });
+      if (readTries().until) askStatus.textContent = W.codeWait;
+      return askInput;
     }
-    function askCloseout() {
+    function askCloseout(opener) {
+      if (!closeoutReady) return;
       if (!askDialog) {
         askDialog = node("dialog", "pt-player-dialog", "", "pt-closeout-ask"); askDialog.setAttribute("aria-labelledby", "pt-closeout-ask-title"); askDialog.setAttribute("aria-describedby", "pt-closeout-ask-message");
         askDialog.addEventListener("cancel", function (event) { event.preventDefault(); answerCloseout(false); });
         dialogHost().appendChild(askDialog);
       }
-      if (typeof askDialog.showModal !== "function") { var yes = window.confirm(W.closeoutAsk); forgetCloseoutSwitch(); if (yes) openCloseout(); return; }
-      if (askDialog.open) return;
-      var no = renderAsk(); askDialog.showModal(); suspendNewPlayerVoice(true); no.focus();
+      if (typeof askDialog.showModal !== "function" || askDialog.open || (closeoutDialog && closeoutDialog.open)) return;
+      askOpener = opener || document.activeElement;
+      var input = renderAsk(); askDialog.showModal(); suspendNewPlayerVoice(true); input.focus();
     }
-    function answerCloseout(yes) {
+    function emptyAsk() { if (askInput) askInput.value = ""; if (askStatus) askStatus.textContent = ""; }
+    function answerCloseout(open) {
       if (askDialog && askDialog.open) askDialog.close();
-      forgetCloseoutSwitch();
-      if (yes) openCloseout(); else suspendNewPlayerVoice(false);
+      emptyAsk();
+      if (open) { openCloseout(); return; }
+      suspendNewPlayerVoice(false);
+      var opener = askOpener; askOpener = null;
+      if (opener && typeof opener.focus === "function" && opener.isConnected !== false) opener.focus();
+    }
+    function checkCode() {
+      if (checking || !askDialog || !askDialog.open) return;
+      var tries = readTries(), typed = askInput.value.trim();
+      if (tries.until) { askStatus.textContent = W.codeWait; return; }
+      if (!typed) { askStatus.textContent = W.codeEmpty; askInput.focus(); return; }
+      checking = true;
+      sha256(lock[1] + ":" + typed).then(function (hash) {
+        checking = false;
+        if (!askDialog.open) return;
+        askInput.value = "";
+        if (hash === lock[2]) { writeTries({ count: 0, until: 0 }); answerCloseout(true); return; }
+        var count = readTries().count + 1;
+        // Five wrong codes in this tab, then a one-minute wait before the next try.
+        writeTries(count >= CODE_TRIES ? { count: 0, until: Date.now() + CODE_WAIT } : { count: count, until: 0 });
+        askStatus.textContent = count >= CODE_TRIES ? W.codeWait : W.codeWrong.replace("{count}", CODE_TRIES - count);
+        askInput.focus();
+      }, function () { checking = false; askStatus.textContent = W.codeUnavailable; });
     }
     function playerCode(session) { return session.slice(-6).toUpperCase(); }
     function lastSaved(at) {
@@ -958,14 +1217,7 @@
       everyone.filter(function (p) { return p.notes.length; }).forEach(function (p) {
         var item = node("li", "pt-device__player"), inner = node("ul", "pt-device__notes");
         item.appendChild(node("strong", "", W.player + " " + playerCode(p.sessionId) + (p.sessionId === model.active() ? " " + W.deviceCurrent : "")));
-        p.notes.forEach(function (e) {
-          var entry = node("li", "pt-feedback__entry"), text = [scrubPII(e.worked, e.language), scrubPII(e.fix, e.language)].filter(Boolean), flags = privacyFlags(text.join("\n"));
-          entry.appendChild(node("strong", "", label(e.stop) + (e.rating ? " · " + W[e.rating] : "")));
-          entry.appendChild(node("p", "", text.join(" / ") || W.noText));
-          if (flags.length) entry.appendChild(node("p", "pt-feedback__flags", W.flagged.replace("{words}", flags.join(", "))));
-          entry.appendChild(node("span", "pt-feedback__entry-state", received(e) ? W.backed : (e.submitted ? W.pending : W.draft)));
-          inner.appendChild(entry);
-        });
+        p.notes.forEach(function (e) { inner.appendChild(noteItem(e)); });
         item.appendChild(inner); players.appendChild(item);
       });
       if (!notes) players.appendChild(node("li", "", W.deviceNone));
@@ -1001,14 +1253,30 @@
         dialogHost().appendChild(closeoutDialog);
       }
       if (closeoutDialog.open) return;
-      renderCloseout("");
+      filesWarned = false; renderCloseout("");
       if (typeof closeoutDialog.showModal === "function") closeoutDialog.showModal(); else closeoutDialog.open = true;
       suspendNewPlayerVoice(true); closeoutTitle.focus();
     }
-    function closeCloseout() {
+    function emptyCloseout() {
+      // A closed close-out keeps no note text in the page, also for the back-forward cache.
+      reviewed = []; closeoutSend = null;
+      if (closeoutBody) while (closeoutBody.firstChild) closeoutBody.removeChild(closeoutBody.firstChild);
+      if (closeoutStatus) closeoutStatus.textContent = "";
+    }
+    function closeCloseout(now) {
       if (!closeoutDialog) return;
+      var files = now === true ? [] : downloadedFiles();
+      if (closeoutDialog.open && files.length && !filesWarned) {
+        // Before the view closes: a file saved here stays in Downloads, where a child could open it.
+        filesWarned = true; emptyCloseout();
+        closeoutBody.appendChild(node("p", "pt-feedback__flags", W.closeoutFiles.replace("{files}", files.join(", ")), "pt-closeout-files"));
+        closeoutTitle.focus();
+        return;
+      }
       if (closeoutDialog.open) { if (typeof closeoutDialog.close === "function") closeoutDialog.close(); else closeoutDialog.open = false; }
-      suspendNewPlayerVoice(false); reviewed = [];
+      emptyCloseout(); suspendNewPlayerVoice(false);
+      var opener = askOpener; askOpener = null;
+      if (opener && typeof opener.focus === "function" && opener.isConnected !== false) opener.focus();
     }
     async function sendCloseout(box) {
       if (!endpointAllowed(endpoint)) return;
@@ -1041,19 +1309,41 @@
     function restorePlayer(session) {
       flush();
       if (model.warning() || model.changedSession() || !model.restore(session)) { setStatus(); if (closeoutDialog && closeoutDialog.open) renderCloseout(model.warning() ? W.storage : W.closeoutChanged); return; }
-      leaving = true; clearForm(); resetConsentFor(model.active()); forgetCloseoutSwitch();
+      leaving = true; clearForm(); resetConsentFor(model.active());
       window.location.reload();
     }
-    function eraseDevice() {
-      leaving = true; window.clearTimeout(syncTimer); if (controller) controller.abort(); clearForm();
+    function eraseDevice(failed) {
+      leaving = true; window.clearTimeout(syncTimer); if (controller) controller.abort();
       var session = null; try { session = window.sessionStorage; } catch (_) { session = null; }
-      if (!eraseAll(storage, session)) { leaving = false; renderDevice(W.storage); return; }
+      // A failed erase keeps the form as it is, so the next save cannot store an emptied note.
+      if (!eraseAll(storage, session)) { leaving = false; if (typeof failed === "function") failed(); else renderDevice(W.storage); return; }
+      clearForm();
       // A closing page may save once more; the next load finishes the erase before anything else starts.
       try { if (session) session.setItem(ERASE_FLAG, "1"); } catch (_) { /* The erase above already removed the saved data. */ }
       window.location.reload();
     }
     [el("device"), document.getElementById("pt-device-open")].forEach(function (button) { if (button) button.addEventListener("click", function (event) { openDevice(event && event.currentTarget); }); });
-    window.addEventListener("pagehide", function () { flush(); pageOpen = false; window.clearTimeout(syncTimer); if (controller) controller.abort(); });
+    function hideNotes() {
+      // Leaving the page, also into the back-forward cache: close the dialogs and keep no note text in the page. The
+      // emptied form counts as already saved, so a later save never stores it over the note.
+      closeNewPlayerDialog(); if (consentDialog && consentDialog.open) closeConsent(false); closeDevice();
+      if (askDialog && askDialog.open) answerCloseout(false);
+      closeCloseout(true); emptyNewPlayer(); emptyAsk();
+      clearForm(); saved = formValues(); previewEntry = null;
+      if (previewText) previewText.textContent = "";
+      if (previewFlags) previewFlags.textContent = "";
+      while (list.firstChild) list.removeChild(list.firstChild);
+    }
+    window.addEventListener("pagehide", function () { flush(); pageOpen = false; window.clearTimeout(syncTimer); if (controller) controller.abort(); hideNotes(); });
+    window.addEventListener("pageshow", function (event) {
+      if (!event || !event.persisted) return;
+      // Back or Forward brought this page back. Another tab may have started a player, brought one back or erased
+      // this device in the meantime: then load the page again; otherwise show this player's saved notes again.
+      var disk = readState(storage);
+      if (leaving || (disk.state ? disk.state.activeSession !== model.active() : model.saved() && !disk.warning)) { leaving = true; window.location.reload(); return; }
+      pageOpen = true; model.refresh(); loadContext(contextStop);
+      consent = readConsent(storage, model.active()); if (!consent.scores) model.withdrawScores(true); updateConsentControls();
+    });
     document.addEventListener("visibilitychange", function () { if (document.visibilityState === "hidden") flush(); });
     window.addEventListener("storage", function (event) {
       // Another tab erased this device: reload without writing this tab's copy back.
@@ -1064,16 +1354,27 @@
         render();
         // A note written or changed in another tab while the close-out list is open: draw the list again, which
         // clears the grown-up check, so Send can only send what the grown-up has read.
-        if (closeoutDialog && closeoutDialog.open && !inflight && JSON.stringify(model.waiting()) !== JSON.stringify(reviewed)) renderCloseout(W.closeoutChanged);
+        if (closeoutDialog && closeoutDialog.open && !inflight && !filesWarned && JSON.stringify(model.waiting()) !== JSON.stringify(reviewed)) renderCloseout(W.closeoutChanged);
+        // The same for this player's notes listed in Next player; a question about them shows the new count.
+        if (useNewDialog && newDialog.open && !inflight) {
+          var mine = model.waiting().filter(function (e) { return e.sessionId === model.active(); });
+          if (newState === "review" && JSON.stringify(mine) !== JSON.stringify(newReviewed)) renderNewPlayer(mine.length ? "review" : "confirm", mine.length ? W.closeoutChanged : "");
+          else if ((newState === "confirm" || newState === "choose" || newState === "delete") && unhandled().length !== newCount) renderNewPlayer(unhandled().length ? (newState === "confirm" ? noteState() : newState) : "confirm");
+        }
       }
       if (event.key === CONSENT_KEY) { consent = readConsent(storage, model.active()); if (!consent.scores) model.withdrawScores(true); updateConsentControls(); }
     });
     model.upsert("session", 0, { phase: "start", language: lang });
     var initial = game && Number(game.dataset.currentStop);
     translateForm(); loadContext(Number.isInteger(initial) && initial >= 0 && initial <= 15 ? initial : 0); updateConsentControls();
-    if (closeoutRequested()) askCloseout();
     var runtime = { model: model, flush: flush, sync: sync, getConsent: consentCopy, setConsent: setConsent, showPreview: showPreview, openDevice: openDevice,
       requestNewPlayer: function (opener) { newPlayer({ currentTarget: opener }); } };
+    // Facilitator close-out (For grown-ups) exists only in a build with a close-out code.
+    if (closeoutReady) {
+      runtime.openCloseout = function (opener) { flush(); askCloseout(opener); };
+      var closeoutOpen = document.getElementById("pt-closeout-open");
+      if (closeoutOpen) closeoutOpen.addEventListener("click", function (event) { runtime.openCloseout(event && event.currentTarget); });
+    }
     window.PecanGroveFeedback = Object.assign({}, api, runtime);
     return runtime;
   }
@@ -1113,7 +1414,7 @@
       } catch (e) { model.storageFailed(); }
     }
   }
-  var api = { KEY: KEY, GAME_KEY: GAME_KEY, CONSENT_KEY: CONSENT_KEY, ERASE_FLAG: ERASE_FLAG, scrubPII: scrubPII, privacyFlags: privacyFlags, readConsent: readConsent, WORDS: WORDS, createModel: createModel, mergeEntries: mergeEntries, sendBatch: sendBatch, endpointAllowed: endpointAllowed, excel: excel, mount: mount, scopeSession: scopeSession, eraseAll: eraseAll, finishErase: finishErase };
+  var api = { KEY: KEY, GAME_KEY: GAME_KEY, CONSENT_KEY: CONSENT_KEY, ERASE_FLAG: ERASE_FLAG, FILES_KEY: FILES_KEY, TRIES_KEY: TRIES_KEY, scrubPII: scrubPII, privacyFlags: privacyFlags, readConsent: readConsent, WORDS: WORDS, createModel: createModel, mergeEntries: mergeEntries, sendBatch: sendBatch, endpointAllowed: endpointAllowed, excel: excel, mount: mount, scopeSession: scopeSession, eraseAll: eraseAll, finishErase: finishErase };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   host.PecanGroveFeedback = api;
   if (host.document && host.document.getElementById && host.document.getElementById("community-builders")) {

@@ -157,7 +157,8 @@
     "consentAutoScores": "Also send each score as soon as a stop is finished",
     "consentAutoDetails": "Sends right away, without a grown-up review. Never notes or names.",
     "devicePanel": "Privacy and notes on this device",
-    "nextPlayer": "Next player on this computer"
+    "nextPlayer": "Next player on this computer",
+    "facilitatorCloseout": "Facilitator close-out"
   },
   "X": {
     "parts3": [
