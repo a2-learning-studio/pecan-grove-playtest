@@ -191,14 +191,18 @@ export default function createDialog(ctx) {
       );
     }
     var playersApi = ctx.window.PecanGroveFeedback;
-    if (playersApi && playersApi.openDevice && playersApi.requestNewPlayer) {
-      var device = ctx.btn(ctx.W.devicePanel, "", function () {
-        playersApi.openDevice(device);
-      });
+    if (playersApi && playersApi.requestNewPlayer) {
       var next = ctx.btn(ctx.W.nextPlayer, "", function () {
         playersApi.requestNewPlayer(next);
       });
-      var row = [next, device];
+      var row = [next];
+      // When the feedback form could not load, only Next player is offered.
+      if (playersApi.openDevice) {
+        var device = ctx.btn(ctx.W.devicePanel, "", function () {
+          playersApi.openDevice(device);
+        });
+        row.push(device);
+      }
       // Only a build with a facilitator's close-out code has this; it asks for the code before showing any note.
       if (playersApi.openCloseout) {
         var closeout = ctx.btn(ctx.W.facilitatorCloseout, "", function () {

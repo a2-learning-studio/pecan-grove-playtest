@@ -444,6 +444,8 @@ test('Facilitator close-out asks for the code in a dialog, never in the address,
   expect(await page.content()).not.toMatch(/[?&]closeout=|e2e-closeout-test-code/);
   await page.locator('#pt-closeout-open').click();await expect(page.locator('#pt-closeout-ask')).toBeVisible();
   await expect(page.locator('#pt-closeout-ask')).toContainText('Si eres un jugador, elige Ahora no.');
+  // A masked password field that the browser treats as a one-time code, so it never offers to save or fill it in.
+  await expect(page.locator('#pt-closeout-code')).toHaveAttribute('type','password');await expect(page.locator('#pt-closeout-code')).toHaveAttribute('autocomplete','one-time-code');
   expect((await new AxeBuilder({page}).include('#pt-closeout-ask').analyze()).violations).toEqual([]);
   await page.locator('#pt-closeout-code').fill('no-es-el-codigo');await page.locator('#pt-closeout-code').press('Enter');
   await expect(page.locator('#pt-closeout-ask-status')).toHaveText('Ese código no es correcto. Intentos antes de esperar un minuto: 4.');
@@ -474,6 +476,62 @@ test('Facilitator close-out is also under the game\'s For grown-ups, behind the 
   await expect(page.locator('#pt-closeout-dialog')).toBeVisible();await page.locator('#pt-closeout-close').click();
   await expect(page.locator('#pt-closeout-dialog')).toBeHidden();await expect(button).toBeFocused();
   await assertLocalOnly(page,noNetwork);
+});
+// On a first visit the feedback words come as two files. A missing one borrows the other language; with neither, the
+// form is switched off and emptied, and Next player (start page and the game's For grown-ups) still starts the next
+// player, so nothing typed waits for the next child. With no service worker, every load misses the same files.
+// A raw key is a word name from the feedback or shell words (camelCase or snake_case), or an unfilled placeholder.
+const WORD_KEYS=['feedback-en','en'].flatMap(name=>Object.keys(require(`../../assets/playtest/locales/${name}.json`))).filter(key=>/[A-Z_]/.test(key));
+const RAW_KEYS=new RegExp(`\\b(?:undefined|null|${WORD_KEYS.join('|')})\\b|\\{(?:count|files|code|words|players|notes|waiting|time)\\}`);
+test.describe('feedback words that do not load on a first visit',()=>{
+  test.use({serviceWorkers:'block'});
+  for(const {failing,file} of [{failing:['en','es'],file:'index.html'},{failing:['en','es'],file:'espanol.html'},{failing:['en'],file:'index.html'},{failing:['es'],file:'espanol.html'}])
+  test(`${failing.join(' and ')} words fail on ${file}: the grown-up controls work, no raw key shows and nothing typed stays after Next player`,async({page,noNetwork})=>{
+    const words=new RegExp(`/feedback-(?:${failing.join('|')})\\.[0-9a-f]+\\.json$`),es=file==='espanol.html',both=failing.length===2,dialog=page.locator('#pt-new-player-dialog');
+    // The files fail only after a child has typed into the form while it was still loading.
+    let release;const typed=new Promise(resolve=>{release=resolve;});
+    await page.route(words,async route=>{await typed;await route.abort();});
+    await page.goto(`/${file}`);await expect(page.locator('#community-builders')).toHaveAttribute('data-engine-mounted','true');
+    await page.evaluate(()=>{document.getElementById('pt-feedback-worked').value='my name is Lila Fernandez';});release();
+    const first=await page.locator('#community-builders').getAttribute('data-feedback-session'),secret=/Lila|Fernandez|LOCALE FALLBACK/;
+    if(both){
+      await expect(page.locator('#pt-feedback')).toHaveAttribute('data-feedback-unavailable','true');
+      await expect(page.locator('#pt-feedback-status')).toHaveText(es?/^No se pudo cargar el formulario de comentarios\. Recarga esta página/:/^The feedback form could not load\. Reload this page while you are online/);
+      for(const id of ['worked','fix','submit'])await expect(page.locator('#pt-feedback-'+id)).toBeDisabled();
+      await expect(page.locator('#pt-feedback-worked')).toHaveValue('');
+      for(const id of ['#pt-device-open','#pt-closeout-open'])await expect(page.locator(id)).toBeHidden();
+      await page.locator('#pt-feedback-new-player-top').click();await expect(dialog).toBeVisible();await expect(page.locator('#pt-new-player-cancel')).toBeFocused();
+      await expect(page.locator('#pt-new-player-message')).toHaveText(es?/Recarga esta página con conexión a internet/:/Reload this page while you are online/);
+      expect(await dialog.innerText()).not.toMatch(RAW_KEYS);
+      expect((await new AxeBuilder({page}).include('#pt-new-player-dialog').analyze()).violations).toEqual([]);
+      await page.keyboard.press('Escape');await expect(dialog).toBeHidden();await expect(page.locator('#pt-feedback-new-player-top')).toBeFocused();
+      // The game's own For grown-ups has Next player too.
+      await page.locator('#pt-quiet').check();await page.locator('#pt-start').click();await expect(page.locator('.cb-hero')).toBeVisible();
+      await page.locator('.cb-hero .cb-btn--onstage').click();
+      await page.locator('dialog[open]').getByRole('button',{name:es?'Siguiente jugador en esta computadora':'Next player on this computer',exact:true}).click();
+      await expect(dialog).toBeVisible();expect(await dialog.innerText()).not.toMatch(RAW_KEYS);
+    }else{
+      await page.locator('#pt-feedback-save-draft').waitFor({state:'attached'});
+      // The form borrows the other language's words, and says so in its lang attribute.
+      await expect(page.locator('#pt-feedback-h')).toHaveText(es?'Playtest feedback':'Comentarios de la prueba');await expect(page.locator('#pt-feedback')).toHaveAttribute('lang',es?'en':'es');
+      await expect(page.locator('#pt-feedback-worked')).toHaveValue('');
+      await typeNote(page,'LOCALE FALLBACK SECRET');
+      await page.locator('#pt-feedback-new-player-top').click();await expect(dialog).toBeVisible();expect(await dialog.innerText()).not.toMatch(RAW_KEYS);
+      const remove=page.locator('#pt-new-player-delete');if(await remove.isVisible())await remove.click();
+      expect(await dialog.innerText()).not.toMatch(RAW_KEYS);
+    }
+    const reloaded=page.waitForEvent('load');await page.locator('#pt-new-player-confirm').click();await reloaded;
+    await expect(page.locator('#community-builders')).toHaveAttribute('data-engine-mounted','true');
+    await expect.poll(()=>page.locator('#community-builders').getAttribute('data-feedback-session')).not.toBe(first);
+    if(both)await expect(page.locator('#pt-feedback')).toHaveAttribute('data-feedback-unavailable','true');else await page.locator('#pt-feedback-save-draft').waitFor({state:'attached'});
+    await expect(page.locator('#pt-feedback-worked')).toHaveValue('');await expect(page.locator('#pt-feedback-fix')).toHaveValue('');
+    expect(await storedText(page)).not.toMatch(secret);
+    expect(await page.locator('#pt-feedback').innerText()).not.toMatch(RAW_KEYS);
+    // Only the aborted word files may show up as failed loads, beside Playwright's note that it blocked the service worker.
+    const expected=problem=>/feedback-e[ns]\.[0-9a-f]+\.json$/.test(problem.location?.url||'')||problem.text==='Service Worker registration blocked by Playwright';
+    noNetwork.consoleProblems.splice(0,noNetwork.consoleProblems.length,...noNetwork.consoleProblems.filter(problem=>!expected(problem)));
+    expect(noNetwork.receiverRequests).toHaveLength(0);noNetwork.assertClean();expect(noNetwork.consoleProblems).toEqual([]);
+  });
 });
 test('leaving Facilitator close-out and coming back with Back shows no note text',async({playwright,browserName,baseURL})=>{
   test.skip(browserName!=='chromium','Only Chromium takes the switch that keeps its back-forward cache on.');

@@ -56,6 +56,8 @@
   "feedback_player": "Jugador anónimo:",
   "feedback_player_loading": "Iniciando…",
   "feedback_new_player": "Siguiente jugador en esta computadora",
+  "feedback_unavailable": "No se pudo cargar el formulario de comentarios. Recarga esta página con conexión a internet para escribir una nota.",
+  "feedback_unavailable_notes": "Este jugador tiene notas que el equipo de prueba no ha recibido. Recarga esta página con conexión a internet y vuelve a elegir Siguiente jugador en esta computadora para decidir qué pasa con ellas.",
   "feedback_shared": "¿Comparten esta computadora? Elige Siguiente jugador en esta computadora antes de que juegue otra persona. Así empieza una sesión separada de juego y comentarios.",
   "noscript": "Este juego necesita JavaScript. Por favor, actívalo.",
   "foot": "Una versión de prueba para estudiantes. Ideas de investigación en construcción de Kennesaw State University. Arte hecho con ayuda de herramientas de IA. Voces hechas con IA de ElevenLabs.",

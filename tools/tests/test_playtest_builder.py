@@ -138,10 +138,14 @@ class PlaytestBuilderTests(unittest.TestCase):
         self.assertEqual(builder.build_id(closeout=True), builder.build_id(closeout=True))
         self.assertNotEqual(builder.build_id(), builder.build_id(closeout=True))
 
-    def test_close_out_code_needs_six_characters_and_no_spaces_at_either_end(self):
+    def test_close_out_code_needs_ten_characters_of_three_kinds_and_no_spaces_at_either_end(self):
         self.assertEqual(builder.checked_closeout_code(""), "")
-        self.assertEqual(builder.checked_closeout_code("abc123"), "abc123")
-        for value in ("abc12", " abc123", "abc123 ", "abc\n123", "x" * 201):
+        for value in ("maple-heron-42", "e2e-closeout-test-code", "Heron Pond 7", "Tx7kq2Vw9m", "zorro.búho.88"):
+            with self.subTest(value=value):
+                self.assertEqual(builder.checked_closeout_code(value), value)
+        # Too short, one or two kinds of character (all digits, all letters), a common word with digits, spaces at the ends.
+        for value in ("abc123", "Ab1-Cd2", "1234567890", "abcdefghijkl", "abcdefghi1", "ABCDEFGHI-", "Password123", "Closeout-2026!", "Pecan Grove 7",
+                      " maple-heron-42", "maple-heron-42 ", "maple\nheron-42", "x1-" * 67):
             with self.subTest(value=value), self.assertRaises(ValueError):
                 builder.checked_closeout_code(value)
 

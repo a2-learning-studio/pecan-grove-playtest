@@ -111,13 +111,24 @@ def resolve_feedback_endpoint(cli_value, config_path=None):
     return checked_feedback_endpoint(config["feedbackEndpoint"])
 
 
+# Words a guess tries first; a code made of one of them, whatever digits or symbols are added, is refused.
+COMMON_CODE_WORDS = {"password", "passwrd", "qwerty", "letmein", "welcome", "admin", "secret", "pecangrove", "closeout",
+                     "facilitator", "teacher", "library", "playtest"}
+
+
 def checked_closeout_code(value):
-    """The facilitator's close-out code: at least 6 characters, no spaces at either end, no control characters."""
+    """The facilitator's close-out code: 10 to 200 characters with at least three kinds (lower-case letters, capital
+    letters, digits, other characters), not a common word, no spaces at either end and no control characters."""
     if not value:
         return ""
-    if (not isinstance(value, str) or len(value) < 6 or len(value) > 200 or value != value.strip()
+    if (not isinstance(value, str) or len(value) < 10 or len(value) > 200 or value != value.strip()
             or any(ord(c) < 32 or ord(c) == 127 for c in value)):
-        raise ValueError("The close-out code must have 6 to 200 characters, with no spaces at either end.")
+        raise ValueError("The close-out code must have 10 to 200 characters, with no spaces at either end.")
+    kinds = sum(any(test(c) for c in value) for test in (str.islower, str.isupper, str.isdigit, lambda c: not c.isalnum()))
+    if kinds < 3:
+        raise ValueError("The close-out code needs at least three of: lower-case letters, capital letters, digits, other characters.")
+    if re.sub(r"[^a-z]", "", value.lower()) in COMMON_CODE_WORDS:
+        raise ValueError("The close-out code is too easy to guess. Use 10 or more random characters.")
     return value
 
 
@@ -503,7 +514,7 @@ def main(argv=None):
     ap.add_argument("--build-date", type=date.fromisoformat, default=date.today())
     ap.add_argument("--flavor", choices=["playtest", "family", "library"], default="playtest")
     # Usually left out: PG_CLOSEOUT_CODE carries it, as CI does with its secret, so it stays out of command lines and logs.
-    ap.add_argument("--closeout-code", default=None, help="Facilitator's close-out code (6+ characters); defaults to PG_CLOSEOUT_CODE. Family and library copies never have one.")
+    ap.add_argument("--closeout-code", default=None, help="Facilitator's close-out code (10+ random characters, at least three kinds); defaults to PG_CLOSEOUT_CODE. Family and library copies never have one.")
     a = ap.parse_args(argv)
     try:
         checked_form(a.form); checked_form(a.form_es)

@@ -180,6 +180,10 @@ test('grown-up Install action prompts only after an explicit click',async()=>{
   const r=await nativeCore();try{let prompts=0;r.w.PecanGroveOffline={availableInstall:true,install(){prompts++;return Promise.resolve(true);}};r.core.enterPlay({quiet:true});r.main().querySelector('.cb-hero .cb-btn--go').click();r.core.openGrownups(r.main().querySelector('.cb-stop'));const d=r.root.querySelector('dialog[open]');assert.equal(prompts,0);const install=[...d.querySelectorAll('button')].find(b=>b.textContent===r.core.getAPI().W.installGame);assert.ok(install);install.click();assert.equal(prompts,1);}finally{r.close();}
 });
 
+test('For grown-ups still offers Next player when the feedback form could not load its words',async()=>{
+  const r=await nativeCore();try{let asked=0;r.w.PecanGroveFeedback={requestNewPlayer(){asked++;}};r.core.enterPlay({quiet:true});r.main().querySelector('.cb-hero .cb-btn--go').click();r.core.openGrownups(r.main().querySelector('.cb-stop'));const d=r.root.querySelector('dialog[open]'),W=r.core.getAPI().W,buttons=[...d.querySelectorAll('button')];assert.ok(!buttons.some(b=>b.textContent===W.devicePanel),'the privacy panel needs the feedback words');const next=buttons.find(b=>b.textContent===W.nextPlayer);assert.ok(next);next.click();assert.equal(asked,1);assert.equal(r.errors.length,0,String(r.errors));}finally{r.close();}
+});
+
 test('For grown-ups links to the educator sheet in each language',async()=>{
   for(const language of ['en','es']){const r=await nativeCore(language);try{r.core.enterPlay({quiet:true});r.main().querySelector('.cb-hero .cb-btn--go').click();r.core.openGrownups(r.main().querySelector('.cb-stop'));const link=r.root.querySelector('dialog[open] a.cb-dlg__link');assert.ok(link);assert.equal(link.getAttribute('href'),language==='en'?'educator.html':'educador.html');assert.equal(link.textContent,r.core.getAPI().W.educator);assert.equal(link.getAttribute('rel'),'noopener');assert.equal(r.errors.length,0,String(r.errors));}finally{r.close();}}
 });

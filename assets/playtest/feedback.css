@@ -13,6 +13,8 @@
 #pt-feedback-submit { background: var(--pg-color-244f35); color: var(--pg-color-fff); }
 .pt-feedback button:hover { box-shadow: 0 2px 0 var(--pg-color-244f3526); }
 .pt-feedback button:disabled { opacity: .55; cursor: not-allowed; box-shadow: none; }
+/* A form that could not load its words is switched off and looks it. */
+.pt-feedback select:disabled, .pt-feedback textarea:disabled { opacity: .55; cursor: not-allowed; }
 .pt-feedback :focus-visible { outline: 3px solid var(--pg-color-996821); outline-offset: 3px; }
 .pt-feedback__thanks { margin: 0; padding: .85rem 1rem; border-radius: .65rem; background: var(--pg-color-244f35); color: var(--pg-color-fff); font-weight: 750; line-height: 1.4; }
 .pt-feedback__thanks[hidden] { display: none; }
@@ -47,6 +49,6 @@
 .pt-device__erase { margin-block: 1rem; }
 /* The facilitator's close-out code: typed into the dialog, shown as dots, never kept by the browser. */
 .pt-closeout__field { display: flex; flex-direction: column; gap: .4rem; margin-block: .75rem; font-weight: 700; }
-.pt-closeout__code { box-sizing: border-box; width: 100%; min-height: 44px; font: inherit; font-weight: 400; color: var(--pg-color-213c2e); background: var(--pg-color-fff); border: 1px solid var(--pg-color-91aa99); border-radius: .65rem; padding: .7rem .8rem; -webkit-text-security: disc; }
+.pt-closeout__code { box-sizing: border-box; width: 100%; min-height: 44px; font: inherit; font-weight: 400; color: var(--pg-color-213c2e); background: var(--pg-color-fff); border: 1px solid var(--pg-color-91aa99); border-radius: .65rem; padding: .7rem .8rem; }
 .pt-closeout__code:focus-visible { outline: 3px solid var(--pg-color-996821); outline-offset: 3px; }
 @media (forced-colors: active) { .pt-feedback__check, .pt-feedback__flags { border-color: CanvasText; } }

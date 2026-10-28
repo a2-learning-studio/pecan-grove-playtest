@@ -72,6 +72,7 @@
   "privacyWho": "Quién recibe las notas enviadas: el equipo de prueba, en una hoja de cálculo privada de Google. Las notas pasan por Google Apps Script, un servicio de Google.",
   "privacyContact": "¿Preguntas sobre esta prueba o sobre notas ya enviadas? Escribe a akeyvanf@kennesaw.edu e incluye el código de jugador que aparece en el panel de comentarios.",
   "privacyDelete": "Para borrar lo que este juego guardó en este dispositivo, usa Borrar todos los datos de Pecan Grove en este dispositivo, más abajo, o borra los datos de este sitio en la configuración del navegador. Los archivos de Excel y de progreso que guardaste se quedan donde los guardaste.",
+  "privacyTries": "Para que nadie pueda adivinar el código de cierre, se cuentan los códigos equivocados que se escriben en este dispositivo, sin guardar los códigos. Borrar todos los datos de Pecan Grove conserva esa cuenta; borrar los datos de este sitio en la configuración del navegador la elimina.",
   "deviceNotesTitle": "Notas guardadas en este dispositivo",
   "deviceSummary": "Jugadores: {players}. Notas: {notes}. Sin recibir por el equipo de prueba: {waiting}.",
   "deviceCloseout": "Las notas pueden ser privadas, así que este panel solo las cuenta.",

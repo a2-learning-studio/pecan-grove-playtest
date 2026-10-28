@@ -2,8 +2,9 @@
 (function (host) {
   "use strict";
   var KEY = "pecan-grove-feedback-v1", GAME_KEY = "pecan-grove-journey", CONSENT_KEY = "pecan-grove-consent-v1", ERASE_FLAG = "pecan-grove-erase";
-  // Files downloaded during the current player's turn (names only), and this tab's wrong close-out code tries.
-  var FILES_KEY = "pecan-grove-files-v1", TRIES_KEY = "pecan-grove-closeout-tries", CODE_TRIES = 5, CODE_WAIT = 60000;
+  // Files downloaded during the current player's turn (names only), and this device's wrong close-out code tries. The
+  // tries key is outside the pecan-grove prefix on purpose: Erase all keeps it, so erasing never buys more guesses.
+  var FILES_KEY = "pecan-grove-files-v1", TRIES_KEY = "pg-closeout-tries", CODE_TRIES = 5, CODE_WAIT = 60000;
   var ID = /^[A-Za-z0-9_-]{16,80}$/;
   var RATINGS = ["", "unclear", "okay", "good"], CATEGORIES = ["", "clarity", "bug", "voice", "spanish", "art", "other"];
   function uid(crypto) {
@@ -22,8 +23,11 @@
   var MESES = "enero|febrero|marzo|abril|mayo|junio|julio|agosto|sep?tiembre|octubre|noviembre|diciembre";
   var AGES = "\\d{1,2}|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen";
   var EDADES = "\\d{1,2}|cinco|seis|siete|ocho|nueve|diez|once|doce|trece|catorce|quince|diecis[eé]is|diecisiete|dieciocho";
-  var KIN = "friend|teacher|brother|sister|mom|mum|dad|mother|father|cousin|grandma|grandpa|grandmother|grandfather";
-  var PARIENTES = "amig[oa]|maestr[oa]|profe(?:sor|sora)?|herman[oa]|mam[aá]|pap[aá]|prim[oa]|abuel[oa]|t[ií][oa]";
+  // An age can come with a half: "9 1/2", "9½", "9 and a half".
+  var AGE = "(?:" + AGES + ")(?:\\s*(?:½|\\.5)|\\s+(?:1\\/2|and a half))?";
+  var KIN = "friend|teacher|brother|sister|mom|mum|dad|mother|father|cousin|grandma|grandpa|grandmother|grandfather|step(?:dad|mom|mum|mother|father|brother|sister)|aunt(?:ie)?|uncle";
+  // With the diminutives children use: "mi hermanito", "mi abuelita".
+  var PARIENTES = "amig(?:uit)?[oa]|maestr[oa]|profe(?:sor|sora)?|herman(?:it|astr)?[oa]|mam[aá]|mami|pap[aá]|papi|padrastro|madrastra|prim(?:it)?[oa]|abuel(?:it)?[oa]|t[ií][oa]";
   // A pet's name can point to a child as well: "my dog Biscuit", "mi perro se llama Toby".
   var PETS = "dog|puppy|cat|kitten|pet|bunny|hamster|horse|bird|parrot|fish|turtle|rabbit";
   var MASCOTAS = "perr[oa]|perrit[oa]|gat[oa]|gatit[oa]|mascota|conej[oa]|h[aá]mster|caballo|p[aá]jaro|loro|pez|tortuga";
@@ -48,10 +52,10 @@
     // A birthday or birth date after its cue, even without a year.
     [new RegExp("(\\b(?:born|birthday|b-?day|date of birth|dob|nac[ií]|cumpleaños|fecha de nacimiento)(?:\\s+(?:is|es|on|in|el|en)){0,2}\\s*:?\\s*)" + DATE, "gi"), 1],
     // Ages: "I am 9", "I'm nine years old", "9-year-old", "age 9", "tengo 9 años", "9 años de edad".
-    [new RegExp("(\\b(?:i am|i'm|i’m|im|i turned|i just turned)\\s+)(?:" + AGES + ")(?:\\s*(?:years?|yrs?)(?:\\s*old)?)?(?=\\s*(?:and\\b|but\\b|[,.!?;:)]|$))", "gim"), 1],
-    [new RegExp("\\b(?:" + AGES + ")(?:\\s+|-)(?:years?|yrs?)(?:\\s+|-)old\\b|\\b\\d{1,2}\\s*y\\/o\\b", "gi")],
+    [new RegExp("(\\b(?:i am|i'm|i’m|im|i turned|i just turned)\\s+)" + AGE + "(?:\\s*(?:years?|yrs?)(?:\\s*old)?)?(?=\\s*(?:and\\b|but\\b|[,.!?;:)]|$))", "gim"), 1],
+    [new RegExp("\\b" + AGE + "(?:\\s+|-)(?:years?|yrs?)(?:\\s+|-)old\\b|\\b\\d{1,2}\\s*y\\/o\\b", "gi")],
     [/(\b(?:age|aged|edad)\s*:?\s*)\d{1,2}\b/gi, 1],
-    [new RegExp("(\\b(?:ya\\s+)?(?:tengo|cumpl[ií])\\s+)(?:" + EDADES + ")\\s+años(?:\\s+de\\s+edad)?", "gi"), 1],
+    [new RegExp("(\\b(?:ya\\s+)?(?:tengo|cumpl[ií])\\s+)(?:" + EDADES + ")\\s+años(?:\\s+y\\s+medio)?(?:\\s+de\\s+edad)?", "gi"), 1],
     [new RegExp("\\b(?:" + EDADES + ")\\s+años\\s+de\\s+edad", "gi")],
     // Schools with a name: "Pecan Elementary", "Oak Middle School", "Escuela Primaria Benito Juárez".
     [new RegExp("\\b(?!(?:The|A|An|My|Our|This|That|Your|Their|His|Her|In|At|High|Middle|Elementary|Junior|School|Academy)\\s)(?:" + CAP + "\\s+){1,3}(?:(?:Elementary|Middle|High|Intermediate|Primary|Junior High|Charter|Magnet|Montessori)\\s+School|Elementary|Academy|School)\\b", "g")],
@@ -60,9 +64,13 @@
   // A name after a clear cue: every word up to the punctuation, an everyday word or four words, capitalized or not.
   var NAME_CUE = new RegExp("(\\b(?:(?:my name(?:'s|’s|\\s+is)|my names is|i am called|i'm called|i’m called|im called|they call me|my (?:best )?(?:" + KIN + "|" + PETS + ")(?:(?:'s|’s) name is|\\s+is (?:named|called))|me llamo|mi nombre es|me dicen|me llaman|mi (?:mejor )?(?:" + PARIENTES + "|" + MASCOTAS + ") se llama|el nombre de mi (?:mejor )?(?:" + PARIENTES + "|" + MASCOTAS + ") es)\\s*:?\\s+|(?:my |first |last |full |mi )?(?:name|nombre)\\s*:\\s*)(?:(?:mr|mrs|ms|miss|dr|coach|sr|sra|srta|profe|maestr[oa])\\.?\\s+)?)(" + WORD + "(?:\\s+" + WORD + "){0,3})", "gi");
   function scrubNames(text, removed) {
-    return text.replace(NAME_CUE, function (match, cue, words) {
-      var parts = words.split(/(\s+)/), tokens = parts.filter(function (_, i) { return i % 2 === 0; }), count = 1;
-      if (NAME_STOP.test(tokens[0]) || NOT_NAME.test(tokens[0])) return match;
+    // The four-word window can reach the next cue ("me llamo Sofia y mi hermano se llama Diego"). Only the name is
+    // replaced, and the search goes on right after it, so the next cue and its name are found in the same pass.
+    var out = "", at = 0, match;
+    NAME_CUE.lastIndex = 0;
+    while ((match = NAME_CUE.exec(text))) {
+      var start = match.index + match[1].length, parts = match[2].split(/(\s+)/), tokens = parts.filter(function (_, i) { return i % 2 === 0; }), count = 1;
+      if (NAME_STOP.test(tokens[0]) || NOT_NAME.test(tokens[0])) { NAME_CUE.lastIndex = start; continue; }
       while (count < tokens.length) {
         // "María de la Cruz": linking words belong to the name only when another name word follows them.
         var link = count;
@@ -70,12 +78,19 @@
         if (link >= tokens.length || NAME_STOP.test(tokens[link]) || NAME_NEXT.test(tokens[link])) break;
         count = link + 1;
       }
-      return cue + removed + parts.slice(count * 2 - 1).join("");
-    });
+      out += text.slice(at, start) + removed; at = start + parts.slice(0, count * 2 - 1).join("").length; NAME_CUE.lastIndex = at;
+    }
+    return out + text.slice(at);
   }
   function scrubPII(text, language) {
-    var removed = language === "es" ? "[quitado]" : "[removed]";
-    var scrubbed = clean(text, 1200)
+    // Send scrubs again what the grown-up read, so a second scrub must change nothing. A pass that removed something
+    // runs again, a few times at most, until nothing changes; that also keeps the note within the saved length.
+    var removed = language === "es" ? "[quitado]" : "[removed]", before = clean(text, 1200), after = scrubOnce(before, removed);
+    for (var pass = 1; pass < 5 && after !== before; pass++) { before = clean(after, 1200); after = scrubOnce(before, removed); }
+    return after;
+  }
+  function scrubOnce(text, removed) {
+    var scrubbed = text
       .replace(/(?:https?:\/\/|www\.)[^\s<>]+/gi, removed)
       .replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi, removed)
       .replace(/\b\d{1,6}\s+(?:calle|avenida|carrera|camino|paseo|carretera)\s+(?:[A-Za-zÀ-ÿ.'-]+(?:[ \t]+|$)){1,4}/gi, function (value, offset, all) { return afterStop(all, offset) ? value : removed; })
@@ -97,17 +112,20 @@
   // Words the scrubber leaves but a grown-up should still check. The game's own characters, animals, town and stops
   // are not flagged.
   var CAST = /^(?:ana|patel|lee|johnson|ruth|jayden|fox|owl|turtle|rabbit|deer|heron|bee|otter|zorro|búho|buho|tortuga|conejo|venado|garza|abeja|nutria|pecan|grove|georgia|stops?|paradas?)$/i;
-  var TITLED = /\b(?:[Mm]rs?|[Mm][sx]|Miss|[Dd]r|Coach|[Ss]ra?|[Ss]rta|[Pp]rofe?|[Mm]aestr[oa]|[Ss]eñor(?:a|ita)?|[Dd]oña|Don)\.?\s+([A-Za-zÀ-ÖØ-öø-ÿ'’-]+)/g;
+  // A lower-case "miss" is a title only before a possessive: "miss okafor's class", not "I miss playing".
+  var TITLED = /\b(?:[Mm]rs?|[Mm][sx]|Miss|miss(?=\s+[A-Za-zÀ-ÖØ-öø-ÿ-]+['’]s\b)|[Dd]r|Coach|[Ss]ra?|[Ss]rta|[Pp]rofe?|[Mm]aestr[oa]|[Ss]eñor(?:a|ita)?|[Dd]oña|Don)\.?\s+([A-Za-zÀ-ÖØ-öø-ÿ'’-]+)/g;
   var CHECK_WORDS = /\b(?:school|teacher|birthday|born|years old|my name|name is|live on|live at|escuela|colegio|maestr[oa]|profe(?:sor|sora)?|cumpleaños|nac[ií]|me llamo|mi nombre|vivo en)(?![A-Za-zÀ-ÖØ-öø-ÿ])/gi;
   // Capitalized words the scrubber cannot tell from ordinary ones: after "I'm", "soy", "this is" or "es", after a
   // relative or a friend, and in a sign-off ("-Emma", "Gracias, Valentina").
   var FEW = WORD + "(?:\\s+" + WORD + "){0,2}";
-  var INTRO = new RegExp("\\b(?:i['’]?m|i am|this is|soy|es)\\s+(" + FEW + ")", "gi");
-  // After a greeting, "im" or "soy" introduces a name even in lower case: "hi im maya lopez", "hola soy valentina".
-  var GREETING = new RegExp("\\b(?:hi|hello|hey|hiya|howdy|hola|buenas|buenos d[ií]as)\\b[\\s,!.]*(?:i['’]?m|i am|im|this is|it['’]?s|soy|es)\\s+(" + FEW + ")", "gi");
+  var INTRO = new RegExp("\\b(?:i['’]?m|i am|this is|it['’]?s me,?|soy|es)\\s+(" + FEW + ")", "gi");
+  // After a greeting (also "hey guys"), "im" or "soy" introduces a name even in lower case: "hi im maya lopez", "hola
+  // soy valentina". So do "its me" and "this is from" on their own: "yo its me jackson", "this is from harper".
+  var GREETING = new RegExp("\\b(?:(?:hi|hello|hey|hiya|howdy|yo|sup|hola|buenas|buenos d[ií]as)\\b[\\s,!.]*(?:(?:guys|all|everyone|everybody|there|friends|team|chicos|chicas|amigos|amigas|todos|todas)\\b[\\s,!.]*)?(?:i['’]?m|i am|im|this is|it['’]?s me,?|it['’]?s|soy|es)|it['’]?s me,?|(?:this is|it['’]?s) from)\\s+(" + FEW + ")", "gi");
   var KIN_NAME = new RegExp("\\b(" + KIN + "|" + PARIENTES + ")s?\\s+(" + FEW + ")", "gi");
-  // "my little brother noah", "mi hermano luis", "my dog Biscuit": after "my" or "mi", a lower-case name is flagged too.
-  var MY_KIN = new RegExp("\\b(?:my|our|mi|mis|nuestr[oa]s?)\\s+(?:(?:little|big|older|younger|baby|best|twin|step|new|old|peque[ñn][oa]|mayor|menor|mejor)\\s+)?(" + KIN + "|" + PETS + "|" + PARIENTES + "|" + MASCOTAS + ")\\s+(" + FEW + ")", "gi");
+  // "my little brother noah", "her twin sister lily", "mi hermano luis", "my dog Biscuit": after "my", "her" or "mi",
+  // a lower-case name is flagged too.
+  var MY_KIN = new RegExp("\\b(?:my|our|his|her|their|mi|mis|su|sus|nuestr[oa]s?)\\s+(?:(?:little|big|older|younger|baby|best|twin|step|new|old|peque[ñn][oa]|mayor|menor|mejor)\\s+)?(" + KIN + "|" + PETS + "|" + PARIENTES + "|" + MASCOTAS + ")\\s+(" + FEW + ")", "gi");
   // A sign-off ("-Emma", "Gracias, Valentina"). The lookahead lets "love it bye Liam" find its last sign-off too.
   var SIGN_OFF = new RegExp("(?:^|[\\s.!?,])(?=([-–—~]+\\s*|(?:thanks|thank you|thx|love|sincerely|from|by|bye|cheers|gracias|saludos|atentamente|besos|abrazos|con cariño|de parte de)\\s*,?\\s+)(" + FEW + ")(\\s*(?:[,.!?()]|$)))", "gim");
   var SIGN_OFF_LOWER = /^(?:[-–—~]+\s*|(?:from|by|bye|love|de parte de)\s+)$/i;
@@ -492,7 +510,8 @@
       "xl/worksheets/sheet1.xml": sheet
     });
   }
-  var WORDS = {};
+  // SPOKEN names the language a borrowed set of words is really in, for the form's lang attribute.
+  var WORDS = {}, SPOKEN = {};
   if (typeof window === "undefined" && typeof module !== "undefined" && module.exports && typeof require === "function") {
     // Node and the tests read the locales from disk. A browser never runs this (the bundler may give it a module
     // object) and fetches them below, so through this alias the bundler leaves both files out of the shipped script.
@@ -505,9 +524,9 @@
     var documentLanguage = document.documentElement && document.documentElement.lang;
     var lang = (documentLanguage || root.dataset.lang) === "es" ? "es" : "en", W = WORDS[lang], endpoint = root.dataset.endpoint || "";
     var storage; try { storage = window.localStorage; } catch (e) { storage = { getItem: function () { throw e; }, setItem: function () { throw e; }, removeItem: function () { throw e; } }; }
-    var tabStorage = null; try { tabStorage = window.sessionStorage || null; } catch (_) { tabStorage = null; }
-    // A build with a close-out code carries only a random salt and the SHA-256 of salt and code, never the code.
-    var lock = /^([0-9a-f]{32}):([0-9a-f]{64})$/.exec(root.dataset.closeout || ""), closeoutReady = !!lock;
+    // A build with a close-out code carries only a random salt and the SHA-256 of salt and code, never the code. Only a
+    // secure page (https or localhost) can check the code, so on plain http there is no close-out and no keeping for it.
+    var lock = /^([0-9a-f]{32}):([0-9a-f]{64})$/.exec(root.dataset.closeout || ""), closeoutReady = !!lock && window.isSecureContext === true && !!(window.crypto && window.crypto.subtle);
     var model = createModel({ storage: storage, language: lang, build: root.dataset.build || "", id: function () { return uid(window.crypto); } });
     var game = document.getElementById("community-builders");
     if (game) {
@@ -726,7 +745,7 @@
       if (preview) preview.setAttribute("aria-label", W.preview);
       text(send, W.sendNow); text(edit, W.edit); text(checkStatus, W.checkStatus); text(el("check-text"), W.check);
       if (useNewDialog) { text(newTitle, W.newTitle); text(newCancel, W.newCancel); if (!newDialog.open) text(newConfirm, W.newConfirmLabel); }
-      root.dataset.lang = lang; root.setAttribute("lang", lang);
+      root.dataset.lang = lang; root.setAttribute("lang", SPOKEN[lang] || lang);
     }
     function invalidatePreview() {
       previewEntry = null; if (preview) preview.hidden = true;
@@ -925,6 +944,10 @@
     }
     function keepForFacilitator() {
       if (!closeoutReady || !canLeave()) return;
+      // A kept note waits on the device as Send and Excel would give it: scrubbed. Like a deleted note, it becomes a
+      // newer revision, so an older copy in another tab cannot bring the raw text back.
+      unhandled().forEach(function (e) { model.upsert("feedback", e.stop, { worked: scrubPII(e.worked, e.language), fix: scrubPII(e.fix, e.language) }); });
+      if (model.warning() || model.changedSession()) { setStatus(); return; }
       startNext();
     }
     function deleteNotes() {
@@ -1086,7 +1109,7 @@
       notice.appendChild(node("summary", "", W.privacyTitle));
       // Each line says what this copy does: with or without a receiver, and with or without a close-out code.
       var notesKept = cloud ? (closeoutReady ? W.privacyNotesCloudKeep : W.privacyNotesCloud) : (closeoutReady ? W.privacyNotesLocalKeep : W.privacyNotesLocal);
-      [W.privacyStored, notesKept, cloud ? W.privacySentCloud : W.privacySentLocal, cloud ? W.privacyWho : "", W.privacyContact, W.privacyDelete].forEach(function (text) { if (text) notice.appendChild(node("p", "", text)); });
+      [W.privacyStored, notesKept, cloud ? W.privacySentCloud : W.privacySentLocal, cloud ? W.privacyWho : "", W.privacyContact, W.privacyDelete, closeoutReady ? W.privacyTries : ""].forEach(function (text) { if (text) notice.appendChild(node("p", "", text)); });
       deviceStatus.textContent = message || "";
       var erase = node("div", "pt-device__erase");
       if (!eraseAsked) erase.appendChild(action(W.erase, "pt-btn pt-btn--secondary", "pt-device-erase", function () { eraseAsked = true; renderDevice(); focusId("pt-device-erase-no"); }));
@@ -1124,19 +1147,19 @@
     // The facilitator's close-out: every player's notes to read, send and download, and the earlier players to bring
     // back. It exists only in a build made with PG_CLOSEOUT_CODE, and opens from Facilitator close-out (For grown-ups)
     // after the facilitator types that code into a dialog, never into the address, so nothing reaches the browser's
-    // history. Wrong codes are limited per tab. The page holds only a salted hash, so this keeps children out; someone
-    // with the page source and time could still try codes offline.
+    // history. Wrong codes are counted on this device, across tabs and Erase all. The page holds only a salted hash, so
+    // this keeps children out; someone with the page source and time could still try codes offline.
     var askDialog = null, askInput = null, askStatus = null, askOpener = null, checking = false, codeTries = { count: 0, until: 0 };
     var closeoutDialog = null, closeoutTitle = null, closeoutIntro = null, closeoutBody = null, closeoutStatus = null, closeoutClose = null, closeoutSend = null, reviewed = [], filesWarned = false;
     function readTries() {
-      try { var kept = JSON.parse(tabStorage.getItem(TRIES_KEY) || "null"); if (kept && Number.isInteger(kept.count) && Number.isFinite(kept.until)) codeTries = { count: kept.count, until: kept.until }; }
+      try { var kept = JSON.parse(storage.getItem(TRIES_KEY) || "null"); if (kept && Number.isInteger(kept.count) && Number.isFinite(kept.until)) codeTries = { count: kept.count, until: kept.until }; }
       catch (_) { /* This page keeps its own count. */ }
       if (codeTries.until && codeTries.until <= Date.now()) codeTries = { count: 0, until: 0 };
       return codeTries;
     }
     function writeTries(tries) {
       codeTries = tries;
-      try { tabStorage.setItem(TRIES_KEY, JSON.stringify(tries)); } catch (_) { /* This page keeps its own count. */ }
+      try { storage.setItem(TRIES_KEY, JSON.stringify(tries)); } catch (_) { /* This page keeps its own count. */ }
     }
     function sha256(text) {
       var subtle = window.crypto && window.crypto.subtle;
@@ -1149,8 +1172,9 @@
       while (askDialog.firstChild) askDialog.removeChild(askDialog.firstChild);
       var field = node("label", "pt-closeout__field", "", "pt-closeout-code-label"), actions = node("div", "pt-actions");
       askInput = node("input", "pt-closeout__code", "", "pt-closeout-code");
-      // Never a password field: a browser could offer to save the code and fill it in for the next child.
-      askInput.type = "text"; askInput.setAttribute("autocomplete", "off"); askInput.setAttribute("autocapitalize", "off"); askInput.setAttribute("spellcheck", "false"); askInput.setAttribute("aria-describedby", "pt-closeout-ask-message pt-closeout-ask-status");
+      // A real password field, so the code is masked and never read out. Edge offers to save a password field even with
+      // autocomplete="off", but not a one-time code: so the browser never keeps the code or fills it in for a child.
+      askInput.type = "password"; askInput.name = "pt-closeout-otp"; askInput.setAttribute("autocomplete", "one-time-code"); askInput.setAttribute("autocapitalize", "off"); askInput.setAttribute("spellcheck", "false"); askInput.setAttribute("aria-describedby", "pt-closeout-ask-message pt-closeout-ask-status");
       askInput.addEventListener("keydown", function (event) { if (event.key === "Enter") { event.preventDefault(); checkCode(); } });
       field.appendChild(node("span", "", W.codeLabel)); field.appendChild(askInput);
       askStatus = politeStatus("pt-closeout-ask-status");
@@ -1192,7 +1216,7 @@
         askInput.value = "";
         if (hash === lock[2]) { writeTries({ count: 0, until: 0 }); answerCloseout(true); return; }
         var count = readTries().count + 1;
-        // Five wrong codes in this tab, then a one-minute wait before the next try.
+        // Five wrong codes on this device, then a one-minute wait before the next try.
         writeTries(count >= CODE_TRIES ? { count: 0, until: Date.now() + CODE_WAIT } : { count: count, until: 0 });
         askStatus.textContent = count >= CODE_TRIES ? W.codeWait : W.codeWrong.replace("{count}", CODE_TRIES - count);
         askInput.focus();
@@ -1241,11 +1265,19 @@
         body.appendChild(restore);
       }
     }
+    // A close-out left open closes by itself after ten minutes without input, first with the Downloads reminder if a
+    // file was saved; it also closes when the tab is hidden.
+    var closeoutIdle = null;
+    function armIdle() {
+      window.clearTimeout(closeoutIdle);
+      closeoutIdle = closeoutDialog && closeoutDialog.open ? window.setTimeout(function () { closeCloseout(); armIdle(); }, 600000) : null;
+    }
     function openCloseout() {
       flush();
       if (!closeoutDialog) {
         closeoutDialog = node("dialog", "pt-player-dialog pt-device", "", "pt-closeout-dialog"); closeoutDialog.setAttribute("aria-labelledby", "pt-closeout-title");
         closeoutDialog.addEventListener("cancel", function (event) { event.preventDefault(); closeCloseout(); });
+        ["keydown", "pointerdown", "input"].forEach(function (type) { closeoutDialog.addEventListener(type, armIdle); });
         closeoutTitle = node("h2", "", "", "pt-closeout-title"); closeoutTitle.tabIndex = -1;
         closeoutIntro = node("p"); closeoutBody = node("div", "pt-closeout__body", "", "pt-closeout-body"); closeoutStatus = politeStatus("pt-closeout-status");
         var actions = node("div", "pt-actions"); closeoutClose = action(W.close, "pt-btn", "pt-closeout-close", closeCloseout); actions.appendChild(closeoutClose);
@@ -1255,7 +1287,7 @@
       if (closeoutDialog.open) return;
       filesWarned = false; renderCloseout("");
       if (typeof closeoutDialog.showModal === "function") closeoutDialog.showModal(); else closeoutDialog.open = true;
-      suspendNewPlayerVoice(true); closeoutTitle.focus();
+      suspendNewPlayerVoice(true); closeoutTitle.focus(); armIdle();
     }
     function emptyCloseout() {
       // A closed close-out keeps no note text in the page, also for the back-forward cache.
@@ -1274,7 +1306,7 @@
         return;
       }
       if (closeoutDialog.open) { if (typeof closeoutDialog.close === "function") closeoutDialog.close(); else closeoutDialog.open = false; }
-      emptyCloseout(); suspendNewPlayerVoice(false);
+      window.clearTimeout(closeoutIdle); emptyCloseout(); suspendNewPlayerVoice(false);
       var opener = askOpener; askOpener = null;
       if (opener && typeof opener.focus === "function" && opener.isConnected !== false) opener.focus();
     }
@@ -1344,7 +1376,13 @@
       pageOpen = true; model.refresh(); loadContext(contextStop);
       consent = readConsent(storage, model.active()); if (!consent.scores) model.withdrawScores(true); updateConsentControls();
     });
-    document.addEventListener("visibilitychange", function () { if (document.visibilityState === "hidden") flush(); });
+    document.addEventListener("visibilitychange", function () {
+      if (document.visibilityState !== "hidden") return;
+      flush();
+      // A hidden tab can be left for anyone to find: the code question and the close-out close, keeping no note text.
+      if (askDialog && askDialog.open) answerCloseout(false);
+      if (closeoutDialog && closeoutDialog.open) closeCloseout(true);
+    });
     window.addEventListener("storage", function (event) {
       // Another tab erased this device: reload without writing this tab's copy back.
       if (event.key === KEY && event.newValue === null) { leaving = true; window.location.reload(); return; }
@@ -1370,11 +1408,64 @@
     var runtime = { model: model, flush: flush, sync: sync, getConsent: consentCopy, setConsent: setConsent, showPreview: showPreview, openDevice: openDevice,
       requestNewPlayer: function (opener) { newPlayer({ currentTarget: opener }); } };
     // Facilitator close-out (For grown-ups) exists only in a build with a close-out code.
+    // On plain http the build's button cannot open it, so it is taken away.
+    var closeoutOpen = document.getElementById("pt-closeout-open");
     if (closeoutReady) {
       runtime.openCloseout = function (opener) { flush(); askCloseout(opener); };
-      var closeoutOpen = document.getElementById("pt-closeout-open");
       if (closeoutOpen) closeoutOpen.addEventListener("click", function (event) { runtime.openCloseout(event && event.currentTarget); });
+    } else if (closeoutOpen) closeoutOpen.hidden = true;
+    window.PecanGroveFeedback = Object.assign({}, api, runtime);
+    return runtime;
+  }
+  function unavailable(document, window) {
+    // Without its words the form cannot run. It is switched off and emptied, so no typed text waits for the next child,
+    // and Next player (in the form, under For grown-ups and in the game) still starts the next player.
+    var root = document.getElementById("pt-feedback"), shell = window.PGShellLocale || {}, lang = document.documentElement && document.documentElement.lang === "es" ? "es" : "en";
+    function el(id) { return document.getElementById(id); }
+    function say(key) { return (shell[lang] || {})[key] || ""; }
+    var form = el("pt-feedback-form"), status = el("pt-feedback-status"), player = el("pt-feedback-player"), game = document.getElementById("community-builders");
+    var dialog = el("pt-new-player-dialog"), message = el("pt-new-player-message"), cancel = el("pt-new-player-cancel"), confirm = el("pt-new-player-confirm"), opener = null, notes = false;
+    var useDialog = !!(dialog && typeof dialog.showModal === "function" && message && cancel && confirm), fields = form ? Array.from(form.elements || []) : [];
+    function empty() { fields.forEach(function (input) { if (input.tagName === "TEXTAREA") input.value = ""; }); }
+    root.dataset.feedbackUnavailable = "true";
+    if (form) form.addEventListener("submit", function (event) { event.preventDefault(); });
+    fields.forEach(function (input) { input.disabled = true; }); empty();
+    // The privacy panel, the close-out and Excel need the feedback words too.
+    ["pt-feedback-device", "pt-device-open", "pt-closeout-open", "pt-feedback-download"].forEach(function (id) { if (el(id)) el(id).hidden = true; });
+    var storage = null, model = null;
+    try { storage = window.localStorage; model = createModel({ storage: storage, language: lang, build: root.dataset.build || "", id: function () { return uid(window.crypto); } }); } catch (_) { model = null; }
+    if (player && model) player.textContent = model.active().slice(-6).toUpperCase();
+    function show() {
+      if (status) status.textContent = say("feedback_unavailable");
+      if (useDialog) { message.textContent = say(notes ? "feedback_unavailable_notes" : "feedback_unavailable"); confirm.hidden = notes; }
     }
+    function voice(suspended) {
+      var keepPaused = suspended || (game && game.getAttribute("data-playtest-paused") === "true") || !!document.querySelector("#pt-review-dialog[open]:not(.is-floating)");
+      if (window.CommunityBuilders && typeof window.CommunityBuilders.suspendVoice === "function") window.CommunityBuilders.suspendVoice(keepPaused);
+    }
+    function start() {
+      // Nothing typed here was saved. The next player gets new codes; this player's game stays saved on the device.
+      empty();
+      if (model && model.saved()) model.rotate();
+      try { storage.removeItem(FILES_KEY); } catch (_) { /* The list belongs to the player who left. */ }
+      window.location.reload();
+    }
+    function ask(from) {
+      // Notes this player saved earlier that the team has not received wait for the form, which sends, deletes or keeps them.
+      notes = !!model && model.entries().some(function (e) { return e.kind === "feedback" && hasContent(e) && !received(e); });
+      if (!useDialog) { if (!notes && window.confirm(say("new_title"))) start(); return; }
+      if (dialog.open) return;
+      opener = from || document.activeElement; show(); dialog.showModal(); voice(true); cancel.focus();
+    }
+    if (useDialog) {
+      cancel.addEventListener("click", function () { dialog.close(); });
+      confirm.addEventListener("click", start);
+      dialog.addEventListener("close", function () { voice(false); if (opener && typeof opener.focus === "function") opener.focus(); opener = null; });
+    }
+    [el("pt-feedback-new-player"), el("pt-feedback-new-player-top")].forEach(function (button) { if (button) button.addEventListener("click", function (event) { ask(event.currentTarget); }); });
+    document.addEventListener("pg:language-change", function (event) { var next = event.detail && event.detail.language; if (next === "en" || next === "es") { lang = next; show(); } });
+    show();
+    var runtime = { model: model, requestNewPlayer: ask };
     window.PecanGroveFeedback = Object.assign({}, api, runtime);
     return runtime;
   }
@@ -1422,8 +1513,9 @@
     try { scopeSession(host.document, host); } catch (e) { /* The form mount still scopes the session if storage is busy. */ }
   }
   if (host.document && host.document.getElementById("pt-feedback")) {
-    // First-party static locales load before the singleton feedback form is mounted.
-    api.ready = Promise.all(["en", "es"].map(function (language) {
+    // First-party static locales load before the singleton feedback form is mounted. A language that does not load
+    // borrows the other one; with neither, the form is switched off and only Next player works.
+    api.ready = Promise.allSettled(["en", "es"].map(function (language) {
       var path = "assets/playtest/locales/feedback-" + language + ".json";
       var mapped = host.PG_ASSET_MAP && host.PG_ASSET_MAP[path];
       return host.fetch(new URL(mapped || path, host.document.baseURI)).then(function (response) {
@@ -1431,14 +1523,17 @@
         return response.json();
       }).then(function (messages) { WORDS[language] = messages; });
     })).then(function () {
+      if (!WORDS.en && !WORDS.es) throw Error("Feedback locales unavailable");
+      ["en", "es"].forEach(function (language, i) { var other = i ? "en" : "es"; if (!WORDS[language]) { WORDS[language] = WORDS[other]; SPOKEN[language] = other; } });
       var runtime = mount(host.document, host);
       host.document.dispatchEvent(new host.CustomEvent("pg:feedback-ready"));
       return runtime;
     }).catch(function () {
-      var root = host.document.getElementById("pt-feedback");
+      var root = host.document.getElementById("pt-feedback"), runtime = null;
       if (root) root.dataset.feedbackUnavailable = "true";
+      try { runtime = unavailable(host.document, host); } catch (_) { /* The form stays as the page drew it. */ }
       host.document.dispatchEvent(new host.CustomEvent("pg:feedback-unavailable"));
-      return null;
+      return runtime;
     });
   }
 })(typeof window !== "undefined" ? window : globalThis);

@@ -31,7 +31,7 @@ class Node {
 // A build's close-out lock: a random salt and the SHA-256 of salt and code, as tools/make_playtest.py writes it.
 const CODE = 'maple-heron-42';
 function lock(code) { const salt = crypto.randomBytes(16).toString('hex'); return salt + ':' + crypto.createHash('sha256').update(salt + ':' + code).digest('hex'); }
-function browser({lang = 'en', store = storage(), failure = false, autoMount = true, closeout = '', dialog = false, cloud = true, tab = storage()} = {}) {
+function browser({lang = 'en', store = storage(), failure = false, autoMount = true, closeout = '', dialog = false, cloud = true, tab = storage(), secure = true} = {}) {
   const nodes = [];
   const doc = new Node(); doc.body = new Node('body'); doc.visibilityState = 'visible';
   doc.createElement = tag => { const n = new Node(tag); n.document = doc; nodes.push(n); return n; };
@@ -64,7 +64,7 @@ function browser({lang = 'en', store = storage(), failure = false, autoMount = t
   for (const name of ['scores','autoScores']) { const n = add('consent-' + name, 'input'); n.setAttribute('data-pg-consent', name); }
   let time = 0, next = 0;
   const timers = new Map(), requests = [];
-  const win = new Node(); win.localStorage = store; win.sessionStorage = tab; win.crypto = {randomUUID: id, subtle: crypto.webcrypto.subtle}; win.AbortController = AbortController;
+  const win = new Node(); win.localStorage = store; win.sessionStorage = tab; win.crypto = {randomUUID: id, ...(secure ? {subtle: crypto.webcrypto.subtle} : {})}; win.isSecureContext = secure; win.AbortController = AbortController;
   win.setTimeout = (fn, delay) => { timers.set(++next, {fn, at: time + delay, delay}); return next; };
   win.clearTimeout = key => timers.delete(key);
   win.location = {href: 'https://game.test/index.html', reload() { win.reloads = (win.reloads || 0) + 1; }};
@@ -209,7 +209,10 @@ const childSamples = [
   // An apartment number after a street and a direction, a Discord tag, and a pet's name after a clear cue.
   ['en','I live at 1234 Peachtree Rd NE apt 5','I live at [removed] NE [removed]'], ['es','vivo en el apto 4B','vivo en el [quitado]'],
   ['en','add me on discord: coolkid#1234','add me on discord: [removed]'], ['es','agrégame en discord: nina_22#0042','agrégame en discord: [quitado]'],
-  ['es','mi perro se llama Toby','mi perro se llama [quitado]'], ['en',"my dog's name is Biscuit","my dog's name is [removed]"]
+  ['es','mi perro se llama Toby','mi perro se llama [quitado]'], ['en',"my dog's name is Biscuit","my dog's name is [removed]"],
+  // An age with a half, a step-parent or an uncle, and a Spanish diminutive.
+  ['en',"I'm 9 1/2 and I liked it","I'm [removed] and I liked it"], ['en','I am 9 and a half years old','I am [removed]'], ['es','tengo 9 años y medio','tengo [quitado]'],
+  ['en',"my stepdad's name is Marcus","my stepdad's name is [removed]"], ['en','my uncle is named Joe','my uncle is named [removed]'], ['es','mi hermanito se llama diego','mi hermanito se llama [quitado]']
 ];
 for (const [lang, input, expected] of childSamples) test(`child details ${lang}: ${input}`, () => {
   assert.equal(api.scrubPII(input, lang), expected);
@@ -234,6 +237,36 @@ const ordinary = [
 for (const [lang, input] of ordinary) test(`ordinary ${lang} sentence stays intact: ${input}`, () => assert.equal(api.scrubPII(input, lang), input));
 test('every contact and child sample is unchanged by a second scrub', () => {
   for (const [lang, input] of [...samples, ...childSamples]) { const once = api.scrubPII(input, lang); assert.equal(api.scrubPII(once, lang), once, input); }
+});
+// Two name cues in one note: the name window after the first cue must not swallow the second cue and its name.
+const twoNames = [
+  ['es', 'me llamo Sofia y mi hermano se llama Diego', 'me llamo [quitado] y mi hermano se llama [quitado]'],
+  ['en', "my name is Ava and my sister's name is Mia", "my name is [removed] and my sister's name is [removed]"],
+  ['en', 'my dog is named Max and my name is Leo', 'my dog is named [removed] and my name is [removed]'],
+  ['es', 'mi perro se llama Rocky y me llamo Pablo', 'mi perro se llama [quitado] y me llamo [quitado]'],
+  ['en', 'my best friend is called Noor and my name is Zara', 'my best friend is called [removed] and my name is [removed]'],
+  ['en', "my teacher's name is Mr. Park and my name is Eli", "my teacher's name is Mr. [removed] and my name is [removed]"],
+  ['en', 'my name is my dog is named Max', 'my name is my dog is named [removed]']
+];
+for (const [lang, input, expected] of twoNames) test(`two names in one note ${lang}: ${input}`, () => {
+  assert.equal(api.scrubPII(input, lang), expected); assert.equal(api.scrubPII(expected, lang), expected);
+});
+test('scrubbing twice changes nothing, over generated notes that join name cues, names and everyday words in English and Spanish', () => {
+  const cues = ['my name is', "my name's", 'they call me', 'i am called', 'my dog is named', "my sister's name is", 'my best friend is called', "my stepdad's name is", 'my uncle is named',
+    'Name:', 'my name:', 'me llamo', 'mi nombre es', 'me dicen', 'mi hermano se llama', 'mi hermanita se llama', 'mi perro se llama', 'el nombre de mi amiga es', 'Nombre:', "I'm", 'tengo', 'born', 'Mr.', 'la maestra'];
+  const names = ['Sofia', 'Diego', 'Ava', 'Mia', 'maya lopez', 'María de la Cruz', 'Juárez', 'Toby', 'may', 'Jayden', 'Ana Sofia', 'nine'];
+  const joiners = ['and', 'y', 'but', 'pero', 'and my', 'y mi', 'the map', 'stop 3', 'parada 2', 'liked it', ',', '.', '9 years old', '14 de marzo', 'Oak Elementary', 'x@y.com', '555-0100', '[removed]', '[quitado]'];
+  // The notes a fuzzer found that one pass of the old scrubber left half done.
+  const notes = ["mi perro se llama nine I'm Name: born de NE mi perro se llama and", 'mi perro se llama Juárez mi perro se llama may la', 'x@y.com mi perro se llama lopez me llamo may Ana 14 born my name:',
+    'Elementary parada my name is they call me me llamo Maya -', '2015 Maya im diez my name: hi Middle mi perro se llama Juárez birthday', 'me llamo calle my name is Maya nine diez may',
+    'de marzo Name: mi perro se llama Toby they call me NE my name is Roble kid#1234 Middle', 'my name is street Escuela y me llamo may and Benito called'];
+  for (const a of cues) for (const b of cues) notes.push([a, names[notes.length % names.length], joiners[notes.length % joiners.length], b, names[(notes.length * 7) % names.length]].join(' '));
+  let seed = 7; const rnd = n => (seed = (seed * 1103515245 + 12345) & 0x7fffffff) % n, lists = [cues, names, joiners];
+  for (let i = 0; i < 3000; i++) notes.push(Array.from({length: 3 + rnd(10)}, () => { const list = lists[rnd(3)]; return list[rnd(list.length)]; }).join(' '));
+  for (const note of notes) for (const lang of ['en', 'es']) { const once = api.scrubPII(note, lang); assert.equal(api.scrubPII(once, lang), once, `${lang}: ${note}`); }
+  // A note at the length limit stays within it after the scrub, so the saved, sent and exported texts are the same.
+  const long = 'a@b.co '.repeat(171) + 'end', once = api.scrubPII(long, 'en');
+  assert.ok(once.length <= 1200); assert.equal(api.scrubPII(once, 'en'), once);
 });
 
 test('Send says "Sending" until the matching acknowledgement and thanks only after it; a failed send says it was not sent', async () => {
@@ -290,12 +323,17 @@ test('the preview flags names it cannot remove: introductions, relatives and fri
     ['en', 'Mrs. Johnson is my teacher at Dickerson Middle', ['Dickerson Middle', 'teacher']], ['en', "We play this in Ms. Rivera's class at Pope High", ["Ms. Rivera's", 'Pope High']],
     ['en', 'I go to lincoln elementary in marietta', ['lincoln elementary', 'marietta']], ['en', 'add me on roblox: coolkid', ['coolkid']],
     // A real surname or second name after a game character's first name.
-    ['en', 'me and my friend Jayden Smith liked it', ['friend Jayden Smith']], ['en', 'my sister Ana Sofia', ['sister Ana Sofia']], ['es', 'mi hermana Ana Sofía nos ayudó', ['hermana Ana Sofía']]
+    ['en', 'me and my friend Jayden Smith liked it', ['friend Jayden Smith']], ['en', 'my sister Ana Sofia', ['sister Ana Sofia']], ['es', 'mi hermana Ana Sofía nos ayudó', ['hermana Ana Sofía']],
+    // "its me", "hey guys", "this is from", "her sister", a step-parent, a lower-case "miss" before a possessive and a diminutive.
+    ['en', 'yo its me jackson rivera, stop 7 was the best', ['jackson rivera']], ['en', 'hey guys im brooklyn!! fun game', ['brooklyn']], ['en', "It's me, Jackson", ['Jackson']],
+    ['en', 'this is from harper and her twin sister lily', ['harper', 'sister lily']], ['en', 'my stepdad Marcus helped me read stop 4', ['stepdad Marcus']],
+    ['en', "we are in miss okafor's class", ["miss okafor's"]], ['es', 'mi hermanito diego jugó conmigo', ['hermanito diego']], ['es', 'su perro Max es chistoso', ['perro Max']]
   ]) assert.deepEqual(api.privacyFlags(api.scrubPII(input, lang)), flags, input);
   for (const [lang, input] of [['en', "I'm Ana from the game"], ['en', 'I am so happy'], ['en', 'Grandma Ruth was kind'], ['es', 'soy feliz'], ['en', 'This is Stop 3'], ['en', 'Thanks for the game!'],
     ['es', 'La abuela Ruth me ayudó'], ['en', 'my insta is not working'], ['en', 'the elementary kids liked it'], ['es', 'Gracias por el juego'], ['en', 'I am the Fox'],
     ['en', 'my brother helped me'], ['en', 'hi im so happy'], ['en', 'made by kids.'], ['es', 'mi mamá dice que es bueno'], ['en', 'my dog ate my homework'], ['es', 'hola soy de Guatemala'],
-    ['en', 'I liked Grandma Ruth and Jayden'], ['en', 'Thanks, Ana!'], ['en', 'The High School Tech League part was fun']]) assert.deepEqual(api.privacyFlags(api.scrubPII(input, lang)).filter(word => word !== 'School'), [], input);
+    ['en', 'I liked Grandma Ruth and Jayden'], ['en', 'Thanks, Ana!'], ['en', 'The High School Tech League part was fun'], ['en', 'I miss playing at the library'], ['en', 'hey guys this is fun'],
+    ['en', 'its me again'], ['es', 'yo soy de Georgia'], ['en', 'her sister likes the map'], ['en', "it's from the map"], ['en', 'hi all, this is great'], ['es', 'yo soy Ana'], ['en', 'their dog ran away']]) assert.deepEqual(api.privacyFlags(api.scrubPII(input, lang)).filter(word => word !== 'School'), [], input);
 });
 test('turning on score sharing waits for a grown-up confirmation; turning it off does not', () => {
   const b = browser(), box = b.id('consent-scores'), auto = b.id('consent-autoScores');
@@ -338,13 +376,14 @@ test('Privacy and notes on this device shows the notice and only counts notes: n
   const local = browser({cloud: false}); local.el('device').click();
   assert.match(textOf(local.id('pt-device-privacy')), /At Next player, a grown-up deletes them, so download Excel first to keep them\. What is sent: nothing\. This copy of the game is not connected to the playtest team\. Questions/);
 });
-test('Facilitator close-out exists only with a close-out code: a dialog asks for the code, five wrong codes wait a minute, and the address never changes', async () => {
+test('Facilitator close-out exists only with a close-out code: a dialog asks for the code, five wrong codes on this device wait a minute, and the address never changes', async () => {
   const plain = browser(); assert.equal(plain.app.openCloseout, undefined); assert.equal(plain.id('pt-closeout-ask'), null); assert.equal(plain.id('pt-closeout-dialog'), null);
   const tab = storage(), b = browser({closeout: CODE, tab}), opener = b.doc.createElement('button');
   b.app.openCloseout(opener);
   const ask = b.id('pt-closeout-ask'); assert.equal(ask.open, true); assert.equal(b.doc.activeElement, b.id('pt-closeout-code'));
   assert.match(textOf(ask), /Facilitator close-out .*Type the close-out code .*If you are a player, choose Not now\./);
-  assert.equal(b.id('pt-closeout-code').type, 'text', 'never a password field a browser could offer to save'); assert.equal(b.id('pt-closeout-code').getAttribute('autocomplete'), 'off');
+  // A real password field that the browser treats as a one-time code: masked, never read out, never saved or filled in.
+  const field = b.id('pt-closeout-code'); assert.equal(field.type, 'password'); assert.equal(field.getAttribute('autocomplete'), 'one-time-code'); assert.equal(field.name, 'pt-closeout-otp');
   b.id('pt-closeout-ask-confirm').click(); await digestDone(); assert.match(b.id('pt-closeout-ask-status').textContent, /Type the close-out code first/);
   for (let i = 1; i <= 4; i++) {
     b.id('pt-closeout-code').value = 'wrong-code-' + i; b.id('pt-closeout-ask-confirm').click(); await digestDone();
@@ -354,14 +393,17 @@ test('Facilitator close-out exists only with a close-out code: a dialog asks for
   assert.equal(b.id('pt-closeout-ask-status').textContent, 'Too many tries. Wait one minute, then try again.');
   b.id('pt-closeout-code').value = CODE; b.id('pt-closeout-ask-confirm').click(); await digestDone();
   assert.equal(b.id('pt-closeout-dialog'), null, 'even the right code waits');
-  // The wait is kept for this tab, also across a reload.
-  const wait = JSON.parse(tab.getItem(api.TRIES_KEY)); assert.ok(wait.until > Date.now() + 50000);
-  const again = browser({store: b.store, closeout: CODE, tab}); again.app.openCloseout(); assert.match(again.id('pt-closeout-ask-status').textContent, /Too many tries/);
+  // The wait is kept on this device: across a reload, in a new tab and after Erase all, which keeps the count on purpose.
+  const wait = JSON.parse(b.store.getItem(api.TRIES_KEY)); assert.ok(wait.until > Date.now() + 50000); assert.equal(tab.getItem(api.TRIES_KEY), null);
+  assert.ok(!api.TRIES_KEY.startsWith('pecan-grove'));
+  const again = browser({store: b.store, closeout: CODE, tab: storage()}); again.app.openCloseout(); assert.match(again.id('pt-closeout-ask-status').textContent, /Too many tries/);
+  assert.equal(api.eraseAll(b.store, tab), true); assert.deepEqual(JSON.parse(b.store.getItem(api.TRIES_KEY)), wait);
+  const erased = browser({store: b.store, closeout: CODE}); erased.app.openCloseout(); assert.match(erased.id('pt-closeout-ask-status').textContent, /Too many tries/);
   // A minute later the right code opens the close-out, with spaces around it trimmed.
-  tab.setItem(api.TRIES_KEY, JSON.stringify({count: 0, until: Date.now() - 1}));
+  b.store.setItem(api.TRIES_KEY, JSON.stringify({count: 0, until: Date.now() - 1}));
   again.id('pt-closeout-code').value = '  ' + CODE + ' '; again.id('pt-closeout-ask-confirm').click(); await digestDone();
   assert.equal(again.id('pt-closeout-dialog').open, true); assert.equal(again.id('pt-closeout-ask').open, false); assert.equal(again.doc.activeElement, again.id('pt-closeout-title'));
-  assert.equal(again.id('pt-closeout-code').value, ''); assert.deepEqual(JSON.parse(tab.getItem(api.TRIES_KEY)), {count: 0, until: 0});
+  assert.equal(again.id('pt-closeout-code').value, ''); assert.deepEqual(JSON.parse(b.store.getItem(api.TRIES_KEY)), {count: 0, until: 0});
   for (const page of [b, again]) { assert.equal(page.win.location.href, 'https://game.test/index.html'); assert.equal(page.win.replaced || 0, 0); }
   // Escape closes the question, forgets what was typed and returns focus.
   const e = browser({closeout: CODE, lang: 'es'}), back = e.doc.createElement('button'); e.app.openCloseout(back);
@@ -547,4 +589,112 @@ test('leaving the page closes and empties every dialog and the form; Back or For
   c.win.fire('pageshow', null, {persisted: true}); assert.equal(c.win.reloads, 1);
   // A normal first show does nothing.
   const d = browser(); d.win.fire('pageshow', null, {persisted: false}); assert.equal(d.win.reloads || 0, 0);
+});
+
+// What the grown-up reads is what leaves and what Excel keeps, on the first Send, also for a note with two names.
+test('a note with two names is sent on the first Send exactly as the grown-up read it, and the Excel has the same text', async () => {
+  const single = browser(); single.el('worked').value = 'my dog is named Max and my name is Leo'; single.el('form').fire('submit');
+  assert.match(single.el('preview-text').textContent, /my dog is named \[removed\] and my name is \[removed\]/); assert.equal(single.el('preview-flags').hidden, true);
+  approve(single); await settle();
+  assert.deepEqual(single.requests.map(r => r.body.entries.filter(e => e.kind === 'feedback').map(e => e.worked)), [['my dog is named [removed] and my name is [removed]']]);
+  assert.equal(single.el('thanks').textContent, 'Thanks, feedback received');
+  const next = browser({dialog: true, lang: 'es'}), me = next.app.model.active(); next.el('worked').value = 'me llamo Sofia y mi hermano se llama Diego'; next.app.flush();
+  next.el('new-player').click(); next.id('pt-new-player-send').click();
+  const listed = textOf(next.id('pt-new-player-notes')); assert.match(listed, /me llamo \[quitado\] y mi hermano se llama \[quitado\]/); assert.doesNotMatch(listed, /Sofia|Diego/);
+  next.id('pt-new-player-check').checked = true; next.id('pt-new-player-confirm').click(); await settle();
+  assert.equal(next.requests.length, 1); assert.deepEqual(next.requests[0].body.entries.filter(e => e.kind === 'feedback').map(e => e.worked), ['me llamo [quitado] y mi hermano se llama [quitado]']);
+  assert.equal(next.win.reloads, 1, 'the next player starts after the first Send'); assert.notEqual(next.app.model.active(), me);
+  const close = browser({closeout: CODE}); close.el('fix').value = 'my best friend is called Noor and my name is Zara'; close.app.flush();
+  await openCloseout(close); assert.match(textOf(close.id('pt-closeout-notes')), /my best friend is called \[removed\] and my name is \[removed\]/);
+  let saved = null; close.win.Blob = class { constructor(parts) { saved = Buffer.from(parts[0]); } }; close.id('pt-closeout-download').click();
+  assert.ok(saved.includes(Buffer.from('my best friend is called [removed] and my name is [removed]'))); assert.ok(!saved.includes(Buffer.from('Noor')) && !saved.includes(Buffer.from('Zara')));
+  close.id('pt-closeout-confirm').checked = true; close.id('pt-closeout-send').click(); await settle();
+  assert.deepEqual(close.requests.flatMap(r => r.body.entries.filter(e => e.kind === 'feedback').map(e => e.fix)), ['my best friend is called [removed] and my name is [removed]']);
+  assert.match(close.id('pt-closeout-status').textContent, /received every note on this device/);
+});
+// The feedback words load as two files. A missing one borrows the other; with neither, only Next player works.
+async function bootWith(failing, {lang = 'en', store = storage(), note = ''} = {}) {
+  if (note) { const m = api.createModel({storage: store, language: lang, build: 'privacy-test', id}); m.upsert('feedback', 0, {worked: note}); }
+  const b = browser({autoMount: false, dialog: true, store}); b.win.document = b.doc; b.doc.baseURI = 'https://game.test/index.html'; b.doc.documentElement = {lang};
+  b.win.PGShellLocale = Object.fromEntries(['en', 'es'].map(l => [l, JSON.parse(fs.readFileSync(new URL(`../../assets/playtest/locales/${l}.json`, import.meta.url), 'utf8'))]));
+  const form = b.el('form'), fields = ['stop', 'rating', 'category', 'worked', 'fix', 'submit'].map(name => b.el(name));
+  for (const name of ['worked', 'fix']) b.el(name).tagName = 'TEXTAREA';
+  form.elements = fields; b.el('worked').value = 'typed before the words came: my name is Lila';
+  b.win.fetch = async url => { const l = String(url).includes('feedback-es') ? 'es' : 'en'; if (failing.includes(l)) throw new TypeError('Failed to fetch'); return {ok: true, json: async () => JSON.parse(fs.readFileSync(new URL(`../../assets/playtest/locales/feedback-${l}.json`, import.meta.url), 'utf8'))}; };
+  vm.runInNewContext(fs.readFileSync(new URL('../../assets/playtest/feedback.js', import.meta.url), 'utf8'), {window: b.win, URL, TextEncoder, Uint8Array, DataView, Date, Map, Number, JSON, Math});
+  return {b, runtime: await b.win.PecanGroveFeedback.ready, fields};
+}
+const RAW_KEY = /\b(?:undefined|null|new[A-Z]\w+|feedback_\w+|privacy[A-Z]\w+)\b|\{\w+\}/;
+test('a feedback language that does not load borrows the other one, so every control still works and no raw key shows', async () => {
+  for (const [failing, lang, title] of [['en', 'en', 'Comentarios de la prueba'], ['es', 'es', 'Playtest feedback'], ['es', 'en', 'Playtest feedback']]) {
+    const {b, runtime} = await bootWith([failing], {lang});
+    assert.ok(runtime && runtime.openDevice, failing + ' ' + lang); assert.equal(b.el('h').textContent, title);
+    assert.equal(b.panel.dataset.lang, lang); assert.equal(b.panel.getAttribute('lang'), title === 'Playtest feedback' ? 'en' : 'es', 'the form says which language its words are in');
+    assert.equal(b.panel.dataset.feedbackUnavailable, undefined); assert.equal(b.el('worked').value, '', 'the form shows this player\'s saved note, not earlier typing');
+    b.el('worked').value = 'a note'; b.app = runtime; runtime.flush(); b.el('new-player').click();
+    assert.equal(b.id('pt-new-player-dialog').open, true); assert.doesNotMatch(textOf(b.id('pt-new-player-dialog')), RAW_KEY);
+    b.id('pt-new-player-delete').click(); b.id('pt-new-player-confirm').click(); assert.equal(b.win.reloads, 1);
+    assert.doesNotMatch([...b.store.data.values()].join(''), /a note/);
+  }
+});
+test('with no feedback words at all, the form is switched off and emptied, says to reload while online, and Next player still starts the next player', async () => {
+  for (const lang of ['en', 'es']) {
+    const {b, runtime, fields} = await bootWith(['en', 'es'], {lang}), shell = b.win.PGShellLocale[lang], first = runtime.model.active();
+    assert.equal(b.panel.dataset.feedbackUnavailable, 'true'); assert.ok(fields.every(field => field.disabled)); assert.equal(b.el('worked').value, '', 'typed text is cleared');
+    assert.equal(b.el('status').textContent, shell.feedback_unavailable); assert.match(shell.feedback_unavailable, lang === 'en' ? /Reload this page while you are online/ : /Recarga esta página con conexión/);
+    assert.equal(b.el('player').textContent, first.slice(-6).toUpperCase());
+    for (const name of ['device']) assert.equal(b.el(name).hidden, true, 'the privacy panel needs the feedback words');
+    let prevented = false; b.el('form').fire('submit', null, {preventDefault() { prevented = true; }}); assert.ok(prevented, 'the switched-off form never submits');
+    // The game's own For grown-ups calls this too.
+    assert.equal(typeof b.win.PecanGroveFeedback.requestNewPlayer, 'function'); assert.equal(b.win.PecanGroveFeedback.openDevice, undefined);
+    const opener = b.el('new-player-top'); opener.focus(); opener.click();
+    const dialog = b.id('pt-new-player-dialog'); assert.equal(dialog.open, true); assert.equal(b.doc.activeElement, b.id('pt-new-player-cancel'));
+    assert.equal(b.id('pt-new-player-message').textContent, shell.feedback_unavailable); assert.equal(b.id('pt-new-player-confirm').hidden, false);
+    assert.doesNotMatch(textOf(dialog) + b.el('status').textContent, RAW_KEY);
+    b.id('pt-new-player-cancel').click(); assert.equal(dialog.open, false); assert.equal(b.doc.activeElement, opener); assert.equal(b.win.reloads || 0, 0);
+    b.win.PecanGroveFeedback.requestNewPlayer(opener); b.id('pt-new-player-confirm').click();
+    assert.equal(b.win.reloads, 1); const state = JSON.parse(b.store.getItem(api.KEY)); assert.notEqual(state.activeSession, first, 'a new player with new codes');
+    assert.doesNotMatch([...b.store.data.values()].join(''), /Lila|typed before/);
+  }
+  // A note this player saved earlier, before the words stopped loading, waits for the form: Next player says to reload first.
+  const {b} = await bootWith(['en', 'es'], {note: 'saved while the form worked'});
+  b.el('new-player').click(); assert.equal(b.id('pt-new-player-message').textContent, b.win.PGShellLocale.en.feedback_unavailable_notes);
+  assert.equal(b.id('pt-new-player-confirm').hidden, true); assert.equal(b.win.reloads || 0, 0);
+  b.doc.fire('pg:language-change', {language: 'es'}); assert.equal(b.id('pt-new-player-message').textContent, b.win.PGShellLocale.es.feedback_unavailable_notes);
+  assert.equal(b.el('status').textContent, b.win.PGShellLocale.es.feedback_unavailable);
+});
+test('on a page that is not secure (plain http, not localhost) there is no close-out and no keeping for it, even in a build with a code', () => {
+  const b = browser({closeout: CODE, dialog: true, secure: false, autoMount: false}), open = b.doc.createElement('button'); open.id = 'pt-closeout-open';
+  const app = api.mount(b.doc, b.win); assert.equal(app.openCloseout, undefined); assert.equal(open.hidden, true);
+  b.el('worked').value = 'a note'; app.flush(); b.el('new-player').click();
+  assert.equal(b.id('pt-new-player-keep').hidden, true); assert.equal(b.id('pt-new-player-send').hidden, false); assert.equal(b.id('pt-new-player-delete').hidden, false);
+  b.id('pt-new-player-cancel').click(); app.openDevice(); const panel = textOf(b.id('pt-device-dialog'));
+  assert.match(panel, /review and send them, or delete them\./); assert.doesNotMatch(panel, /Facilitator close-out|close-out code/);
+  assert.doesNotMatch(b.el('status').textContent, /Facilitator close-out/);
+  // A secure page with the same build keeps both.
+  const s = browser({closeout: CODE, dialog: true}); s.el('worked').value = 'a note'; s.app.flush(); s.el('new-player').click(); assert.equal(s.id('pt-new-player-keep').hidden, false);
+  s.id('pt-new-player-cancel').click(); s.app.openDevice(); assert.match(textOf(s.id('pt-device-dialog')), /wrong codes typed on this device are counted/);
+});
+test('Keep them for the facilitator saves each note scrubbed, as Send and Excel would give it', () => {
+  const b = browser({dialog: true, closeout: CODE}); b.el('worked').value = 'my name is Lila Fernandez, email lila@example.com'; b.app.flush();
+  b.doc.fire('cb:screen', {stopN: 3, phase: 'playing'}); b.el('fix').value = 'call 555-123-4567'; b.app.flush();
+  keepForFacilitator(b); assert.equal(b.win.reloads, 1);
+  const stored = [...b.store.data.values()].join(''); assert.doesNotMatch(stored, /Lila|Fernandez|lila@example\.com|555-123-4567/);
+  const kept = b.app.model.entries(true).filter(e => e.kind === 'feedback').map(e => e.worked + e.fix).sort();
+  assert.deepEqual(kept, ['call [removed]', 'my name is [removed], email [removed]']);
+});
+test('the close-out closes by itself when the tab is hidden and after ten minutes without input, keeping no note text', async () => {
+  const b = browser({closeout: CODE}); b.el('worked').value = 'private note'; b.app.flush();
+  await openCloseout(b); const dialog = b.id('pt-closeout-dialog'); assert.equal(dialog.open, true);
+  b.doc.visibilityState = 'hidden'; b.doc.fire('visibilitychange'); assert.equal(dialog.open, false); assert.doesNotMatch(textOf(dialog), /private note/);
+  b.doc.visibilityState = 'visible'; b.doc.fire('visibilitychange');
+  b.app.openCloseout(); b.id('pt-closeout-code').value = 'half typed'; b.doc.visibilityState = 'hidden'; b.doc.fire('visibilitychange');
+  assert.equal(b.id('pt-closeout-ask').open, false); assert.equal(b.id('pt-closeout-code').value, ''); b.doc.visibilityState = 'visible';
+  await openCloseout(b); await b.tick(599000); assert.equal(dialog.open, true);
+  dialog.fire('keydown'); await b.tick(599000); assert.equal(dialog.open, true, 'input starts the ten minutes again');
+  await b.tick(2000); assert.equal(dialog.open, false); assert.doesNotMatch(textOf(dialog), /private note/);
+  // After a download, ten idle minutes first leave only the reminder to delete the file, then close the view.
+  await openCloseout(b); b.win.Blob = class {}; b.id('pt-closeout-download').click(); await b.tick(600000);
+  assert.equal(dialog.open, true); assert.match(b.id('pt-closeout-files').textContent, /Delete them from the Downloads folder/); assert.doesNotMatch(textOf(dialog), /private note/);
+  await b.tick(600000); assert.equal(dialog.open, false);
 });

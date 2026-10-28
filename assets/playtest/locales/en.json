@@ -56,6 +56,8 @@
   "feedback_player": "Anonymous player:",
   "feedback_player_loading": "Starting…",
   "feedback_new_player": "Next player on this computer",
+  "feedback_unavailable": "The feedback form could not load. Reload this page while you are online to write a note.",
+  "feedback_unavailable_notes": "This player has notes the playtest team has not received. Reload this page while you are online, then choose Next player on this computer again to decide what happens to them.",
   "feedback_shared": "Sharing this computer? Choose Next player on this computer before someone else plays. It starts a separate game and feedback session.",
   "noscript": "This game needs JavaScript. Please turn it on.",
   "foot": "A play-test build for students. Ideas from construction research at Kennesaw State University. Art made with the help of AI tools. Voices made with ElevenLabs AI.",

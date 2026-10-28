@@ -72,6 +72,7 @@
   "privacyWho": "Who receives sent notes: the playtest team, in a private Google Sheet. Notes travel through Google Apps Script, a Google service.",
   "privacyContact": "Questions about this play-test or about notes already sent? Email akeyvanf@kennesaw.edu and include the player code shown in the feedback panel.",
   "privacyDelete": "To delete what this game saved on this device, use Erase all Pecan Grove data on this device below, or clear this site's data in the browser settings. Excel and progress files you saved stay where you saved them.",
+  "privacyTries": "So that nobody can guess the close-out code, wrong codes typed on this device are counted, without the codes themselves. Erase all keeps this count; clearing this site's data in the browser settings removes it.",
   "deviceNotesTitle": "Notes saved on this device",
   "deviceSummary": "Players: {players}. Notes: {notes}. Not received by the playtest team: {waiting}.",
   "deviceCloseout": "Notes can be private, so this panel only counts them.",
