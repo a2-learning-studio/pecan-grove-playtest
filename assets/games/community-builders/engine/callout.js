@@ -26,6 +26,7 @@ export function showCallout(ctx, anchor, content, options = {}) {
   // the next finding or a new scene. "This game has no timers" (WCAG 2.2.1).
   let closed = false,
     positionFrame = null,
+    slot = null,
     offBack = () => {};
   function close() {
     if (closed) return;
@@ -40,6 +41,7 @@ export function showCallout(ctx, anchor, content, options = {}) {
     ctx.window.visualViewport?.removeEventListener("scroll", schedulePlace);
     offBack();
     if (ctx.vEl && panel.contains(ctx.vEl)) ctx.vStop();
+    slot?.remove();
     panel.remove();
     options.onClose?.();
   }
@@ -78,6 +80,15 @@ export function showCallout(ctx, anchor, content, options = {}) {
       place();
     });
   }
+  // Moving the finding between the board and the game root must not drop
+  // keyboard focus from "Keep looking" to the page.
+  function move(parent, before = null) {
+    const active = ctx.document.activeElement,
+      held = panel.contains(active) ? active : null;
+    parent.insertBefore(panel, before);
+    if (held && ctx.document.activeElement !== held)
+      held.focus({ preventScroll: true });
+  }
   function place() {
     if (closed || !anchor.isConnected) {
       close();
@@ -109,15 +120,13 @@ export function showCallout(ctx, anchor, content, options = {}) {
       width: p.width,
       height: p.height,
     }));
+    // Every control on the play stage is an obstacle: the game, its toolbar and
+    // the feedback form below the game stay reachable.
     const controls =
         'button, a[href], input:not([type="hidden"]), select, textarea, summary, [role="button"]',
-      toolbar = ctx.root
-        .closest("[data-playtest-stage]")
-        ?.querySelector(".pt-toolbar"),
-      obstacles = [
-        ...ctx.root.querySelectorAll(controls),
-        ...(toolbar?.querySelectorAll(controls) || []),
-      ]
+      stage = ctx.root.closest("[data-playtest-stage]"),
+      toolbar = stage?.querySelector(".pt-toolbar"),
+      obstacles = [...(stage || ctx.root).querySelectorAll(controls)]
         .filter(
           (node) =>
             node !== anchor &&
@@ -142,12 +151,51 @@ export function showCallout(ctx, anchor, content, options = {}) {
     );
     // When a dense small scene has no free rectangle, place the callout beside
     // the board in normal flow instead of obscuring an action or navigation.
-    const inline = score(chosen) > 0;
+    let inline = score(chosen) > 0;
+    // Once a finding has been in flow, its place below the board is kept: by
+    // the finding, or by a slot of the same size while it floats. Moving
+    // between that place and a free corner then never changes the height or
+    // scroll position of the stage, which this choice is made from. Without
+    // the slot, floating at the bottom of a phone stage made the scroller
+    // clamp, a control moved under the corner, the finding went back into
+    // flow, scroll anchoring restored the offset, and it jumped every frame.
+    if (slot && !slot.isConnected) slot = null;
+    const home = panel.classList.contains("is-flow") ? panel : slot;
+    if (home && !inline) {
+      // Where the player can already read the whole finding, down to "Keep
+      // looking", is where it stays. Its padding and border may be cut off.
+      const h = home.getBoundingClientRect(),
+        box = ctx.window.getComputedStyle(panel),
+        inset = (side) =>
+          (parseFloat(box["padding" + side]) || 0) +
+          (parseFloat(box["border" + side + "Width"]) || 0),
+        upper = Math.max(top, toolbar?.getBoundingClientRect().bottom ?? top);
+      inline =
+        h.top + inset("Top") >= upper - 1 &&
+        h.bottom - inset("Bottom") <= top + vh + 1 &&
+        h.left >= left - 1 &&
+        h.right <= left + vw + 1;
+    }
     panel.classList.toggle("is-flow", inline);
     if (inline) {
-      if (panel.parentNode !== ctx.main) ctx.main.appendChild(panel);
+      if (slot) {
+        move(slot.parentNode, slot);
+        slot.remove();
+        slot = null;
+      } else if (panel.parentNode !== ctx.main) move(ctx.main);
     } else {
-      if (panel.parentNode !== ctx.root) ctx.root.appendChild(panel);
+      if (home === panel) {
+        slot = ctx.h("div", {
+          class: "cb-callout-slot",
+          "aria-hidden": "true",
+        });
+        panel.before(slot);
+      }
+      if (slot) {
+        slot.style.width = p.width + "px";
+        slot.style.height = p.height + "px";
+      }
+      if (panel.parentNode !== ctx.root) move(ctx.root);
       panel.style.left = chosen.left + "px";
       panel.style.top = chosen.top + "px";
     }
