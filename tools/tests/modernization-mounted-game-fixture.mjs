@@ -7,9 +7,22 @@ const require = createRequire(import.meta.url);
 const { fullCore } = require("./modernization-gameplay-fixture.cjs");
 const { expose } = require("./modernization-gameplay-flow.cjs");
 
-export async function mountedGame(language = "en", saved = null) {
+// blockStorage models a browser that blocks site data: touching storage throws.
+function blocked() {
+  throw new DOMException("The operation is insecure.", "SecurityError");
+}
+export async function mountedGame(
+  language = "en",
+  saved = null,
+  { blockStorage = false } = {},
+) {
   const r = await fullCore(language, 42, true, saved, {
     reduced: true,
+    beforeBoot(w) {
+      if (!blockStorage) return;
+      for (const name of ["localStorage", "sessionStorage"])
+        Object.defineProperty(w, name, { configurable: true, get: blocked });
+    },
     transformStopSource(source, filename) {
       const n = Number(filename.slice(0, 2));
       return n === 1 || n === 2 ? expose(n, source) : source;
@@ -25,7 +38,7 @@ export async function mountedGame(language = "en", saved = null) {
     window: w,
     document: w.document,
     navigator: w.navigator,
-    localStorage: w.localStorage,
+    localStorage: blockStorage ? undefined : w.localStorage,
     CustomEvent: w.CustomEvent,
     Event: w.Event,
     Element: w.Element,
@@ -73,6 +86,11 @@ export async function mountedGame(language = "en", saved = null) {
       writable: true,
     });
   }
+  if (blockStorage)
+    Object.defineProperty(globalThis, "localStorage", {
+      configurable: true,
+      get: blocked,
+    });
   function close() {
     w.PecanGroveEngine?.slotTransition.destroy();
     w.PecanGroveEngine?.tooltips.destroy();

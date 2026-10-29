@@ -166,13 +166,17 @@ function feedbackEntry_(entry) {
 /** Recheck contact details even when a client bypasses its preview. */
 function feedbackScrubPII_(text, language) {
   const removed = language === 'es' ? '[quitado]' : '[removed]';
+  // Numbers right after "stop" or "parada" are the game's stops, never a house number or a phone number.
+  const afterStop = function (all, offset) { return /\b(?:stops?|paradas?)\s*(?:#|no\.?|n[uú]m(?:ero)?\.?)?\s*$/i.test(all.slice(0, offset)); };
+  const keepStop = function (value, offset, all) { return afterStop(all, offset) ? value : removed; };
   return text
     .replace(/(?:https?:\/\/|www\.)[^\s<>]+/gi, removed)
     .replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi, removed)
-    .replace(/\b\d{1,6}\s+(?:calle|avenida|carrera|camino|paseo|carretera)\s+(?:[A-Za-zÀ-ÿ.'-]+(?:[ \t]+|$)){1,4}/gi, removed)
-    .replace(/\b\d{1,6}\s+(?:[A-Za-zÀ-ÿ.'-]+\s+){0,4}(?:street|st|road|rd|avenue|ave|lane|ln|drive|dr|boulevard|blvd|way|court|ct|calle|avenida|av|carrera|camino|paseo|carretera)\b(?:\s+(?:apt|unit|piso|n[oú]mero)\.?\s*[A-Za-z0-9-]+)?/gi, removed)
-    .replace(/\b(?:calle|avenida|carrera|camino|paseo|carretera)\s+(?:[A-Za-zÀ-ÿ.'-]+\s+){0,4}\d{1,6}\b/gi, removed)
-    .replace(/(?:\+?\d|\(\d)[\d\s().-]{5,}\d/g, function (value) { return value.replace(/\D/g, '').length >= 7 ? removed : value; })
+    .replace(/\b\d{1,6}\s+(?:calle|avenida|carrera|camino|paseo|carretera)\s+(?:[A-Za-zÀ-ÿ.'-]+(?:[ \t]+|$)){1,4}/gi, keepStop)
+    // A street name is not made of everyday words: "2 was a good way" and "3 kids on the street" stay.
+    .replace(/\b\d{1,6}\s+(?:(?!(?:the|a|an|and|or|but|of|on|in|at|to|for|with|from|by|was|were|is|are|it|my|our|your|this|that|same|el|la|los|las|un|una|y|en|es|fue|con|por)\s)[A-Za-zÀ-ÿ.'-]+\s+){0,4}(?:street|st|road|rd|avenue|ave|lane|ln|drive|dr|boulevard|blvd|way|court|ct|calle|avenida|av|carrera|camino|paseo|carretera)\b(?:\s+(?:apt|unit|piso|n[oú]mero)\.?\s*[A-Za-z0-9-]+)?/gi, keepStop)
+    .replace(/\b(?:calle|avenida|carrera|camino|paseo|carretera)\s+(?:[A-Za-zÀ-ÿ.'-]+\s+){0,4}\d{1,6}\b/gi, function (value) { return afterStop(value, value.search(/\d+$/)) ? value : removed; })
+    .replace(/(?:\+?\d|\(\d)[\d\s().-]{5,}\d/g, function (value, offset, all) { return value.replace(/\D/g, '').length >= 7 && !(afterStop(all, offset) && /^\d{1,2}(?:[\s.-]+\d{1,2})*$/.test(value)) ? removed : value; })
     .replace(/(^|[^A-Za-z0-9_])@[A-Za-z0-9_.-]{1,50}/g, function (_, prefix) { return prefix + removed; });
 }
 

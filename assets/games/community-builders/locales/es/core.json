@@ -9,6 +9,9 @@
     "close": "Cerrar",
     "townmap": "Mapa del pueblo",
     "grownText": "Tu partida se guarda en este dispositivo. Solo enviamos notas si eliges Enviar. Compartir puntajes empieza desactivado. Un adulto puede activarlo.",
+    "grownTextLocal": "Tu partida se guarda en este dispositivo. Esta versión nunca envía nada.",
+    "educator": "Guía para educadores: metas, grupos y fuentes de los datos",
+    "educatorHref": "educador.html",
     "stop": "Parada",
     "next": "Siguiente",
     "soon": "Próximamente",
@@ -56,8 +59,8 @@
     "noImproved": "¡Juega otra vez una parada para ganar Mayor mejora!",
     "everyone": "Todos mejoran cuando vuelven a jugar.",
     "clear": "Borrar tabla",
-    "tapTurtle": "Para borrar, toca la Tortuga.",
-    "sure": "¿Seguro? Esto borra todos los puntajes de este dispositivo.",
+    "tapTurtle": "Para borrar, elige la Tortuga.",
+    "sure": "¿Seguro? Esto borra todos los puntajes de esta tabla.",
     "yesErase": "Sí, borrar",
     "noKeep": "No, conservarlos",
     "erased": "Puntajes borrados.",
@@ -131,7 +134,7 @@
       "Busca soluciones",
       "Sigue participando"
     ],
-    "footer": "Hecho con ayuda de herramientas de IA. Voces hechas con IA de ElevenLabs. Ideas de investigación en construcción de Kennesaw State University. v0.1",
+    "footer": "Hecho con ayuda de herramientas de IA. Voces hechas con IA de ElevenLabs. Ideas de investigación en construcción de Kennesaw State University. v0.2.0",
     "part": {
       "$args": [
         "n"
@@ -149,9 +152,13 @@
     "mapOrderHelp": "Termina una parada para abrir la siguiente.",
     "installGame": "Instalar el juego",
     "consentHeading": "Compartir durante la prueba",
-    "consentScores": "Compartir puntajes con el equipo de prueba",
-    "consentDetails": "Envía el número de parada, puntaje, idioma y un código aleatorio. Nunca nombres. Puedes desactivarlo cuando quieras.",
-    "consentAutoScores": "Enviar también los puntajes al terminar una parada"
+    "consentScores": "Incluir puntajes en las notas que envía un adulto",
+    "consentDetails": "Agrega el número de parada y el puntaje. Nunca nombres. Un adulto confirma antes de activarlo, y puedes desactivarlo cuando quieras.",
+    "consentAutoScores": "También enviar cada puntaje al terminar una parada",
+    "consentAutoDetails": "Se envía enseguida, sin revisión de un adulto. Nunca notas ni nombres.",
+    "devicePanel": "Privacidad y notas de este dispositivo",
+    "nextPlayer": "Siguiente jugador en esta computadora",
+    "facilitatorCloseout": "Cierre para facilitadores"
   },
   "X": {
     "parts3": [
@@ -259,7 +266,7 @@
     "libraryNote": "El modo silencioso desactiva la narración y los botones de voz. Todas las instrucciones siguen en pantalla. Este dispositivo recuerda el ajuste de sonido.",
     "libraryActive": "El modo silencioso está activado. Puedes seguir jugando sin sonido.",
     "libraryGroups": "Jugadores, equipos y puntajes",
-    "libraryGroupsNote": "Los perfiles de animales y los puntajes de equipos pertenecen a esta sesión. Usa Nuevo jugador para los comentarios privados de otra persona.",
+    "libraryGroupsNote": "Los perfiles de animales y los puntajes de equipos pertenecen a esta sesión. Usa Siguiente jugador en esta computadora para los comentarios privados de otra persona.",
     "librarySettings": "Ajustes de sonido y subtítulos",
     "libraryReady": "Seguir jugando en silencio"
   },

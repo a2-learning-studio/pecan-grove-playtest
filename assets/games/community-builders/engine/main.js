@@ -19,6 +19,8 @@ import { Tooltips } from "./tooltips.js";
 import { showResultBadges, observeFeedback } from "./result-presentation.js";
 import { createSlotTransition } from "./slot-transition.js";
 import { createProgressAutosave } from "./action-autosave.js";
+import { StepLog } from "./interaction-log.js";
+import { progressControls } from "./progress-file.js";
 
 export async function mount(
   root = document.getElementById("community-builders"),
@@ -55,7 +57,23 @@ export async function mount(
     },
   });
   configureMotion(() => settings.get());
+  // Listen before the first save so blocked storage is explained at once.
+  // The core may already show its own copy of the same notice: keep one.
+  document.addEventListener("cb:storage-error", () => {
+    if (root.querySelector(".cb-engine-save-warning, .cb-storage-warning"))
+      return;
+    root.prepend(
+      h("p", {
+        class: "cb-engine-save-warning",
+        role: "status",
+        text: i18n.t("saveFailed"),
+      }),
+    );
+  });
   const slots = new Slots({ state });
+  const steps = new StepLog({ state });
+  // A shared computer keeps the step logs of the most recent players only.
+  steps.prune();
   slots.store();
   slots.save();
   const toastHost = h("div", {
@@ -153,16 +171,30 @@ export async function mount(
     for (const animal of api().ANIMALS) {
       const b = button(animal.name, () => {
         if (animal.id !== "turtle") return;
-        slots.remove(id);
+        const deleted = slots.remove(id);
         confirmation.close();
         dialog.close();
         toast(i18n.t("slotDeleted"));
-        const undo = button(i18n.t("undo"), () => {
-          slots.undo();
-          undo.remove();
-          core().showMap?.();
-        });
+        // Each Undo restores its own game and goes away like the toast,
+        // but never while it has keyboard focus.
+        const undo = button(
+          i18n.t("undo", {
+            player:
+              api().ANIMALS.find((item) => item.id === id)?.name ||
+              i18n.t("player1"),
+          }),
+          () => {
+            undo.remove();
+            slots.undo(deleted);
+            core().showMap?.();
+          },
+        );
         toastHost.append(undo);
+        setTimeout(() => {
+          if (document.activeElement !== undo) undo.remove();
+          else
+            undo.addEventListener("blur", () => undo.remove(), { once: true });
+        }, 10000);
         core().showMap?.();
       });
       b.prepend(api().animalFace(animal));
@@ -192,6 +224,8 @@ export async function mount(
       : Object.keys(store.players).filter(
           (id) => id !== "you" || !emptyPlaceholder,
         );
+    if (!newOnly && !ids.length)
+      grid.append(h("p", { text: i18n.t("noSaves") }));
     for (const id of ids) {
       const animal = animals.find((a) => a.id === id),
         player = store.players[id];
@@ -244,9 +278,25 @@ export async function mount(
           { class: "cb-btn cb-engine-new-game" },
         ),
       );
+    // Save slots belong to one player session. In the playtest, a different person
+    // starts the next player instead, so drafts, player code and score sharing stay separate.
+    const feedback = globalThis.PecanGroveFeedback;
+    const person =
+      !newOnly && typeof feedback?.requestNewPlayer === "function"
+        ? [
+            h("p", {
+              class: "cb-engine-note",
+              text: i18n.t("slotsNextPerson"),
+            }),
+            button(i18n.t("nextPlayer"), () => {
+              dialog.close();
+              feedback.requestNewPlayer(opener);
+            }),
+          ]
+        : [];
     dialog = openDialog(
       i18n.t(newOnly ? "newGame" : "loadGame"),
-      [grid],
+      [grid, ...person],
       opener,
     );
     return dialog;
@@ -340,6 +390,16 @@ export async function mount(
     openBadges,
     slotTransition,
     syncControls: () => syncShortcutLabels(root, input.bindings),
+    steps,
+    // For grown-ups: save or open a local progress file (nothing is sent).
+    progressControls: (onChange) =>
+      progressControls({
+        i18n,
+        slots,
+        stops: () => api().STOPS,
+        steps: () => steps.entries(),
+        onChange,
+      }),
   };
   globalThis.PecanGroveEngine = engine;
   root.dataset.engineInput = "true";
@@ -423,7 +483,13 @@ export async function mount(
   }
   const autosave = createProgressAutosave({ root, core, slots });
   let roundBadges = [];
+  const stepPlace = () => ({
+    stop: Number(root.getAttribute("data-current-stop")) || 0,
+    slot: slots.store().current,
+  });
   function refresh(event) {
+    if (event?.type === "cb:screen")
+      steps.record("screen", { ...stepPlace(), phase: event.detail?.phase });
     autosave.cancel();
     if (settings.dialog?.open) return;
     if (state().quiet && settings.get().voice !== false)
@@ -452,6 +518,7 @@ export async function mount(
     autosave.schedule(event.detail?.snapshot);
   });
   document.addEventListener("cb:pause", (event) => {
+    steps.record(event.detail?.paused ? "pause" : "resume", stepPlace());
     autosave.cancel();
     if (!event.detail?.paused) autosave.schedule();
   });
@@ -496,16 +563,6 @@ export async function mount(
     }
     audio.voice(!!e.detail?.playing);
   });
-  document.addEventListener("cb:storage-error", () => {
-    if (root.querySelector(".cb-engine-save-warning")) return;
-    root.prepend(
-      h("p", {
-        class: "cb-engine-save-warning",
-        role: "status",
-        text: i18n.t("saveFailed"),
-      }),
-    );
-  });
   const unlock = () => audio.unlock();
   // Keep listening. Android suspends the context again after the first tap,
   // and a one-shot unlock never gets another chance to resume it.
@@ -523,10 +580,13 @@ export async function mount(
   window.addEventListener("online", () => hud.render());
   window.addEventListener("offline", () => hud.render());
   document.addEventListener("pg:language-change", async (event) => {
+    steps.record("language", { language: event.detail?.language });
     await i18n.load(event.detail?.language);
     root.querySelector(".cb-engine-title-actions")?.remove();
     const soundLabel = soundLock.querySelector("button");
     if (soundLabel) soundLabel.textContent = i18n.t("soundUnlock");
+    const saveWarning = root.querySelector(".cb-engine-save-warning");
+    if (saveWarning) saveWarning.textContent = i18n.t("saveFailed");
     refresh();
   });
   root.addEventListener("click", () => {

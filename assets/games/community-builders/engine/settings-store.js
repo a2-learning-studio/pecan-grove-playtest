@@ -21,6 +21,7 @@ export const SETTINGS_DEFAULTS = {
   hints: "auto",
   wasdNav: true,
   holdConfirm: false,
+  letterKeys: true,
   findCards: false,
   playInOrder: false,
   focusThick: false,

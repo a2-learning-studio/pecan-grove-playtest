@@ -15,11 +15,11 @@ function setup({voice=false}={}) {
   return{dom,w,ctx,anchor,advance,tasks,frames,frame,cleanups,close:()=>w.close()};
 }
 
-test('findings are polite and nonmodal, retain the chosen target, and dismiss after six quiet seconds',()=>{
- const r=setup();try{const p=showCallout(r.ctx,r.anchor,r.ctx.h('p',{text:'The sign tells us a meeting date.'}),{title:'A meeting sign'});assert.equal(p.getAttribute('role'),'status');assert.equal(r.w.document.activeElement,r.anchor);assert.equal(r.ctx.root.querySelector('dialog'),null);r.advance(5999);assert.equal(p.isConnected,true);r.advance(1);assert.equal(p.isConnected,false);assert.equal(r.tasks.size,0);}finally{r.close();}
+test('findings are polite and nonmodal, retain the chosen target, and never close on a timer (WCAG 2.2.1)',()=>{
+ const r=setup();try{const p=showCallout(r.ctx,r.anchor,r.ctx.h('p',{text:'The sign tells us a meeting date.'}),{title:'A meeting sign'});assert.equal(p.getAttribute('role'),'status');assert.equal(r.w.document.activeElement,r.anchor);assert.equal(r.ctx.root.querySelector('dialog'),null);assert.equal(r.tasks.size,0,'no dismissal clock');r.advance(600000);assert.equal(p.isConnected,true,'a quiet reader keeps the finding as long as needed');}finally{r.close();}
 });
-test('narration completes before the six-second dismissal clock begins',async()=>{
- const r=setup({voice:true});try{const p=showCallout(r.ctx,r.anchor,r.ctx.h('p',{text:'A sign.'}));await Promise.resolve();r.advance(20000);assert.equal(p.isConnected,true);r.ctx.vAudio=null;r.ctx.vEl=null;r.advance(100);r.advance(5999);assert.equal(p.isConnected,true);r.advance(1);assert.equal(p.isConnected,false);}finally{r.close();}
+test('a finding stays open after its narration ends',async()=>{
+ const r=setup({voice:true});try{const p=showCallout(r.ctx,r.anchor,r.ctx.h('p',{text:'A sign.'}));await Promise.resolve();r.advance(20000);assert.equal(p.isConnected,true);r.ctx.vAudio=null;r.ctx.vEl=null;r.advance(600000);assert.equal(p.isConnected,true);p.dismiss();assert.equal(p.isConnected,false);}finally{r.close();}
 });
 test('Escape and stop cleanup dismiss once and remove all timers',()=>{
  const r=setup();try{let closed=0;const p=showCallout(r.ctx,r.anchor,r.ctx.h('p',{text:'A sign.'}),{onClose:()=>closed++});r.anchor.dispatchEvent(new r.w.KeyboardEvent('keydown',{key:'Escape',bubbles:true,cancelable:true}));r.cleanups.forEach(fn=>fn());assert.equal(closed,1);assert.equal(p.isConnected,false);assert.equal(r.tasks.size,0);assert.equal(r.w.document.activeElement,r.anchor);}finally{r.close();}
@@ -88,7 +88,7 @@ test('a dense short viewport uses in-flow findings instead of covering visible H
   const panel=showCallout(r.ctx,r.anchor,r.ctx.h('p',{text:'A sign.'}));
   assert.equal(panel.classList.contains('is-flow'),true);assert.equal(panel.parentNode,r.ctx.main);
   assert.equal(r.w.document.activeElement,r.anchor);
-  r.advance(6000);assert.equal(panel.isConnected,false,'The six-second quiet dismissal contract remains unchanged');
+  r.advance(600000);assert.equal(panel.isConnected,true,'An in-flow finding waits for the player, with no timer');
  }finally{r.close();}
 });
 

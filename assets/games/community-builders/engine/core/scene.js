@@ -206,7 +206,11 @@ export default function createScene(ctx) {
         },
       );
       b.setAttribute("lang", language);
-      b.setAttribute("aria-label", language === "en" ? "English" : "Español");
+      // The name starts with the visible EN/ES so speech commands match (WCAG 2.5.3).
+      b.setAttribute(
+        "aria-label",
+        language === "en" ? "EN, English" : "ES, Español",
+      );
       b.setAttribute("aria-pressed", String(active));
       group.appendChild(b);
     });

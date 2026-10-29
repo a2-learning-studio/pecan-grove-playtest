@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import crypto from "node:crypto";
 import { fileURLToPath } from "node:url";
 import { createRequire } from "node:module";
 const { parse } = createRequire(import.meta.url)("espree");
@@ -181,9 +182,169 @@ function filesIn(directory) {
     return entry.isDirectory() ? filesIn(full) : [full];
   });
 }
+// Real-world claims (Stop 10's places and the grown-up notes about Georgia) are not story evidence, so
+// they live in a separate register with outside sources, a checked date and a fingerprint of the
+// checked EN/ES wording. Editing a checked line without re-checking its sources fails this gate.
+export const REGISTER = "docs/fact-sources.json";
+const STATUSES = new Set([
+  "confirmed",
+  "corrected",
+  "partly-confirmed",
+  "not-confirmed",
+]);
+const isoDate = (value) =>
+  typeof value === "string" &&
+  /^\d{4}-\d{2}-\d{2}$/.test(value) &&
+  !Number.isNaN(Date.parse(value + "T00:00:00Z"));
+function localeText(root, file, key, language) {
+  const data = JSON.parse(
+    fs.readFileSync(
+      path.join(
+        root,
+        "assets/games/community-builders/locales",
+        language,
+        file + ".json",
+      ),
+      "utf8",
+    ),
+  );
+  return key.split(".").reduce((value, part) => value?.[part], data);
+}
+export function fingerprint(root, claim) {
+  const texts = claim.keys.map((key) =>
+    ["en", "es"].map((language) => localeText(root, claim.file, key, language)),
+  );
+  return crypto
+    .createHash("sha256")
+    .update(JSON.stringify(texts))
+    .digest("hex")
+    .slice(0, 16);
+}
+// Stop 10's rows are [code, neighbor, problem, fix, place, stamp, note]; read them without running the stop.
+export function stop10Rows(text) {
+  const declaration = nodesOf(
+    parse(text, { ecmaVersion: "latest", sourceType: "script" }),
+  ).find(
+    (node) =>
+      node.type === "VariableDeclarator" &&
+      node.id.name === "D" &&
+      node.init?.type === "ArrayExpression",
+  );
+  const key = (node) =>
+    node?.type === "CallExpression" &&
+    propertyName(node.callee.property) === "pair"
+      ? node.arguments[1]?.value
+      : undefined;
+  return (declaration ? declaration.init.elements : []).map((row) => ({
+    code: row.elements[0]?.value,
+    stamp: row.elements[5]?.value,
+    keys: [key(row.elements[4]), key(row.elements[6])],
+  }));
+}
+export function checkRegister(root, register) {
+  const errors = [],
+    records = [],
+    where = REGISTER;
+  if (!register || typeof register !== "object")
+    return { errors: [`${where}: missing real-world fact register`], records };
+  const sources = register.sources || {},
+    claims = Array.isArray(register.claims) ? register.claims : [];
+  if (!register.corrections?.email)
+    errors.push(`${where}: no corrections contact for grown-ups`);
+  for (const [id, source] of Object.entries(sources)) {
+    for (const field of ["publisher", "title"])
+      if (typeof source[field] !== "string" || !source[field].trim())
+        errors.push(`${where}: source ${id} has no ${field}`);
+    if (typeof source.url !== "string" || !source.url.startsWith("https://"))
+      errors.push(`${where}: source ${id} needs an https URL`);
+    if (!isoDate(source.checked))
+      errors.push(`${where}: source ${id} has no checked date`);
+  }
+  const ids = new Set();
+  for (const claim of claims) {
+    const label = `${where}: ${claim.id}`;
+    if (ids.has(claim.id)) errors.push(`${label} is listed twice`);
+    ids.add(claim.id);
+    if (!Array.isArray(claim.sources) || !claim.sources.length)
+      errors.push(`${label} has no source`);
+    for (const id of claim.sources || [])
+      if (!sources[id]) errors.push(`${label} cites unknown source ${id}`);
+    if (!isoDate(claim.checked)) errors.push(`${label} has no checked date`);
+    if (!STATUSES.has(claim.status))
+      errors.push(`${label} has no known status`);
+    if (/^(?:partly|not)-/.test(claim.status || "") && !claim.note)
+      errors.push(`${label} needs a note saying what is not confirmed`);
+    try {
+      if (!Array.isArray(claim.keys) || !claim.keys.length)
+        throw new Error("lists no locale keys");
+      for (const key of claim.keys)
+        for (const language of ["en", "es"])
+          if (typeof localeText(root, claim.file, key, language) !== "string")
+            throw new Error(`has no ${language} text at ${claim.file} ${key}`);
+      if (fingerprint(root, claim) !== claim.fingerprint)
+        throw new Error(
+          `wording changed since it was checked on ${claim.checked}; re-check its sources, then update checked and fingerprint`,
+        );
+    } catch (error) {
+      errors.push(`${label} ${error.message}`);
+    }
+    records.push({ location: label, source: (claim.sources || []).join(" ") });
+  }
+  const byId = new Map(claims.map((claim) => [claim.id, claim]));
+  const rows = stop10Rows(
+    fs.readFileSync(
+      path.join(root, "assets/games/community-builders/stops/10-match-a-fix.js"),
+      "utf8",
+    ),
+  );
+  if (rows.length !== 16)
+    errors.push(`${where}: expected Stop 10's 16 real-place rows`);
+  for (const row of rows) {
+    const claim = byId.get("stop-10/" + row.code);
+    if (!claim) errors.push(`${where}: Stop 10 row ${row.code} has no source`);
+    else if (
+      claim.file !== "stop-10" ||
+      claim.stamp !== row.stamp ||
+      JSON.stringify(claim.keys) !== JSON.stringify(row.keys)
+    )
+      errors.push(
+        `${where}: stop-10/${row.code} does not match the card's place, note and stamp`,
+      );
+  }
+  const english = path.join(root, "assets/games/community-builders/locales/en");
+  for (const name of fs.readdirSync(english)) {
+    if (!/^stop-\d\d\.json$/.test(name)) continue;
+    const file = name.replace(/\.json$/, ""),
+      data = JSON.parse(fs.readFileSync(path.join(english, name), "utf8"));
+    for (const [space, words] of Object.entries(data))
+      if (
+        typeof words?.guText === "string" &&
+        /\b(?:Georgia|Fulton)\b/.test(words.guText) &&
+        !claims.some(
+          (claim) =>
+            claim.file === file && claim.keys?.includes(space + ".guText"),
+        )
+      )
+        errors.push(
+          `${where}: the Georgia note ${file} ${space}.guText has no source`,
+        );
+  }
+  return { errors, records };
+}
 export function checkProject(root) {
   const errors = [],
     records = [];
+  let register = null;
+  try {
+    register = JSON.parse(fs.readFileSync(path.join(root, REGISTER), "utf8"));
+  } catch (error) {
+    errors.push(`${REGISTER}: ${error.message}`);
+  }
+  if (register) {
+    const result = checkRegister(root, register);
+    errors.push(...result.errors);
+    records.push(...result.records);
+  }
   for (const file of filesIn(
     path.join(root, "assets/games/community-builders"),
   )) {
@@ -205,12 +366,22 @@ if (
   process.argv[1] &&
   path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)
 ) {
-  const result = checkProject(fileURLToPath(new URL("../", import.meta.url)));
+  const root = fileURLToPath(new URL("../", import.meta.url));
+  if (process.argv.includes("--fingerprints")) {
+    // Print the current wording fingerprints, to record after re-checking a claim's sources.
+    const register = JSON.parse(
+      fs.readFileSync(path.join(root, REGISTER), "utf8"),
+    );
+    for (const claim of register.claims)
+      console.log(`${claim.id} ${fingerprint(root, claim)}`);
+    process.exit(0);
+  }
+  const result = checkProject(root);
   if (result.errors.length) {
     console.error(result.errors.join("\n"));
     process.exitCode = 1;
   } else
     console.log(
-      `Fact sources: ${result.records.length} authored or checked derived records; all source references resolve. Human neutrality review remains separate.`,
+      `Fact sources: ${result.records.length} authored, derived or real-world records; all source references resolve and checked wording is unchanged. Human neutrality review remains separate.`,
     );
 }

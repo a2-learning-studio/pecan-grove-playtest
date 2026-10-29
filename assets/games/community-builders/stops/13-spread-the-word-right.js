@@ -207,10 +207,11 @@
         actBtn("src", i, T.addSrc, "note", s.src, function () { doSource(i); }),
         actBtn("date", i, T.checkDate, "calendar", s.date, function () { doDate(i); }),
         actBtn("off", i, T.takeOff, "off", false, function () { doOff(i); }, "cb-s13-act--off")]));
-      return h("li", { "class": "cb-s13-slot" + (a === "place" || a === "swap" ? " is-new" : ""), role: "group", "aria-labelledby": lid }, [
+      // The list item keeps its listitem role; the named group wraps the slot's card and actions (WCAG 1.3.1).
+      return h("li", { "class": "cb-s13-slot" + (a === "place" || a === "swap" ? " is-new" : "") }, [
         h("span", { "class": "cb-s13-slot__n", "aria-hidden": "true", text: String(n) }),
         h("span", { "class": "cb-vh", id: lid, text: T.slot(n) }),
-        h("div", { "class": "cb-s13-slot__body" }, kids)]);
+        h("div", { "class": "cb-s13-slot__body", role: "group", "aria-labelledby": lid }, kids)]);
     }
     function poster(mode) {
       var hl = head === null

@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import vm from 'node:vm';
 import { createRequire } from 'node:module';
 import { spawnSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { JSDOM } from 'jsdom';
 const require = createRequire(import.meta.url);
 const { mount } = require('../../assets/playtest/shell.js');
@@ -36,6 +37,19 @@ test('live shell language changes keep the same form and typed draft', async () 
   assert.equal(doc.getElementById('pt-intro').hidden, true);
   dom.window.close();
 });
+for (const flavor of ['playtest', 'family']) test(`${flavor} play view takes the covered header out of the Tab order and skips to the game`, () => {
+  const dom = page(flavor), doc = dom.window.document, shell = mount(doc, dom.window);
+  const header = doc.querySelector('.pt-bar'), skip = doc.querySelector('.pt-skip');
+  assert.equal(skip.getAttribute('href'), '#pt-h');
+  shell.start({ requestFullscreen: false });
+  assert.equal(header.hasAttribute('inert'), true);
+  assert.equal(skip.getAttribute('href'), '#community-builders');
+  assert.equal(doc.getElementById('community-builders').getAttribute('tabindex'), '-1');
+  shell.exit();
+  assert.equal(header.hasAttribute('inert'), false);
+  assert.equal(skip.getAttribute('href'), '#pt-h');
+  dom.window.close();
+});
 test('family shell starts and exits without feedback elements or a receiver', () => {
   const dom = page('family'), doc = dom.window.document, shell = mount(doc, dom.window);
   assert.equal(doc.getElementById('pt-feedback'), null);
@@ -45,7 +59,7 @@ test('family shell starts and exits without feedback elements or a receiver', ()
   dom.window.close();
 });
 
-function worker({ fetcher, putError, putWait } = {}) {
+function worker({ fetcher, putError, putWait, voice = ['assets/games/community-builders/voice/en/hello.0123456789ab.mp3'] } = {}) {
   const handlers = {}, stores = new Map(), network = [], waits = [], deleted = [];
   const key = value => typeof value === 'string' ? value : value.url;
   const caches = { keys: async () => [...stores.keys()], delete: async name => { deleted.push(name); return stores.delete(name); },
@@ -53,13 +67,14 @@ function worker({ fetcher, putError, putWait } = {}) {
       if (!stores.has(name)) stores.set(name, new Map()); const store = stores.get(name);
       return { addAll: async urls => urls.forEach(url => store.set(url, new Response('cached'))),
         match: async (request, options) => (store.get(key(request)) || (options?.ignoreSearch ? [...store].find(([url]) => url.split('?')[0] === key(request).split('?')[0])?.[1] : undefined))?.clone(),
-        put: async (request, response) => { if (putError) throw putError; if (putWait) await putWait; if (response.status === 206) throw new TypeError("Partial responses cannot be cached"); store.set(key(request), response); } };
+        put: async (request, response) => { if (putError) throw putError; if (putWait) await putWait; if (response.status === 206) throw new TypeError("Partial responses cannot be cached"); store.set(key(request), response); },
+        keys: async () => [...store.keys()].map(url => ({ url })), delete: async request => store.delete(key(request)) };
     } };
   const self = { location: { origin: 'https://example.test' }, registration: { scope: 'https://example.test/game/' },
     clients: { claim: async () => {} }, skipWaiting() { self.skipped = true; }, addEventListener: (name, handler) => { handlers[name] = handler; } };
   let offline = false;
-  const source = fs.readFileSync(new URL('tools/sw-template.js', root), 'utf8').replace('__BUILD__', 'test').replace('__PRECACHE__', JSON.stringify(['index.html', 'espanol.html', 'assets/map.webp']));
-  vm.runInNewContext(source, { self, caches, URL, Response, Headers, AbortController, setTimeout, clearTimeout,
+  const source = fs.readFileSync(new URL('tools/sw-template.js', root), 'utf8').replace('__BUILD__', 'test').replace('__PRECACHE__', JSON.stringify(['index.html', 'espanol.html', 'assets/map.webp'])).replace('__VOICE__', JSON.stringify(voice));
+  vm.runInNewContext(source, { self, caches, crypto: globalThis.crypto, URL, Response, Headers, AbortController, setTimeout, clearTimeout,
     fetch: async (request, options) => { network.push(key(request)); if (offline) throw new Error('offline'); return fetcher ? fetcher(request, options) : new Response('fresh'); } });
   async function fetchEvent(url, options = {}) {
     let response;
@@ -87,6 +102,25 @@ test('offline worker caches first-party files and preserves explicit voice packs
   assert.equal(await (await w.fetchEvent('https://example.test/game/espanol.html?resume=1', { mode: 'navigate' })).text(), 'cached');
   assert.equal(w.self.skipped, undefined);
   w.handlers.message({ data: { type: 'SKIP_WAITING' } }); assert.equal(w.self.skipped, true);
+});
+test('activation keeps a downloaded voice pack but drops clips a re-recording replaced', async () => {
+  const w = worker(), base = 'https://example.test/game/assets/games/community-builders/voice/en/';
+  w.stores.set('pecan-grove-voice-en', new Map([[base + 'hello.0123456789ab.mp3', new Response('new')], [base + 'hello.mp3', new Response('old unhashed')], [base + 'hello.ffffffffffff.mp3', new Response('old take')]]));
+  let activated; w.handlers.activate({ waitUntil: value => { activated = value; } }); await activated;
+  assert.deepEqual([...w.stores.get('pecan-grove-voice-en').keys()], [base + 'hello.0123456789ab.mp3']);
+  assert.equal(w.deleted.includes('pecan-grove-voice-en'), false, 'the pack itself stays');
+});
+test('activation moves a voice pack downloaded under the old unhashed names to its content-addressed names, without downloading', async () => {
+  const base = 'https://example.test/game/assets/games/community-builders/voice/en/', bytes = 'the recorded line';
+  const hash = createHash('sha256').update(bytes).digest('hex').slice(0, 12);
+  const w = worker({ voice: [`assets/games/community-builders/voice/en/intro.${hash}.mp3`, 'assets/games/community-builders/voice/en/retake.0123456789ab.mp3'] });
+  w.stores.set('pecan-grove-voice-en', new Map([[base + 'intro.mp3', new Response(bytes, { headers: { 'Content-Type': 'audio/mpeg' } })], [base + 'retake.mp3', new Response('an older take of a re-recorded line')]]));
+  let activated; w.handlers.activate({ waitUntil: value => { activated = value; } }); await activated;
+  assert.deepEqual([...w.stores.get('pecan-grove-voice-en').keys()], [base + `intro.${hash}.mp3`], 'a matching clip moves; a re-recorded one is dropped');
+  w.offline();
+  const clip = await w.fetchEvent(base + `intro.${hash}.mp3`);
+  assert.equal(await clip.text(), bytes); assert.equal(clip.headers.get('Content-Type'), 'audio/mpeg');
+  assert.deepEqual(w.network, [], 'the pack plays offline without downloading it again');
 });
 test('a waiting worker can name its build without activating', () => {
   const w = worker();

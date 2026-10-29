@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
-import {inspectJavaScript,inspectJson,checkProject} from '../check-fact-sources.mjs';
+import {inspectJavaScript,inspectJson,checkProject,checkRegister,stop10Rows,REGISTER} from '../check-fact-sources.mjs';
 test('fact-source check scans actual game banks and checked runtime derivations',()=>{
  const result=checkProject(fileURLToPath(new URL('../../',import.meta.url)));assert.deepEqual(result.errors,[]);assert.ok(result.records.some(record=>record.location.includes('CLAIMS')));assert.ok(result.records.some(record=>record.location.includes('FACTS')));assert.ok(result.records.some(record=>record.derivedFrom==='OLDS'));
 });
@@ -26,4 +26,20 @@ test('new JSON fact records and legacy array records require a local source regi
 });
 test('the dated proposal excerpt is inspectable bilingual story evidence and not a promise',()=>{
  for(const language of ['en','es']){const data=JSON.parse(readFileSync(new URL(`../../assets/games/community-builders/locales/${language}/stop-04.json`,import.meta.url),'utf8'));assert.equal(data.T.planExcerpt.length,5);assert.match(data.T.sourceFiction,language==='en'?/made up|not a real/:/inventó|no es/i);assert.match(data.T.planExcerpt.at(-1),language==='en'?/not an approval or a promise/:/no una aprobación ni una promesa/);assert.match(data.bank.b0016,language==='en'?/proposal lists/:/propuesta.*indica/);}
+});
+test('real-world claims carry sources, checked dates and the wording that was checked',()=>{
+ const root=fileURLToPath(new URL('../../',import.meta.url)),register=JSON.parse(readFileSync(new URL('../../'+REGISTER,import.meta.url),'utf8'));
+ assert.deepEqual(checkRegister(root,register).errors,[]);
+ const rows=stop10Rows(readFileSync(new URL('../../assets/games/community-builders/stops/10-match-a-fix.js',import.meta.url),'utf8'));
+ assert.equal(rows.length,16);for(const row of rows)assert.ok(register.claims.some(claim=>claim.id==='stop-10/'+row.code&&claim.sources.length&&claim.checked),row.code);
+ for(const id of ['stop-01/guText','stop-06/guText','stop-15/guText','stop-01/what'])assert.ok(register.claims.some(claim=>claim.id===id),id);
+ const changed=(edit)=>{const copy=JSON.parse(JSON.stringify(register));edit(copy);return checkRegister(root,copy).errors;};
+ assert.ok(changed(r=>{r.claims.find(c=>c.id==='stop-10/L3').fingerprint='0000000000000000';}).some(e=>e.includes('wording changed')));
+ assert.ok(changed(r=>{r.claims=r.claims.filter(c=>c.id!=='stop-10/N4');}).some(e=>e.includes('row N4 has no source')));
+ assert.ok(changed(r=>{r.claims.find(c=>c.id==='stop-10/V2').stamp='hour';}).some(e=>e.includes('does not match')));
+ assert.ok(changed(r=>{r.claims.find(c=>c.id==='stop-10/W1').sources=['missing'];}).some(e=>e.includes('unknown source')));
+ assert.ok(changed(r=>{delete r.claims.find(c=>c.id==='stop-10/W1').checked;}).some(e=>e.includes('no checked date')));
+ assert.ok(changed(r=>{delete r.claims.find(c=>c.id==='stop-10/N3').note;}).some(e=>e.includes('needs a note')));
+ assert.ok(changed(r=>{r.claims=r.claims.filter(c=>c.id!=='stop-06/guText');}).some(e=>e.includes('Georgia note stop-06')));
+ assert.ok(changed(r=>{delete r.corrections;}).some(e=>e.includes('corrections')));
 });

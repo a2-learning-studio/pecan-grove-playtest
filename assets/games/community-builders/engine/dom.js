@@ -45,6 +45,26 @@ export function icon(name, document = globalThis.document) {
   svg.append(path);
   return svg;
 }
+// Blocked site data throws on access. Play then continues in memory, and every
+// write fails like a full storage so the "cannot save" notice appears.
+export const unavailableStorage = Object.freeze({
+  unavailable: true,
+  length: 0,
+  key: () => null,
+  getItem: () => null,
+  setItem() {
+    throw new Error("Storage is unavailable");
+  },
+  removeItem() {},
+  clear() {},
+});
+export function storageArea(name, host = globalThis) {
+  try {
+    return host[name] || unavailableStorage;
+  } catch {
+    return unavailableStorage;
+  }
+}
 export function safeSet(storage, key, value, target = globalThis.document) {
   try {
     storage.setItem(key, JSON.stringify(value));

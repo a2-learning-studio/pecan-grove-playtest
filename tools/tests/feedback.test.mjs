@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import path from 'node:path';
 import { createRequire } from 'node:module';
 
@@ -16,7 +16,7 @@ const plain = value => JSON.parse(JSON.stringify(value));
 
 function storage(seed = {}) {
   const data = new Map(Object.entries(seed));
-  return { data, blocked: false, getItem(k) { if (this.blocked) throw Error('denied'); return data.get(k) ?? null; },
+  return { data, blocked: false, get length() { return data.size; }, key(i) { return [...data.keys()][i] ?? null; }, getItem(k) { if (this.blocked) throw Error('denied'); return data.get(k) ?? null; },
     setItem(k, v) { if (this.blocked) throw Error('quota'); data.set(k, String(v)); },
     removeItem(k) { if (this.blocked) throw Error('denied'); data.delete(k); } };
 }
@@ -72,12 +72,13 @@ test('Text length and control characters are constrained; valid multilingual tex
   const m = model(); const e = comment(m, 1, '\0Hola\u000b\u007f\t\nñ\uD83D\uDE42' + 'a'.repeat(1300));
   assert.equal(e.worked.length, 1200); assert.doesNotMatch(e.worked, /[\0\u000b\u007f]/); assert.match(e.worked, /Hola\t\nñ\uD83D\uDE42/);
 });
-test('New player hides prior comments while preserving offline outbox and station grouping', () => {
+test('New player hides prior comments, keeps the earlier outbox and gives the next player a new device code', () => {
   const store = storage(), m = model(store), firstSession = m.active(); const e = comment(m, 3, 'private previous comment');
   assert.ok(m.rotate()); assert.notEqual(m.active(), firstSession);
   assert.equal(m.entries().some(x => x.worked.includes('previous')), false);
   assert.equal(m.entries(true).some(x => x.entryId === e.entryId), true);
-  assert.equal(m.entries().at(-1).stationId, e.stationId);
+  assert.notEqual(m.entries().at(-1).stationId, e.stationId, 'no field links two players on one computer');
+  assert.equal(m.entries(true).find(x => x.entryId === e.entryId).stationId, e.stationId);
   const loaded = model(store); assert.equal(loaded.active(), m.active()); assert.ok(loaded.entries(true).some(x => x.entryId === e.entryId));
 });
 test('Blocked/quota storage keeps draft in memory and prevents destructive player rotation', () => {
@@ -95,6 +96,16 @@ test('Partially invalid saved state is not silently discarded without retaining 
   const store = storage(), m = model(store); comment(m); const state = JSON.parse(store.getItem(api.KEY)); state.entries.push({ invalid: true });
   const broken = JSON.stringify(state); store.setItem(api.KEY, broken); const loaded = model(store); comment(loaded, 2);
   assert.equal(store.getItem(api.KEY + '-recovery'), broken); assert.equal(loaded.recovery, true);
+});
+test('One unrecognised entry keeps the player, the game save key and the other notes, with a recovery copy', () => {
+  const store = storage(), m = model(store); comment(m, 2, 'keep me'); const session = m.active();
+  const state = JSON.parse(store.getItem(api.KEY)); state.entries.push({ ...state.entries[0], entryId: 'from-a-newer-version-0001', category: 'newer-category' });
+  const raw = JSON.stringify(state); store.setItem(api.KEY, raw);
+  const b = browser({ store });
+  assert.equal(b.app.model.active(), session); assert.equal(b.game.dataset.feedbackSession, session);
+  assert.equal(b.app.model.find('feedback', 2).worked, 'keep me'); assert.equal(b.app.model.warning(), '');
+  assert.equal(store.getItem(api.KEY + '-recovery'), raw); assert.equal(b.app.model.recovery, true);
+  assert.equal(model(store).active(), session);
 });
 test('A later corrupt snapshot is preserved separately instead of replacing or discarding earlier recovery data', () => {
   const store = storage({ [api.KEY]: '{second broken', [api.KEY + '-recovery']: '{first broken' }); const m = model(store); comment(m);
@@ -199,14 +210,23 @@ test('Excel is a CRC-valid OOXML ZIP with typed numbers, multilingual text, froz
   const files = unzip(api.excel(m.entries())); assert.equal(files.size, 5);
   assert.match(files.get('[Content_Types].xml'), /spreadsheetml\.sheet\.main/);
   const sheet = files.get('xl/worksheets/sheet1.xml'); assert.match(sheet, /La voz ayudó ñ 界 \uD83D\uDE42/);
-  assert.match(sheet, /<c r="D2"><v>7<\/v><\/c>/); assert.match(sheet, /<c r="N3"><v>85<\/v><\/c>/);
-  assert.match(sheet, /state="frozen"/); assert.match(sheet, /autoFilter ref="A1:R3"/);
+  assert.match(sheet, /<c r="A1" t="inlineStr"><is><t xml:space="preserve">Check before sharing\./);
+  assert.match(sheet, /<c r="D3"><v>7<\/v><\/c>/); assert.match(sheet, /<c r="N4"><v>85<\/v><\/c>/);
+  assert.match(sheet, /<pane ySplit="2" topLeftCell="A3"[^>]*state="frozen"/); assert.match(sheet, /autoFilter ref="A2:R4"/);
 });
 test('Excel comment cells always remain strings even with formula-like malicious input', () => {
   const m = model(); comment(m, 1, '=HYPERLINK("evil","click") & <svg>\0'); m.upsert('feedback', 1, { fix: '+SUM(1,2) @danger -1' });
   const sheet = unzip(api.excel(m.entries())).get('xl/worksheets/sheet1.xml');
-  assert.match(sheet, /<c r="L2" t="inlineStr">/); assert.match(sheet, /<c r="M2" t="inlineStr">/);
+  assert.match(sheet, /<c r="L3" t="inlineStr">/); assert.match(sheet, /<c r="M3" t="inlineStr">/);
   assert.match(sheet, /=HYPERLINK\(&quot;evil&quot;,&quot;click&quot;\) &amp; &lt;svg&gt;/); assert.doesNotMatch(sheet, /<f[ >]|\0/);
+});
+test('Every Excel note has the same scrub as a sent note, under a check-before-sharing row in the page language', () => {
+  const m = model(); comment(m, 2, 'hi im maya lopez, call 404 555 0199 or maya.l@gmail.com'); m.upsert('feedback', 3, { worked: 'Me llamo Sofía y tengo 9 años', language: 'es' });
+  const sheet = unzip(api.excel(m.entries(), api.WORDS.es.excelCheck)).get('xl/worksheets/sheet1.xml');
+  assert.match(sheet, /<c r="A1" t="inlineStr"><is><t xml:space="preserve">Revisa antes de compartir\./);
+  assert.doesNotMatch(sheet, /404 555 0199|maya\.l@gmail\.com|Sofía|9 años/);
+  assert.match(sheet, /hi im maya lopez, call \[removed\] or \[removed\]/); assert.match(sheet, /Me llamo \[quitado\] y tengo \[quitado\]/);
+  assert.equal(m.find('feedback', 2).worked, 'hi im maya lopez, call 404 555 0199 or maya.l@gmail.com', 'the saved draft itself is unchanged');
 });
 test('Current player Excel omits all previous player comments but keeps current player rows', () => {
   const m = model(); comment(m, 2, 'previous-child-secret'); m.rotate(); comment(m, 2, 'current-child-comment');
@@ -221,8 +241,11 @@ class Element {
   addEventListener(type, fn) { const handlers = this.listeners.get(type) || []; handlers.push(fn); this.listeners.set(type, handlers); }
   fire(type, detail) { const event = { detail, currentTarget: this, defaultPrevented: false, preventDefault() { this.defaultPrevented = true; } }; for (const fn of this.listeners.get(type) || []) fn(event); return event; }
   get firstChild() { return this.children[0]; }
-  appendChild(node) { this.children.push(node); node.parent = this; return node; }
-  removeChild(node) { this.children.splice(this.children.indexOf(node), 1); }
+  get childNodes() { return this.children; }
+  get parentNode() { return this.parent; }
+  appendChild(node) { if (node.parent) node.parent.removeChild(node); this.children.push(node); node.parent = this; return node; }
+  insertBefore(node, ref) { if (node.parent) node.parent.removeChild(node); const at = this.children.indexOf(ref); this.children.splice(at < 0 ? this.children.length : at, 0, node); node.parent = this; return node; }
+  removeChild(node) { const at = this.children.indexOf(node); if (at >= 0) this.children.splice(at, 1); node.parent = null; }
   remove() { if (this.parent) this.parent.removeChild(this); }
   click() { this.clicked = true; this.fire('click'); }
   focus() { this.focused = true; if (this.ownerDocument) this.ownerDocument.activeElement = this; }
@@ -263,13 +286,19 @@ test('Feedback establishes session-specific game storage before engine boot, and
   b.field('new-player').click(); const fresh = browser({ store }); assert.notEqual(fresh.app.model.active(), first);
   assert.equal(store.getItem(api.GAME_KEY + ':' + fresh.app.model.active()), null);
 });
-test('Top and bottom New player controls isolate sessions and retain prior outbox', () => {
+test('Top and bottom New player controls isolate sessions; with no receiver or close-out code the leaving notes are deleted', () => {
   for (const name of ['new-player', 'new-player-top']) {
-    const b = browser(); b.field('fix').value = 'previous private note'; const previous = b.app.model.active(); b.field(name).click();
+    const b = browser(); b.field('fix').value = 'previous private note'; const previous = b.app.model.active();
+    let asked = ''; b.win.confirm = message => { asked = message; return true; }; b.field(name).click();
+    assert.match(asked, /has not received: 1\. Delete them\? Nobody can bring them back\. To keep the notes, choose Keep playing and download Excel first\./);
     assert.equal(b.win.location.reloads, 1); assert.notEqual(b.app.model.active(), previous);
-    assert.ok(b.app.model.entries(true).some(e => e.fix === 'previous private note'));
+    assert.equal(b.app.model.entries(true).some(e => e.fix === 'previous private note'), false);
+    assert.ok(b.app.model.entries(true).some(e => e.sessionId === previous && e.kind === 'feedback' && e.fix === '' && e.revision === 2), 'an emptied newer revision, so no older copy can return');
+    assert.doesNotMatch([...b.store.data.values()].join(''), /previous private note/);
     assert.equal(b.app.model.entries().some(e => e.fix), false);
   }
+  const keep = browser(); keep.field('fix').value = 'cancel keeps it'; keep.win.confirm = () => false; keep.field('new-player').click();
+  assert.equal(keep.win.location.reloads, 0); assert.equal(keep.app.model.find('feedback', 0).fix, 'cancel keeps it');
 });
 
 test('In-page New player confirmation saves first, focuses Keep playing, and cancellation preserves the current player', () => {
@@ -296,13 +325,15 @@ test('Escape cancels the in-page confirmation and restores focus without discard
   assert.equal(b.app.model.active(), active); assert.equal(b.app.model.find('feedback', 0).worked, 'saved before Escape');
 });
 
-test('In-page confirmation flushes the latest text, starts a fresh player, and retains the previous player backup queue', () => {
+test('In-page confirmation flushes the latest text first, so the delete covers it, then starts a fresh player', () => {
   const b = browser({ dialog: true }), previous = b.app.model.active();
   b.field('fix').value = 'initial note'; b.field('new-player').click();
+  assert.match(b.newPlayer('message').textContent, /has not received: 1\. Delete them\?/); assert.equal(b.newPlayer('confirm').textContent, 'Delete and start the next player');
+  assert.equal(b.doc.activeElement, b.newPlayer('cancel'), 'Keep playing is the safe default');
   b.field('fix').value = 'latest text before confirmation'; b.newPlayer('confirm').click();
   assert.notEqual(b.app.model.active(), previous); assert.equal(b.win.location.reloads, 1);
   assert.equal(b.newPlayer('dialog').open, false); assert.equal(b.app.model.entries().some(e => e.fix), false);
-  assert.ok(b.app.model.entries(true).some(e => e.sessionId === previous && e.fix === 'latest text before confirmation'));
+  assert.doesNotMatch([...b.store.data.values()].join(''), /initial note|latest text before confirmation/);
   assert.ok(b.app.model.entries(true).some(e => e.sessionId === previous && e.sessionEnded));
 });
 
@@ -345,8 +376,11 @@ test('The in-page New player confirmation is fully localized in Spanish', () => 
   const b = browser({ dialog: true, lang: 'es' }); b.field('new-player-top').click();
   assert.equal(b.newPlayer('title').textContent, '¿Listo para otro jugador?');
   assert.equal(b.newPlayer('cancel').textContent, 'Seguir jugando');
-  assert.equal(b.newPlayer('confirm').textContent, 'Empezar con otro jugador');
-  assert.match(b.newPlayer('message').textContent, /Tus borradores se conservan en este dispositivo/);
+  assert.equal(b.newPlayer('confirm').textContent, 'Empezar con el siguiente jugador');
+  assert.match(b.newPlayer('message').textContent, /La partida de este jugador se queda guardada en este dispositivo\.$/);
+  b.newPlayer('cancel').click(); b.field('worked').value = 'una nota'; b.field('new-player-top').click();
+  assert.equal(b.newPlayer('message').textContent, 'Notas de este jugador que el equipo de prueba no ha recibido: 1. ¿Borrarlas? Nadie podrá recuperarlas. Para conservar las notas, elige Seguir jugando y descarga Excel primero.');
+  assert.equal(b.newPlayer('confirm').textContent, 'Borrar y empezar con el siguiente jugador');
 });
 test('Blocked storage aborts New player without reload and keeps typed notes available for Excel', () => {
   const b = browser(); const active = b.app.model.active(); b.store.blocked = true; b.field('fix').value = 'must not lose'; b.field('new-player').click();
@@ -369,6 +403,33 @@ test('A stale tab refuses automatic reload if its final text cannot be durably a
   store.setItem = original;
   for (const fn of a.win.listeners.get('storage')) fn({ key: api.KEY });
   assert.equal(a.win.location.reloads, 1); assert.ok(model(store).entries(true).some(e => e.fix === 'retain when full'));
+});
+test('Storage events only read, so a tab with an old copy cannot undo another tab New player', () => {
+  const store = storage(), a = browser({ store }), b = browser({ store });
+  const old = a.app.model.active(), staleFeedback = store.getItem(api.KEY);
+  a.field('new-player').click(); const next = a.app.model.active(); assert.notEqual(next, old);
+  const current = store.getItem(api.KEY), currentConsent = store.getItem(api.CONSENT_KEY);
+  // Browsers copy storage between tabs a moment later, so the other tab may still read the old player.
+  store.data.set(api.KEY, staleFeedback); store.data.delete(api.CONSENT_KEY);
+  const writes = [], set = store.setItem; store.setItem = function (k, v) { writes.push(k); return set.call(this, k, v); };
+  for (const fn of b.win.listeners.get('storage')) { fn({ key: api.KEY }); fn({ key: api.CONSENT_KEY }); }
+  assert.deepEqual(writes, []); assert.equal(b.win.location.reloads, 0);
+  store.data.set(api.KEY, current); store.data.set(api.CONSENT_KEY, currentConsent);
+  for (const fn of b.win.listeners.get('storage')) fn({ key: api.KEY });
+  assert.equal(b.win.location.reloads, 1); assert.equal(model(store).active(), next);
+});
+test('Closing an older tab keeps the newer note written in another tab', () => {
+  const store = storage(), a = browser({ store }), b = browser({ store });
+  a.field('worked').value = 'older note'; a.field('worked').fire('input'); a.run(350);
+  for (const fn of b.win.listeners.get('storage')) fn({ key: api.KEY });
+  assert.equal(b.field('worked').value, 'older note');
+  b.field('worked').value = 'newer note'; b.field('worked').fire('input'); b.run(350);
+  // The older tab closes before or after it hears about the change: either way the newer note stays.
+  a.win.fire('pagehide'); assert.equal(model(store).find('feedback', 0).worked, 'newer note');
+  for (const fn of a.win.listeners.get('storage')) fn({ key: api.KEY });
+  assert.equal(a.field('worked').value, 'newer note');
+  a.field('fix').value = 'only this field'; a.win.fire('pagehide');
+  const saved = model(store).find('feedback', 0); assert.equal(saved.worked, 'newer note'); assert.equal(saved.fix, 'only this field');
 });
 test('Page hiding flushes latest text immediately; no unconfigured backup is claimed', () => {
   const b = browser(); b.field('worked').value = 'last keystrokes'; b.win.fire('pagehide');
@@ -398,4 +459,130 @@ test('Spanish runtime saves identical schema and shows Spanish status', () => {
   const b = browser({ lang: 'es' }); b.field('category').value = 'spanish'; b.field('worked').value = 'Se entendió bien'; b.app.flush();
   assert.equal(b.app.model.find('feedback', 0).language, 'es'); assert.equal(b.app.model.find('feedback', 0).category, 'spanish');
   assert.match(b.field('status').textContent, /Guardado en este dispositivo/);
+});
+
+for (const lang of ['en', 'es']) test(`New player clears the on-screen note so the reload's page-hide save cannot copy it to the next player (${lang})`, () => {
+  const b = browser({ dialog: true, lang }), previous = b.app.model.active();
+  b.field('fix').value = 'PREVIOUS CHILD SECRET'; b.field('fix').fire('input');
+  b.field('new-player-top').click(); b.newPlayer('confirm').click();
+  assert.equal(b.win.location.reloads, 1); assert.equal(b.field('fix').value, '');
+  // A real reload fires page hide and visibility changes after the rotation; neither may save the old text.
+  b.win.fire('pagehide'); b.doc.visibilityState = 'hidden'; b.doc.fire('visibilitychange'); b.run(350);
+  const loaded = model(b.store);
+  assert.notEqual(loaded.active(), previous);
+  assert.equal(loaded.entries().some(e => e.fix.includes('SECRET')), false);
+  assert.doesNotMatch([...b.store.data.values()].join(''), /SECRET/, 'the deleted note is nowhere on the device');
+  assert.equal(browser({ store: b.store, lang }).field('fix').value, '');
+});
+test('Bringing back an earlier player restores that player, their device code and their notes, and ends the player who was playing', () => {
+  const store = storage(), m = model(store), first = m.active(), station = comment(m, 2, 'first player note').stationId;
+  const second = m.rotate(); assert.equal(m.previousPlayer().id, first);
+  assert.equal(m.restore('not-a-known-player-0000001'), null); assert.equal(m.restore(second), null, 'the player playing now is not brought back');
+  assert.equal(m.restore(first), first); assert.equal(m.active(), first); assert.equal(m.previousPlayer(), null);
+  assert.ok(m.entries(true).some(e => e.sessionId === second && e.kind === 'session' && e.sessionEnded === true));
+  assert.equal(m.find('feedback', 2).worked, 'first player note'); assert.equal(m.find('session', 0).sessionEnded, false);
+  assert.equal(comment(m, 3, 'more').stationId, station);
+  assert.equal(model(store).active(), first);
+});
+test('A grown-up can send every waiting note on the device, one device code per request; earlier scores stay local', async () => {
+  const m = model(); comment(m, 1, 'first player'); m.upsert('progress', 1, { score: 80, phase: 'result' });
+  m.rotate(); comment(m, 2, 'second player, email kid@example.com'); m.upsert('feedback', 3, { rating: 'good' }); m.upsert('feedback', 4, { worked: '  ' });
+  assert.equal(m.submitAll(false), 0, 'nothing is sent that a grown-up did not read in the list');
+  assert.equal(m.submitAll(false, m.waiting()), 3, 'blank notes are not sent');
+  const bodies = [];
+  while (m.pending(true).length) await api.sendBatch(m, endpoint, async (url, options) => { bodies.push(JSON.parse(options.body)); return acknowledgeBody(options); }, null, true);
+  assert.equal(bodies.length, 2);
+  for (const body of bodies) assert.equal(new Set(body.entries.map(e => e.stationId)).size, 1);
+  const sent = bodies.flatMap(body => body.entries);
+  assert.equal(sent.some(e => e.kind === 'progress'), false);
+  assert.doesNotMatch(JSON.stringify(sent), /kid@example\.com/);
+  assert.ok(sent.some(e => e.kind === 'session' && e.sessionEnded === true), 'an ended player record now fills Session ended');
+  assert.ok(m.players().every(p => p.notes.every(e => e.ackRevision >= e.revision)));
+});
+test('Close-out Send sends only the notes still exactly as the grown-up read them, even when another tab changes or adds one', async () => {
+  const store = storage(), a = model(store); comment(a, 1, 'listed note'); comment(a, 2, 'listed then edited');
+  const reviewed = a.waiting();
+  assert.deepEqual(plain(reviewed.map(e => e.worked)), ['listed note', 'listed then edited']);
+  const other = model(store); comment(other, 2, 'edited in the other tab'); comment(other, 3, 'added in the other tab');
+  assert.equal(a.submitAll(false, reviewed), 1);
+  const bodies = [];
+  while (a.pending(true).length) await api.sendBatch(a, endpoint, async (url, options) => { bodies.push(JSON.parse(options.body)); return acknowledgeBody(options); }, null, true);
+  assert.deepEqual(bodies.flatMap(body => body.entries).filter(e => e.kind === 'feedback').map(e => e.worked), ['listed note']);
+  const loaded = model(store);
+  for (const stop of [2, 3]) assert.equal(loaded.find('feedback', stop).submitted, false, `stop ${stop} stays a local draft`);
+  assert.equal(loaded.find('feedback', 2).worked, 'edited in the other tab');
+  assert.deepEqual(plain(loaded.waiting().map(e => e.worked)).sort(), ['added in the other tab', 'edited in the other tab']);
+});
+test('With site data blocked from the start, Next player asks first and then starts over as a new player', () => {
+  for (const dialog of [false, true]) {
+    const store = storage(); store.blocked = true;
+    const b = browser({ store, dialog }); b.field('fix').value = 'never saved'; b.field('fix').fire('input');
+    assert.match(b.field('status').textContent, /not saving anything on this device/);
+    let asked = ''; b.win.confirm = message => { asked = message; return true; };
+    b.field('new-player-top').click();
+    if (dialog) {
+      assert.equal(b.newPlayer('dialog').open, true); assert.equal(b.win.location.reloads, 0);
+      asked = b.newPlayer('message').textContent; b.newPlayer('confirm').click();
+    }
+    assert.match(asked, /not saving anything on this device, so this player's game and notes will be gone/);
+    assert.equal(b.win.location.reloads, 1); assert.equal(b.field('fix').value, '', 'the form is cleared before the reload');
+  }
+  const store = storage(); store.blocked = true;
+  const c = browser({ store, dialog: true }); c.field('fix').value = 'keep me'; c.field('new-player').click(); c.newPlayer('cancel').click();
+  assert.equal(c.win.location.reloads, 0); assert.equal(c.field('fix').value, 'keep me'); assert.equal(c.app.model.find('feedback', 0).fix, 'keep me');
+});
+test('Queued text that never passed the preview scrub goes back to a local draft instead of being sent', async () => {
+  const store = storage(), m = model(store), e = submittedComment(m, 1, 'clean note');
+  // Another page on the shared github.io origin rewrites the saved queue with raw text.
+  const state = JSON.parse(store.getItem(api.KEY)); state.entries.find(x => x.entryId === e.entryId).worked = 'My name is Sofia Ramirez'; store.setItem(api.KEY, JSON.stringify(state));
+  const forged = model(store); let body = null;
+  await api.sendBatch(forged, endpoint, async (url, options) => { body = JSON.parse(options.body); return acknowledgeBody(options); });
+  assert.ok(!body || body.entries.every(x => x.kind !== 'feedback'));
+  assert.equal(forged.find('feedback', 1).submitted, false); assert.equal(forged.find('feedback', 1).worked, 'My name is Sofia Ramirez');
+});
+test('Erase all removes every Pecan Grove key on this device and repeats once after the reload', () => {
+  const local = storage({ [api.KEY]: '{}', [api.KEY + '-recovery']: '{}', [api.CONSENT_KEY]: '{}', [api.GAME_KEY + ':abc']: '{}', 'pecan-grove-settings': '{}', 'other-site': 'keep' });
+  const session = storage({ 'pecan-grove-resume': '{}' });
+  assert.equal(api.eraseAll(local, session), true);
+  assert.deepEqual([...local.data.keys()], ['other-site']); assert.equal(session.data.size, 0);
+  session.setItem(api.ERASE_FLAG, '1'); local.setItem(api.GAME_KEY + ':abc', 'saved by the closing page');
+  api.finishErase({ sessionStorage: session, localStorage: local });
+  assert.deepEqual([...local.data.keys()], ['other-site']); assert.equal(session.getItem(api.ERASE_FLAG), null);
+  local.setItem(api.KEY, '{}'); api.finishErase({ sessionStorage: session, localStorage: local });
+  assert.equal(local.getItem(api.KEY), '{}', 'without the flag a normal load erases nothing');
+});
+test('Erase all also removes the step log and every recovery copy the game and the notes keep', async () => {
+  const { stepKey } = await import(pathToFileURL(path.join(root, 'assets/games/community-builders/engine/interaction-log.js')).href);
+  const local = storage(), m = model(local), journey = api.GAME_KEY + ':' + m.active();
+  // The notes keep a copy of a saved list they cannot fully read, and a second, different one beside it.
+  for (const bad of ['first unreadable entry', 'second unreadable entry']) {
+    const state = JSON.parse(local.getItem(api.KEY) || JSON.stringify({ schemaVersion: 1, activeSession: m.active(), entries: [] }));
+    state.entries.push({ kind: 'feedback', note: bad }); local.setItem(api.KEY, JSON.stringify(state)); model(local);
+  }
+  // The game's own names: core/store.js copies a damaged save to <key>-recovery and then <key>-recovery-<time>.
+  local.setItem(journey, '{}'); local.setItem(journey + '-recovery', '{"players":1}'); local.setItem(journey + '-recovery-1767225600000', '{"players":2}');
+  local.setItem(stepKey(journey), '[]'); local.setItem('other-site', 'keep');
+  const recoveries = [...local.data.keys()].filter(k => k.startsWith(api.KEY + '-recovery'));
+  assert.equal(recoveries.length, 2, 'both damaged copies were kept');
+  assert.equal(stepKey(journey), 'pecan-grove-steps:' + m.active());
+  assert.equal(api.eraseAll(local, storage()), true);
+  assert.deepEqual([...local.data.keys()], ['other-site']);
+});
+test("The game's own titled characters are never flagged as private names", () => {
+  const titled = new Set();
+  for (const lang of ['en', 'es']) {
+    const folder = path.join(root, 'assets/games/community-builders/locales', lang);
+    for (const file of fs.readdirSync(folder).filter(name => name.endsWith('.json'))) for (const match of fs.readFileSync(path.join(folder, file), 'utf8').matchAll(/\b(?:Mr|Mrs|Ms|Miss|Dr|Sr|Sra|Srta)\. [A-Z][a-zñáéíóú]+/g)) titled.add(match[0]);
+  }
+  assert.ok(titled.size >= 8);
+  for (const name of titled) assert.deepEqual(plain(api.privacyFlags(`I liked ${name}'s idea.`)), [], name);
+  assert.deepEqual(plain(api.privacyFlags('Mr. Smith read it with me')), ['Mr. Smith']);
+});
+test('The collector README example lists exactly the fields the game sends (contract v1)', async () => {
+  const readme = fs.readFileSync(path.join(root, 'backend/feedback/README.md'), 'utf8');
+  const example = JSON.parse(readme.match(/```json\n(\{\n  "schemaVersion": 1,\n  "entries"[\s\S]*?)\n```/)[1]);
+  const m = model(); submittedComment(m); let body;
+  await api.sendBatch(m, endpoint, async (url, options) => { body = JSON.parse(options.body); return acknowledgeBody(options); });
+  assert.deepEqual(Object.keys(example.entries[0]).sort(), Object.keys(body.entries[0]).sort());
+  assert.equal(example.schemaVersion, body.schemaVersion);
 });

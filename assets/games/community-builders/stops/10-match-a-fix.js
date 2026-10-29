@@ -50,7 +50,7 @@
       window.CBLocale.pair("stop-10","bank.b0026"), window.CBLocale.pair("stop-10","bank.b0027"), "half",
       window.CBLocale.pair("stop-10","bank.b0028")],
     ["L3", "johnson", window.CBLocale.pair("stop-10","bank.b0029"),
-      window.CBLocale.pair("stop-10","bank.b0030"), window.CBLocale.pair("stop-10","bank.b0031"), "hour",
+      window.CBLocale.pair("stop-10","bank.b0030"), window.CBLocale.pair("stop-10","bank.b0031"), "seed",
       window.CBLocale.pair("stop-10","bank.b0032")],
     ["N1", "jayden", window.CBLocale.pair("stop-10","bank.b0033"),
       window.CBLocale.pair("stop-10","bank.b0034"), window.CBLocale.pair("stop-10","bank.b0035"), "hour",
@@ -77,7 +77,7 @@
       window.CBLocale.pair("stop-10","bank.b0061"), window.CBLocale.pair("stop-10","bank.b0062"), "hour",
       window.CBLocale.pair("stop-10","bank.b0063")],
     ["V2", "ruth", window.CBLocale.pair("stop-10","bank.b0064"),
-      window.CBLocale.pair("stop-10","bank.b0065"), window.CBLocale.pair("stop-10","bank.b0066"), "hour",
+      window.CBLocale.pair("stop-10","bank.b0065"), window.CBLocale.pair("stop-10","bank.b0066"), "half",
       window.CBLocale.pair("stop-10","bank.b0067")]
   ];
   /* the 3 open problems (10E): no tested fix; three good ideas each, none marked best */

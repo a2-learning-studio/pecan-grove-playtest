@@ -115,12 +115,37 @@ export default function createDialog(ctx) {
           ctx.acted = true;
           g.focus();
         }
+      } else if (changed.on && ctx.mode === "title") {
+        // an opened progress file changes Continue: redraw the title
+        ctx.showTitle();
+        var t = ctx.root.querySelector(".cb-hero .cb-btn--onstage");
+        if (t) t.focus();
       }
     });
   }
   function grownBody(wrap, changed) {
     ctx.clear(wrap);
-    wrap.appendChild(ctx.h("p", { text: ctx.W.grownText }));
+    // Family and library copies keep everything on the device: no Send, no score sharing.
+    var flavor = ctx.document.documentElement.getAttribute("data-flavor"),
+      localOnly = flavor === "family" || flavor === "library";
+    wrap.appendChild(
+      ctx.h("p", { text: localOnly ? ctx.W.grownTextLocal : ctx.W.grownText }),
+    );
+    // The printable sheet beside the game: goals, grouping, sources and how to send a correction.
+    wrap.appendChild(
+      ctx.h("p", null, [
+        ctx.h(
+          "a",
+          {
+            class: "cb-dlg__link",
+            href: ctx.W.educatorHref,
+            target: "_blank",
+            rel: "noopener",
+          },
+          [ctx.W.educator],
+        ),
+      ]),
+    );
     wrap.appendChild(mapOrderControl(ctx));
     var offline = ctx.window.PecanGroveOffline;
     if (offline && offline.availableInstall)
@@ -130,7 +155,12 @@ export default function createDialog(ctx) {
         }),
       );
     var consentApi = ctx.window.PecanGroveFeedback;
-    if (consentApi && consentApi.getConsent && consentApi.setConsent) {
+    if (
+      !localOnly &&
+      consentApi &&
+      consentApi.getConsent &&
+      consentApi.setConsent
+    ) {
       var consent = consentApi.getConsent();
       var scoreInput = ctx.h("input", {
         type: "checkbox",
@@ -143,20 +173,7 @@ export default function createDialog(ctx) {
       scoreInput.checked = !!consent.scores;
       autoInput.checked = !!consent.autoScores;
       autoInput.disabled = !consent.scores;
-      scoreInput.addEventListener("change", function () {
-        consentApi.setConsent({
-          scores: scoreInput.checked,
-          autoScores: scoreInput.checked && autoInput.checked,
-        });
-        autoInput.disabled = !scoreInput.checked;
-        if (!scoreInput.checked) autoInput.checked = false;
-      });
-      autoInput.addEventListener("change", function () {
-        consentApi.setConsent({
-          scores: scoreInput.checked,
-          autoScores: autoInput.checked,
-        });
-      });
+      // The feedback layer handles every data-pg-consent change, including the grown-up confirmation.
       wrap.appendChild(
         ctx.h("fieldset", { class: "cb-consent" }, [
           ctx.h("legend", {
@@ -167,9 +184,42 @@ export default function createDialog(ctx) {
             text: ctx.W.consentDetails,
           }),
           ctx.h("label", null, [autoInput, ctx.W.consentAutoScores]),
+          ctx.h("p", {
+            text: ctx.W.consentAutoDetails,
+          }),
         ]),
       );
     }
+    var playersApi = ctx.window.PecanGroveFeedback;
+    if (playersApi && playersApi.requestNewPlayer) {
+      var next = ctx.btn(ctx.W.nextPlayer, "", function () {
+        playersApi.requestNewPlayer(next);
+      });
+      var row = [next];
+      // When the feedback form could not load, only Next player is offered.
+      if (playersApi.openDevice) {
+        var device = ctx.btn(ctx.W.devicePanel, "", function () {
+          playersApi.openDevice(device);
+        });
+        row.push(device);
+      }
+      // Only a build with a facilitator's close-out code has this; it asks for the code before showing any note.
+      if (playersApi.openCloseout) {
+        var closeout = ctx.btn(ctx.W.facilitatorCloseout, "", function () {
+          playersApi.openCloseout(closeout);
+        });
+        row.push(closeout);
+      }
+      wrap.appendChild(ctx.h("div", { class: "cb-row" }, row));
+    }
+    // The engine adds Save / Open progress file, a local copy for grown-ups.
+    var engine = ctx.window.PecanGroveEngine;
+    if (engine && engine.progressControls)
+      wrap.appendChild(
+        engine.progressControls(function () {
+          changed.on = true;
+        }),
+      );
     var lib = ctx.btn(
       ctx.W.library,
       "",

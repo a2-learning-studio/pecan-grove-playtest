@@ -84,7 +84,7 @@ test('Failed progress writes return false, announce once per session and emit a 
   const root = new Element('div'), events = [];
   const c = vm.createContext({ root, L: 'en', KEY: 'key', store: {}, localStorage: { setItem() { throw Error('quota'); } },
     h: (tag, attrs) => new Element(tag, attrs), emit: (type, detail) => events.push({ type, detail }) });
-  vm.runInContext(fragments.variableSource('storageWarned') + fragments.functionSource('storageError') + fragments.functionSource('save'), c);
+  vm.runInContext(fragments.variableSource('storageWarned') + fragments.variableSource('saveLocked') + fragments.functionSource('storageError') + fragments.functionSource('save'), c);
   assert.equal(c.save(), false); assert.equal(c.save(), false);
   assert.equal(root.querySelectorAll('.cb-storage-warning').length, 1);
   assert.equal(root.querySelector('.cb-storage-warning').getAttribute('role'), 'status');

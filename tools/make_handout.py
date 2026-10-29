@@ -6,6 +6,9 @@ Outputs (in the plan folder, and copies in site/downloads/ for the /panel/ page)
   02 - Panel handout (EN-ES) - plain text.txt
 Checks: PDF has exactly 2 pages, smallest text >= 12 pt, headings >= 16 pt, both QR codes decode to the
 exact payload, no unresolved {{ tokens.  Run:  python -I tools/make_handout.py
+
+Hub-only: it reads the panel plan folder beside the hub site and needs python-docx and segno, which this repository does
+not install. Nothing in this repository's build, tests, npm scripts or CI runs or imports it.
 """
 import re
 import shutil

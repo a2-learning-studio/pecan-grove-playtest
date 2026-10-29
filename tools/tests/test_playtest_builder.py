@@ -99,6 +99,68 @@ class PlaytestBuilderTests(unittest.TestCase):
         self.assertNotIn(builder.WORDS["en"]["feedback_local"], cloud)
         self.assertNotEqual(builder.build_id(), builder.build_id(feedback_endpoint=endpoint))
 
+    def test_a_copy_that_sends_has_no_per_player_excel_button_and_a_local_copy_keeps_it(self):
+        endpoint = "https://script.google.com/macros/s/AKfycb_test-123/exec"
+        for lang in ("en", "es"):
+            ids = lambda page: {attrs["id"] for _, attrs in Elements(page).elements if "id" in attrs}
+            self.assertNotIn("pt-feedback-download", ids(builder.page(lang, "", feedback_endpoint=endpoint)))
+            self.assertIn("pt-feedback-download", ids(builder.page(lang, "")))
+            self.assertIn("pt-feedback-download", ids(builder.page(lang, "", feedback_endpoint=endpoint, flavor="library")))
+
+    def test_close_out_code_is_embedded_only_as_a_salted_hash_with_a_new_salt_every_build(self):
+        code = "maple-heron-42"
+        first, second = builder.closeout_lock(code), builder.closeout_lock(code)
+        self.assertRegex(first, r"^[0-9a-f]{32}:[0-9a-f]{64}$")
+        self.assertNotEqual(first.split(":")[0], second.split(":")[0], "a random salt per build")
+        for lock in (first, second):
+            salt, digest = lock.split(":")
+            self.assertEqual(hashlib.sha256((salt + ":" + code).encode("utf-8")).hexdigest(), digest)
+        self.assertEqual(builder.closeout_lock(""), "")
+        for lang in ("en", "es"):
+            page = builder.page(lang, "", "test-revision", feedback_endpoint="https://script.google.com/macros/s/AKfycb_test-123/exec", closeout=first)
+            self.assertIn(f'data-closeout="{first}"', page)
+            self.assertNotIn(code, page)
+            ids = {attrs["id"] for _, attrs in Elements(page).elements if "id" in attrs}
+            self.assertIn("pt-closeout-open", ids)
+            self.assertIn("pt-consent-options", Elements(page).ancestors["pt-closeout-open"])
+            self.assertIn(html.escape(builder.WORDS[lang]["closeout_open"]), page)
+            plain = builder.page(lang, "", "test-revision")
+            self.assertNotIn("data-closeout", plain)
+            self.assertNotIn("pt-closeout-open", plain)
+            # Family and library copies never have the close-out, even if a lock is passed.
+            for flavor in ("family", "library"):
+                local = builder.page(lang, "", "test-revision", closeout=first, flavor=flavor)
+                self.assertNotIn("data-closeout", local, flavor)
+                self.assertNotIn("pt-closeout-open", local, flavor)
+        with self.assertRaises(ValueError):
+            builder.page("en", "", closeout="not-a-lock")
+        # The build ID says only whether a code is set, so a rebuild with the same code keeps it.
+        self.assertEqual(builder.build_id(closeout=True), builder.build_id(closeout=True))
+        self.assertNotEqual(builder.build_id(), builder.build_id(closeout=True))
+
+    def test_close_out_code_needs_ten_characters_of_three_kinds_and_no_spaces_at_either_end(self):
+        self.assertEqual(builder.checked_closeout_code(""), "")
+        for value in ("maple-heron-42", "e2e-closeout-test-code", "Heron Pond 7", "Tx7kq2Vw9m", "zorro.búho.88"):
+            with self.subTest(value=value):
+                self.assertEqual(builder.checked_closeout_code(value), value)
+        # Too short, one or two kinds of character (all digits, all letters), a common word with digits, spaces at the ends.
+        for value in ("abc123", "Ab1-Cd2", "1234567890", "abcdefghijkl", "abcdefghi1", "ABCDEFGHI-", "Password123", "Closeout-2026!", "Pecan Grove 7",
+                      " maple-heron-42", "maple-heron-42 ", "maple\nheron-42", "x1-" * 67):
+            with self.subTest(value=value), self.assertRaises(ValueError):
+                builder.checked_closeout_code(value)
+
+    def test_the_close_out_code_comes_from_the_environment_and_never_reaches_family_or_library(self):
+        with patch.dict(builder.os.environ, {"PG_CLOSEOUT_CODE": "maple-heron-42"}):
+            self.assertEqual(builder.resolve_closeout_code(None, "playtest"), "maple-heron-42")
+            self.assertEqual(builder.resolve_closeout_code("", "playtest"), "", "an explicit empty argument turns it off")
+            for flavor in ("family", "library"):
+                self.assertEqual(builder.resolve_closeout_code(None, flavor), "", flavor)
+                self.assertEqual(builder.resolve_closeout_code("other-code-1", flavor), "", flavor)
+        with patch.dict(builder.os.environ, {"PG_CLOSEOUT_CODE": "short"}), self.assertRaises(ValueError):
+            builder.resolve_closeout_code(None, "playtest")
+        with patch.dict(builder.os.environ, {}, clear=True):
+            self.assertEqual(builder.resolve_closeout_code(None, "playtest"), "")
+
     def test_family_flavor_removes_endpoint_and_feedback_ui_in_both_languages(self):
         endpoint = "https://script.google.com/macros/s/AKfycb_test-123/exec"
         for lang in ("en", "es"):
@@ -118,6 +180,57 @@ class PlaytestBuilderTests(unittest.TestCase):
             self.assertIn("pt-start", ids)
             self.assertIn("community-builders", ids)
             self.assertEqual(page.count("<noscript>"), 1)
+
+    def test_family_and_library_pages_show_no_playtest_only_copy(self):
+        for flavor in ("family", "library"):
+            for lang in ("en", "es"):
+                w = builder.WORDS[lang]
+                page = builder.page(lang, "", "local-test", flavor=flavor)
+                ids = {attrs["id"] for _, attrs in Elements(page).elements if "id" in attrs}
+                for removed in ("pt-version-tag", "pt-intro-note", "pt-guide", "pt-consent-scores", "pt-consent-auto"):
+                    self.assertNotIn(removed, ids, (flavor, lang))
+                self.assertNotIn("data-pg-consent", page, (flavor, lang))
+                for key in ("title", "h1", "intro_note", "instructions", "foot", "privacy", "consent_scores"):
+                    self.assertNotIn(html.escape(w[key]), page, (flavor, lang, key))
+                self.assertNotIn(w["version_badge"].split("{date}")[0].strip(), page)
+                for key in ("title_local", "h1_local", "foot_local"):
+                    self.assertIn(html.escape(w[key]), page, (flavor, lang, key))
+                # The credit sentences stay word for word; only the play-test description goes.
+                self.assertTrue(w["foot"].endswith(w["foot_local"]))
+                if flavor == "library":
+                    self.assertIn(html.escape(w["privacy_library"]), page)
+                    self.assertIn("pt-review-tab", ids, "library keeps its local notes")
+                    # Shared library computers keep Next player and the device panel in the For grown-ups box.
+                    parsed = Elements(page)
+                    for element_id in ("pt-feedback-new-player-top", "pt-device-open", "pt-shared-top"):
+                        self.assertIn("pt-consent-options", parsed.ancestors[element_id], (lang, element_id))
+                else:
+                    self.assertNotIn("pt-consent-options", ids, (flavor, lang))
+
+    def test_playtest_page_keeps_its_test_copy_and_starts_right_under_the_heading(self):
+        for lang in ("en", "es"):
+            w = builder.WORDS[lang]
+            page = builder.page(lang, "", "playtest-test")
+            for key in ("h1", "intro_note", "instructions", "foot"):
+                self.assertIn(html.escape(w[key]), page)
+            self.assertLess(page.index('id="pt-h"'), page.index('id="pt-quiet"'))
+            self.assertLess(page.index('id="pt-quiet"'), page.index('id="pt-start"'))
+            self.assertLess(page.index('id="pt-start"'), page.index(html.escape(w["lead"])), "Start comes before the grown-up project copy")
+            # The toolbar's Review / Feedback tab and the dock below the game already open the one feedback form.
+            self.assertNotIn("pt-feedback-jump", page)
+            self.assertIn('id="pt-review-tab"', page)
+            self.assertIn('id="pt-feedback-home"', page)
+
+    def test_every_flavor_has_a_bilingual_accessibility_statement_with_a_barrier_contact(self):
+        for flavor in ("playtest", "family", "library"):
+            for lang in ("en", "es"):
+                w = builder.WORDS[lang]
+                page = builder.page(lang, "", "access-test", flavor=flavor)
+                ids = {attrs["id"] for _, attrs in Elements(page).elements if "id" in attrs}
+                self.assertIn("pt-access", ids, (flavor, lang))
+                for key in ("access_title", "access_goal", "access_gaps", "access_contact", "access_contact_detail"):
+                    self.assertIn(html.escape(w[key]), page, (flavor, lang, key))
+                self.assertIn(f'href="mailto:{builder.ACCESS_CONTACT}"', page)
 
     def test_score_options_start_off_and_keep_native_checkbox_labels(self):
         for lang in ("en", "es"):
@@ -241,7 +354,7 @@ class PlaytestBuilderTests(unittest.TestCase):
             self.assertIn(f'data-language-url="{destination}"', page)
             self.assertIn('id="pt-start" type="button"', page)
             self.assertIn('href="#pt-h"', page)
-            self.assertIn('<details class="pt-guide">', page)
+            self.assertIn('<details class="pt-guide" id="pt-guide">', page)
             self.assertNotIn('<details class="pt-guide" open', page)
             self.assertIn('content="test-revision"', page)
             self.assertIn('noindex, nofollow', page)
@@ -307,6 +420,28 @@ class PlaytestBuilderTests(unittest.TestCase):
         self.assertTrue(preview.is_file(), "Run npm run images to create the social preview")
         self.assertLess(preview.stat().st_size, 1_000_000)
         self.assertEqual(jpeg_size(preview.read_bytes()), (1200, 627))
+
+    def test_next_player_and_device_panel_live_in_for_grown_ups_not_beside_start(self):
+        for lang in ("en", "es"):
+            page = builder.page(lang, "")
+            parsed = Elements(page)
+            for element_id in ("pt-feedback-new-player-top", "pt-device-open", "pt-shared-top"):
+                self.assertIn("pt-consent-options", parsed.ancestors[element_id], element_id)
+            self.assertNotIn("pt-consent-options", parsed.ancestors["pt-start"])
+            self.assertIn(">" + html.escape(builder.WORDS[lang]["feedback_new_player"]) + "</button>", page)
+            self.assertIn(builder.WORDS[lang]["consent_auto_hint"], page)
+            self.assertIn("pt-feedback", parsed.ancestors["pt-feedback-device"])
+            buttons = {attrs["id"]: attrs.get("class") for tag, attrs in parsed.elements if tag == "button" and "id" in attrs}
+            # Keeping the current player is the safe default; starting the next player is the secondary choice.
+            self.assertEqual(buttons["pt-new-player-cancel"], "pt-btn")
+            self.assertEqual(buttons["pt-new-player-confirm"], "pt-btn pt-btn--secondary")
+            family = builder.page(lang, "", "family-test", flavor="family")
+            self.assertNotIn("pt-device-open", family)
+            self.assertNotIn("pt-feedback-new-player-top", family)
+
+    def test_robots_says_it_has_no_effect_under_the_subpath_and_pages_use_noindex(self):
+        self.assertIn("has no effect under /pecan-grove-playtest/", builder.robots_txt())
+        self.assertIn('<meta name="robots" content="noindex, nofollow">', builder.page("en", ""))
 
     def test_robots_allows_preview_crawlers_and_blocks_search(self):
         text = builder.robots_txt()

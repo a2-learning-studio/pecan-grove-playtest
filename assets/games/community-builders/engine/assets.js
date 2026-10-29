@@ -29,7 +29,7 @@ function trustedURL(window, value, worker) {
   if (!window.trustedTypes) return source;
   let policy = policies.get(window);
   if (!policy) {
-    policy = window.trustedTypes.createPolicy("pg-svg", {
+    policy = window.trustedTypes.createPolicy("pg-game-scripts", {
       createScriptURL: (source) => verify(source, true),
     });
     policies.set(window, policy);

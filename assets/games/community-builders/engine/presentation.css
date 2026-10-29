@@ -257,7 +257,10 @@
     background: Highlight;
     color: HighlightText;
   }
+  /* Without this the forced-colors text backplate (Canvas) hides the
+     HighlightText label of the selected language. */
   .cb-language-group .cb-btn[aria-pressed="true"] {
+    forced-color-adjust: none;
     background: Highlight;
     color: HighlightText;
   }

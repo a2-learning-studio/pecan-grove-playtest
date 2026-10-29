@@ -46,7 +46,7 @@ export function extractStrings(value,key='',out=[]) {
   else if(value&&typeof value==='object') {
     if(Array.isArray(value.$parts)) {out.push({key,text:value.$parts.join(' '),templated:true});return out;}
     for(const [name,child] of Object.entries(value)) {
-      if(name.startsWith('$')||['grownText','guText'].includes(name))continue;
+      if(name.startsWith('$')||['grownText','grownTextLocal','guText'].includes(name))continue;
       extractStrings(child,key?key+'.'+name:name,out);
     }
   }

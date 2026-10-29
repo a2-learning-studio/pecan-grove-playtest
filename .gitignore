@@ -2,6 +2,8 @@ node_modules/
 .build-deps/
 dist/
 dist-family/
+dist-library/
+dist-e2e/
 _publish/
 test-results/
 playwright-report/

@@ -24,6 +24,7 @@ import createLoadingView from "./core/loading-view.js";
 import { clear, setAuthoredMarkup } from "./authored-markup.js";
 import { createLifecycle as ownedLifecycle } from "./lifecycle.js";
 import { trustedScriptURL } from "./assets.js";
+import { storageArea } from "./dom.js";
 export function bootGame(window) {
   if (!window.document.querySelector('[data-game="community-builders"]'))
     return null;
@@ -35,106 +36,33 @@ export function bootGame(window) {
     ownedLifecycle,
     trustedScriptURL,
   };
-  ctx.location =
-    typeof window.location === "function" &&
-    !["Audio", "MutationObserver", "Event", "URL", "URLSearchParams"].includes(
-      "location",
-    )
-      ? window.location.bind(window)
-      : window.location;
-  ctx.localStorage =
-    typeof window.localStorage === "function" &&
-    !["Audio", "MutationObserver", "Event", "URL", "URLSearchParams"].includes(
-      "localStorage",
-    )
-      ? window.localStorage.bind(window)
-      : window.localStorage;
-  ctx.sessionStorage =
-    typeof window.sessionStorage === "function" &&
-    !["Audio", "MutationObserver", "Event", "URL", "URLSearchParams"].includes(
-      "sessionStorage",
-    )
-      ? window.sessionStorage.bind(window)
-      : window.sessionStorage;
-  ctx.MutationObserver =
-    typeof window.MutationObserver === "function" &&
-    !["Audio", "MutationObserver", "Event", "URL", "URLSearchParams"].includes(
-      "MutationObserver",
-    )
-      ? window.MutationObserver.bind(window)
-      : window.MutationObserver;
-  ctx.requestAnimationFrame =
-    typeof window.requestAnimationFrame === "function" &&
-    !["Audio", "MutationObserver", "Event", "URL", "URLSearchParams"].includes(
-      "requestAnimationFrame",
-    )
-      ? window.requestAnimationFrame.bind(window)
-      : window.requestAnimationFrame;
-  ctx.cancelAnimationFrame =
-    typeof window.cancelAnimationFrame === "function" &&
-    !["Audio", "MutationObserver", "Event", "URL", "URLSearchParams"].includes(
-      "cancelAnimationFrame",
-    )
-      ? window.cancelAnimationFrame.bind(window)
-      : window.cancelAnimationFrame;
-  ctx.Audio =
-    typeof window.Audio === "function" &&
-    !["Audio", "MutationObserver", "Event", "URL", "URLSearchParams"].includes(
-      "Audio",
-    )
-      ? window.Audio.bind(window)
-      : window.Audio;
-  ctx.getComputedStyle =
-    typeof window.getComputedStyle === "function" &&
-    !["Audio", "MutationObserver", "Event", "URL", "URLSearchParams"].includes(
-      "getComputedStyle",
-    )
-      ? window.getComputedStyle.bind(window)
-      : window.getComputedStyle;
-  // Preserve constructor constants such as SHOW_TEXT; binding discards them.
-  ctx.NodeFilter = window.NodeFilter;
-  ctx.performance =
-    typeof window.performance === "function" &&
-    !["Audio", "MutationObserver", "Event", "URL", "URLSearchParams"].includes(
-      "performance",
-    )
-      ? window.performance.bind(window)
-      : window.performance;
-  ctx.URLSearchParams =
-    typeof window.URLSearchParams === "function" &&
-    !["Audio", "MutationObserver", "Event", "URL", "URLSearchParams"].includes(
-      "URLSearchParams",
-    )
-      ? window.URLSearchParams.bind(window)
-      : window.URLSearchParams;
-  ctx.URL =
-    typeof window.URL === "function" &&
-    !["Audio", "MutationObserver", "Event", "URL", "URLSearchParams"].includes(
-      "URL",
-    )
-      ? window.URL.bind(window)
-      : window.URL;
-  ctx.Event =
-    typeof window.Event === "function" &&
-    !["Audio", "MutationObserver", "Event", "URL", "URLSearchParams"].includes(
-      "Event",
-    )
-      ? window.Event.bind(window)
-      : window.Event;
-  ctx.setTimeout =
-    typeof window.setTimeout === "function" &&
-    !["Audio", "MutationObserver", "Event", "URL", "URLSearchParams"].includes(
-      "setTimeout",
-    )
-      ? window.setTimeout.bind(window)
-      : window.setTimeout;
-  ctx.clearTimeout =
-    typeof window.clearTimeout === "function" &&
-    !["Audio", "MutationObserver", "Event", "URL", "URLSearchParams"].includes(
-      "clearTimeout",
-    )
-      ? window.clearTimeout.bind(window)
-      : window.clearTimeout;
+  // Blocked site data gets a stand-in store, so play continues in memory (see dom.js).
+  ctx.localStorage = storageArea("localStorage", window);
+  ctx.sessionStorage = storageArea("sessionStorage", window);
+  // Window functions are bound to the window. Constructors and NodeFilter stay
+  // as they are: binding would discard static members such as SHOW_TEXT.
+  for (const name of [
+    "location",
+    "requestAnimationFrame",
+    "cancelAnimationFrame",
+    "getComputedStyle",
+    "performance",
+    "setTimeout",
+    "clearTimeout",
+  ])
+    ctx[name] =
+      typeof window[name] === "function"
+        ? window[name].bind(window)
+        : window[name];
+  for (const name of [
+    "MutationObserver",
+    "Audio",
+    "NodeFilter",
+    "URLSearchParams",
+    "URL",
+    "Event",
+  ])
+    ctx[name] = window[name];
   ctx.publish = (values) => Object.assign(ctx, values);
   ctx.bind = (fields) => {
     for (const [name, [get, set]] of Object.entries(fields))

@@ -43,6 +43,7 @@ export default function createLegacyInput(ctx) {
     )
       return;
     if (ctx.root.querySelector("dialog[open]")) return; // a window is open: Esc closes it, nothing else
+    if (ctx.CFG.letterKeys === false && k && k.length === 1) return; // one-key shortcuts are off (WCAG 2.1.4)
     if (k === "Escape") {
       if (t && t.classList && t.classList.contains("cb-stop")) return;
       act = function () {

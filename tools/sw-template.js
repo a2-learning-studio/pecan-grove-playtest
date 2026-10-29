@@ -2,6 +2,8 @@
 const BUILD = '__BUILD__';
 const CACHE = 'pecan-grove-' + BUILD;
 const PRECACHE = __PRECACHE__;
+// This build's content-addressed voice clips. A re-recorded line has a new name, so an older copy is never served.
+const VOICE = new Set(__VOICE__);
 // Android Chrome's media player sends Range and rejects a 200 body for that
 // request. A cached whole clip has to be sliced into a real 206 response.
 function rangeHeader(request) {
@@ -48,8 +50,33 @@ function bufferedMedia(response) {
   });
 }
 self.addEventListener('install', event => event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(PRECACHE))));
+// Downloaded voice packs survive updates (a grown-up chose them), minus clips this build no longer uses.
+// Builds before content-addressed clips cached them as name.mp3. Such a clip moves to this build's
+// name.<hash>.mp3 when its bytes hash to that name, so a pack downloaded earlier still plays offline;
+// a re-recorded line no longer matches and is dropped. Nothing is downloaded here.
+async function contentName(path, response) {
+  const digest = new Uint8Array(await crypto.subtle.digest('SHA-256', await response.clone().arrayBuffer()));
+  return path.replace(/\.mp3$/, '.' + Array.from(digest.slice(0, 6), byte => byte.toString(16).padStart(2, '0')).join('') + '.mp3');
+}
+async function pruneVoice(key) {
+  const cache = await caches.open(key), scope = new URL(self.registration.scope).pathname;
+  for (const request of await cache.keys()) {
+    const path = new URL(request.url).pathname;
+    if (path.startsWith(scope) && VOICE.has(path.slice(scope.length))) continue;
+    if (path.startsWith(scope) && /\/voice\/(?:en|es)\/[^/]+\.mp3$/.test(path) && !/\.[0-9a-f]{12}\.mp3$/.test(path)) {
+      try {
+        const old = await cache.match(request), renamed = old && old.status === 200 ? await contentName(path.slice(scope.length), old) : '';
+        if (VOICE.has(renamed)) await cache.put(new URL(renamed, self.registration.scope).href, old);
+      } catch (_) { /* That clip downloads again when it next plays online. */ }
+    }
+    await cache.delete(request);
+  }
+}
 self.addEventListener('activate', event => event.waitUntil((async () => {
-  for (const key of await caches.keys()) if (key.startsWith('pecan-grove-') && key !== CACHE && !key.startsWith('pecan-grove-voice-')) await caches.delete(key);
+  for (const key of await caches.keys()) {
+    if (key.startsWith('pecan-grove-voice-')) await pruneVoice(key);
+    else if (key.startsWith('pecan-grove-') && key !== CACHE) await caches.delete(key);
+  }
   await self.clients.claim();
 })()));
 self.addEventListener('message', event => {

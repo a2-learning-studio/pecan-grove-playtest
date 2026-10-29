@@ -100,6 +100,17 @@ test('valid bilingual feedback, progress and ended sessions normalize without pe
   assert.equal(entry.name, undefined);
 });
 
+test('collector scrub keeps stop numbers and everyday words but still removes addresses and phone numbers', () => {
+  const {context} = harness();
+  const scrub = (text, language = 'en') => context.feedbackScrubPII_(text, language);
+  assert.equal(scrub('Stop 2 was a good way to learn'), 'Stop 2 was a good way to learn');
+  assert.equal(scrub('stop 10 11 12 13 were hard'), 'stop 10 11 12 13 were hard');
+  assert.equal(scrub('La parada 3 fue la mejor', 'es'), 'La parada 3 fue la mejor');
+  assert.equal(scrub('I live at 12 Oak Street'), 'I live at [removed]');
+  assert.equal(scrub('call 404 555 0199 later'), 'call [removed] later');
+  assert.equal(scrub('vivo en 45 calle Luna', 'es'), 'vivo en [quitado]');
+});
+
 test('required identity, revision, language, time, build and range limits reject malformed entries', () => {
   const h = harness();
   const bad = [

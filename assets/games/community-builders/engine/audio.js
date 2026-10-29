@@ -29,6 +29,7 @@ export class AudioMixer {
     this.muted = false;
     this.voicing = false;
     this.elements = new Map();
+    this.listeners = new Map();
     this.lastSfx = 0;
     this.primed = false;
   }
@@ -109,14 +110,38 @@ export class AudioMixer {
   }
   attachVoice(element) {
     if (!element || this.elements.has(element)) return;
+    // One voice line plays at a time. Release the earlier clips so a long
+    // session does not keep every heard line, its listeners and node alive.
+    for (const old of [...this.elements.keys()]) this.detachVoice(old);
     this.elements.set(element, null);
     const on = () => this.voice(true),
       off = () => this.voice(false);
-    element.addEventListener("playing", on);
-    element.addEventListener("pause", off);
-    element.addEventListener("ended", off);
+    this.listeners.set(element, [
+      ["playing", on],
+      ["pause", off],
+      ["ended", off],
+    ]);
+    for (const [type, listener] of this.listeners.get(element))
+      element.addEventListener(type, listener);
     this.route(element);
     this.apply();
+  }
+  detachVoice(element) {
+    const source = this.elements.get(element);
+    this.elements.delete(element);
+    for (const [type, listener] of this.listeners.get(element) || [])
+      element.removeEventListener?.(type, listener);
+    this.listeners.delete(element);
+    try {
+      source?.disconnect();
+    } catch {
+      /* An unrouted or already disconnected clip has no node to release. */
+    }
+    // Android plays clips from blob URLs; an interrupted clip never revoked its own.
+    if (element._blobUrl && this.win?.URL?.revokeObjectURL) {
+      this.win.URL.revokeObjectURL(element._blobUrl);
+      element._blobUrl = "";
+    }
   }
   route(element) {
     if (!this.elements.has(element) || this.elements.get(element)) return;

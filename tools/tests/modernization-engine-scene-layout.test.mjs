@@ -150,6 +150,19 @@ test("native fullscreen frames the owned child scrollport and honors current mot
   }
 });
 
+test("native fullscreen also returns a scrolled game root to the new scene's header", () => {
+  const r = fixture(false);
+  try {
+    r.fullscreen();
+    r.root.scrollTo = (options) => r.calls.push(["root", options]);
+    r.root.scrollTop = 225;
+    r.layout.frame(true, false);
+    assert.deepEqual(r.calls, [["root", { top: 0, behavior: "auto" }]]);
+  } finally {
+    r.close();
+  }
+});
+
 test("a map refresh preserves feedback-field focus that was already outside the game", () => {
   const r = fixture();
   try {

@@ -24,6 +24,11 @@ export function typingContext(target) {
     'input, textarea, select, [contenteditable]:not([contenteditable="false"]), [data-pg-native]',
   );
 }
+export function characterKey(event) {
+  return (
+    typeof event.key === "string" && event.key.length === 1 && event.key !== " "
+  );
+}
 export function nativeArrows(target) {
   return (
     !target ||
@@ -230,6 +235,9 @@ export class Input {
     if (guarded(event, this.root, this.scope(), this.paused())) return;
     const action = this.bindings.action(event);
     if (!action) return;
+    // WCAG 2.1.4: players can turn off shortcuts on one letter, number or
+    // symbol key. Arrows, Enter, Escape and F1 keep working.
+    if (characterKey(event) && this.settings().letterKeys === false) return;
     if (action.startsWith("nav.") && this.settings().wasdNav === false) return;
     if (action === "confirm" && this.settings().holdConfirm) {
       event.preventDefault();

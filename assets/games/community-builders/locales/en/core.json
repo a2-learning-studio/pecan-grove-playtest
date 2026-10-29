@@ -9,6 +9,9 @@
     "close": "Close",
     "townmap": "Town map",
     "grownText": "Your game is saved on this device. Notes are sent only after you choose Send. Score sharing starts off. A grown-up can turn it on.",
+    "grownTextLocal": "Your game is saved on this device. This version never sends anything.",
+    "educator": "Educator sheet: goals, grouping and fact sources",
+    "educatorHref": "educator.html",
     "stop": "Stop",
     "next": "Next",
     "soon": "Coming soon",
@@ -56,8 +59,8 @@
     "noImproved": "Play a stop again to earn Most improved!",
     "everyone": "Everyone gets better by playing again.",
     "clear": "Clear scoreboard",
-    "tapTurtle": "To erase, tap the Turtle.",
-    "sure": "Are you sure? This erases all scores on this device.",
+    "tapTurtle": "To erase, choose the Turtle.",
+    "sure": "Are you sure? This erases all scores on this scoreboard.",
     "yesErase": "Yes, erase",
     "noKeep": "No, keep them",
     "erased": "Scores erased.",
@@ -131,7 +134,7 @@
       "Find solutions",
       "Stay involved"
     ],
-    "footer": "Made with the help of AI tools. Voices made with ElevenLabs AI. Ideas from construction research at Kennesaw State University. v0.1",
+    "footer": "Made with the help of AI tools. Voices made with ElevenLabs AI. Ideas from construction research at Kennesaw State University. v0.2.0",
     "part": {
       "$args": [
         "n"
@@ -149,9 +152,13 @@
     "mapOrderHelp": "Finish a stop to open the next one.",
     "installGame": "Install the game",
     "consentHeading": "Playtest sharing",
-    "consentScores": "Share scores with the playtest team",
-    "consentDetails": "Sends the stop number, score, language and a random code. Never names. You can turn this off at any time.",
-    "consentAutoScores": "Also send scores when a stop is finished"
+    "consentScores": "Include scores in notes a grown-up sends",
+    "consentDetails": "Adds the stop number and score. Never names. A grown-up confirms before this turns on, and you can turn it off at any time.",
+    "consentAutoScores": "Also send each score as soon as a stop is finished",
+    "consentAutoDetails": "Sends right away, without a grown-up review. Never notes or names.",
+    "devicePanel": "Privacy and notes on this device",
+    "nextPlayer": "Next player on this computer",
+    "facilitatorCloseout": "Facilitator close-out"
   },
   "X": {
     "parts3": [
@@ -259,7 +266,7 @@
     "libraryNote": "Quiet mode turns off narration and speaker buttons. All instructions stay on screen. This device remembers the sound setting.",
     "libraryActive": "Quiet mode is on. You can keep playing without sound.",
     "libraryGroups": "Players, teams and scores",
-    "libraryGroupsNote": "Animal profiles and team scores belong to this player session. Use New player for a different person's private feedback.",
+    "libraryGroupsNote": "Animal profiles and team scores belong to this player session. Use Next player on this computer for a different person's private feedback.",
     "librarySettings": "Sound and caption settings",
     "libraryReady": "Keep playing quietly"
   },

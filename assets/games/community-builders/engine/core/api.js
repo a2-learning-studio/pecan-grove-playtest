@@ -200,6 +200,7 @@ export default function createApi(ctx) {
         store: ctx.store,
         session: ctx.feedbackSession,
         storageKey: ctx.KEY,
+        saveLocked: ctx.saveLocked,
         resumePending: !!ctx.resumeRecord,
         paused: ctx.gamePaused,
         restoring: !!ctx.restoring,
@@ -271,7 +272,7 @@ export default function createApi(ctx) {
       ctx.acted = true;
       ctx.root.removeAttribute("data-playtest-paused");
       ctx.suspendVoice(false);
-      if (options && options.quiet) ctx.setVoice(false, false);
+      if (options && options.quiet) ctx.quietMode(false);
       if (!ctx.booted) ctx.boot();
       else ctx.showTitle();
       ctx.vLoad();

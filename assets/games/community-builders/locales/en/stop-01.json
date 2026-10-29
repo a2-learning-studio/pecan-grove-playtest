@@ -4,7 +4,8 @@
     "start": "Start looking",
     "story": "The Miller family wants to sell their old farm by the creek. A company wants to build a data center there.",
     "todayMore": "Some are signs of the project. Some are just everyday changes.",
-    "aboutH": "About this module",
+    "whatH": "What is a data center?",
+    "what": "A data center is a big building full of computers. They hold the videos, games and messages we use online. They use lots of power and get hot, so they need to be cooled.",
     "about": "Notice the Signs is stop 1 of Community Builders of Pecan Grove, a free bilingual game for ages 8-14. Players compare a road last month and today and find small signs that a big project may be coming. They learn that not every change is about the project.",
     "past": "Last month",
     "today": "Today",
@@ -64,7 +65,7 @@
     "tip100": "Sharp eyes! Try a new round.",
     "real": "With a grown-up, look for one sign of change on your street or in the local news this week. Talk about what it might mean.",
     "ask": "Ask a grown-up",
-    "guText": "Kids practice noticing change without jumping to conclusions. In Georgia, a rezoning usually comes with a public notice in the newspaper, and often a sign on the land, before the public hearing. Ask together: what is changing, and where can we read more?"
+    "guText": "Kids practice noticing change without jumping to conclusions. In Georgia, the law requires a public notice in the newspaper before a rezoning hearing. When a landowner or company asks for the rezoning, a sign on the land is required too. Ask together: what is changing, and where can we read more?"
   },
   "bank": {
     "b0001": "a new sign on a post",
