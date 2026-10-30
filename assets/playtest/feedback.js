@@ -1297,9 +1297,8 @@
       if (!closeoutDialog) {
         closeoutDialog = node("dialog", "pt-player-dialog pt-device", "", "pt-closeout-dialog"); closeoutDialog.setAttribute("aria-labelledby", "pt-closeout-title");
         closeoutDialog.addEventListener("cancel", function (event) { event.preventDefault(); closeCloseout(); });
-        // Reading counts as use too: moving focus or scrolling through the list (a screen reader in browse mode).
-        ["keydown", "pointerdown", "input", "focusin", "wheel"].forEach(function (type) { closeoutDialog.addEventListener(type, armIdle); });
-        closeoutDialog.addEventListener("scroll", armIdle, true);
+        // The privacy close stays as it was: only typing, a tap or a change restarts the 10 minutes.
+        ["keydown", "pointerdown", "input"].forEach(function (type) { closeoutDialog.addEventListener(type, armIdle); });
         closeoutTitle = node("h2", "", "", "pt-closeout-title"); closeoutTitle.tabIndex = -1;
         closeoutIntro = node("p"); closeoutBody = node("div", "pt-closeout__body", "", "pt-closeout-body"); closeoutStatus = politeStatus("pt-closeout-status");
         var actions = node("div", "pt-actions"); closeoutClose = action(W.close, "pt-btn", "pt-closeout-close", closeCloseout); actions.appendChild(closeoutClose);

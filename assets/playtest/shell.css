@@ -94,6 +94,10 @@ body.pt-playing { overflow: hidden; }
   .pt-toolbar .pt-tool { flex: 0 0 auto; min-height: 44px; padding: .5rem .85rem; font-size: .85rem; white-space: nowrap; }
   .pt-toolbar .pg-offline-chip { flex: 0 0 auto; }
   .pt-toolbar .pg-offline-chip.is-note { width: 15rem; }
+  /* More tools wait to the right: the row fades into the bar's own pine at its right edge (a cut-off pill under a fade
+     reads as "scroll for more"), and a tool reached with Tab scrolls fully clear of the fade. */
+  .pt-toolbar { scroll-padding-inline: 1rem 3rem; }
+  .pt-toolbar::after { content: ""; position: sticky; right: 0; flex: 0 0 2.5rem; align-self: stretch; background: linear-gradient(90deg, transparent, var(--pg-ink) 75%); pointer-events: none; }
 }
 @media (max-width: 560px) { .pt-feedback-dock-header { padding: .75rem; } .pt-feedback-dock-header > strong { flex-basis: 100%; } .pt-feedback-dock-header .pt-tool { flex: 1 1 110px; min-width: 0; padding: .6rem .7rem; font-size: .85rem; } }
 @media (max-width: 760px) {

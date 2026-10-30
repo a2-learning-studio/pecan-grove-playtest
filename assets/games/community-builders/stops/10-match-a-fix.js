@@ -180,7 +180,8 @@
     function triedFor(p, f) { return !!(p && state[p] && state[p].misses.indexOf(f) >= 0); }
 
     /* ── cards ── */
-    function probLabel(c) { var d = DD[c] || OD[c]; return S.probL + t2(d.p) + " " + api.nmCap(nbOf(c)); }
+    /* the card shows the neighbor's name first, then the problem: the name follows that order (WCAG 2.5.3) */
+    function probLabel(c) { var d = DD[c] || OD[c]; return api.nmCap(nbOf(c)) + ". " + S.probL + t2(d.p); }
     function fixLabel(c) { return S.fixL + t2(DD[c].f) + ". " + t2(DD[c].pl); }
     function edgePin(kind, c, n) { var a = { "class": "cb-s10-edge", "aria-hidden": "true", text: String(n) }; a["data-pin-" + kind] = c; return h("span", a); }
     function face(nb) { return h("span", { "class": "cb-s10-face", "aria-hidden": "true" }, [api.img(nb.img, "", null, true)]); }

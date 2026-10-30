@@ -429,6 +429,20 @@ class PlaytestBuilderTests(unittest.TestCase):
         self.assertLess(preview.stat().st_size, 1_000_000)
         self.assertEqual(jpeg_size(preview.read_bytes()), (1200, 627))
 
+    def test_the_locked_also_send_box_says_why_on_the_intro(self):
+        # Review of the 2026-10-30 round: only the in-game For grown-ups dialog said why "Also send each score" is locked.
+        for lang in ("en", "es"):
+            page = builder.page(lang, "")
+            parsed = Elements(page)
+            why = next(attrs for tag, attrs in parsed.elements if attrs.get("id") == "pt-consent-why")
+            self.assertIn("data-pg-consent-why", why)
+            self.assertIn("pt-consent-options", parsed.ancestors["pt-consent-why"])
+            auto = next(attrs for tag, attrs in parsed.elements if tag == "input" and attrs.get("data-pg-consent") == "autoScores")
+            self.assertEqual(auto.get("aria-describedby"), "pt-consent-why")
+            self.assertIn(html.escape(builder.WORDS[lang]["consent_auto_needs_scores"]), page)
+            library = builder.local_page(page, lang, "library")
+            self.assertNotIn("pt-consent-why", library)
+
     def test_next_player_and_device_panel_live_in_for_grown_ups_not_beside_start(self):
         for lang in ("en", "es"):
             page = builder.page(lang, "")

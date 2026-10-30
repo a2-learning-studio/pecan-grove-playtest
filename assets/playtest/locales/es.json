@@ -104,6 +104,7 @@
   "consent_hint": "Agrega el número de parada y el puntaje. Nunca nombres. Un adulto confirma antes de activarlo, y puedes desactivarlo cuando quieras.",
   "consent_auto": "También enviar cada puntaje al terminar una parada",
   "consent_auto_hint": "Se envía enseguida, sin revisión de un adulto. Nunca notas ni nombres.",
+  "consent_auto_needs_scores": "Para usar esta casilla, marca primero la de arriba.",
   "game_tools": "Herramientas del juego",
   "game_label": "Juego",
   "play_area": "Área de juego",

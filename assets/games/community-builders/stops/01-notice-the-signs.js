@@ -253,9 +253,11 @@
       return tapped[s.item.id] ? "not" : "idle";
     }
     function paint(s, fresh) {
-      /* the name starts with the visible tag, so "click Soil drill" works for voice control (WCAG 2.5.3) */
-      var st = stateOf(s), b = s.btn, name = cap(t2(s.item.name)), tag = t2(s.item.tag);
+      /* the name starts with the visible tag, so "click Soil drill" works for voice control (WCAG 2.5.3), and it carries
+         the words painted on a sign, which a screen reader would otherwise never hear */
+      var st = stateOf(s), b = s.btn, name = cap(t2(s.item.name)), tag = t2(s.item.tag), painted = s.item.board ? t2(s.item.board.text) : "";
       if (tag && name.toLocaleLowerCase().indexOf(tag.toLocaleLowerCase()) !== 0) name = tag + ": " + name;
+      if (painted && name.toLocaleLowerCase().indexOf(painted.toLocaleLowerCase()) < 0) name += ". " + painted;
       b.className = "cb-s01-spot is-" + st + (s.item.board ? " cb-s01-spot--board" : "") + (fresh ? " is-fresh" : "");
       [].slice.call(b.querySelectorAll(".cb-s01-tag, .cb-badge")).forEach(function (e) { e.remove(); });
       if (st === "found") s.stk.appendChild(h("span", { "class": "cb-badge", "aria-hidden": "true" }, [api.ico("check")]));

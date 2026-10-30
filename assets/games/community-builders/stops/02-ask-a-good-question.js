@@ -352,10 +352,12 @@
         return q;
       }
       function pick(row, id) {
+        var ready = sel.start && sel.topic;
         sel[row] = sel[row] === id ? null : id;                           // one tile per row; tap again to unpick
         rows.forEach(function (r) { if (r.getAttribute("data-row") === row) r.classList.remove("is-needed"); });
         var q = refresh();
         if (q) api.say(q);                                                // the live area reads the question as it changes
+        if (!ready && sel.start && sel.topic) showAsk(strip, tray.querySelector('.cb-s02-tile[data-row="' + row + '"][data-id="' + id + '"]'), bubble);
       }
       function ask(renderOnly) {
         if (!sel.start || !sel.topic) {                                   // "Ask it" works once Start and Topic are picked
@@ -422,10 +424,12 @@
         if (!floating) return;
         floating.hidden = !compact;
         floating.style.right = Math.max(12, window.innerWidth - r.right + 12) + "px";
+        var sr = strip.getBoundingClientRect(), corner = window.innerHeight - 12;
+        floating.style.setProperty("--s02-lift", (sr.top < corner && sr.bottom > corner - 56 ? Math.min(window.innerHeight - sr.top, sr.height + 12) : 0) + "px");
         if (compact) {
           var button = floating.getBoundingClientRect();
-          // Keep the duplicate shortcut out of the art. The inline Ask button remains available.
-          var collision = [].some.call(play.querySelectorAll(".cb-s02-art,.cb-s02-say"), function (art) { return overlaps(button, art.getBoundingClientRect()); });
+          // Keep the duplicate shortcut out of the art, the worry and the instruction. The inline Ask button remains available.
+          var collision = [].some.call(play.querySelectorAll(".cb-s02-art,.cb-s02-say,.cb-coach"), function (art) { return overlaps(button, art.getBoundingClientRect()); });
           floating.hidden = collision;
         }
       }
@@ -447,7 +451,8 @@
       if (Math.abs(d) > 4) v.el.scrollBy({ top: d, behavior: reduced() ? "auto" : "smooth" });
     }
     /* a new worry: the stage top comes into view (header, the worry and the first rows), and on a narrow stage the page
-       scrolls just far enough that the worry bubble clears the sticky question strip */
+       scrolls just far enough that the worry bubble clears the sticky question strip. On a phone, where the bubble does not
+       stick, the worry the player must turn into a question comes into view whole, even if the header scrolls away. */
     function frameWorry(sceneEl, bubble, strip) {
       var root = bubble.closest(".cb"); if (!root) return api.frame();
       var v = view(root), top = v.fs ? 0 : root.getBoundingClientRect().top - v.top + v.y, to = top;
@@ -455,9 +460,24 @@
         var porch = sceneEl.querySelector(".cb-s02-porch"), bt = porch.getBoundingClientRect().bottom - v.top + v.y + 12, bb = bt + bubble.offsetHeight,
           room = v.h - strip.getBoundingClientRect().height - 24;
         to = Math.min(Math.max(top, bb - room), bt - 12);
+      } else {
+        var wt = bubble.getBoundingClientRect().top - rising(bubble) - v.top + v.y;
+        if (wt + bubble.offsetHeight + 12 > top + v.h) to = Math.max(top, wt - covered(v) - 12);
       }
       if (Math.abs(to - v.y) > 4) v.el.scrollTo({ top: to, behavior: reduced() ? "auto" : "smooth" });
     }
+    /* the question just became askable: "Ask it" comes into view, without pushing the tile just picked off the top */
+    function showAsk(strip, tile, bubble) {
+      var root = strip.closest(".cb"); if (!root || getComputedStyle(strip).position === "sticky") return;
+      var v = view(root), d = strip.getBoundingClientRect().bottom - v.top - v.h + 16,
+        keep = tile ? tile.getBoundingClientRect().top - v.top - covered(v) - (stuck(bubble) ? bubble.offsetHeight + 26 : 16) : d;
+      d = Math.min(d, keep);
+      if (d > 4) v.el.scrollBy({ top: d, behavior: reduced() ? "auto" : "smooth" });
+    }
+    /* the bubble rises into place as it appears: where it will rest is where it is now, less that rise */
+    function rising(el) { var n = (String(getComputedStyle(el).transform || "").match(/-?[\d.]+(?:e-?\d+)?/g) || []).map(Number); return n.length === 6 ? n[5] : n.length === 16 ? n[13] : 0; }
+    /* how much of the scroller's top the page's sticky tools cover (the page scrolls only outside the play view) */
+    function covered(v) { return v.el === window ? parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop) || 0 : 0; }
     /* whatever scrolls the game: the play view's scrollport, the stage in full screen, or the page */
     function view(root) {
       var port = api.scrollport ? api.scrollport() : root && root.classList.contains("is-fs") ? root : null;

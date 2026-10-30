@@ -88,7 +88,7 @@
 
 /* ── title hero ── */
 .cb-hero { position: relative; display: grid; color: var(--cb-on-stage); }
-.cb-hero__art { display: block; width: 100%; aspect-ratio: 1376 / 768; object-fit: cover; }
+.cb-hero__art { display: block; width: 100%; max-height: var(--cb-hero-band, none); aspect-ratio: 1376 / 768; object-fit: cover; }
 .cb-hero__scrim { display: none; }
 .cb-hero__copy { position: relative; display: grid; gap: 18px; justify-items: start; padding: 24px 20px 28px; }
 .cb-hero__lead { margin: 0; max-width: 32rem; font-family: var(--a2-font-display); font-size: clamp(1.25rem, 0.95rem + 1.1cqi, 1.625rem); font-weight: 600; line-height: 1.32; letter-spacing: -0.016em; text-wrap: pretty; }
@@ -99,7 +99,7 @@
 .cb-hero__chapters i, .cb-bar__key i, .cb-chap__h i { width: 12px; height: 12px; flex: none; border-radius: 50%; background: var(--cb-chap); }
 @container cb (min-width: 760px) {
   .cb-hero { min-height: calc(100cqi * 768 / 1376); align-content: center; }
-  .cb-hero__art { position: absolute; inset: 0; height: 100%; aspect-ratio: auto; object-position: 72% 50%; }
+  .cb-hero__art { position: absolute; inset: 0; height: 100%; max-height: none; aspect-ratio: auto; object-position: 72% 50%; }
   .cb-hero__scrim { display: block; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(22, 58, 48, 0.96) 0%, rgba(22, 58, 48, 0.92) 40%, rgba(22, 58, 48, 0.5) 56%, rgba(22, 58, 48, 0) 70%); }
   .cb-hero__copy { max-width: 37rem; padding: 40px 44px; }
 }
@@ -107,8 +107,9 @@
 /* On a phone the bar above already shows the crest: the hero's copy goes straight to the title and New game */
 @container cb (max-width: 759.98px) { .cb-hero__crest { display: none; } .cb-hero__copy { padding-top: 18px; } }
 /* A short window (a phone on its side, a zoomed laptop): no repeated crest, tighter spacing, and the hero no longer keeps
-   the picture's height, so New game is on the first screen */
-@media (max-height: 560px) { .cb-hero { min-height: 0; } .cb-hero__crest { display: none; } .cb-hero__copy { gap: 12px; padding-block: 16px 20px; } }
+   the picture's height, so New game is on the first screen. Where the picture sits above the words (a narrow stage), it
+   becomes a band of the town. */
+@media (max-height: 560px) { .cb-hero { --cb-hero-band: 20vh; min-height: 0; } .cb-hero__crest { display: none; } .cb-hero__copy { gap: 12px; padding-block: 16px 20px; } }
 
 /* ── hub: the painted town ── */
 .cb-world { position: relative; background: var(--cb-stage-2); }

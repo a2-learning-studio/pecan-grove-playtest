@@ -347,7 +347,8 @@ def page(lang, form, revision="preview", build_date=None, feedback_endpoint="", 
     <p class="pt-goal" id="pt-intro-note">{e(w['intro_note'])}</p>
     <fieldset class="pt-consent" id="pt-consent-options"><legend>{e(w['grownups_tab'])}</legend>
       <label class="pt-quiet-choice" id="pt-consent-scores"><input type="checkbox" data-pg-consent="scores"><span><b>{e(w['consent_scores'])}</b><small>{e(w['consent_hint'])}</small></span></label>
-      <label class="pt-quiet-choice" id="pt-consent-auto"><input type="checkbox" data-pg-consent="autoScores"><span>{e(w['consent_auto'])}<small>{e(w['consent_auto_hint'])}</small></span></label>
+      <label class="pt-quiet-choice" id="pt-consent-auto"><input type="checkbox" data-pg-consent="autoScores" aria-describedby="pt-consent-why"><span>{e(w['consent_auto'])}<small>{e(w['consent_auto_hint'])}</small></span></label>
+      <p class="pt-privacy" id="pt-consent-why" data-pg-consent-why>{e(w['consent_auto_needs_scores'])}</p>
       <div class="pt-actions"><button class="pt-btn pt-btn--secondary" id="pt-feedback-new-player-top" type="button" aria-haspopup="dialog" aria-describedby="pt-shared-top">{e(w["feedback_new_player"])}</button><button class="pt-btn pt-btn--secondary" id="pt-device-open" type="button" aria-haspopup="dialog">{e(w["device_open"])}</button>{closeout_open}</div>
       <p class="pt-privacy" id="pt-shared-top">{e(w["feedback_shared"])}</p>
     </fieldset>
@@ -427,7 +428,7 @@ PLAYTEST_ONLY = {"pt-version-tag", "pt-intro-note", "pt-guide"}
 LOCAL_REMOVALS = {
     "family": PLAYTEST_ONLY | {"pt-feedback-home", "pt-review-dialog", "pt-new-player-dialog", "pt-review-tab", "pt-feedback-new-player-top", "pt-consent-options", "pt-intro-review-hint"},
     # The library copy keeps Next player and the device panel for shared computers, but never shares scores.
-    "library": PLAYTEST_ONLY | {"pt-consent-scores", "pt-consent-auto"},
+    "library": PLAYTEST_ONLY | {"pt-consent-scores", "pt-consent-auto", "pt-consent-why"},
 }
 
 

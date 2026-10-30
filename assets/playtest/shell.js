@@ -6,6 +6,9 @@
     if (!stage) return null;
     var el = function (id) { return document.getElementById('pt-' + id); };
     var intro = el('intro'), game = document.getElementById('community-builders');
+    // Phones: the tools are one row that scrolls sideways. A tool reached with Tab comes fully into view, clear of the fade.
+    var toolRow = stage.querySelector ? stage.querySelector('.pt-toolbar') : null;
+    if (toolRow) toolRow.addEventListener('focusin', function (event) { if (toolRow.scrollWidth > toolRow.clientWidth && event.target.scrollIntoView) event.target.scrollIntoView({ block: 'nearest', inline: 'nearest' }); });
     var startVersion = 0, artWarmed = false, nativeWanted = false, nativeRequest = null;
     function warmArt() {
       if (artWarmed || !window.PG_ASSET_MAP) return;
