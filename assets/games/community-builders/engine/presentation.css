@@ -68,9 +68,6 @@
 .cb-hero__build {
   font-size: var(--pg-type-small);
 }
-.cb-hero__copy > .cb-row {
-  order: 0;
-}
 .cb[data-motion="full"]:not(.is-paused) .cb-hero__art {
   animation: cb-title-drift 20s ease-in-out infinite alternate;
 }
