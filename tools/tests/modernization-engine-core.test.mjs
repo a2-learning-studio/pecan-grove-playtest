@@ -198,6 +198,8 @@ test('native lazy-stop failure renders a usable retry and the next attempt loads
     r.core.enterPlay({quiet:true});assert.equal(await r.core.startStop('fact-or-rumor'),false);await r.tick();
     assert.deepEqual(unavailable,['fact-or-rumor'],'the offline layer is asked to look for a newer release');
     assert.match(r.main().textContent,/could not load/);assert.equal(r.main().querySelector('.cb-btn--go').textContent,'Try again');
+    // PG-UX-C13: the failure takes focus on Try again, so keyboard and screen-reader players are not left on the page.
+    assert.equal(r.w.document.activeElement,r.main().querySelector('.cb-btn--go'));
     r.main().querySelector('.cb-btn--go').click();await r.tick();await r.tick();
     assert.ok(r.main().querySelector('.cb-intro'));assert.equal(r.core.getState().stopId,'fact-or-rumor');assert.equal(r.requests.filter(name=>name==='04-fact-or-rumor.js').length,2);assert.equal(r.errors.length,0,String(r.errors));
   }finally{r.close();}

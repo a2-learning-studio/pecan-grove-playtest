@@ -103,11 +103,17 @@ export async function mount(
     card.refresh = () => {
       label.textContent = words(next.text);
     };
-    // Below the play view's toolbar, so the celebration covers none of it.
+    // Below the play view's toolbar and the game's own top bar or HUD when
+    // they are on screen, so the celebration covers none of their controls.
     const toolbar = root
       .closest("[data-playtest-stage]")
       ?.querySelector(".pt-toolbar");
-    const bottom = toolbar?.getBoundingClientRect().bottom || 0;
+    let bottom = toolbar?.getBoundingClientRect().bottom || 0;
+    const bar = root.querySelector(
+      ".cb-stophud, .cb-map-controls, .cb-bar:not([hidden])",
+    );
+    const below = bar?.getBoundingClientRect().bottom || 0;
+    if (below > bottom && below < globalThis.innerHeight / 2) bottom = below;
     toastHost.style.top = Math.max(16, bottom + 12) + "px";
     toastHost.append(card);
     if (next.badgeId) {

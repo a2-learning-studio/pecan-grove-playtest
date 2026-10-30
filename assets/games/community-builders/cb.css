@@ -169,7 +169,8 @@
 .cb-stop[data-state="next"] .cb-stop__disc::before { content: ""; position: absolute; inset: -10px; border-radius: 50%; border: 3px solid var(--cb-clay); opacity: 0; animation: cb-ping 2.4s var(--cb-ease) infinite; }
 @keyframes cb-ping { 0% { opacity: 0.9; transform: scale(0.92); } 100% { opacity: 0; transform: scale(1.42); } }
 .cb-stop[data-state="done"] .cb-stop__disc { background: var(--cb-chap); border-color: var(--cb-card); }
-.cb-stop__done { position: absolute; right: -9px; bottom: -9px; display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--cb-stage-2); color: var(--cb-on-accent); box-shadow: 0 0 0 2px var(--cb-card); }
+/* top right: the finished stop's mini star row sits under the disc */
+.cb-stop__done { position: absolute; right: -8px; top: -8px; display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--cb-stage-2); color: var(--cb-on-accent); box-shadow: 0 0 0 2px var(--cb-card); }
 .cb-stop__done .cb-ico { width: 14px; height: 14px; stroke-width: 3.2; }
 .cb-stop.is-stamping .cb-stop__disc { animation: cb-stamp 0.7s var(--cb-ease) 1.2s both; }
 @keyframes cb-stamp { 0% { opacity: 0; transform: scale(1.7); } 55% { opacity: 1; transform: scale(0.92); } 100% { transform: scale(1); } }
@@ -388,6 +389,7 @@
   .cb-stophud:has(> .cb-stophud__steps) { grid-template-areas: "back title hud" "back steps hud"; row-gap: 6px; }
   .cb-stophud:has(> .cb-stophud__steps) > .cb-stophud__tools, .cb-stophud:has(> .cb-stophud__steps) > .cb-engine-hud { align-self: center; }
   .cb-stophud > .cb-stophud__steps { grid-column: auto; grid-area: steps; grid-auto-flow: column; justify-content: start; align-items: center; gap: 12px; padding-left: 58px; }
+  .cb-stophud > .cb-stophud__steps .cb-steps__cap { white-space: nowrap; }
 }
 .cb-steps { display: flex; align-items: center; gap: 6px; margin: 0; padding: 0; list-style: none; }
 .cb-step { display: flex; align-items: center; gap: 8px; font-size: 0.875rem; font-weight: 650; color: var(--cb-on-stage-2); }
