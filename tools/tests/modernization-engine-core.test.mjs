@@ -163,7 +163,10 @@ test('native settings/library dialogs preserve the session, save quiet settings 
     dialog.close();assert.equal(r.w.document.activeElement,opener);
     r.core.updateSettings({calm:true,cap:true,voice:false,rate:1.15});const stored=JSON.parse(r.w.localStorage.getItem('pecan-grove-settings'));
     assert.equal(stored.voice,false);assert.equal(stored.cap,true);assert.equal(stored.rate,1.15);assert.equal(r.core.motionAllowed(),false);
-    dialog=r.core.openLibraryMode(opener);assert.ok(dialog.querySelector('.cb-library'));dialog.querySelector('.cb-library .cb-btn--go').click();
+    // PG-UX-C28: with the voice already off, Use quiet mode shows as the current state and Settings is the main (go)
+    // action, so the quiet button is found by its words rather than by the go colour.
+    dialog=r.core.openLibraryMode(opener);assert.ok(dialog.querySelector('.cb-library'));const quietButton=[...dialog.querySelectorAll('.cb-library .cb-btn')].find(b=>b.textContent.includes(r.core.getAPI().X.libraryQuiet));
+    assert.equal(quietButton.getAttribute('aria-pressed'),'true');assert.equal(quietButton.classList.contains('cb-btn--go'),false);quietButton.click();
     assert.equal(r.core.getState().quiet,true);assert.equal(r.core.getState().session,session);assert.equal(r.root.querySelectorAll('dialog[open]').length,0);
     assert.equal(r.core.getAPI().prefersFindCards(),true,'Library mode enables classic finding cards');
     await r.core.startStop('notice-the-signs');r.main().querySelector('.cb-s01-intro .cb-btn--go').click();r.main().querySelector('[data-view="today"]').click();r.main().querySelector('[data-spot="0"]').click();

@@ -324,9 +324,12 @@ test("every badge has distinct SVG geometry and a concrete locked hint; results 
   }
 });
 
-test("a finished stop fills the progress bar and the current step fills it partway", () => {
+// PG-UX-B03: the stop's numbered stepper (with aria-current) already shows the progress; the engine's duplicate
+// <progress> bar only pushed the task one row down. The HUD no longer adds it to a stop that has a stepper; a stop
+// that reports its progress through hud.set() still gets the bar.
+test("a stop's stepper is its only progress bar; hud.set still draws one when a stop asks", () => {
   const r = fixture(
-    '<div class="cb-stophud"><div class="cb-stophud__tools"><button class="cb-stophud__back">Map</button></div><ol><li class="cb-step" data-s="done"></li><li class="cb-step" data-s="done"></li></ol></div>',
+    '<div class="cb-stophud"><div class="cb-stophud__tools"><button class="cb-stophud__back">Map</button></div><ol><li class="cb-step" data-s="done"></li><li class="cb-step" data-s="now" aria-current="step"></li></ol></div>',
   );
   try {
     const hud = new HUD({
@@ -340,19 +343,11 @@ test("a finished stop fills the progress bar and the current step fills it partw
       onBadges() {},
     });
     hud.render();
-    const done = r.root.querySelector("progress");
-    assert.equal(Number(done.max), 2);
-    assert.equal(Number(done.value), 2);
-    r.root.querySelectorAll(".cb-step")[1].setAttribute("data-s", "now");
-    r.root.querySelectorAll(".cb-step")[1].setAttribute("aria-current", "step");
-    hud.render();
-    assert.equal(Number(r.root.querySelector("progress").value), 2);
-    r.root.querySelectorAll(".cb-step")[1].setAttribute("data-s", "todo");
-    r.root.querySelectorAll(".cb-step")[1].removeAttribute("aria-current");
-    r.root.querySelector(".cb-step").setAttribute("aria-current", "step");
-    r.root.querySelector(".cb-step").setAttribute("data-s", "now");
-    hud.render();
-    assert.equal(Number(r.root.querySelector("progress").value), 1);
+    assert.equal(r.root.querySelector("progress"), null);
+    hud.set({ progress: [1, 2] });
+    const bar = r.root.querySelector("progress");
+    assert.equal(Number(bar.max), 2);
+    assert.equal(Number(bar.value), 1);
   } finally {
     r.close();
   }

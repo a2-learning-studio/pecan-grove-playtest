@@ -76,8 +76,12 @@ export async function mount(
   steps.prune();
   slots.store();
   slots.save();
+  // One polite live region, present from the start: each toast added to it is
+  // read once. A toast's words come from the language shown when it appears.
   const toastHost = h("div", {
     class: "cb-engine-toast-host",
+    role: "status",
+    "aria-live": "polite",
     "data-cb-novoice": "",
   });
   root.append(toastHost);
@@ -87,13 +91,24 @@ export async function mount(
     toastQueue.push({ text, badgeId });
     showToast();
   }
+  const words = (text) => (typeof text === "function" ? text() : text);
   function showToast() {
     if (toastTimer || !toastQueue.length) return;
     const next = toastQueue.shift();
-    const card = h("div", { class: "cb-engine-toast", role: "status" }, [
+    const label = h("span", { text: words(next.text) });
+    const card = h("div", { class: "cb-engine-toast" }, [
       next.badgeId ? badgeIcon(next.badgeId) : icon("check"),
-      h("span", { text: next.text }),
+      label,
     ]);
+    card.refresh = () => {
+      label.textContent = words(next.text);
+    };
+    // Below the play view's toolbar, so the celebration covers none of it.
+    const toolbar = root
+      .closest("[data-playtest-stage]")
+      ?.querySelector(".pt-toolbar");
+    const bottom = toolbar?.getBoundingClientRect().bottom || 0;
+    toastHost.style.top = Math.max(16, bottom + 12) + "px";
     toastHost.append(card);
     if (next.badgeId) {
       audio.play("badge");
@@ -165,37 +180,30 @@ export async function mount(
       });
     else return core().showMap?.();
   }
-  function deleteSlot(id, dialog) {
+  // The player dialog stays open after a delete: the card says the game was
+  // deleted and offers Undo, with focus, until the dialog closes. No timer.
+  function deleteSlot(id, card, refill) {
     const row = h("div", { class: "cb-engine-slots" });
     let confirmation;
+    const name =
+      api().ANIMALS.find((item) => item.id === id)?.name || i18n.t("player1");
     for (const animal of api().ANIMALS) {
       const b = button(animal.name, () => {
         if (animal.id !== "turtle") return;
         const deleted = slots.remove(id);
-        confirmation.close();
-        dialog.close();
-        toast(i18n.t("slotDeleted"));
-        // Each Undo restores its own game and goes away like the toast,
-        // but never while it has keyboard focus.
-        const undo = button(
-          i18n.t("undo", {
-            player:
-              api().ANIMALS.find((item) => item.id === id)?.name ||
-              i18n.t("player1"),
-          }),
-          () => {
-            undo.remove();
-            slots.undo(deleted);
-            core().showMap?.();
-          },
+        const undo = button(i18n.t("undo", { player: name }), () => {
+          slots.undo(deleted);
+          core().showMap?.();
+          refill(card, id);
+          card.querySelector("button")?.focus();
+        });
+        card.replaceChildren(
+          h("p", { class: "cb-engine-note", text: i18n.t("slotDeleted") }),
+          undo,
         );
-        toastHost.append(undo);
-        setTimeout(() => {
-          if (document.activeElement !== undo) undo.remove();
-          else
-            undo.addEventListener("blur", () => undo.remove(), { once: true });
-        }, 10000);
+        confirmation.close();
         core().showMap?.();
+        focus.focus(undo);
       });
       b.prepend(api().animalFace(animal));
       row.append(b);
@@ -226,11 +234,10 @@ export async function mount(
         );
     if (!newOnly && !ids.length)
       grid.append(h("p", { text: i18n.t("noSaves") }));
-    for (const id of ids) {
+    function fill(card, id) {
       const animal = animals.find((a) => a.id === id),
-        player = store.players[id];
+        player = slots.store().players[id];
       const name = animal?.name || i18n.t("player1");
-      const card = h("div", { class: "cb-engine-slot" });
       const b = button(
         name,
         () => {
@@ -250,7 +257,10 @@ export async function mount(
         { class: "cb-btn cb-engine-slot-pick" },
       );
       if (animal) b.prepend(api().animalFace(animal));
-      card.append(b);
+      // Focus starts on the first animal, not on Close.
+      if (!grid.querySelector("[data-cb-nav-entry]"))
+        b.setAttribute("data-cb-nav-entry", "");
+      card.replaceChildren(b);
       if (player) {
         card.append(
           h("p", {
@@ -260,11 +270,17 @@ export async function mount(
             }),
           }),
           h("p", { text: i18n.relative(player.updated) }),
-          button(i18n.t("delete"), () => deleteSlot(id, dialog), {
+          // The name says whose game it deletes: "Delete slot: Fox".
+          button(i18n.t("delete"), () => deleteSlot(id, card, fill), {
             class: "cb-btn cb-btn--quiet",
+            "aria-label": i18n.t("delete") + ": " + name,
           }),
         );
       }
+    }
+    for (const id of ids) {
+      const card = h("div", { class: "cb-engine-slot" });
+      fill(card, id);
       grid.append(card);
     }
     if (!newOnly)
@@ -360,7 +376,8 @@ export async function mount(
   const badge = new Badges({
     slots,
     stops: () => api().STOPS,
-    notify: (id) => toast(i18n.t("badgeUnlocked", { badge: i18n.t(id) }), id),
+    notify: (id) =>
+      toast(() => i18n.t("badgeUnlocked", { badge: i18n.t(id) }), id),
   });
   const hud = new HUD({
     root,
@@ -415,7 +432,19 @@ export async function mount(
     return handled;
   });
   for (let n = 1; n <= 9; n++) input.on("choice." + n, () => focus.choice(n));
+  // Escape and Back close the nearest thing first: a tooltip (WCAG 1.4.13),
+  // then a Stop 1 finding, a dialog, the map key, and only then open Pause.
   function back() {
+    if (tooltips.tip) {
+      tooltips.hide();
+      return true;
+    }
+    const callout = root.querySelector(".cb-callout");
+    if (callout?.back && !document.querySelector("dialog[open]")) {
+      callout.back();
+      audio.play("ui.back");
+      return true;
+    }
     const dialog = [...document.querySelectorAll("dialog[open]")].at(-1);
     if (dialog) {
       const event = new globalThis.Event("cancel", { cancelable: true });
@@ -587,6 +616,8 @@ export async function mount(
     if (soundLabel) soundLabel.textContent = i18n.t("soundUnlock");
     const saveWarning = root.querySelector(".cb-engine-save-warning");
     if (saveWarning) saveWarning.textContent = i18n.t("saveFailed");
+    for (const card of toastHost.querySelectorAll(".cb-engine-toast"))
+      card.refresh?.();
     refresh();
   });
   root.addEventListener("click", () => {

@@ -37,6 +37,7 @@
     "languageNote": "Seguirás en el mismo lugar de esta parada.",
     "languageGo": "Continuar en English",
     "last5": "Últimos 5 intentos",
+    "last5Empty": "Todavía no hay intentos. Termina una parada y aquí verás sus últimos 5 intentos.",
     "best": "Mejor",
     "library": "Modo biblioteca / clase",
     "who": "¿Quién juega?",
@@ -156,6 +157,7 @@
     "consentDetails": "Agrega el número de parada y el puntaje. Nunca nombres. Un adulto confirma antes de activarlo, y puedes desactivarlo cuando quieras.",
     "consentAutoScores": "También enviar cada puntaje al terminar una parada",
     "consentAutoDetails": "Se envía enseguida, sin revisión de un adulto. Nunca notas ni nombres.",
+    "consentAutoNeedsScores": "Para usar esta casilla, primero activa la de arriba.",
     "devicePanel": "Privacidad y notas de este dispositivo",
     "nextPlayer": "Siguiente jugador en esta computadora",
     "facilitatorCloseout": "Cierre para facilitadores"

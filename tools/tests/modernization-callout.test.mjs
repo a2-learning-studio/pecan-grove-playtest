@@ -15,8 +15,14 @@ function setup({voice=false}={}) {
   return{dom,w,ctx,anchor,advance,tasks,frames,frame,cleanups,close:()=>w.close()};
 }
 
+// PG-UX-C14: a live region inserted already filled is often never read, and the old one read "Keep looking" as part
+// of the lesson. The finding is now a plain labelled section; its words go once through the game's persistent polite
+// region (ctx.say), without the button. This replaces the earlier role="status" assertion on the section.
 test('findings are polite and nonmodal, retain the chosen target, and never close on a timer (WCAG 2.2.1)',()=>{
- const r=setup();try{const p=showCallout(r.ctx,r.anchor,r.ctx.h('p',{text:'The sign tells us a meeting date.'}),{title:'A meeting sign'});assert.equal(p.getAttribute('role'),'status');assert.equal(r.w.document.activeElement,r.anchor);assert.equal(r.ctx.root.querySelector('dialog'),null);assert.equal(r.tasks.size,0,'no dismissal clock');r.advance(600000);assert.equal(p.isConnected,true,'a quiet reader keeps the finding as long as needed');}finally{r.close();}
+ const r=setup();try{const said=[];r.ctx.say=t=>said.push(t);const p=showCallout(r.ctx,r.anchor,r.ctx.h('p',{text:'The sign tells us a meeting date.'}),{title:'A meeting sign',closeLabel:'Keep looking',announce:'Signs found: 1 of 6'});
+  assert.equal(p.getAttribute('role'),null);assert.equal(p.hasAttribute('aria-live'),false);assert.equal(p.getAttribute('aria-label'),'A meeting sign');
+  assert.deepEqual(said,['A meeting sign The sign tells us a meeting date. Signs found: 1 of 6'],'one polite announcement: title, lesson and count, never the button');
+  assert.equal(r.w.document.activeElement,r.anchor);assert.equal(r.ctx.root.querySelector('dialog'),null);assert.equal(r.tasks.size,0,'no dismissal clock');r.advance(600000);assert.equal(p.isConnected,true,'a quiet reader keeps the finding as long as needed');}finally{r.close();}
 });
 test('a finding stays open after its narration ends',async()=>{
  const r=setup({voice:true});try{const p=showCallout(r.ctx,r.anchor,r.ctx.h('p',{text:'A sign.'}));await Promise.resolve();r.advance(20000);assert.equal(p.isConnected,true);r.ctx.vAudio=null;r.ctx.vEl=null;r.advance(600000);assert.equal(p.isConnected,true);p.dismiss();assert.equal(p.isConnected,false);}finally{r.close();}
@@ -243,5 +249,62 @@ test('the next finding click dismisses its predecessor before opening the new fi
   next.dispatchEvent(new r.w.MouseEvent('pointerup',{bubbles:true,cancelable:true}));assert.equal(first.isConnected,true);
   next.dispatchEvent(new r.w.MouseEvent('click',{bubbles:true,cancelable:true,detail:1}));
   assert.equal(first.isConnected,false);assert.equal(second.isConnected,true);assert.equal(r.ctx.root.querySelectorAll('.cb-callout').length,1);assert.equal(r.w.document.activeElement,next);
+ }finally{r.close();}
+});
+
+// PG-UX-C01 / C03 (2026-10-30 round): at 1366x768 almost every finding opened in flow below the board, out of view,
+// and Keep looking left the player at the footer. Now an in-flow finding below the fold is scrolled into view at once
+// (down to Keep looking), and Keep looking, Escape or Back scroll back to where the player was looking.
+test('a finding placed below the fold comes into view at once, and Keep looking scrolls back to the chosen spot',()=>{
+ const r=setup();try{
+  const m=placeModel(r,{width:1366,height:768,pw:350,ph:300,placeY:1150});
+  const port=r.ctx.h('div',{class:'pt-stage-content'});r.ctx.root.before(port);port.append(r.ctx.root);
+  Object.defineProperties(port,{scrollHeight:{value:2400,configurable:true},clientHeight:{value:768,configurable:true},scrollTop:{get:()=>m.view.top,set:v=>{m.view.top=v;},configurable:true}});
+  let reveals=0;r.w.HTMLElement.prototype.scrollIntoView=function(){if(this.classList.contains('cb-callout')){reveals++;port.scrollTop=1150+300-768;}};
+  const board=sceneButton(r,'A busy board',0,60,1366,700,m);m.at(r.anchor,600,650,44,44);r.ctx.main.append(board);
+  const panel=showCallout(r.ctx,r.anchor,r.ctx.h('p',{text:'A sign.'}),{closeLabel:'Keep looking'});
+  assert.equal(panel.classList.contains('is-flow'),true,'No free corner: the finding opens in its place below the board');
+  assert.equal(reveals,1);assert.equal(m.view.top,682);
+  const box=panel.getBoundingClientRect();assert.ok(box.top>=0&&box.bottom<=768,'the whole finding, down to Keep looking, is on screen');
+  assert.equal(r.w.document.activeElement,r.anchor,'focus stays on the chosen thing');
+  r.frame();assert.equal(panel.classList.contains('is-flow'),true,'and it stays in its place');
+  panel.querySelector('button').click();
+  assert.equal(panel.isConnected,false);assert.equal(m.view.top,0,'Keep looking goes back to where the player was looking');
+  assert.equal(r.w.document.activeElement,r.anchor);
+ }finally{r.close();}
+});
+test('a finding already in view is not scrolled, and a tap elsewhere only closes it',()=>{
+ const r=setup();try{
+  const m=placeModel(r,{width:1366,height:768,pw:350,ph:200,placeY:500});
+  let reveals=0;r.w.HTMLElement.prototype.scrollIntoView=function(){reveals++;};
+  const board=sceneButton(r,'A busy board',0,0,1366,768,m);m.at(r.anchor,600,300,44,44);r.ctx.main.append(board);
+  const panel=showCallout(r.ctx,r.anchor,r.ctx.h('p',{text:'A sign.'}));
+  assert.equal(panel.classList.contains('is-flow'),true);assert.equal(reveals,0,'its place below the board is on screen already');
+  board.dispatchEvent(new r.w.MouseEvent('click',{bubbles:true,cancelable:true,detail:1}));
+  assert.equal(panel.isConnected,false);assert.equal(reveals,0);
+ }finally{r.close();}
+});
+// PG-UX-C15: on a 1920 screen a floating finding went to the window's corner, outside the 1208px game; and it could
+// cover the instruction the child was following.
+test('a floating finding stays inside the game on a wide screen',()=>{
+ const r=setup();try{
+  Object.defineProperties(r.w,{innerWidth:{value:1920},innerHeight:{value:1080}});panelSize(r);
+  r.ctx.root.getBoundingClientRect=()=>rect(356,80,1208,1000);
+  r.anchor.getBoundingClientRect=()=>rect(1500,200,44,44);
+  const panel=showCallout(r.ctx,r.anchor,r.ctx.h('p',{text:'A sign.'}));
+  assert.equal(panel.classList.contains('is-flow'),false);
+  const left=Number.parseFloat(panel.style.left),top=Number.parseFloat(panel.style.top);
+  assert.ok(left>=356+12&&left+350<=356+1208-12,`inside the game horizontally (left ${left})`);
+  assert.ok(top>=80+12&&top+205<=80+1000-12,`and vertically (top ${top})`);
+ }finally{r.close();}
+});
+test('the instruction card counts as something a floating finding must not cover',()=>{
+ const r=setup();try{
+  Object.defineProperties(r.w,{innerWidth:{value:1280},innerHeight:{value:720}});panelSize(r);
+  r.anchor.getBoundingClientRect=()=>rect(100,100,44,44);
+  const coach=r.ctx.h('p',{class:'cb-coach'});coach.getBoundingClientRect=()=>rect(0,150,1280,100);r.ctx.main.prepend(coach);
+  const panel=showCallout(r.ctx,r.anchor,r.ctx.h('p',{text:'A sign.'}));
+  assert.equal(panel.classList.contains('is-flow'),false);
+  assert.ok(!overlaps(panelBox(panel),coach.getBoundingClientRect()),'"Tap only the new things..." stays readable');
  }finally{r.close();}
 });

@@ -257,7 +257,7 @@
     /* ── the question board: the four asked questions, each with a Pecan Sticker ── */
     function boardCard(fresh) {
       var bid = "cb-s02-bk" + (++uid);
-      return h("section", { "class": "cb-s02-boardwrap", "aria-labelledby": bid, "data-cb-novoice": "" }, [h("p", { "class": "cb-s02-board__k", id: bid, text: T.boardK(answers.length) }),
+      return h("section", { "class": "cb-s02-boardwrap", "aria-labelledby": bid, "data-cb-novoice": "" }, [h("p", { "class": "cb-s02-board__k", id: bid, text: T.boardK(answers.length).replace(/(\d+)\s+(\S+)\s+(\d+)\s*$/, "$1\u00a0$2\u00a0$3") }),
         h("ol", { "class": "cb-s02-board" }, [0, 1, 2, 3].map(function (i) {
           var a = answers[i], now = i === wi && !a;
           if (!a) return h("li", { "class": "is-empty" + (now ? " is-now" : ""), "aria-hidden": "true" }, [sticker(true), now ? h("p", { "class": "cb-s02-board__hint", text: T.slotNow }) : h("span"), api.img(speakers[i].img, "", "cb-s02-board__face", true)]);
@@ -328,8 +328,9 @@
          a sticky speech bubble on a narrow one (CSS) */
       var side = h("div", { "class": "cb-s02-side" }, [sceneEl, board]);
       var compactAsk = api.btn(T.ask, "cb-btn--go cb-s02-ask-float", function () { ask(); }, "chat");
-      compactAsk.setAttribute("aria-describedby", "cb-s02-q");
-      compactAsk.setAttribute("aria-label", T.ask);
+      /* a pointer shortcut only: the inline Ask button in the strip stays the one keyboard and screen reader stop */
+      compactAsk.setAttribute("tabindex", "-1");
+      compactAsk.setAttribute("aria-hidden", "true");
       compactAsk.hidden = true;
       var playEl = h("div", { "class": "cb-s02-play" }, [side, work]);
       var bubble = sceneEl.querySelector('[data-s02="worry"]');
@@ -457,10 +458,10 @@
       }
       if (Math.abs(to - v.y) > 4) v.el.scrollTo({ top: to, behavior: reduced() ? "auto" : "smooth" });
     }
-    /* the page scrolls, except in the shell's full screen, where the stage itself is the scroller */
+    /* whatever scrolls the game: the play view's scrollport, the stage in full screen, or the page */
     function view(root) {
-      var fs = !!root && root.classList.contains("is-fs");
-      return fs ? { fs: true, el: root, y: root.scrollTop, top: root.getBoundingClientRect().top, h: root.clientHeight }
+      var port = api.scrollport ? api.scrollport() : root && root.classList.contains("is-fs") ? root : null;
+      return port ? { fs: port === root, el: port, y: port.scrollTop, top: port.getBoundingClientRect().top, h: port.clientHeight }
         : { fs: false, el: window, y: window.pageYOffset, top: 0, h: window.innerHeight };
     }
 

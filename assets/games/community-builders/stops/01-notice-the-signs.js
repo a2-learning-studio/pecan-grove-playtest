@@ -253,7 +253,9 @@
       return tapped[s.item.id] ? "not" : "idle";
     }
     function paint(s, fresh) {
-      var st = stateOf(s), b = s.btn, name = cap(t2(s.item.name));
+      /* the name starts with the visible tag, so "click Soil drill" works for voice control (WCAG 2.5.3) */
+      var st = stateOf(s), b = s.btn, name = cap(t2(s.item.name)), tag = t2(s.item.tag);
+      if (tag && name.toLocaleLowerCase().indexOf(tag.toLocaleLowerCase()) !== 0) name = tag + ": " + name;
       b.className = "cb-s01-spot is-" + st + (s.item.board ? " cb-s01-spot--board" : "") + (fresh ? " is-fresh" : "");
       [].slice.call(b.querySelectorAll(".cb-s01-tag, .cb-badge")).forEach(function (e) { e.remove(); });
       if (st === "found") s.stk.appendChild(h("span", { "class": "cb-badge", "aria-hidden": "true" }, [api.ico("check")]));
@@ -284,14 +286,17 @@
     function inlineFindings() {
       return api.callout && !(api.prefersFindCards && api.prefersFindCards());
     }
-    function card(s, onClose) {
+    function card(s, onClose, announce) {
       var it = s.item;
       if (inlineFindings()) {
-        var content = [h("p", { text: it.sign ? t2(it.line) : T.everyRest })];
-        if (it.sign) content.push(h("p", { text: T.askLine }));
+        /* the classic card's parts at callout size: what the thing is, the lesson, the grown-up question */
+        var content = it.sign ? [h("p", { "class": "cb-callout__sub", text: cap(t2(it.name)) }),
+          h("p", { "class": "cb-s01-line" }, [api.ico("check"), h("span", { text: t2(it.line) })]),
+          h("p", { "class": "cb-s01-ask" }, [api.ico("family"), h("span", { text: T.askLine })])]
+          : [h("p", { "class": "cb-s01-line cb-s01-line--every" }, [api.ico("bulb"), h("span", { text: T.everyRest })])];
         // An inline finding leaves the scene in place. Closing it on the next
         // pointerdown must not suppress that object's following click.
-        return api.callout(s.btn, content, { title: it.sign ? T.signT : T.every(t2(it.name)), closeLabel: T.keep });
+        return api.callout(s.btn, content, { title: it.sign ? T.signT : T.every(t2(it.name)), closeLabel: T.keep, announce: announce });
       }
       var badge = h("span", { "class": "cb-s01-dlgbadge" + (it.sign ? " is-sign" : ""), "aria-hidden": "true" }, [icon(it.id)]), d;
       if (it.sign) {
@@ -315,8 +320,10 @@
         if (it.sign && !found[it.id]) { found[it.id] = 1; fresh = true; }
         else if (!it.sign && !tapped[it.id]) { tapped[it.id] = 1; fresh = true; }
       }
-      if (fresh) { paint(s, true); if (it.sign) progress(true); }
-      card(s, function () { quiet(); });
+      /* an inline finding speaks the count with its own words, in one announcement */
+      var inline = inlineFindings();
+      if (fresh) { paint(s, true); if (it.sign) progress(true, inline); }
+      card(s, function () { quiet(); }, fresh && it.sign && inline ? msgEl.textContent : "");
       if (!inlineFindings()) quiet();
     }
 
@@ -328,7 +335,7 @@
       progress(false);
       return [dotsEl, msgEl];
     }
-    function progress(announce) {
+    function progress(announce, silent) {
       var n = nFound(), text = n === 6 && !reviewing ? T.all6 : T.foundN(n);
       msgEl.textContent = text;
       [].forEach.call(dotsEl.children, function (li, i) {
@@ -336,7 +343,7 @@
         li.classList.toggle("is-on", on); li.classList.toggle("is-pop", on && announce);
         li.textContent = ""; if (on) li.appendChild(api.ico("check"));
       });
-      if (announce) api.say(text);
+      if (announce && !silent) api.say(text);
     }
 
     /* ── 1 · start ── */

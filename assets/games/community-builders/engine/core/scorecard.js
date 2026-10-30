@@ -131,6 +131,7 @@ export default function createScorecard(ctx) {
       ctx.h("h3", { class: "cb-vh", id: hid, text: stop.name }),
       ctx.h("p", {
         class: "cb-vh cb-card__score",
+        tabindex: "-1",
         text:
           (ctx.CFG.numericScore ? ctx.W.score + " " + score + " / 100. " : "") +
           (st ? ctx.W.stars(st) : ctx.W.goodStart),
@@ -378,10 +379,22 @@ export default function createScorecard(ctx) {
     }
     if (ctx.team && ctx.team.phase === "A")
       ctx.team.cards.push(cardEl.cloneNode(true));
-    ctx.screen([
-      stopHud(stop, steps, steps.length),
-      ctx.h("div", { class: "cb-board cb-board--result" }, [cardEl, buttons]),
-    ]);
+    // What to do next (Play again, the next stop, Town map) comes before the
+    // tips, so it is on the first screen of a laptop or phone.
+    var firstTip = buttons && cardEl.querySelector(".cb-tipcard");
+    if (firstTip) firstTip.parentNode.insertBefore(buttons, firstTip);
+    // A screen reader hears the result first (score and stars), not the
+    // stop's name again; Tab then goes on to the card's actions.
+    ctx.screen(
+      [
+        stopHud(stop, steps, steps.length),
+        ctx.h("div", { class: "cb-board cb-board--result" }, [
+          cardEl,
+          firstTip ? null : buttons,
+        ]),
+      ],
+      ".cb-card__score",
+    );
     ctx.frame();
     playCard(cardEl);
   }

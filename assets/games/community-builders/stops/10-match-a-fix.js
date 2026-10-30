@@ -219,7 +219,7 @@
         h("span", { "class": "cb-s10-fix__name", text: t2(d.f) }),
         h("span", { "class": "cb-s10-fix__place" }, [icon("pin"), h("span", { text: t2(d.pl) })]),
         chips.length ? h("span", { "class": "cb-s10-chips" }, chips) : null]);
-      var flap = h("button", { type: "button", "class": "cb-s10-flap" + (opened[c] ? " is-seen" : ""), "data-c": c, "aria-label": S.check + " " + t2(d.f), "aria-haspopup": "dialog",
+      var flap = h("button", { type: "button", "class": "cb-s10-flap" + (opened[c] ? " is-seen" : ""), "data-c": c, "data-cb-choice-skip": "", "aria-label": S.check + " " + t2(d.f), "aria-haspopup": "dialog",
         onclick: function () { openNote(c, flap, '[data-c="' + c + '"]'); } }, [h("span", { "class": "cb-s10-flap__ic", "aria-hidden": "true" }, [icon("stamp"), opened[c] ? h("i", null, [icon("check")]) : null]),
         h("span", { text: S.check })]);
       return h("li", { "class": "cb-s10-fix", "data-s": s }, [lp ? edgePin("f", c, state[lp].n) : null, main, flap]);

@@ -8,25 +8,20 @@ export function prefersFindCards(ctx) {
 
 export function showCallout(ctx, anchor, content, options = {}) {
   ctx.root.querySelector(".cb-callout")?.dismiss?.();
+  const body = (Array.isArray(content) ? content : [content]).filter(Boolean);
+  // A plain labelled section. A live region inserted already filled is often
+  // not read, so the words go through the game's one persistent live region.
   const panel = ctx.h(
     "section",
-    {
-      class: "cb-callout",
-      role: "status",
-      "aria-live": "polite",
-      "aria-atomic": "true",
-      "aria-label": options.title || "",
-    },
-    [
-      ctx.h("h3", { text: options.title || "" }),
-      ...(Array.isArray(content) ? content : [content]),
-    ],
+    { class: "cb-callout", "aria-label": options.title || "" },
+    [ctx.h("h3", { text: options.title || "" }), ...body],
   );
   // A finding stays until the player moves on: Close, Escape, a tap elsewhere,
   // the next finding or a new scene. "This game has no timers" (WCAG 2.2.1).
   let closed = false,
     positionFrame = null,
     slot = null,
+    revealed = null,
     offBack = () => {};
   function close() {
     if (closed) return;
@@ -45,31 +40,45 @@ export function showCallout(ctx, anchor, content, options = {}) {
     panel.remove();
     options.onClose?.();
   }
+  // Keep looking, Escape or Back: return to the scene where the player was
+  // searching, with the chosen thing in view (a tap elsewhere just closes).
   function dismiss() {
+    const wasOpen = !closed;
     close();
-    if (anchor.isConnected) anchor.focus({ preventScroll: true });
+    if (!anchor.isConnected) return;
+    if (wasOpen) {
+      for (const [box, top] of revealed || [])
+        if (box.isConnected !== false) box.scrollTop = top;
+      if (!inView(anchor.getBoundingClientRect()))
+        anchor.scrollIntoView?.({ block: "nearest", behavior: "auto" });
+    }
+    anchor.focus({ preventScroll: true });
+  }
+  function inView(r) {
+    const viewport = ctx.window.visualViewport,
+      top = viewport?.offsetTop || 0,
+      bottom = top + (viewport?.height || ctx.window.innerHeight);
+    return r.height > 0 && r.top >= top && r.bottom <= bottom;
   }
   function outside(event) {
     if (!panel.contains(event.target) && !anchor.contains(event.target))
       close();
   }
   function escape(event) {
-    if (event.key !== "Escape") return;
+    // The engine's input handles Escape first when it runs (main.js back()).
+    if (event.key !== "Escape" || event.defaultPrevented) return;
     event.preventDefault();
     event.stopImmediatePropagation();
     dismiss();
   }
+  // The next step, not a cancel: a plain pill, like the classic card's button.
   panel.appendChild(
-    ctx.btn(
-      options.closeLabel || ctx.W.close,
-      "cb-btn--quiet",
-      dismiss,
-      "close",
-    ),
+    ctx.btn(options.closeLabel || ctx.W.close, "cb-btn--primary", dismiss),
   );
   panel.lastElementChild.setAttribute("data-cb-novoice", "");
   ctx.root.appendChild(panel);
   panel.dismiss = close;
+  panel.back = dismiss;
   // Prefer beside the chosen item, then either edge. Keep all actions reachable.
   function schedulePlace() {
     // Scroll handlers only schedule work. Geometry and position writes happen
@@ -79,6 +88,21 @@ export function showCallout(ctx, anchor, content, options = {}) {
       positionFrame = null;
       place();
     });
+  }
+  // An in-flow finding below the fold is brought into view at once, down to
+  // "Keep looking" (no smooth scroll: it would float the finding mid-way).
+  // Dismissing it scrolls back to where the player was looking.
+  function reveal() {
+    if (closed || !panel.classList.contains("is-flow")) return;
+    if (inView(panel.getBoundingClientRect())) return;
+    const boxes = [];
+    for (let box = panel.parentElement; box; box = box.parentElement)
+      if (box.scrollHeight > box.clientHeight) boxes.push([box, box.scrollTop]);
+    const page = ctx.document.scrollingElement;
+    if (page && !boxes.some(([box]) => box === page))
+      boxes.push([page, page.scrollTop]);
+    revealed = boxes;
+    panel.scrollIntoView?.({ block: "nearest", behavior: "auto" });
   }
   // Moving the finding between the board and the game root must not drop
   // keyboard focus from "Keep looking" to the page.
@@ -107,23 +131,33 @@ export function showCallout(ctx, anchor, content, options = {}) {
       p = panel.getBoundingClientRect();
     const clamp = (v, low, high) =>
       Math.max(low, Math.min(v, Math.max(low, high)));
+    // A floating finding stays inside the game where the game is in view, so
+    // on a wide screen it never lands in the window corner beside the stage.
+    const game = ctx.root.getBoundingClientRect(),
+      span = (low, high, from, to, size) =>
+        Math.min(to, high) - Math.max(from, low) >= size + gap * 2
+          ? [Math.max(from, low), Math.min(to, high)]
+          : [low, high];
+    const [x0, x1] = span(left, left + vw, game.left, game.right, p.width),
+      [y0, y1] = span(top, top + vh, game.top, game.bottom, p.height);
     const candidates = [
       [a.left, a.bottom + gap],
       [a.left, a.top - p.height - gap],
       [a.right + gap, a.top],
       [a.left - p.width - gap, a.top],
-      [left + gap, top + gap],
-      [left + vw - p.width - gap, top + vh - p.height - gap],
+      [x0 + gap, y0 + gap],
+      [x1 - p.width - gap, y1 - p.height - gap],
     ].map(([x, y]) => ({
-      left: clamp(x, left + gap, left + vw - p.width - gap),
-      top: clamp(y, top + gap, top + vh - p.height - gap),
+      left: clamp(x, x0 + gap, x1 - p.width - gap),
+      top: clamp(y, y0 + gap, y1 - p.height - gap),
       width: p.width,
       height: p.height,
     }));
     // Every control on the play stage is an obstacle: the game, its toolbar and
-    // the feedback form below the game stay reachable.
+    // the feedback form below the game stay reachable. So is the instruction
+    // the player is following.
     const controls =
-        'button, a[href], input:not([type="hidden"]), select, textarea, summary, [role="button"]',
+        'button, a[href], input:not([type="hidden"]), select, textarea, summary, [role="button"], .cb-coach',
       stage = ctx.root.closest("[data-playtest-stage]"),
       toolbar = stage?.querySelector(".pt-toolbar"),
       obstacles = [...(stage || ctx.root).querySelectorAll(controls)]
@@ -226,7 +260,13 @@ export function showCallout(ctx, anchor, content, options = {}) {
     );
   ctx.activeLifecycle?.cleanup(close);
   place();
+  reveal();
   anchor.focus({ preventScroll: true });
+  const words = [options.title, ...body.map((node) => node.textContent)]
+    .map((text) => String(text || "").trim())
+    .filter(Boolean);
+  if (options.announce) words.push(options.announce);
+  ctx.say?.(words.join(" "));
   if (ctx.vOn)
     Promise.resolve(ctx.vLoad()).then(
       () => {

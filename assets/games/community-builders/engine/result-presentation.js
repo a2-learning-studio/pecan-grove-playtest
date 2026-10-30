@@ -47,6 +47,9 @@ export function installTipPages(root, i18n) {
       });
     };
     wrapper.id = id;
+    // Written before it joins the page: the count is read when the page
+    // changes, not as one more message when the result appears.
+    paint();
     wrapper.append(
       h(
         "div",
@@ -62,7 +65,6 @@ export function installTipPages(root, i18n) {
     card.addEventListener("cb:page", (event) => {
       change(event.detail?.delta || 0);
     });
-    paint();
   }
 }
 export function showResultBadges(root, ids, i18n) {
