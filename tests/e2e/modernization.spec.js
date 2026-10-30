@@ -417,6 +417,33 @@ for(const {lang,file} of languages)test(`${lang} 1366x768: Stop 2's Ask it comes
   await expect(page.locator('.cb-s02-strip .cb-s02-ask')).toBeInViewport({ratio:1});
   await expect(page.locator('.cb-s02-row[data-row="topic"] .cb-s02-tile').first()).toBeInViewport();
 });
+// Stop 2 at the 1366x768 floor, after Ask: the answer opened at the top of the play view, but "Fix my question" and
+// "Next worry" sat under the taller side column, 34-116 px below the bottom edge (802-862 EN, 824-884 ES of 768).
+// The start of the judged question, the neighbor's answer and both buttons must share the first screen of the play view.
+for(const {lang,file} of languages)test(`${lang} 1366x768: after Ask in Stop 2 the question, the answer and both buttons are in view`,async({page})=>{
+  await page.setViewportSize({width:1366,height:768});await start(page,file);await stop(page,2);
+  await page.waitForTimeout(450);await page.locator('.cb-s02-intro .cb-btn--go').click();await page.waitForTimeout(450);
+  // seed 42's first tiles make a question with tips, so both "Fix my question" and "Next worry" are offered
+  for(const row of ['start','topic','detail'])await page.locator(`.cb-s02-row[data-row="${row}"] .cb-s02-tile`).first().click();
+  await page.locator('.cb-s02-ask').click();
+  const answer=page.locator('[data-s02="answer"]'),buttons=page.locator('.cb-s02-strip.is-done .cb-btn');
+  await expect(answer).toBeFocused();await expect(buttons).toHaveCount(2);
+  // the play view scrolls itself (smoothly unless motion is reduced): judge the place it comes to rest
+  const scrollTop=()=>answer.evaluate(node=>{let box=node.parentElement;while(box&&!(/auto|scroll/.test(getComputedStyle(box).overflowY)&&box.scrollHeight>box.clientHeight))box=box.parentElement;return box?box.scrollTop:scrollY;});
+  await expect.poll(async()=>{const before=await scrollTop();await page.waitForTimeout(250);return before===await scrollTop();},'the play view stops scrolling').toBe(true);
+  // inside the visible play area (the play view's scrollport, clipped to the window), not only the window
+  const outside=()=>answer.evaluate(node=>{
+    let port=node.parentElement;while(port&&!(/auto|scroll/.test(getComputedStyle(port).overflowY)&&port.scrollHeight>port.clientHeight))port=port.parentElement;
+    const p=port&&port.getBoundingClientRect(),top=p?Math.max(0,p.top+port.clientTop):0,bottom=p?Math.min(innerHeight,p.top+port.clientTop+port.clientHeight):innerHeight;
+    const range=document.createRange();range.selectNodeContents(node.querySelector('.cb-s02-you'));
+    const parts=[['the first line of the judged question',range.getClientRects()[0]],['the answer',node.querySelector('.cb-s02-reply__line').getBoundingClientRect()]]
+      .concat([...document.querySelectorAll('.cb-s02-strip.is-done .cb-btn')].map(button=>[button.textContent.trim(),button.getBoundingClientRect()]));
+    return parts.filter(([,r])=>!(r.top>=top-0.5&&r.bottom<=bottom+0.5)).map(([name,r])=>`${name} at ${Math.round(r.top)}-${Math.round(r.bottom)} of ${Math.round(top)}-${Math.round(bottom)}`);
+  });
+  await expect.poll(outside,'everything the child needs after Ask is in the play view').toEqual([]);
+  for(const index of [0,1])await expect(buttons.nth(index)).toBeInViewport({ratio:1});
+  await expect(answer).toBeInViewport();
+});
 // The title at 200% browser zoom on the laptop floor (1366x768 seen as 683x384): New game was 258 px below the fold.
 for(const {lang,file} of languages)test(`${lang} 683x384: New game is on the first screen of the title`,async({page})=>{
   await page.setViewportSize({width:683,height:384});await startStage(page,file);

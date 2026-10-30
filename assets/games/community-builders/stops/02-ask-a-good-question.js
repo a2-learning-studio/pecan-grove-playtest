@@ -390,13 +390,15 @@
           if (event && event.detail > 0 && Date.now() - asked < 400) return;
           worry(true);
         }, "replay");
+        /* the buttons follow the answer they act on, in its column: under the taller side column they sat below the
+           first screen of the 1366x768 laptop floor */
         var strip2 = h("div", { "class": "cb-actions cb-s02-strip is-done" }, [fixBtn, nextBtn]);
-        strip.parentNode.replaceChild(strip2, strip);
+        strip.remove(); work.appendChild(strip2);
         compactAsk.remove();
         if (stopLayout) stopLayout();
         stopLayout = measureLayout(playEl, bubble, strip2, null);
         talk.focus({ preventScroll: true });                              // after Ask it, focus moves to the answer
-        reveal(talk, bubble, strip2);
+        frameAnswer(talk, strip2, bubble);
         api.say(r.line + " " + r.notes.map(function (x) { return x[1]; }).join(" "));   // the answer and notes, never points
       }
       restoreAsk = ask;
@@ -441,14 +443,27 @@
       return dispose;
     }
     function stuck(bubble) { return getComputedStyle(bubble).position === "sticky"; }
-    /* bring an element fully into view, between the stuck bubble (narrow stage) or the screen top, and the sticky strip */
-    function reveal(el, bubble, strip) {
-      var root = el.closest(".cb"); if (!root) return;
-      var v = view(root), r = el.getBoundingClientRect(), t = r.top - v.top, b = r.bottom - v.top,
-        topPad = stuck(bubble) ? 12 + bubble.offsetHeight + 14 : 12, limit = v.h - strip.getBoundingClientRect().height - 24, d = 0;
-      if (t < topPad) d = t - topPad;
-      else if (b > limit) d = Math.min(b - limit, t - topPad);
+    /* after Ask: the judged question, the neighbor's answer and the buttons under it come into view together, below the
+       stuck bubble (narrow stage) or the top of the view, with the least scroll. Where they cannot all fit, the buttons
+       and the first line of the question stay in view; on the smallest phones the question's first line wins. */
+    function frameAnswer(talk, strip, bubble) {
+      var root = talk.closest(".cb"); if (!root) return;
+      var v = view(root), t = talk.getBoundingClientRect().top - v.top,
+        top = covered(v) + (stuck(bubble) ? stickTop(bubble, v) + bubble.offsetHeight + 14 : 12),
+        need = strip.getBoundingClientRect().bottom - v.top - (v.h - 16),        // the least scroll that shows the buttons whole
+        d = need <= t - top ? Math.min(Math.max(0, need), t - top) : Math.min(need, t + firstLine(talk.querySelector(".cb-s02-you")) - 4 - top);
       if (Math.abs(d) > 4) v.el.scrollBy({ top: d, behavior: reduced() ? "auto" : "smooth" });
+    }
+    /* where the stuck bubble rests below the top of the view: its sticky top, inside the scroller's own padding */
+    function stickTop(bubble, v) {
+      return (parseFloat(getComputedStyle(bubble).top) || 0) + (v.el === window ? 0 : parseFloat(getComputedStyle(v.el).paddingTop) || 0);
+    }
+    /* where the first line of text starts inside an element (it opens the answer), measured against the element itself so
+       its rise animation cancels out */
+    function firstLine(el) {
+      var range = el && document.createRange ? document.createRange() : null; if (!range || !range.getClientRects) return 0;
+      range.selectNodeContents(el); var line = range.getClientRects()[0];
+      return line ? Math.max(0, line.top - el.getBoundingClientRect().top) : 0;
     }
     /* a new worry: the stage top comes into view (header, the worry and the first rows), and on a narrow stage the page
        scrolls just far enough that the worry bubble clears the sticky question strip. On a phone, where the bubble does not
