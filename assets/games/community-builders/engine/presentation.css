@@ -137,9 +137,22 @@
   color: var(--cb-ink);
   font-size: var(--pg-type-small);
   font-weight: 650;
-  pointer-events: none;
   box-shadow: var(--pg-shadow-1);
   animation: cb-tooltip-in 100ms linear;
+}
+/* The pointer can move from the control onto the tip and rest there: the tip
+   takes the pointer, and a strip bridges the 6px gap to the control (WCAG 1.4.13). */
+.cb-tooltip::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -7px;
+  height: 7px;
+}
+.cb-tooltip[data-side="above"]::before {
+  top: auto;
+  bottom: -7px;
 }
 @keyframes cb-tooltip-in {
   from {

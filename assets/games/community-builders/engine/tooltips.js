@@ -75,7 +75,8 @@ export class Tooltips {
         "aria-describedby",
         [this.description, tip.id].filter(Boolean).join(" "),
       );
-      this.root.append(tip);
+      // Inside a dialog the tip joins the dialog, which is drawn above the game.
+      (control.closest("dialog") || this.root).append(tip);
       this.place(control, tip);
       this.tip = tip;
     }, this.delay);
@@ -84,23 +85,28 @@ export class Tooltips {
   // the main action.
   place(control, tip) {
     const view = this.root.ownerDocument.defaultView,
+      host = tip.parentElement || this.root,
       rect = control.getBoundingClientRect(),
-      stage = this.root.getBoundingClientRect(),
+      box = host.getBoundingClientRect(),
+      // The tip is placed from its host's padding box, which scrolls with the
+      // host's content (the game root in full screen, a dialog).
+      ox = box.left + (host.clientLeft || 0) - (host.scrollLeft || 0),
+      oy = box.top + (host.clientTop || 0) - (host.scrollTop || 0),
       width = tip.offsetWidth || 0,
       height = tip.offsetHeight || 0,
       x = Math.max(
-        8,
-        Math.min(rect.left - stage.left, stage.width - width - 8),
+        box.left + 8,
+        Math.min(rect.left, box.left + box.width - width - 8),
       );
-    tip.style.left = x + "px";
+    tip.style.left = x - ox + "px";
     const below = rect.bottom + 6,
       covers = [...this.root.querySelectorAll(".cb-btn--go")].some((go) => {
         const r = go.getBoundingClientRect();
         return (
           go !== control &&
           r.width > 0 &&
-          r.left < stage.left + x + width &&
-          r.right > stage.left + x &&
+          r.left < x + width &&
+          r.right > x &&
           r.top < below + height &&
           r.bottom > below
         );
@@ -108,8 +114,20 @@ export class Tooltips {
       flip =
         rect.top - 6 - height >= 0 &&
         (covers || below + height > (view?.innerHeight || Infinity));
+    // The side tells the CSS where to bridge the gap to the control, so the
+    // pointer can move onto the tip without it closing (WCAG 1.4.13).
+    tip.dataset.side = flip ? "above" : "below";
     tip.style.top =
-      Math.max(8, (flip ? rect.top - 6 - height : below) - stage.top) + "px";
+      Math.max(box.top + 8, flip ? rect.top - 6 - height : below) - oy + "px";
+  }
+  // A tip counts as open only where it can be seen: in the game with no
+  // dialog over it, or in the dialog on top.
+  shown() {
+    if (!this.tip?.isConnected) return false;
+    const top = [
+      ...this.root.ownerDocument.querySelectorAll("dialog[open]"),
+    ].at(-1);
+    return !top || top.contains(this.tip);
   }
   hide() {
     clearTimeout(this.timer);

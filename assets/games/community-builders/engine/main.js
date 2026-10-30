@@ -92,6 +92,76 @@ export async function mount(
     showToast();
   }
   const words = (text) => (typeof text === "function" ? text() : text);
+  // A toast stays inside the game's width, below the play view's toolbar and
+  // the game's top bar or HUD, so it covers none of their controls. On a phone
+  // the HUD's buttons are its top row: the toast covers the HUD's title lines
+  // there. When that place would hide a heading, the instruction or a control
+  // and the bottom of the screen hides less, it sits at the bottom instead.
+  // It follows the view as it scrolls: a result toast arrives before the card
+  // has opened at the top.
+  let toastFrame = 0,
+    toastLow = false;
+  function placeToast() {
+    toastFrame = 0;
+    const card = toastHost.querySelector(".cb-engine-toast");
+    if (!card) return;
+    const view = globalThis.innerHeight,
+      game = root.getBoundingClientRect(),
+      toolbar = root
+        .closest("[data-playtest-stage]")
+        ?.querySelector(".pt-toolbar"),
+      top = Math.max(0, toolbar?.getBoundingClientRect().bottom || 0),
+      hud = root.querySelector(".cb-stophud"),
+      bar = hud || root.querySelector(".cb-bar:not([hidden])"),
+      edge = bar ? bar.getBoundingClientRect().bottom : top,
+      right = Math.max(16, globalThis.innerWidth - game.right + 16);
+    toastHost.style.right = right + "px";
+    toastHost.style.maxWidth =
+      Math.max(200, Math.min(360, game.width - 32)) + "px";
+    const tall = card.offsetHeight,
+      wide = card.offsetWidth,
+      x1 = globalThis.innerWidth - right,
+      high =
+        hud && game.width < 600
+          ? Math.max(top + 8, edge - tall - 12)
+          : Math.max(16, edge > top && edge < view / 2 ? edge : top) + 12,
+      low = Math.max(high, view - tall - 16),
+      hides = (y) =>
+        [
+          ...root.querySelectorAll(
+            "button, a[href], input, select, textarea, h1, h2, h3, .cb-coach, .cb-card__can",
+          ),
+        ]
+          .filter(
+            (node) =>
+              !toastHost.contains(node) &&
+              !(hud?.contains(node) && !node.matches("button, a[href]")),
+          )
+          .reduce((sum, node) => {
+            const r = node.getBoundingClientRect();
+            return (
+              sum +
+              Math.max(0, Math.min(x1, r.right) - Math.max(x1 - wide, r.left)) *
+                Math.max(0, Math.min(y + tall, r.bottom) - Math.max(y, r.top))
+            );
+          }, 0);
+    // The top is preferred: the toast moves down only when that hides clearly
+    // less (a quarter of its own area), and back up as soon as the top hides
+    // no more than the bottom, so it does not hop while the view moves.
+    const above = hides(high),
+      below = hides(low);
+    toastLow = toastLow ? above > below : below + (wide * tall) / 4 < above;
+    toastHost.style.top = (toastLow ? low : high) + "px";
+  }
+  function followToast() {
+    if (!toastFrame && toastHost.querySelector(".cb-engine-toast"))
+      toastFrame = (globalThis.requestAnimationFrame || setTimeout)(placeToast);
+  }
+  document.addEventListener("scroll", followToast, {
+    capture: true,
+    passive: true,
+  });
+  window.addEventListener("resize", followToast);
   function showToast() {
     if (toastTimer || !toastQueue.length) return;
     const next = toastQueue.shift();
@@ -103,21 +173,12 @@ export async function mount(
     card.refresh = () => {
       label.textContent = words(next.text);
     };
-    // Below the play view's toolbar and the game's own top bar or HUD when
-    // they are on screen, so the celebration covers none of their controls.
-    const toolbar = root
-      .closest("[data-playtest-stage]")
-      ?.querySelector(".pt-toolbar");
-    // Measured by height, not position: a result toast arrives while the
-    // last play screen may still be scrolled, before the card opens at the top.
-    const toolbarBottom = toolbar?.getBoundingClientRect().bottom || 0,
-      bar = root.querySelector(".cb-stophud, .cb-bar:not([hidden])"),
-      below = toolbarBottom + (bar ? bar.offsetHeight + 16 : 0);
-    toastHost.style.top =
-      Math.max(16, below < globalThis.innerHeight / 2 ? below : toolbarBottom) +
-      12 +
-      "px";
+    toastHost.setAttribute("aria-live", "polite");
     toastHost.append(card);
+    toastLow = false;
+    placeToast();
+    // Once the screen the toast belongs to has drawn, place it again.
+    followToast();
     if (next.badgeId) {
       audio.play("badge");
       const r = card.getBoundingClientRect();
@@ -440,15 +501,17 @@ export async function mount(
     return handled;
   });
   for (let n = 1; n <= 9; n++) input.on("choice." + n, () => focus.choice(n));
-  // Escape and Back close the nearest thing first: a tooltip (WCAG 1.4.13),
-  // then a Stop 1 finding, a dialog, the map key, and only then open Pause.
-  function back() {
-    if (tooltips.tip) {
-      tooltips.hide();
-      return true;
-    }
+  // Escape and Back close the nearest thing first: a tooltip the player can
+  // see (WCAG 1.4.13), then a Stop 1 finding, a dialog, the map key, and only
+  // then open Pause. P and the pad's Start button are Pause itself: they only
+  // clear a tooltip on the way.
+  function back(detail, event) {
+    const nearest = detail?.action === "back" || event?.key === "Escape";
+    const tip = tooltips.shown();
+    tooltips.hide();
+    if (tip && nearest) return true;
     const callout = root.querySelector(".cb-callout");
-    if (callout?.back && !document.querySelector("dialog[open]")) {
+    if (nearest && callout?.back && !document.querySelector("dialog[open]")) {
       callout.back();
       audio.play("ui.back");
       return true;
@@ -624,8 +687,14 @@ export async function mount(
     if (soundLabel) soundLabel.textContent = i18n.t("soundUnlock");
     const saveWarning = root.querySelector(".cb-engine-save-warning");
     if (saveWarning) saveWarning.textContent = i18n.t("saveFailed");
-    for (const card of toastHost.querySelectorAll(".cb-engine-toast"))
-      card.refresh?.();
+    const cards = toastHost.querySelectorAll(".cb-engine-toast");
+    if (cards.length) {
+      // The words change language in place; that is not news to read again.
+      // The next toast turns the region back on (and so does a short wait).
+      toastHost.setAttribute("aria-live", "off");
+      for (const card of cards) card.refresh?.();
+      setTimeout(() => toastHost.setAttribute("aria-live", "polite"), 300);
+    }
     refresh();
   });
   root.addEventListener("click", () => {

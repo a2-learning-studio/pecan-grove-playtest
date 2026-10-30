@@ -72,10 +72,13 @@ export function showCallout(ctx, anchor, content, options = {}) {
     dismiss();
   }
   // The next step, not a cancel: a plain pill, like the classic card's button.
-  panel.appendChild(
-    ctx.btn(options.closeLabel || ctx.W.close, "cb-btn--primary", dismiss),
+  const keep = ctx.btn(
+    options.closeLabel || ctx.W.close,
+    "cb-btn--primary",
+    dismiss,
   );
-  panel.lastElementChild.setAttribute("data-cb-novoice", "");
+  keep.setAttribute("data-cb-novoice", "");
+  panel.appendChild(keep);
   ctx.root.appendChild(panel);
   panel.dismiss = close;
   panel.back = dismiss;
@@ -91,10 +94,11 @@ export function showCallout(ctx, anchor, content, options = {}) {
   }
   // An in-flow finding below the fold is brought into view at once, down to
   // "Keep looking" (no smooth scroll: it would float the finding mid-way).
-  // Dismissing it scrolls back to where the player was looking.
+  // Dismissing it scrolls back to where the player was looking. Returns
+  // whether the view moved.
   function reveal() {
-    if (closed || !panel.classList.contains("is-flow")) return;
-    if (inView(panel.getBoundingClientRect())) return;
+    if (closed || !panel.classList.contains("is-flow")) return false;
+    if (inView(panel.getBoundingClientRect())) return false;
     const boxes = [];
     for (let box = panel.parentElement; box; box = box.parentElement)
       if (box.scrollHeight > box.clientHeight) boxes.push([box, box.scrollTop]);
@@ -103,6 +107,10 @@ export function showCallout(ctx, anchor, content, options = {}) {
       boxes.push([page, page.scrollTop]);
     revealed = boxes;
     panel.scrollIntoView?.({ block: "nearest", behavior: "auto" });
+    // Taller than a short window: "Keep looking" is what must stay reachable.
+    if (!inView(keep.getBoundingClientRect()))
+      keep.scrollIntoView?.({ block: "nearest", behavior: "auto" });
+    return true;
   }
   // Moving the finding between the board and the game root must not drop
   // keyboard focus from "Keep looking" to the page.
@@ -125,7 +133,10 @@ export function showCallout(ctx, anchor, content, options = {}) {
     const left = viewport?.offsetLeft || 0,
       top = viewport?.offsetTop || 0;
     panel.style.maxWidth = Math.max(1, vw - gap * 2) + "px";
-    panel.style.width = Math.min(350, Math.max(1, vw - gap * 2)) + "px";
+    // A short window (a phone on its side, a zoomed laptop) has width to
+    // spare and little height: wider lines keep the finding on one screen.
+    panel.style.width =
+      Math.min(vh < 480 ? 520 : 350, Math.max(1, vw - gap * 2)) + "px";
     panel.style.maxHeight = Math.max(80, vh - gap * 2) + "px";
     const a = anchor.getBoundingClientRect(),
       p = panel.getBoundingClientRect();
@@ -154,20 +165,18 @@ export function showCallout(ctx, anchor, content, options = {}) {
       height: p.height,
     }));
     // Every control on the play stage is an obstacle: the game, its toolbar and
-    // the feedback form below the game stay reachable. So is the instruction
-    // the player is following.
+    // the feedback form below the game stay reachable. So are the instruction
+    // the player is following, the action bar with its count, and the thing
+    // just chosen: a finding never covers what it explains.
     const controls =
-        'button, a[href], input:not([type="hidden"]), select, textarea, summary, [role="button"], .cb-coach',
+        'button, a[href], input:not([type="hidden"]), select, textarea, summary, [role="button"], .cb-coach, .cb-actions',
       stage = ctx.root.closest("[data-playtest-stage]"),
       toolbar = stage?.querySelector(".pt-toolbar"),
       obstacles = [...(stage || ctx.root).querySelectorAll(controls)]
         .filter(
-          (node) =>
-            node !== anchor &&
-            !panel.contains(node) &&
-            !node.closest("[hidden], [inert]"),
+          (node) => !panel.contains(node) && !node.closest("[hidden], [inert]"),
         )
-        .map((node) => node.getBoundingClientRect())
+        .map((node) => (node === anchor ? a : node.getBoundingClientRect()))
         .filter((rect) => rect.width > 0 && rect.height > 0);
     const area = (a, b) =>
       Math.max(
@@ -260,8 +269,15 @@ export function showCallout(ctx, anchor, content, options = {}) {
     );
   ctx.activeLifecycle?.cleanup(close);
   place();
-  reveal();
-  anchor.focus({ preventScroll: true });
+  // When the view moved to show the finding, the chosen thing may now be out
+  // of sight. A keyboard or gamepad player then lands on "Keep looking", which
+  // brings them back to it; a pointer player's focus stays on the thing.
+  const moved = reveal(),
+    device = ctx.root.dataset.input;
+  (moved && (device === "keyboard" || device === "gamepad")
+    ? keep
+    : anchor
+  ).focus({ preventScroll: true });
   const words = [options.title, ...body.map((node) => node.textContent)]
     .map((text) => String(text || "").trim())
     .filter(Boolean);
