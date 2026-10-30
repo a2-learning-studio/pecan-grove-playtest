@@ -698,3 +698,28 @@ test('the close-out closes by itself when the tab is hidden and after ten minute
   assert.equal(dialog.open, true); assert.match(b.id('pt-closeout-files').textContent, /Delete them from the Downloads folder/); assert.doesNotMatch(textOf(dialog), /private note/);
   await b.tick(600000); assert.equal(dialog.open, false);
 });
+
+// 2026-10-30 UI/UX round. PG-UX-C16: before anything is written the line says where drafts stay (not "Draft saved"),
+// and redrawing the same words is not announced again. PG-UX-C17: Send now looks unavailable until the check is
+// ticked; the gate itself (finishSend) is unchanged. PG-UX-C32: a wrong close-out code marks the field invalid.
+for (const lang of ['en', 'es']) test(`${lang}: the status line says where drafts stay until a note is written, and Send now waits for the check`, async () => {
+  const shell = JSON.parse(fs.readFileSync(new URL(`../../assets/playtest/locales/${lang}.json`, import.meta.url), 'utf8'));
+  const b = browser({lang});
+  assert.equal(b.el('status').textContent, shell.feedback_status, 'nothing written yet: drafts stay on this device until Send');
+  b.el('fix').value = 'test'; b.el('fix').fire('input'); await b.tick(2000);
+  assert.notEqual(b.el('status').textContent, shell.feedback_status, 'a written note is saved as a draft');
+  b.el('form').fire('submit');
+  assert.equal(b.el('send').getAttribute('aria-disabled'), 'true', 'Send now looks unavailable before the grown-up check');
+  b.el('confirm').checked = true; b.el('confirm').fire('change');
+  assert.equal(b.el('send').getAttribute('aria-disabled'), 'false');
+  b.el('confirm').checked = false; b.el('confirm').fire('change');
+  b.el('send').click(); await b.tick(2000); assert.equal(b.requests.length, 0, 'the gate is unchanged: nothing is sent without the check');
+});
+test('a wrong close-out code marks the code field invalid until it is typed again', async () => {
+  const b = browser({closeout: CODE});
+  b.app.openCloseout(b.doc.createElement('button'));
+  b.id('pt-closeout-code').value = 'test'; b.id('pt-closeout-ask-confirm').click(); await digestDone();
+  assert.equal(b.id('pt-closeout-code').getAttribute('aria-invalid'), 'true');
+  b.id('pt-closeout-code').fire('input');
+  assert.equal(b.id('pt-closeout-code').getAttribute('aria-invalid'), 'false');
+});

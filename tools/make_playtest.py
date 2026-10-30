@@ -213,21 +213,22 @@ def feedback_panel(lang, revision, endpoint, form="", closeout=""):
     lock = f' data-closeout="{e(closeout)}"' if closeout else ""
     # A copy that sends never offers a child the per-player Excel file; a copy that never sends keeps it as the backup.
     download = "" if endpoint else f'<button class="pt-btn pt-btn--secondary" id="pt-feedback-download" type="button">{e(w["feedback_download"])}</button>'
+    # The two questions a note is for come first, right under the privacy line; the optional lists follow.
     return f'''  <section class="pt-note pt-feedback" id="pt-feedback" aria-labelledby="pt-feedback-h" data-lang="{lang}" data-build="{e(revision)}" data-endpoint="{e(endpoint)}"{lock}>
     <h2 id="pt-feedback-h">{e(w["feedback"])}</h2>
     <p>{e(w["feedback_intro"])}</p>
     <p class="pt-feedback__player">{e(w["feedback_player"])} <span id="pt-feedback-player">{e(w["feedback_player_loading"])}</span></p>
     <p class="pt-feedback__context">{e(w["feedback_context"])} <span id="pt-feedback-context">{e(w["feedback_general"])}</span></p>
-    <p class="pt-privacy" id="pt-feedback-privacy">{e(w["feedback_cloud"] if endpoint else w["feedback_local"])}</p>
     <form id="pt-feedback-form" aria-describedby="pt-feedback-privacy pt-feedback-hint">
+      <p class="pt-privacy" id="pt-feedback-privacy">{e(w["feedback_cloud"] if endpoint else w["feedback_local"])}</p>
+      <label for="pt-feedback-worked">{e(w["feedback_worked"])}<textarea id="pt-feedback-worked" name="worked" rows="3" maxlength="1200" aria-describedby="pt-feedback-hint"></textarea></label>
+      <label for="pt-feedback-fix">{e(w["feedback_fix"])}<textarea id="pt-feedback-fix" name="fix" rows="3" maxlength="1200" aria-describedby="pt-feedback-hint"></textarea></label>
+      <p class="pt-privacy" id="pt-feedback-hint">{e(w["feedback_hint"])}</p>
       <div class="pt-feedback__fields">
         <label for="pt-feedback-stop">{e(w["feedback_for"])}<select id="pt-feedback-stop" name="stop">{options}</select></label>
         <label for="pt-feedback-rating">{e(w["feedback_rating"])}<select id="pt-feedback-rating" name="rating"><option value="">{e(w["feedback_choose"])}</option>{ratings}</select></label>
         <label for="pt-feedback-category">{e(w["feedback_category"])}<select id="pt-feedback-category" name="category"><option value="">{e(w["feedback_choose"])}</option>{categories}</select></label>
       </div>
-      <label for="pt-feedback-worked">{e(w["feedback_worked"])}<textarea id="pt-feedback-worked" name="worked" rows="3" maxlength="1200" aria-describedby="pt-feedback-hint"></textarea></label>
-      <label for="pt-feedback-fix">{e(w["feedback_fix"])}<textarea id="pt-feedback-fix" name="fix" rows="3" maxlength="1200" aria-describedby="pt-feedback-hint"></textarea></label>
-      <p class="pt-privacy" id="pt-feedback-hint">{e(w["feedback_hint"])}</p>
       <div class="pt-feedback__actions"><button class="pt-btn" id="pt-feedback-submit" type="submit">{e(w["feedback_send"] if endpoint else w["feedback_save"])}</button></div>
     </form>
     <p id="pt-feedback-status" role="status" aria-live="polite">{e(w["feedback_auto_status"] if endpoint else w["feedback_status"])}</p>
@@ -332,15 +333,16 @@ def page(lang, form, revision="preview", build_date=None, feedback_endpoint="", 
 </div></header>
 <main class="pt-main">
   <section class="pt-intro" id="pt-intro" aria-labelledby="pt-h">
-    <div class="pt-intro__art"><picture><source type="image/avif" srcset="assets/games/community-builders/img/town-map-640.avif 640w, assets/games/community-builders/img/town-map-960.avif 960w, assets/games/community-builders/img/town-map-1376.avif 1376w" sizes="(max-width: 760px) 100vw, 45vw"><img src="assets/games/community-builders/img/town-map-640.webp" srcset="assets/games/community-builders/img/town-map-640.webp 640w, assets/games/community-builders/img/town-map-960.webp 960w, assets/games/community-builders/img/town-map-1376.webp 1376w" sizes="(max-width: 760px) 100vw, 45vw" alt="" width="1376" height="768" fetchpriority="high" decoding="sync"></picture><p>{e(w['purpose'])}</p></div>
+    <div class="pt-intro__art"><picture><source type="image/avif" srcset="assets/games/community-builders/img/town-map-640.avif 640w, assets/games/community-builders/img/town-map-960.avif 960w, assets/games/community-builders/img/town-map-1376.avif 1376w" sizes="100vw"><img src="assets/games/community-builders/img/town-map-640.webp" srcset="assets/games/community-builders/img/town-map-640.webp 640w, assets/games/community-builders/img/town-map-960.webp 960w, assets/games/community-builders/img/town-map-1376.webp 1376w" sizes="100vw" alt="" width="1376" height="768" fetchpriority="high" decoding="sync"></picture><p>{e(w['purpose'])}</p></div>
     <div class="pt-intro__copy">
-    <p class="pt-eyebrow">{e(w['team_label'])}</p>
     <h1 id="pt-h" tabindex="-1">{e(w["h1"])}</h1>
     <label class="pt-quiet-choice" for="pt-quiet"><input type="checkbox" id="pt-quiet"><span><b>{e(w['quiet'])}</b><small>{e(w['quiet_hint'])}</small></span></label>
     <div class="pt-actions"><button class="pt-btn" id="pt-start" type="button">{e(w["play"])}</button></div>
-    <p class="pt-team">{e(w['team'])}</p>
-    <p>{e(w['team_about'])}</p>
-    <p class="pt-privacy" id="pt-disclosure">{e(w['independent'])} {e(w['fellowship'])}</p>
+    <details class="pt-guide" id="pt-guide"><summary>{e(w["instructions"])}</summary>
+      <p class="pt-goal">{e(w["goal"])}</p>
+      <ol class="pt-steps">{steps}</ol>
+      <p>{e(w['external_noise'])}</p>
+    </details>
     <p class="pt-lead">{e(w["lead"])}</p>
     <p class="pt-goal" id="pt-intro-note">{e(w['intro_note'])}</p>
     <fieldset class="pt-consent" id="pt-consent-options"><legend>{e(w['grownups_tab'])}</legend>
@@ -351,12 +353,10 @@ def page(lang, form, revision="preview", build_date=None, feedback_endpoint="", 
     </fieldset>
     <p class="pt-privacy">{e(w["privacy"])}</p>
     <p class="pt-privacy">{e(w["privacy_steps"])}</p>
+    <p class="pt-team">{e(w['team'])}</p>
+    <p>{e(w['team_about'])}</p>
+    <p class="pt-privacy" id="pt-disclosure">{e(w['independent'])} {e(w['fellowship'])}</p>
     <p id="pt-intro-review-hint">{e(w['intro_review'])}</p>
-    <details class="pt-guide" id="pt-guide"><summary>{e(w["instructions"])}</summary>
-      <p class="pt-goal">{e(w["goal"])}</p>
-      <ol class="pt-steps">{steps}</ol>
-      <p>{e(w['external_noise'])}</p>
-    </details>
     <details class="pt-guide" id="pt-access"><summary>{e(w["access_title"])}</summary>
       <p>{e(w["access_goal"])}</p>
       <p>{e(w["access_gaps"])}</p>

@@ -356,6 +356,14 @@ class PlaytestBuilderTests(unittest.TestCase):
             self.assertIn('href="#pt-h"', page)
             self.assertIn('<details class="pt-guide" id="pt-guide">', page)
             self.assertNotIn('<details class="pt-guide" open', page)
+            # PG-UX-B01: the test's instructions follow Start, before the story and the small print; no eyebrow.
+            self.assertLess(page.index('id="pt-start"'), page.index('id="pt-guide"'))
+            self.assertLess(page.index('id="pt-guide"'), page.index('class="pt-lead"'))
+            self.assertLess(page.index('id="pt-consent-options"'), page.index('id="pt-disclosure"'))
+            self.assertNotIn('pt-eyebrow', page)
+            # PG-UX-B11: the two questions a note is for come first in the feedback form, the optional lists after.
+            self.assertLess(page.index('id="pt-feedback-privacy"'), page.index('id="pt-feedback-worked"'))
+            self.assertLess(page.index('id="pt-feedback-fix"'), page.index('id="pt-feedback-stop"'))
             self.assertIn('content="test-revision"', page)
             self.assertIn('noindex, nofollow', page)
             self.assertNotIn('target="_blank"', page)

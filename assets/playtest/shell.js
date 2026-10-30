@@ -94,6 +94,9 @@
         }
         var languageLink = document.querySelector('.pt-lang');
         if (languageLink) { languageLink.href = words.other; languageLink.hreflang = words.other_lang; languageLink.lang = words.other_lang; }
+        // The game area is excluded above, but its own name is the shell's word.
+        var gameArea = document.getElementById('community-builders');
+        if (gameArea && gameArea.hasAttribute('aria-label') && typeof words.game_label === 'string') gameArea.setAttribute('aria-label', words.game_label);
         es = language === 'es';
       }).catch(function () { catalogs = null; });
     });

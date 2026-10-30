@@ -3,13 +3,15 @@
 .pt-feedback form { display: grid; gap: 1rem; }
 .pt-feedback__session { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .75rem; padding-block: .75rem; border-block: 1px solid var(--pg-color-dce5d9); margin-block: 1rem; }
 .pt-feedback__player { font-weight: 750; font-variant-numeric: tabular-nums; }
-.pt-feedback__fields { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; }
+/* The stop list has the longest option ("Mapa del pueblo / comentarios generales"): it gets the whole row. */
+.pt-feedback__fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+.pt-feedback__fields > label:first-child { grid-column: 1 / -1; }
 .pt-feedback label, .pt-feedback__field { display: flex; flex-direction: column; gap: .4rem; font-weight: 700; }
-.pt-feedback input, .pt-feedback select, .pt-feedback textarea { box-sizing: border-box; width: 100%; min-height: 44px; font: inherit; font-weight: 400; color: var(--pg-color-213c2e); background: var(--pg-color-fff); border: 1px solid var(--pg-color-91aa99); border-radius: .65rem; padding: .7rem .8rem; }
+.pt-feedback input, .pt-feedback select, .pt-feedback textarea { box-sizing: border-box; width: 100%; min-height: 44px; font: inherit; font-weight: 400; color: var(--pg-color-213c2e); background: var(--pg-color-fff); border: 1px solid var(--pg-color-42654c); border-radius: .65rem; padding: .7rem .8rem; }
 .pt-feedback textarea { min-height: 6rem; resize: vertical; line-height: 1.5; }
 .pt-feedback__text { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; margin-block: 1rem; }
 .pt-feedback__actions { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem; margin-block: 1rem; }
-.pt-feedback button { min-height: 44px; padding: .65rem 1rem; border: 1px solid var(--pg-color-42654c); border-radius: .7rem; font: inherit; font-weight: 700; cursor: pointer; background: var(--pg-color-fff); color: var(--pg-color-24452e); }
+.pt-feedback button { min-height: 44px; padding: .65rem 1.1rem; border: 1px solid var(--pg-color-42654c); border-radius: 999px; font: inherit; font-weight: 700; cursor: pointer; background: var(--pg-color-fff); color: var(--pg-color-24452e); }
 #pt-feedback-submit { background: var(--pg-color-244f35); color: var(--pg-color-fff); }
 .pt-feedback button:hover { box-shadow: 0 2px 0 var(--pg-color-244f3526); }
 .pt-feedback button:disabled { opacity: .55; cursor: not-allowed; box-shadow: none; }
@@ -33,12 +35,14 @@
 .pt-feedback__preview-text { white-space: pre-wrap; overflow-wrap: anywhere; padding: .75rem; background: var(--pg-color-f2f5ee); border-radius: .65rem; }
 .pt-feedback__preview button { margin: .25rem; min-height: 48px; }
 #pt-feedback-send { background: var(--pg-color-244f35); color: var(--pg-color-fff); }
+#pt-feedback-send[aria-disabled="true"] { opacity: .55; box-shadow: none; }
 #pt-feedback-save-draft { justify-self: start; }
 @media (forced-colors: active) { .pt-feedback__preview { border-color: CanvasText; } .pt-feedback button:focus-visible { outline-color: Highlight; } }
 
 .pt-feedback .pt-feedback__check, .pt-device .pt-feedback__check { display: flex; flex-direction: row; align-items: flex-start; gap: .65rem; margin-block: .5rem; padding: .75rem; border: 1px solid var(--pg-color-91aa99); border-radius: .65rem; background: var(--pg-color-f2f5ee); font-weight: 700; line-height: 1.45; cursor: pointer; }
 .pt-feedback .pt-feedback__check input, .pt-device .pt-feedback__check input { flex: none; box-sizing: border-box; width: 1.3rem; height: 1.3rem; min-height: 0; margin: .1rem 0 0; padding: 0; accent-color: var(--pg-color-244f35); }
-.pt-feedback__flags { margin: .5rem 0; padding: .65rem .85rem; border-left: 4px solid var(--pg-color-996821); background: var(--pg-color-fff); font-weight: 700; line-height: 1.45; }
+/* the "remove names" warning looks like the game's other notices: a full border on the warn pair, no side bar */
+.pt-feedback__flags { margin: .5rem 0; padding: .65rem .85rem; border: 1.5px solid var(--pg-color-7a5200); border-radius: .65rem; background: var(--pg-color-f8eed8); color: var(--pg-color-7a5200); font-weight: 700; line-height: 1.45; }
 .pt-feedback__flags[hidden] { display: none; }
 .pt-device { width: min(720px, calc(100% - 32px)); overflow: auto; overscroll-behavior: contain; }
 .pt-device__privacy { margin-block: .75rem; padding: .75rem 1rem; border: 1px solid var(--pg-color-c9d8cc); border-radius: .8rem; background: var(--pg-color-f8fbf5); }
@@ -49,6 +53,8 @@
 .pt-device__erase { margin-block: 1rem; }
 /* The facilitator's close-out code: typed into the dialog, shown as dots, never kept by the browser. */
 .pt-closeout__field { display: flex; flex-direction: column; gap: .4rem; margin-block: .75rem; font-weight: 700; }
-.pt-closeout__code { box-sizing: border-box; width: 100%; min-height: 44px; font: inherit; font-weight: 400; color: var(--pg-color-213c2e); background: var(--pg-color-fff); border: 1px solid var(--pg-color-91aa99); border-radius: .65rem; padding: .7rem .8rem; }
+.pt-closeout__code { box-sizing: border-box; width: 100%; min-height: 44px; font: inherit; font-weight: 400; color: var(--pg-color-213c2e); background: var(--pg-color-fff); border: 1px solid var(--pg-color-42654c); border-radius: .65rem; padding: .7rem .8rem; }
 .pt-closeout__code:focus-visible { outline: 3px solid var(--pg-color-996821); outline-offset: 3px; }
+.pt-closeout__code[aria-invalid="true"] { border: 2px solid var(--pg-color-7a5200); }
+.pt-device__status.is-error { padding: .65rem .85rem; border: 1.5px solid var(--pg-color-7a5200); border-radius: .65rem; background: var(--pg-color-f8eed8); color: var(--pg-color-7a5200); font-weight: 700; }
 @media (forced-colors: active) { .pt-feedback__check, .pt-feedback__flags { border-color: CanvasText; } }
