@@ -339,6 +339,28 @@ test('Library / Class mode chosen on the page keeps each Stop 1 finding on scree
   await page.waitForTimeout(6500);await expect(card).toBeVisible();
   await page.keyboard.press('Escape');await expect(card).toHaveCount(0);
 });
+// 2026-10-30 UI/UX round (PG-UX-C02): one Escape closes the open finding only; Pause needs a second Escape.
+for(const {lang,file} of languages)test(`${lang}: Escape on an open Stop 1 finding closes the finding and does not open Pause`,async({page})=>{
+  await start(page,file);await stop(page,1);await startStop1Today(page);
+  await page.waitForTimeout(400);const spot=page.locator('.cb-s01-spot[data-spot="3"]');
+  await spot.focus();await page.keyboard.press('Enter');await expect(page.locator('.cb-callout')).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(page.locator('.cb-callout')).toHaveCount(0);await expect(page.locator('.cb-pause')).toHaveCount(0);await expect(spot).toBeFocused();
+  await page.keyboard.press('Escape');await expect(page.locator('.cb-pause')).toBeVisible();
+});
+// PG-UX-C01 / C03: a finding opens in view down to Keep looking, on a laptop and a phone, and Keep looking brings the
+// chosen thing back into view.
+for(const [lang,file,width,height] of [['en','index.html',1366,768],['es','espanol.html',390,844]])test(`${lang} ${width}x${height}: a Stop 1 finding opens in view, and Keep looking returns to the scene`,async({page})=>{
+  await page.setViewportSize({width,height});await start(page,file);await stop(page,1);await startStop1Today(page);
+  for(const index of [5,11]){
+    await page.waitForTimeout(400);const spot=page.locator(`.cb-s01-spot[data-spot="${index}"]`);
+    await spot.click();const finding=page.locator('.cb-callout'),keep=finding.locator('.cb-btn');
+    await expect(keep).toBeInViewport({ratio:1});
+    await expect(finding.locator('h3')).toBeInViewport({ratio:1});
+    await keep.click();await expect(finding).toHaveCount(0);
+    await expect(spot).toBeInViewport();await expect(spot).toBeFocused();
+  }
+});
 test('language switch mid-stop retains the current step and selected tiles',async({page})=>{
   await start(page);await stop(page,2);await page.locator('.cb-s02-intro .cb-btn--go').click();await page.locator('.cb-s02-row[data-row="topic"] .cb-s02-tile').first().click();
   const selected=await page.locator('.cb-s02-tile[aria-pressed="true"]').getAttribute('data-id');
@@ -346,6 +368,7 @@ test('language switch mid-stop retains the current step and selected tiles',asyn
   if(await language.isVisible())await language.click();
   else{await page.locator('.cb-hud-more').click();await page.locator('.cb-hud-more-dialog').getByRole('button',{name:'ES, Español',exact:true}).click();}
   await expect(page.locator('html')).toHaveAttribute('lang','es');await expect(page.locator('.cb-s02-play')).toBeVisible();await expect(page.locator('.cb-s02-tile[aria-pressed="true"]')).toHaveAttribute('data-id',selected);
+  await expect(page.locator('#community-builders')).toHaveAttribute('aria-label','Juego'); // PG-UX-A09
   await page.locator('#pt-review-tab').click();await expect(page.locator('#pt-feedback-h')).toHaveText('Comentarios de la prueba');await expect(page.locator('#pt-feedback-save-draft')).toHaveText('Guardar borrador en este dispositivo');await expect(page.locator('#pt-feedback-category option[value="art"]')).toHaveText('Imágenes o diseño');
 });
 test('pause/resume preserves selected choices and native Tab access',async({page})=>{
