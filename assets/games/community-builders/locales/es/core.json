@@ -157,7 +157,7 @@
     "consentDetails": "Agrega el número de parada y el puntaje. Nunca nombres. Un adulto confirma antes de activarlo, y puedes desactivarlo cuando quieras.",
     "consentAutoScores": "También enviar cada puntaje al terminar una parada",
     "consentAutoDetails": "Se envía enseguida, sin revisión de un adulto. Nunca notas ni nombres.",
-    "consentAutoNeedsScores": "Para usar esta casilla, primero activa la de arriba.",
+    "consentAutoNeedsScores": "Para usar esta, marca antes la de arriba.",
     "devicePanel": "Privacidad y notas de este dispositivo",
     "nextPlayer": "Siguiente jugador en esta computadora",
     "facilitatorCloseout": "Cierre para facilitadores"

@@ -76,7 +76,8 @@
 .cb-bar[hidden] { display: none; }
 @container cb (max-width: 639.98px) { .cb-brand > span { display: none; } .cb-brand svg { width: 30px; height: 30px; } .cb-bar { padding-inline: 8px; } .cb-bar__tools { gap: 4px; } .cb-bar__tools .cb-btn, .cb-bar__tools .cb-chip { padding-inline: 8px; } .cb-bar__tools .cb-chip > span:last-child { display: none; } }
 /* Under 400px a player's chip and the bar's tools need the whole row: the crest steps aside instead of sliding under the chip */
-@container cb (max-width: 399.98px) { .cb-bar:has(.cb-chip) > .cb-brand { display: none; } .cb-bar:has(.cb-chip) { grid-template-columns: minmax(0, 1fr); justify-items: end; } }
+@container cb (max-width: 399.98px) { .cb-bar:has(.cb-chip) > .cb-brand { display: none; } .cb-bar:has(.cb-chip) { grid-template-columns: minmax(0, 1fr); justify-items: end; }
+  .cb-bar .cb-fs { display: none; } }   /* Full screen stays in Settings > Display, as in the stop HUD on phones */
 .cb-brand { display: flex; align-items: center; gap: 12px; margin: 0 auto 0 0; font-family: var(--a2-font-display); font-size: 1.0625rem; font-weight: 640; letter-spacing: -0.012em; line-height: 1.2; }
 .cb-brand svg { width: 38px; height: 38px; flex: none; }
 .cb-face { display: inline-grid; place-items: center; flex: none; width: 34px; height: 34px; border-radius: 50%; background: var(--cb-card); border: 3px solid var(--ring, var(--cb-line-strong)); }
