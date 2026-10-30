@@ -108,13 +108,15 @@ export async function mount(
     const toolbar = root
       .closest("[data-playtest-stage]")
       ?.querySelector(".pt-toolbar");
-    let bottom = toolbar?.getBoundingClientRect().bottom || 0;
-    const bar = root.querySelector(
-      ".cb-stophud, .cb-map-controls, .cb-bar:not([hidden])",
-    );
-    const below = bar?.getBoundingClientRect().bottom || 0;
-    if (below > bottom && below < globalThis.innerHeight / 2) bottom = below;
-    toastHost.style.top = Math.max(16, bottom + 12) + "px";
+    // Measured by height, not position: a result toast arrives while the
+    // last play screen may still be scrolled, before the card opens at the top.
+    const toolbarBottom = toolbar?.getBoundingClientRect().bottom || 0,
+      bar = root.querySelector(".cb-stophud, .cb-bar:not([hidden])"),
+      below = toolbarBottom + (bar ? bar.offsetHeight + 16 : 0);
+    toastHost.style.top =
+      Math.max(16, below < globalThis.innerHeight / 2 ? below : toolbarBottom) +
+      12 +
+      "px";
     toastHost.append(card);
     if (next.badgeId) {
       audio.play("badge");
