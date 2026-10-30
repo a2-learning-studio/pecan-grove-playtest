@@ -312,7 +312,7 @@ def page(lang, form, revision="preview", build_date=None, feedback_endpoint="", 
 <link rel="manifest" href="manifest.{lang}.webmanifest">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <link rel="apple-touch-icon" href="assets/icons/apple-touch.png">
-<link rel="preload" as="image" href="assets/games/community-builders/img/town-map-640.avif" imagesrcset="assets/games/community-builders/img/town-map-640.avif 640w, assets/games/community-builders/img/town-map-960.avif 960w, assets/games/community-builders/img/town-map-1376.avif 1376w" imagesizes="(max-width: 760px) 100vw, 45vw" type="image/avif" fetchpriority="high">
+<link rel="preload" as="image" href="assets/games/community-builders/img/town-map-640.avif" imagesrcset="assets/games/community-builders/img/town-map-640.avif 640w, assets/games/community-builders/img/town-map-960.avif 960w, assets/games/community-builders/img/town-map-1376.avif 1376w" imagesizes="100vw" type="image/avif" fetchpriority="high">
 <link rel="preload" as="font" href="assets/fonts/Inter-var.woff2" type="font/woff2" crossorigin>
 <link rel="preload" as="font" href="assets/fonts/Geist-var.woff2" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="assets/css/a2-studio.css">
