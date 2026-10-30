@@ -426,7 +426,9 @@ for(const {lang,file} of languages)test(`${lang} 683x384: New game is on the fir
 // A tooltip stays while the pointer moves onto it (WCAG 1.4.13 Hoverable), with a real mouse path; touch shows none.
 test('a hover tooltip stays while the mouse moves onto it, and leaves with the mouse',async({page})=>{
   await page.setViewportSize({width:1366,height:768});await start(page);await stop(page,2);
-  const icon=page.locator('.cb-stophud .cb-setbtn');const b=await icon.boundingBox();
+  // hover() waits until the HUD stops moving. Measured: in a full Chromium run the stop's smooth scroll to its top was
+  // still running, so a pointer placed at a box read too early landed on the toolbar instead (1 of 3 runs).
+  const icon=page.locator('.cb-stophud .cb-setbtn');await icon.hover();const b=await icon.boundingBox();
   await page.mouse.move(b.x+b.width/2,b.y+b.height/2,{steps:4});
   if(!await page.evaluate(()=>matchMedia('(hover: hover)').matches)){
     await page.waitForTimeout(700);await expect(page.locator('.cb-tooltip')).toHaveCount(0);return;
