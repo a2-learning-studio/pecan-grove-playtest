@@ -35,7 +35,7 @@
 .pt-feedback__preview-text { white-space: pre-wrap; overflow-wrap: anywhere; padding: .75rem; background: var(--pg-color-f2f5ee); border-radius: .65rem; }
 .pt-feedback__preview button { margin: .25rem; min-height: 48px; }
 #pt-feedback-send { background: var(--pg-color-244f35); color: var(--pg-color-fff); }
-#pt-feedback-send[aria-disabled="true"] { opacity: .55; box-shadow: none; }
+#pt-feedback-send[data-ready="false"] { background: var(--pg-color-fff); color: var(--pg-color-24452e); box-shadow: none; }
 #pt-feedback-save-draft { justify-self: start; }
 @media (forced-colors: active) { .pt-feedback__preview { border-color: CanvasText; } .pt-feedback button:focus-visible { outline-color: Highlight; } }
 

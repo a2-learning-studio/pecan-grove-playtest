@@ -709,9 +709,10 @@ for (const lang of ['en', 'es']) test(`${lang}: the status line says where draft
   b.el('fix').value = 'test'; b.el('fix').fire('input'); await b.tick(2000);
   assert.notEqual(b.el('status').textContent, shell.feedback_status, 'a written note is saved as a draft');
   b.el('form').fire('submit');
-  assert.equal(b.el('send').getAttribute('aria-disabled'), 'true', 'Send now looks unavailable before the grown-up check');
+  assert.equal(b.el('send').getAttribute('data-ready'), 'false', 'Send now is drawn as not ready before the grown-up check');
+  assert.notEqual(b.el('send').getAttribute('aria-disabled'), 'true', 'but stays a working button that explains the check');
   b.el('confirm').checked = true; b.el('confirm').fire('change');
-  assert.equal(b.el('send').getAttribute('aria-disabled'), 'false');
+  assert.equal(b.el('send').getAttribute('data-ready'), 'true');
   b.el('confirm').checked = false; b.el('confirm').fire('change');
   b.el('send').click(); await b.tick(2000); assert.equal(b.requests.length, 0, 'the gate is unchanged: nothing is sent without the check');
 });

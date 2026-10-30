@@ -230,9 +230,10 @@ export default function createLoadingView(ctx) {
         panel.appendChild(again);
         ctx.root.removeAttribute("aria-busy");
         // The message and Try again come into view and take focus, wherever
-        // the map was scrolled when the stop failed to load.
-        if (panel.scrollIntoView)
-          panel.scrollIntoView({ block: "nearest", behavior: "auto" });
+        // the map was scrolled when the stop failed to load: Try again sits in
+        // the middle of the screen with the message just above it.
+        if (again.scrollIntoView)
+          again.scrollIntoView({ block: "center", behavior: "auto" });
         again.focus({ preventScroll: true });
       },
     };

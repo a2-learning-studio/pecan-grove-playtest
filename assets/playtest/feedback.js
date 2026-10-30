@@ -759,9 +759,10 @@
       if (useNewDialog) { text(newTitle, W.newTitle); text(newCancel, W.newCancel); if (!newDialog.open) text(newConfirm, W.newConfirmLabel); }
       root.dataset.lang = lang; root.setAttribute("lang", SPOKEN[lang] || lang);
     }
-    // Send now looks unavailable until the grown-up ticks the check. It stays focusable and, if pressed, explains
-    // what is missing (finishSend), so the gate itself is unchanged.
-    function syncSendReady() { if (send && checkBox) send.setAttribute("aria-disabled", checkBox.checked ? "false" : "true"); }
+    // Send now is drawn as an outlined, secondary button until the grown-up ticks the check, and filled once it is
+    // ready. It stays a working button: pressed early it explains what is missing (finishSend), so the gate itself is
+    // unchanged, and its text keeps full contrast.
+    function syncSendReady() { if (send && checkBox) send.setAttribute("data-ready", checkBox.checked ? "true" : "false"); }
     function invalidatePreview() {
       previewEntry = null; if (preview) preview.hidden = true;
       if (checkBox) checkBox.checked = false;
