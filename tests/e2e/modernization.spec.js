@@ -361,6 +361,100 @@ for(const [lang,file,width,height] of [['en','index.html',1366,768],['es','espan
     await expect(spot).toBeInViewport();await expect(spot).toBeFocused();
   }
 });
+// Repair after the round's reviews. A keyboard player's focus must stay in view when a finding opens (it used to stay
+// on the chosen thing, which the reveal had scrolled 350-1280 px out of sight), and Keep looking brings them back.
+for(const [lang,file,width,height] of [['en','index.html',1366,768],['es','espanol.html',390,844]])test(`${lang} ${width}x${height}: a keyboard player's focus stays in view when a Stop 1 finding opens`,async({page})=>{
+  await page.setViewportSize({width,height});await start(page,file);await stop(page,1);await startStop1Today(page);
+  // Items 0, 4 and 7 sit high in the scene: before the repair their focus ended 85-171 px above the view.
+  for(const index of [0,4,7]){
+    await page.waitForTimeout(400);const spot=page.locator(`.cb-s01-spot[data-spot="${index}"]`);
+    await spot.focus();await page.keyboard.press('Enter');await expect(page.locator('.cb-callout')).toBeVisible();
+    await expect(page.locator(':focus')).toBeInViewport({ratio:1});
+    if(await page.locator('.cb-callout .cb-btn').evaluate(node=>node===document.activeElement))await page.keyboard.press('Enter');
+    else await page.keyboard.press('Escape');
+    await expect(page.locator('.cb-callout')).toHaveCount(0);await expect(spot).toBeFocused();await expect(spot).toBeInViewport();
+  }
+});
+// Tapping one thing and then the next without Keep looking floated the second finding over the thing just tapped and
+// the "Signs found" count, at 1366-1920.
+for(const {lang,file} of languages)test(`${lang}: a second Stop 1 tap without Keep looking never hides the tapped thing or the count`,async({page})=>{
+  await page.setViewportSize({width:1366,height:768});await start(page,file);await stop(page,1);await startStop1Today(page);
+  const box=locator=>locator.evaluate(node=>{const r=node.getBoundingClientRect();return{left:r.left,top:r.top,right:r.right,bottom:r.bottom};});
+  const apart=(a,b)=>a.right<=b.left||b.right<=a.left||a.bottom<=b.top||b.bottom<=a.top;
+  for(const index of [0,1,2,3]){
+    await page.waitForTimeout(450);const spot=page.locator(`.cb-s01-spot[data-spot="${index}"]`);await spot.click();
+    const finding=page.locator('.cb-callout');await expect(finding).toBeVisible();
+    const panel=await box(finding);
+    expect(apart(panel,await box(spot)),`finding ${index} leaves the tapped thing visible`).toBe(true);
+    expect(apart(panel,await box(page.locator('.cb-s01-board .cb-msg'))),`finding ${index} leaves the count readable`).toBe(true);
+  }
+});
+// In phone landscape a finding was taller than the play view: Keep looking sat below the fold on 2 of 12.
+test('en 640x360: every Stop 1 finding opens with Keep looking on screen',async({page})=>{
+  await page.setViewportSize({width:640,height:360});await start(page);await stop(page,1);await startStop1Today(page);
+  for(let index=0;index<12;index++){
+    await page.waitForTimeout(400);await page.locator(`.cb-s01-spot[data-spot="${index}"]`).click();
+    const keep=page.locator('.cb-callout .cb-btn');await expect(keep).toBeInViewport({ratio:1});await keep.click();
+    await expect(page.locator('.cb-callout')).toHaveCount(0);
+  }
+});
+// Stop 2 on phones: after Start the view jumped to the top of the game, and the worry the child must turn into a
+// question (which has focus) sat 205-436 px below the fold.
+// Measured with reduced motion, as the review found it (the view jumps at once).
+for(const [lang,file,width,height] of [['es','espanol.html',390,844],['en','index.html',360,640]])test(`${lang} ${width}x${height}: after Start in Stop 2 the focused worry is on screen`,async({page})=>{
+  await page.emulateMedia({reducedMotion:'reduce'});await page.setViewportSize({width,height});await start(page,file);await stop(page,2);
+  await page.waitForTimeout(450);await page.locator('.cb-s02-intro .cb-btn--go').click();
+  const worry=page.locator('[data-s02="worry"]');await expect(worry).toBeFocused();
+  await expect(worry).toBeInViewport({ratio:1});
+});
+// Stop 2 at the 1366x768 floor: once the question can be asked, "Ask it" comes into view (it sat fully below the fold).
+for(const {lang,file} of languages)test(`${lang} 1366x768: Stop 2's Ask it comes into view once the question can be asked`,async({page})=>{
+  await page.setViewportSize({width:1366,height:768});await start(page,file);await stop(page,2);
+  await page.waitForTimeout(450);await page.locator('.cb-s02-intro .cb-btn--go').click();await page.waitForTimeout(450);
+  await expect(page.locator('[data-s02="worry"]')).toBeInViewport({ratio:1});
+  await page.locator('.cb-s02-row[data-row="start"] .cb-s02-tile').first().click();
+  await page.locator('.cb-s02-row[data-row="topic"] .cb-s02-tile').first().click();
+  await expect(page.locator('.cb-s02-strip .cb-s02-ask')).toBeInViewport({ratio:1});
+  await expect(page.locator('.cb-s02-row[data-row="topic"] .cb-s02-tile').first()).toBeInViewport();
+});
+// The title at 200% browser zoom on the laptop floor (1366x768 seen as 683x384): New game was 258 px below the fold.
+for(const {lang,file} of languages)test(`${lang} 683x384: New game is on the first screen of the title`,async({page})=>{
+  await page.setViewportSize({width:683,height:384});await startStage(page,file);
+  const words=await page.evaluate(()=>window.PecanGroveEngine.i18n.messages);
+  await expect(page.locator('.cb-engine-title-actions').getByRole('button',{name:words.newGame,exact:true})).toBeInViewport({ratio:1});
+});
+// A tooltip stays while the pointer moves onto it (WCAG 1.4.13 Hoverable), with a real mouse path; touch shows none.
+test('a hover tooltip stays while the mouse moves onto it, and leaves with the mouse',async({page})=>{
+  await page.setViewportSize({width:1366,height:768});await start(page);await stop(page,2);
+  const icon=page.locator('.cb-stophud .cb-setbtn');const b=await icon.boundingBox();
+  await page.mouse.move(b.x+b.width/2,b.y+b.height/2,{steps:4});
+  if(!await page.evaluate(()=>matchMedia('(hover: hover)').matches)){
+    await page.waitForTimeout(700);await expect(page.locator('.cb-tooltip')).toHaveCount(0);return;
+  }
+  const tip=page.locator('.cb-tooltip');await expect(tip).toBeVisible();
+  const t=await tip.boundingBox();
+  await page.mouse.move(t.x+Math.min(t.width/2,b.width/2),t.y+t.height/2,{steps:12});
+  await page.waitForTimeout(300);await expect(tip).toBeVisible();
+  await page.mouse.move(t.x+t.width/2,t.y+t.height+160,{steps:6});
+  await expect(page.locator('.cb-tooltip')).toHaveCount(0);
+});
+// Phones: the play tools are one row that scrolls sideways. A tool reached with Tab lands fully on screen.
+for(const {lang,file} of languages)test(`${lang} 360x640: every play tool reached with Tab is fully on screen`,async({page})=>{
+  await page.setViewportSize({width:360,height:640});await start(page,file);
+  for(const id of ['#pt-review-tab','#pt-library-tab','#pt-grownups-tab','#pt-exit']){
+    const tool=page.locator(id);await tool.focus();await expect(tool).toBeFocused();await expect(tool).toBeInViewport({ratio:1});
+  }
+});
+// The first-stop badge toast covered the result line on a phone and ran past the game's edge on a laptop. It now stays
+// inside the game and off the result line, and the screen behind it still reads.
+for(const [width,height] of [[1366,768],[390,844]])test(`es ${width}x${height}: the new-badge toast stays inside the game and off the result line`,async({page})=>{
+  await page.setViewportSize({width,height});await start(page,'espanol.html');await stop(page,1);await startStop1Today(page);
+  await findStop1Items(page,0,12);await finishStop1(page);
+  const toast=page.locator('.cb-engine-toast');await expect(toast).toBeVisible();await page.waitForTimeout(700);
+  const [t,can,game]=await Promise.all(['.cb-engine-toast','.cb-card__can','#community-builders'].map(sel=>page.locator(sel).first().evaluate(node=>{const r=node.getBoundingClientRect();return{left:r.left,top:r.top,right:r.right,bottom:r.bottom};})));
+  expect(t.right).toBeLessThanOrEqual(game.right);expect(t.left).toBeGreaterThanOrEqual(game.left);
+  expect(t.bottom<=can.top||t.top>=can.bottom||t.right<=can.left||t.left>=can.right,'the result line stays readable').toBe(true);
+});
 test('language switch mid-stop retains the current step and selected tiles',async({page})=>{
   await start(page);await stop(page,2);await page.locator('.cb-s02-intro .cb-btn--go').click();await page.locator('.cb-s02-row[data-row="topic"] .cb-s02-tile').first().click();
   const selected=await page.locator('.cb-s02-tile[aria-pressed="true"]').getAttribute('data-id');

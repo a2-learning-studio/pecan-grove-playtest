@@ -257,19 +257,25 @@ test("the round result reads the score first and puts Play again before the tips
   }
 });
 
-test("a toast shows in the language on screen, even after a switch (PG-UX-C20)", async () => {
+// Review of the round: the first version of this test could pass with no toast on screen at all. It now proves the
+// toast is there first, and that its new words are not read out again as news (PG-UX-C20, review).
+test("a toast shows in the language on screen, even after a switch, and is not read again (PG-UX-C20)", async () => {
   const r = await mountedGame("en");
   try {
     r.engine.badge.notify?.("quiet-pro");
     r.engine.store.current().badges["quiet-pro"] = true;
     // The badge notifier queues a function, so the text is built when it shows.
     const host = r.root.querySelector(".cb-engine-toast-host");
-    const before = host.textContent;
+    await until(() => host.querySelector(".cb-engine-toast"), "the badge toast is on screen");
+    assert.match(host.textContent, /New badge/);
+    assert.equal(host.getAttribute("aria-live"), "polite");
     r.w.document.documentElement.lang = "es";
     await r.engine.i18n.load("es");
     r.w.document.dispatchEvent(new r.w.CustomEvent("pg:language-change", { detail: { language: "es" } }));
-    await until(() => !host.textContent || host.textContent !== before, "the visible toast follows the language");
-    if (host.textContent) assert.match(host.textContent, /Nueva insignia/);
+    await until(() => /Nueva insignia/.test(host.textContent), "the visible toast follows the language");
+    assert.ok(host.querySelector(".cb-engine-toast"), "the same toast, still on screen");
+    assert.equal(host.getAttribute("aria-live"), "off", "the switch is not announced as a new toast");
+    await until(() => host.getAttribute("aria-live") === "polite", "the region is live again for the next toast");
   } finally {
     r.close();
   }
@@ -338,3 +344,134 @@ test("the Settings language list switches the game and comes back to itself (PG-
     r.close();
   }
 });
+
+// ── Repair after the round's reviews ──────────────────────────────────────────────────────────────────────────────
+
+test("a tooltip inside a dialog is drawn in the dialog; Escape spends a press only on a tooltip the player can see, and P is Pause (review of PG-UX-A01)", async () => {
+  const r = await mountedGame("en");
+  try {
+    motionOnly(r);
+    r.core.enterPlay({ quiet: true });
+    await r.core.startStop("ask-a-good-question");
+    r.core.openGrownups(null);
+    const dialog = [...r.root.querySelectorAll("dialog[open]")].at(-1);
+    const x = dialog.querySelector(".cb-dlg__x");
+    assert.ok(x, "the dialog's icon-only close button");
+    r.root.dataset.input = "keyboard";
+    x.focus();
+    x.dispatchEvent(new r.w.Event("focusin", { bubbles: true }));
+    await until(() => r.root.querySelector(".cb-tooltip"), "the close button shows its name");
+    const tip = r.root.querySelector(".cb-tooltip");
+    assert.equal(tip.closest("dialog"), dialog, "the tip joins the dialog, above the game");
+    assert.equal(r.engine.tooltips.shown(), true);
+    key(r, x, "Escape");
+    assert.equal(r.root.querySelector(".cb-tooltip"), null, "the first Escape clears the tip the player sees");
+    assert.equal(dialog.open, true);
+    key(r, x, "Escape");
+    assert.equal(dialog.open, false, "the next Escape closes the dialog");
+
+    // A tip left under a modal dialog is not something the player can see: Escape goes straight to the dialog.
+    const icon = r.root.querySelector(".cb-stophud .cb-setbtn");
+    icon.focus();
+    icon.dispatchEvent(new r.w.Event("focusin", { bubbles: true }));
+    await until(() => r.root.querySelector(".cb-tooltip"), "the HUD's Settings icon shows its name");
+    r.core.openGrownups(null);
+    const over = [...r.root.querySelectorAll("dialog[open]")].at(-1);
+    assert.equal(r.engine.tooltips.shown(), false, "covered by the dialog");
+    key(r, over, "Escape");
+    assert.equal(over.open, false, "one Escape closes the dialog");
+
+    // P is Pause itself: a tooltip is cleared on the way, and Pause opens on the first press.
+    icon.focus();
+    icon.dispatchEvent(new r.w.Event("focusin", { bubbles: true }));
+    await until(() => r.root.querySelector(".cb-tooltip"), "the tip again");
+    icon.dispatchEvent(new r.w.KeyboardEvent("keydown", { key: "p", code: "KeyP", bubbles: true, cancelable: true }));
+    assert.equal(r.root.querySelector(".cb-tooltip"), null);
+    assert.ok(r.root.querySelector(".cb-pause[open]"), "P opened Pause on the first press");
+    assert.equal(r.runtimeErrors.length, 0, String(r.runtimeErrors));
+  } finally {
+    r.close();
+  }
+});
+
+for (const language of ["en", "es"])
+  test(`${language}: P pauses at once with a Stop 1 finding open, which waits under Pause (review of PG-UX-C02)`, async () => {
+    const r = await mountedGame(language);
+    try {
+      await stop1Today(r);
+      const spot = r.main().querySelector('[data-spot="0"]');
+      spot.focus();
+      spot.click();
+      assert.ok(r.root.querySelector(".cb-callout"));
+      spot.dispatchEvent(new r.w.KeyboardEvent("keydown", { key: "p", code: "KeyP", bubbles: true, cancelable: true }));
+      assert.ok(r.root.querySelector(".cb-pause[open]"), "P is Pause");
+      assert.ok(r.root.querySelector(".cb-callout"), "the finding waits under Pause");
+    } finally {
+      r.close();
+    }
+  });
+
+test("arrow keys and the d-pad skip a pointer-only button hidden from screen readers (review of PG-UX-A08)", async () => {
+  const { focusables } = await import("../../assets/games/community-builders/engine/focus.js");
+  const r = await mountedGame("en");
+  try {
+    const host = r.w.document.createElement("div");
+    host.innerHTML =
+      '<button class="inline">Ask it</button><button class="float" tabindex="-1" aria-hidden="true">Ask it</button>';
+    r.main().append(host);
+    for (const b of host.querySelectorAll("button"))
+      b.getBoundingClientRect = () => ({ width: 56, height: 56, top: 0, left: 0, right: 56, bottom: 56 });
+    assert.deepEqual(focusables(host).map((b) => b.className), ["inline"]);
+  } finally {
+    r.close();
+  }
+});
+
+test("Stop 2's floating Ask is out of arrow-key reach in the real stop (review of PG-UX-A08)", async () => {
+  const { focusables } = await import("../../assets/games/community-builders/engine/focus.js");
+  const r = await mountedGame("es");
+  try {
+    motionOnly(r);
+    r.core.enterPlay({ quiet: true });
+    await r.core.startStop("ask-a-good-question");
+    r.main().querySelector(".cb-s02-intro .cb-btn--go").click();
+    await until(() => r.main().querySelector(".cb-s02-ask-float"), "the play screen");
+    const float = r.main().querySelector(".cb-s02-ask-float");
+    float.hidden = false;
+    float.getBoundingClientRect = () => ({ width: 56, height: 56, top: 0, left: 0, right: 56, bottom: 56 });
+    assert.equal(focusables(r.root).includes(float), false);
+  } finally {
+    r.close();
+  }
+});
+
+for (const language of ["en", "es"])
+  test(`${language}: every Stop 1 thing's name carries the words painted on it, and Stop 10 problem cards start with the neighbor shown first (review of PG-UX-C11)`, async () => {
+    const r = await mountedGame(language);
+    try {
+      await stop1Today(r);
+      let painted = 0;
+      for (const spot of r.main().querySelectorAll(".cb-s01-spot")) {
+        const face = spot.querySelector(".cb-s01-brd__face");
+        if (!face) continue;
+        painted++;
+        assert.ok(
+          spot.getAttribute("aria-label").toLowerCase().includes(face.textContent.trim().toLowerCase()),
+          `"${spot.getAttribute("aria-label")}" includes "${face.textContent.trim()}"`,
+        );
+      }
+      assert.ok(painted > 0, "this round has at least one thing with painted words");
+      await r.core.startStop("match-a-fix");
+      r.main().querySelector(".cb-board .cb-btn--go.cb-btn--big")?.click();
+      await until(() => r.main().querySelector(".cb-s10-prob"), "the problem cards");
+      for (const card of r.main().querySelectorAll(".cb-s10-prob")) {
+        const who = card.querySelector(".cb-s10-prob__who").textContent,
+          what = card.querySelector(".cb-s10-prob__text").textContent;
+        const name = card.getAttribute("aria-label");
+        assert.ok(name.startsWith(who), `"${name}" starts with "${who}"`);
+        assert.ok(name.includes(what));
+      }
+    } finally {
+      r.close();
+    }
+  });
