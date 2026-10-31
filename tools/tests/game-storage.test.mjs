@@ -176,16 +176,24 @@ test("each Undo restores its own deleted game, refuses to replace a newer one, a
       0,
       "nothing waits in the toast corner",
     );
+    // Fox was being played. Deleting Fox passed play to Owl, then to Bee; Undo makes Fox the player again (last review
+    // of the round: play went on in Bee's slot, so Fox's next stars went into Bee's record).
+    assert.equal(r.core.getState().store.current, "bee");
     undo()[0].click();
     const players = r.core.getState().store.players;
     assert.equal(players.fox.stops.a.best, 90, "Fox comes back, not Owl");
+    assert.equal(r.core.getState().store.current, "fox", "and Fox is the one playing again");
     assert.equal(players.owl, undefined);
     assert.ok(card("fox"), "Fox's card is back in the dialog");
     assert.equal(r.engine.store.create("owl"), true);
     undo()[0].click();
     assert.deepEqual(r.core.getState().store.players.owl.stops, {});
+    const playing = r.core.getState().store.current;
     deleteIn("bee");
     assert.equal(undo().length, 1);
+    undo()[0].click();
+    assert.equal(r.core.getState().store.current, playing, "Undo for a game not being played leaves the player as it was");
+    deleteIn("bee");
     assert.deepEqual(timers, [], "no Undo goes away on a timer");
     dialog.close();
     assert.equal(r.root.querySelectorAll("dialog[open]").length, 0);

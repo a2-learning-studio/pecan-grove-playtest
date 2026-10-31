@@ -470,9 +470,86 @@ test('a hover tooltip stays while the mouse moves onto it, and leaves with the m
 // Phones: the play tools are one row that scrolls sideways. A tool reached with Tab lands fully on screen.
 for(const {lang,file} of languages)test(`${lang} 360x640: every play tool reached with Tab is fully on screen`,async({page})=>{
   await page.setViewportSize({width:360,height:640});await start(page,file);
-  for(const id of ['#pt-review-tab','#pt-library-tab','#pt-grownups-tab','#pt-exit']){
-    const tool=page.locator(id);await tool.focus();await expect(tool).toBeFocused();await expect(tool).toBeInViewport({ratio:1});
+  // The last review of the round made only keyboard focus (:focus-visible) scroll the row, because a tap focuses a tool
+  // too and must not slide it out from under the finger. Focus set by a script after a tap is not keyboard focus, so
+  // the tools after the first are now reached with the Tab key itself, as this test's name says.
+  const [first,...rest]=['#pt-review-tab','#pt-library-tab','#pt-grownups-tab','#pt-exit'].map(id=>page.locator(id));
+  await first.focus();await expect(first).toBeFocused();await expect(first).toBeInViewport({ratio:1});
+  for(const tool of rest){await page.keyboard.press('Tab');await expect(tool).toBeFocused();await expect(tool).toBeInViewport({ratio:1});}
+});
+// Last review of the round. On a phone a press on a tool that peeks past the row's edge focused it, the row then
+// scrolled it fully into view under the finger, and the press ended beside it: nothing opened (EN 360: For grown-ups).
+for(const [lang,file,width,height] of [['en','index.html',360,640],['es','espanol.html',412,915]])test(`${lang} ${width}x${height}: a press on a play tool that peeks past the row's edge opens it`,async({page},testInfo)=>{
+  await page.setViewportSize({width,height});await start(page,file);
+  const peek=await page.locator('.pt-toolbar').evaluate(row=>{
+    const b=row.getBoundingClientRect(),tool=[...row.querySelectorAll('.pt-tool')].find(n=>{const r=n.getBoundingClientRect();return r.left<b.right-12&&r.right>b.right+12;});
+    if(!tool)return null;const r=tool.getBoundingClientRect();return{id:tool.id,x:Math.round((r.left+b.right)/2),y:Math.round(b.top+b.height/2)};
+  });
+  expect(peek,'a tool peeks past the edge of the row').not.toBeNull();
+  if(testInfo.project.use.hasTouch)await page.touchscreen.tap(peek.x,peek.y);else await page.mouse.click(peek.x,peek.y,{delay:80});
+  if(peek.id==='pt-exit')await expect(page.locator('#pt-stage')).not.toHaveClass(/is-playing/);
+  else await expect(page.locator('dialog[open]').first()).toBeVisible();
+});
+// Last review of the round: the row's fade stuck to its content edge, 8 px short of the bar's edge, and the pill under
+// it showed again in that strip ("Fo|gr" in English, "cla|e" in Spanish at 360).
+for(const {lang,file} of languages)test(`${lang} 360x640: the play tools' fade reaches the bar's edge`,async({page})=>{
+  await page.setViewportSize({width:360,height:640});await start(page,file);
+  const clip=await page.locator('.pt-toolbar').evaluate(row=>{row.scrollLeft=0;const r=row.getBoundingClientRect();return{x:Math.floor(r.right)-6,y:Math.round(r.top+r.height/2-8),width:6,height:16};});
+  await page.waitForTimeout(100);
+  const {data,info}=await require('sharp')(await page.screenshot({clip})).raw().toBuffer({resolveWithObject:true});
+  let worst=0;for(let i=0;i<data.length;i+=info.channels)worst=Math.max(worst,Math.abs(data[i]-22)+Math.abs(data[i+1]-58)+Math.abs(data[i+2]-48));
+  expect(worst,'the last 6 px of the bar are its own pine (#163a30), with no pill showing past the fade').toBeLessThanOrEqual(12);
+});
+// Last review of the round: at 1100 px of game and wider the steps row sat in the title column only, and its caption ran
+// under the HUD's Pause button (Spanish Stops 3-10 at 1366x768: 9-91 px; at 1180: up to 151 px; English Stop 10: 38 px).
+for(const [lang,file,stops] of [['es','espanol.html',[3,10]],['en','index.html',[10]]])test(`${lang}: a stop's steps never run under the HUD on a wide stage`,async({page})=>{
+  await page.setViewportSize({width:1366,height:768});await start(page,file);
+  for(const n of stops){
+    await stop(page,n);await page.waitForTimeout(450);
+    const go=page.locator('.cb-board .cb-btn--go.cb-btn--big').last();await go.focus();await page.keyboard.press('Enter');
+    await expect(page.locator('.cb-stophud__steps')).toBeVisible();
+    for(const [width,height] of [[1366,768],[1180,800]]){
+      await page.setViewportSize({width,height});await page.waitForTimeout(250);
+      const clash=await page.locator('.cb-stophud').evaluate(head=>{
+        const hud=head.querySelector(':scope > .cb-engine-hud').getBoundingClientRect();
+        return[...head.querySelectorAll('.cb-stophud__steps *')].filter(n=>!n.closest('.cb-vh')).map(n=>({text:n.textContent.trim().slice(0,30),r:n.getBoundingClientRect()}))
+          .filter(({r})=>r.width&&r.height&&r.left<hud.right&&r.right>hud.left&&r.top<hud.bottom&&r.bottom>hud.top).map(({text})=>text);
+      });
+      expect(clash,`Stop ${n} at ${width}x${height}: nothing in the steps row is under the HUD`).toEqual([]);
+    }
+    await page.setViewportSize({width:1366,height:768});await backToMap(page);
   }
+});
+// Last review of the round: a finished stop's number is ink on its chapter colour. On green (3.65:1) and pink (4.08:1)
+// it was 16.7 px, under large text, so it failed 4.5:1 on phone maps and in the All stops list (Stops 10-15).
+for(const {lang,file} of languages)test(`${lang} 390x844: every finished stop's number is readable on its chapter colour`,async({page})=>{
+  await page.setViewportSize({width:390,height:844});await start(page,file);
+  await page.evaluate(()=>{const core=window.CommunityBuilders,state=core.getState(),player=state.store.players[state.store.current];core.getAPI().STOPS.forEach(stop=>{player.stops[stop.id]={best:90,rounds:1};});core.showMap();});
+  await waitStageReady(page,'map');
+  await page.evaluate(()=>document.querySelectorAll('.cb details').forEach(d=>{d.open=true;}));
+  const discs=await page.evaluate(()=>[...document.querySelectorAll('.cb-stop[data-state="done"] .cb-stop__disc')].filter(disc=>disc.getBoundingClientRect().width>0).map(disc=>{
+    const number=disc.querySelector(':scope > span:not([class])'),style=getComputedStyle(number);
+    return{n:disc.closest('.cb-stop').dataset.stopN,list:!!disc.closest('.cb-stops--list'),size:parseFloat(style.fontSize),weight:Number(style.fontWeight),color:style.color,fill:getComputedStyle(disc).backgroundColor};
+  }));
+  const {parseColor,contrastRatio}=require('./contrast-probe.cjs');
+  expect(discs.filter(d=>d.list).length,'finished stops in the All stops list').toBe(15);expect(discs.filter(d=>!d.list).length,'finished stops on the map').toBe(15);
+  for(const d of discs){
+    const ratio=contrastRatio(parseColor(d.color),parseColor(d.fill)),large=d.size>=24||(d.weight>=700&&d.size>=18.66);
+    expect(ratio,`Stop ${d.n} (${d.list?'list':'map'}): ${d.size}px at weight ${d.weight}`).toBeGreaterThanOrEqual(large?3:4.5);
+  }
+});
+// Last review of the round: P with a finding open, then Enter on Resume. Resume's click counted as a tap outside the
+// finding, which closed it and removed Keep looking, where Pause had to give focus back: focus fell to the page.
+for(const [lang,file,width,height] of [['en','index.html',1366,768],['es','espanol.html',390,844]])test(`${lang} ${width}x${height}: Resume brings a keyboard player back to the open finding`,async({page})=>{
+  await page.setViewportSize({width,height});await start(page,file);await stop(page,1);await startStop1Today(page);
+  await page.waitForTimeout(400);const spot=page.locator('.cb-s01-spot[data-spot="0"]');
+  await spot.focus();await page.keyboard.press('Enter');const finding=page.locator('.cb-callout');await expect(finding).toBeVisible();
+  const focused=await page.evaluate(()=>document.activeElement.textContent.trim());
+  await page.keyboard.press('p');await expect(page.locator('.cb-pause')).toBeVisible();
+  await page.keyboard.press('Enter');await expect(page.locator('.cb-pause')).toHaveCount(0);
+  await expect(finding).toBeVisible();
+  expect(await page.evaluate(()=>document.activeElement===document.body?'(the page)':document.activeElement.textContent.trim()),'focus is back where it was before Pause').toBe(focused);
+  await expect(page.locator(':focus')).toBeInViewport();
 });
 // The first-stop badge toast covered the result line on a phone and ran past the game's edge on a laptop. It now stays
 // inside the game and off the result line, and the screen behind it still reads.
@@ -719,6 +796,19 @@ test('leaving Facilitator close-out and coming back with Back shows no note text
     await expect(page.locator('#pt-feedback-fix')).toHaveValue('BFCACHE SECRET NOTE');
     expect(problems).toEqual([]);
   }finally{await browser.close();}
+});
+// Last review of the round: the intro's "turn on the box above first" line stayed the second score box's description
+// after the box unlocked (Chromium's accessibility tree read it on the unlocked box, in English and Spanish).
+for(const {lang,file} of languages)test(`${lang}: the second score box is described by its lock only while it is locked`,async({page,noNetwork})=>{
+  await openIntro(page,file);
+  const scores=page.locator('#pt-consent-options input[data-pg-consent="scores"]'),auto=page.locator('#pt-consent-options input[data-pg-consent="autoScores"]');
+  const why=(await page.locator('#pt-consent-why').textContent()).trim();
+  await expect(auto).toBeDisabled();await expect(auto).toHaveAccessibleDescription(why);
+  await scores.click();await page.locator('#pt-consent-confirm').click();await expect(scores).toBeChecked();
+  await expect(auto).toBeEnabled();await expect(auto).toHaveAccessibleDescription('');
+  await scores.click();await expect(scores).not.toBeChecked();
+  await expect(auto).toBeDisabled();await expect(auto).toHaveAccessibleDescription(why);
+  await assertLocalOnly(page,noNetwork);
 });
 test('turning on score sharing from the start page waits for a grown-up confirmation',async({page,noNetwork})=>{
   await openIntro(page,'espanol.html');const box=page.locator('#pt-consent-options input[data-pg-consent="scores"]');

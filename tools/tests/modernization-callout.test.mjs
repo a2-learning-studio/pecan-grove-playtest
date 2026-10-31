@@ -30,6 +30,23 @@ test('a finding stays open after its narration ends',async()=>{
 test('Escape and stop cleanup dismiss once and remove all timers',()=>{
  const r=setup();try{let closed=0;const p=showCallout(r.ctx,r.anchor,r.ctx.h('p',{text:'A sign.'}),{onClose:()=>closed++});r.anchor.dispatchEvent(new r.w.KeyboardEvent('keydown',{key:'Escape',bubbles:true,cancelable:true}));r.cleanups.forEach(fn=>fn());assert.equal(closed,1);assert.equal(p.isConnected,false);assert.equal(r.tasks.size,0);assert.equal(r.w.document.activeElement,r.anchor);}finally{r.close();}
 });
+// Last review of the round: Escape typed in the feedback form under the game closed the finding, scrolled the play view
+// back and moved focus out of the text box onto the Stop 1 thing (measured in Chromium at 1366x768 EN); Escape on a
+// play-view tool was spent on the finding too. Only Escape in the game, or with nothing focused, is for the finding.
+test('Escape typed in a text box or outside the game leaves the finding open',()=>{
+ const r=setup();try{
+  const note=r.w.document.createElement('textarea'),tool=r.w.document.createElement('button'),field=r.w.document.createElement('input');
+  r.w.document.body.append(note,tool);r.ctx.main.append(field);
+  const p=showCallout(r.ctx,r.anchor,r.ctx.h('p',{text:'A sign.'}),{closeLabel:'Keep looking'});
+  for(const target of [note,tool,field]){
+   target.focus();const e=new r.w.KeyboardEvent('keydown',{key:'Escape',bubbles:true,cancelable:true});target.dispatchEvent(e);
+   assert.equal(p.isConnected,true,`the finding stays for Escape in ${target.tagName}`);assert.equal(e.defaultPrevented,false,'the key goes on to its own target');assert.equal(r.w.document.activeElement,target,'focus stays where the player is typing');
+  }
+  r.w.document.activeElement.blur();
+  r.w.document.body.dispatchEvent(new r.w.KeyboardEvent('keydown',{key:'Escape',bubbles:true,cancelable:true}));
+  assert.equal(p.isConnected,false,'with nothing focused, Escape still closes the finding');assert.equal(r.w.document.activeElement,r.anchor);
+ }finally{r.close();}
+});
 test('classic-card preference follows the setting and conservative forced-colors preference',()=>{
  const r=setup();try{r.w.matchMedia=()=>({matches:false});assert.equal(prefersFindCards(r.ctx),false);r.ctx.CFG.findCards=true;assert.equal(prefersFindCards(r.ctx),true);r.ctx.CFG.findCards=false;r.w.matchMedia=()=>({matches:true});assert.equal(prefersFindCards(r.ctx),true);}finally{r.close();}
 });
@@ -344,10 +361,14 @@ test('a floating finding never covers the thing it explains, nor the action bar 
  const r=setup();try{
   Object.defineProperties(r.w,{innerWidth:{value:800},innerHeight:{value:600}});panelSize(r);
   r.anchor.getBoundingClientRect=()=>rect(20,20,100,100);
-  // Everything below y=130 is busy: the "below" and "right" places and the bottom corner are taken.
-  const busy=r.ctx.btn('Busy','cb-btn',()=>{});busy.getBoundingClientRect=()=>rect(0,130,800,470);r.ctx.main.append(busy);
+  // Everything below y=240 is busy, so the place below the thing and the bottom corner are taken. The place above it
+  // is clamped down over the thing itself and is free of anything else: it scored 0 while the thing was not counted
+  // (last review of the round: this half used to pass on the old code). The place to its right is truly free.
+  const busy=r.ctx.btn('Busy','cb-btn',()=>{});busy.getBoundingClientRect=()=>rect(0,240,800,360);r.ctx.main.append(busy);
   const panel=showCallout(r.ctx,r.anchor,r.ctx.h('p',{text:'A sign.'}));
-  assert.ok(panel.classList.contains('is-flow')||!overlaps(panelBox(panel),r.anchor.getBoundingClientRect()),'the tapped thing stays visible');
+  assert.equal(panel.classList.contains('is-flow'),false,'there is a free place, so the finding floats');
+  assert.ok(!overlaps(panelBox(panel),r.anchor.getBoundingClientRect()),'the tapped thing stays visible');
+  assert.ok(!overlaps(panelBox(panel),busy.getBoundingClientRect()),'and so does everything else');
  }finally{r.close();}
  const s=setup();try{
   Object.defineProperties(s.w,{innerWidth:{value:800},innerHeight:{value:600}});panelSize(s);

@@ -411,6 +411,45 @@ for (const language of ["en", "es"])
     }
   });
 
+// Last review of the round: P with a finding open, then Enter on Resume. The click on Resume counted as a tap outside
+// the finding, which closed it and removed Keep looking, the button Pause had to give focus back to; focus fell to the
+// page (measured in Chromium at 1366x768 EN and 390x844 ES). Settings closed with its button did the same.
+for (const language of ["en", "es"])
+  test(`${language}: closing Pause or Settings over an open finding gives focus back to Keep looking (review of PG-UX-C02)`, async () => {
+    const r = await mountedGame(language);
+    try {
+      await stop1Today(r);
+      const spot = r.main().querySelector('[data-spot="0"]');
+      spot.focus();
+      spot.click();
+      const keep = r.root.querySelector(".cb-callout .cb-btn");
+      assert.equal(keep.textContent, words[language].keep);
+      // Where a keyboard player lands when the finding had to scroll into view.
+      keep.focus();
+      keep.dispatchEvent(new r.w.KeyboardEvent("keydown", { key: "p", code: "KeyP", bubbles: true, cancelable: true }));
+      const pause = r.root.querySelector(".cb-pause[open]");
+      assert.ok(pause, "P is Pause");
+      pause.querySelector("[data-cb-nav-entry]").click();
+      assert.equal(r.root.querySelector(".cb-pause[open]"), null, "Resume closed Pause");
+      assert.ok(r.root.querySelector(".cb-callout"), "the finding is still open");
+      assert.equal(r.w.document.activeElement, keep, "focus is back on Keep looking");
+      r.engine.settings.open(keep);
+      const settings = [...r.root.querySelectorAll("dialog[open]")].at(-1),
+        close = [...settings.querySelectorAll("button")].find((b) => b.textContent.trim() === r.engine.i18n.t("close"));
+      assert.ok(close, "Settings has its Close button");
+      close.click();
+      assert.equal(r.root.querySelectorAll("dialog[open]").length, 0);
+      assert.ok(r.root.querySelector(".cb-callout"), "the finding is still open after Settings");
+      assert.equal(r.w.document.activeElement, keep, "and focus is back on Keep looking");
+      // A tap elsewhere in the game still closes the finding.
+      r.main().querySelector(".cb-stophud__h").click();
+      assert.equal(r.root.querySelector(".cb-callout"), null, "a tap elsewhere in the game still closes the finding");
+      assert.equal(r.runtimeErrors.length, 0, String(r.runtimeErrors));
+    } finally {
+      r.close();
+    }
+  });
+
 test("arrow keys and the d-pad skip a pointer-only button hidden from screen readers (review of PG-UX-A08)", async () => {
   const { focusables } = await import("../../assets/games/community-builders/engine/focus.js");
   const r = await mountedGame("en");

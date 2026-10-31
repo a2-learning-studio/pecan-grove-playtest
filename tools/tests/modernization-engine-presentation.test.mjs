@@ -405,7 +405,12 @@ test("visible tooltips appear after 400ms on keyboard focus and dismiss without 
     assert.equal(r.root.querySelector('[role="tooltip"]'), null);
     t.mock.timers.tick(1);
     assert.equal(r.root.querySelector('[role="tooltip"]').textContent, "Pause");
-    assert.match(b.getAttribute("aria-describedby"), /^help cb-tooltip/);
+    // Last review of the 2026-10-30 round: linked as a description, the tip made Chromium expose the name twice
+    // (accessibility tree, 1366x768: "Settings" / description "Settings", "Ajustes" / "Ajustes", and the same for Voice,
+    // Full screen and both language buttons). The tip only repeats the name, so it is hidden from screen readers and
+    // the control's own description is never touched.
+    assert.equal(b.getAttribute("aria-describedby"), "help");
+    assert.equal(r.root.querySelector('[role="tooltip"]').getAttribute("aria-hidden"), "true");
     b.dispatchEvent(
       new r.w.KeyboardEvent("keydown", { key: "Escape", bubbles: true }),
     );
