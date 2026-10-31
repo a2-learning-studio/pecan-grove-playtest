@@ -169,7 +169,9 @@
 .cb-stop[data-state="next"] .cb-stop__disc { border-width: 5px; border-color: var(--cb-clay); }
 .cb-stop[data-state="next"] .cb-stop__disc::before { content: ""; position: absolute; inset: -10px; border-radius: 50%; border: 3px solid var(--cb-clay); opacity: 0; animation: cb-ping 2.4s var(--cb-ease) infinite; }
 @keyframes cb-ping { 0% { opacity: 0.9; transform: scale(0.92); } 100% { opacity: 0; transform: scale(1.42); } }
-.cb-stop[data-state="done"] .cb-stop__disc { background: var(--cb-chap); border-color: var(--cb-card); }
+/* A finished stop keeps its number in ink on the chapter colour. Green and pink give ink only 3.65:1 and 4.08:1, so the
+   number is at least large text (19px at weight 720), where 3:1 is enough; a 44px disc would draw it at 16.7px. */
+.cb-stop[data-state="done"] .cb-stop__disc { background: var(--cb-chap); border-color: var(--cb-card); font-size: max(19px, calc(var(--d) * 0.38)); }
 /* top right: the finished stop's mini star row sits under the disc */
 .cb-stop__done { position: absolute; right: -8px; top: -8px; display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--cb-stage-2); color: var(--cb-on-accent); box-shadow: 0 0 0 2px var(--cb-card); }
 .cb-stop__done .cb-ico { width: 14px; height: 14px; stroke-width: 3.2; }
@@ -384,10 +386,12 @@
 .cb-stophud__h:focus { outline: none; }
 .cb-stophud__title p { margin: 3px 0 0; font-size: 0.875rem; font-weight: 600; color: var(--cb-on-stage-2); }
 .cb-stophud__steps { grid-column: 1 / -1; display: grid; justify-items: end; gap: 4px; }
-/* On a wide stage the stepper sits under the stop's name, its caption beside the dots, while the tools and the HUD
-   stay centred beside them: the task starts about one row higher and the name keeps its width. */
+/* On a wide stage the stepper sits under the stop's name, its caption beside the dots; the tools stay centred beside
+   both rows and the HUD beside the name: the task starts about one row higher and the name keeps its width. */
 @container cb (min-width: 1100px) {
-  .cb-stophud:has(> .cb-stophud__steps) { grid-template-areas: "back title hud" "back steps hud"; row-gap: 6px; }
+  /* The steps row runs on under the HUD: in the title column alone, a caption such as "Problemas unidos: 0 de 5" ran
+     under the Pause button (9-91px in Spanish at 1366, up to 151px at 1180). */
+  .cb-stophud:has(> .cb-stophud__steps) { grid-template-areas: "back title hud" "back steps steps"; row-gap: 6px; }
   .cb-stophud:has(> .cb-stophud__steps) > .cb-stophud__tools, .cb-stophud:has(> .cb-stophud__steps) > .cb-engine-hud { align-self: center; }
   .cb-stophud > .cb-stophud__steps { grid-column: auto; grid-area: steps; grid-auto-flow: column; justify-content: start; align-items: center; gap: 12px; padding-left: 58px; }
   .cb-stophud > .cb-stophud__steps .cb-steps__cap { white-space: nowrap; }
