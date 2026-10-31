@@ -220,10 +220,12 @@
   border: 1px solid currentColor;
   border-radius: 12px;
   padding: 0 12px;
-  font-weight: 700;
   background: transparent;
   color: inherit;
+  /* the HUD pills' type, set after the shorthand so the weight holds */
   font: inherit;
+  font-size: var(--pg-type-small);
+  font-weight: 650;
 }
 .cb-map-legend__panel {
   position: absolute;
@@ -271,6 +273,27 @@
 }
 .cb-map-ready .cb-engine-zoom {
   position: static;
+}
+/* One row above the map on a laptop: the journey score, then Pause, stars,
+   Badges and Switch player, then Map key and Zoom. The HUD box no longer takes
+   a full-width second row, so the map starts about one row higher. */
+@container cb (min-width: 600px) {
+  .cb-map-controls .cb-engine-hud {
+    width: auto;
+    flex: 0 1 auto;
+    min-width: 0;
+  }
+  .cb-map-ready .cb-world__hud {
+    align-items: center;
+  }
+  .cb-map-controls .cb-map-legend,
+  .cb-map-ready .cb-map-controls .cb-engine-zoom {
+    align-self: center;
+  }
+  .cb-map-ready .cb-map-controls .cb-engine-zoom {
+    min-height: 44px;
+    font-size: var(--pg-type-small);
+  }
 }
 .cb-map-order {
   padding: 12px;

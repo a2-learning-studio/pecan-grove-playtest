@@ -257,7 +257,7 @@
     /* ── the question board: the four asked questions, each with a Pecan Sticker ── */
     function boardCard(fresh) {
       var bid = "cb-s02-bk" + (++uid);
-      return h("section", { "class": "cb-s02-boardwrap", "aria-labelledby": bid, "data-cb-novoice": "" }, [h("p", { "class": "cb-s02-board__k", id: bid, text: T.boardK(answers.length) }),
+      return h("section", { "class": "cb-s02-boardwrap", "aria-labelledby": bid, "data-cb-novoice": "" }, [h("p", { "class": "cb-s02-board__k", id: bid, text: T.boardK(answers.length).replace(/(\d+)\s+(\S+)\s+(\d+)\s*$/, "$1\u00a0$2\u00a0$3") }),
         h("ol", { "class": "cb-s02-board" }, [0, 1, 2, 3].map(function (i) {
           var a = answers[i], now = i === wi && !a;
           if (!a) return h("li", { "class": "is-empty" + (now ? " is-now" : ""), "aria-hidden": "true" }, [sticker(true), now ? h("p", { "class": "cb-s02-board__hint", text: T.slotNow }) : h("span"), api.img(speakers[i].img, "", "cb-s02-board__face", true)]);
@@ -328,8 +328,9 @@
          a sticky speech bubble on a narrow one (CSS) */
       var side = h("div", { "class": "cb-s02-side" }, [sceneEl, board]);
       var compactAsk = api.btn(T.ask, "cb-btn--go cb-s02-ask-float", function () { ask(); }, "chat");
-      compactAsk.setAttribute("aria-describedby", "cb-s02-q");
-      compactAsk.setAttribute("aria-label", T.ask);
+      /* a pointer shortcut only: the inline Ask button in the strip stays the one keyboard and screen reader stop */
+      compactAsk.setAttribute("tabindex", "-1");
+      compactAsk.setAttribute("aria-hidden", "true");
       compactAsk.hidden = true;
       var playEl = h("div", { "class": "cb-s02-play" }, [side, work]);
       var bubble = sceneEl.querySelector('[data-s02="worry"]');
@@ -351,10 +352,12 @@
         return q;
       }
       function pick(row, id) {
+        var ready = sel.start && sel.topic;
         sel[row] = sel[row] === id ? null : id;                           // one tile per row; tap again to unpick
         rows.forEach(function (r) { if (r.getAttribute("data-row") === row) r.classList.remove("is-needed"); });
         var q = refresh();
         if (q) api.say(q);                                                // the live area reads the question as it changes
+        if (!ready && sel.start && sel.topic) showAsk(strip, tray.querySelector('.cb-s02-tile[data-row="' + row + '"][data-id="' + id + '"]'), bubble);
       }
       function ask(renderOnly) {
         if (!sel.start || !sel.topic) {                                   // "Ask it" works once Start and Topic are picked
@@ -387,13 +390,15 @@
           if (event && event.detail > 0 && Date.now() - asked < 400) return;
           worry(true);
         }, "replay");
+        /* the buttons follow the answer they act on, in its column: under the taller side column they sat below the
+           first screen of the 1366x768 laptop floor */
         var strip2 = h("div", { "class": "cb-actions cb-s02-strip is-done" }, [fixBtn, nextBtn]);
-        strip.parentNode.replaceChild(strip2, strip);
+        strip.remove(); work.appendChild(strip2);
         compactAsk.remove();
         if (stopLayout) stopLayout();
         stopLayout = measureLayout(playEl, bubble, strip2, null);
         talk.focus({ preventScroll: true });                              // after Ask it, focus moves to the answer
-        reveal(talk, bubble, strip2);
+        frameAnswer(talk, strip2, bubble);
         api.say(r.line + " " + r.notes.map(function (x) { return x[1]; }).join(" "));   // the answer and notes, never points
       }
       restoreAsk = ask;
@@ -421,10 +426,12 @@
         if (!floating) return;
         floating.hidden = !compact;
         floating.style.right = Math.max(12, window.innerWidth - r.right + 12) + "px";
+        var sr = strip.getBoundingClientRect(), corner = window.innerHeight - 12;
+        floating.style.setProperty("--s02-lift", (sr.top < corner && sr.bottom > corner - 56 ? Math.min(window.innerHeight - sr.top, sr.height + 12) : 0) + "px");
         if (compact) {
           var button = floating.getBoundingClientRect();
-          // Keep the duplicate shortcut out of the art. The inline Ask button remains available.
-          var collision = [].some.call(play.querySelectorAll(".cb-s02-art,.cb-s02-say"), function (art) { return overlaps(button, art.getBoundingClientRect()); });
+          // Keep the duplicate shortcut out of the art, the worry and the instruction. The inline Ask button remains available.
+          var collision = [].some.call(play.querySelectorAll(".cb-s02-art,.cb-s02-say,.cb-coach"), function (art) { return overlaps(button, art.getBoundingClientRect()); });
           floating.hidden = collision;
         }
       }
@@ -436,17 +443,31 @@
       return dispose;
     }
     function stuck(bubble) { return getComputedStyle(bubble).position === "sticky"; }
-    /* bring an element fully into view, between the stuck bubble (narrow stage) or the screen top, and the sticky strip */
-    function reveal(el, bubble, strip) {
-      var root = el.closest(".cb"); if (!root) return;
-      var v = view(root), r = el.getBoundingClientRect(), t = r.top - v.top, b = r.bottom - v.top,
-        topPad = stuck(bubble) ? 12 + bubble.offsetHeight + 14 : 12, limit = v.h - strip.getBoundingClientRect().height - 24, d = 0;
-      if (t < topPad) d = t - topPad;
-      else if (b > limit) d = Math.min(b - limit, t - topPad);
+    /* after Ask: the judged question, the neighbor's answer and the buttons under it come into view together, below the
+       stuck bubble (narrow stage) or the top of the view, with the least scroll. Where they cannot all fit, the buttons
+       and the first line of the question stay in view; on the smallest phones the question's first line wins. */
+    function frameAnswer(talk, strip, bubble) {
+      var root = talk.closest(".cb"); if (!root) return;
+      var v = view(root), t = talk.getBoundingClientRect().top - v.top,
+        top = covered(v) + (stuck(bubble) ? stickTop(bubble, v) + bubble.offsetHeight + 14 : 12),
+        need = strip.getBoundingClientRect().bottom - v.top - (v.h - 16),        // the least scroll that shows the buttons whole
+        d = need <= t - top ? Math.min(Math.max(0, need), t - top) : Math.min(need, t + firstLine(talk.querySelector(".cb-s02-you")) - 4 - top);
       if (Math.abs(d) > 4) v.el.scrollBy({ top: d, behavior: reduced() ? "auto" : "smooth" });
     }
+    /* where the stuck bubble rests below the top of the view: its sticky top, inside the scroller's own padding */
+    function stickTop(bubble, v) {
+      return (parseFloat(getComputedStyle(bubble).top) || 0) + (v.el === window ? 0 : parseFloat(getComputedStyle(v.el).paddingTop) || 0);
+    }
+    /* where the first line of text starts inside an element (it opens the answer), measured against the element itself so
+       its rise animation cancels out */
+    function firstLine(el) {
+      var range = el && document.createRange ? document.createRange() : null; if (!range || !range.getClientRects) return 0;
+      range.selectNodeContents(el); var line = range.getClientRects()[0];
+      return line ? Math.max(0, line.top - el.getBoundingClientRect().top) : 0;
+    }
     /* a new worry: the stage top comes into view (header, the worry and the first rows), and on a narrow stage the page
-       scrolls just far enough that the worry bubble clears the sticky question strip */
+       scrolls just far enough that the worry bubble clears the sticky question strip. On a phone, where the bubble does not
+       stick, the worry the player must turn into a question comes into view whole, even if the header scrolls away. */
     function frameWorry(sceneEl, bubble, strip) {
       var root = bubble.closest(".cb"); if (!root) return api.frame();
       var v = view(root), top = v.fs ? 0 : root.getBoundingClientRect().top - v.top + v.y, to = top;
@@ -454,13 +475,28 @@
         var porch = sceneEl.querySelector(".cb-s02-porch"), bt = porch.getBoundingClientRect().bottom - v.top + v.y + 12, bb = bt + bubble.offsetHeight,
           room = v.h - strip.getBoundingClientRect().height - 24;
         to = Math.min(Math.max(top, bb - room), bt - 12);
+      } else {
+        var wt = bubble.getBoundingClientRect().top - rising(bubble) - v.top + v.y;
+        if (wt + bubble.offsetHeight + 12 > top + v.h) to = Math.max(top, wt - covered(v) - 12);
       }
       if (Math.abs(to - v.y) > 4) v.el.scrollTo({ top: to, behavior: reduced() ? "auto" : "smooth" });
     }
-    /* the page scrolls, except in the shell's full screen, where the stage itself is the scroller */
+    /* the question just became askable: "Ask it" comes into view, without pushing the tile just picked off the top */
+    function showAsk(strip, tile, bubble) {
+      var root = strip.closest(".cb"); if (!root || getComputedStyle(strip).position === "sticky") return;
+      var v = view(root), d = strip.getBoundingClientRect().bottom - v.top - v.h + 16,
+        keep = tile ? tile.getBoundingClientRect().top - v.top - covered(v) - (stuck(bubble) ? bubble.offsetHeight + 26 : 16) : d;
+      d = Math.min(d, keep);
+      if (d > 4) v.el.scrollBy({ top: d, behavior: reduced() ? "auto" : "smooth" });
+    }
+    /* the bubble rises into place as it appears: where it will rest is where it is now, less that rise */
+    function rising(el) { var n = (String(getComputedStyle(el).transform || "").match(/-?[\d.]+(?:e-?\d+)?/g) || []).map(Number); return n.length === 6 ? n[5] : n.length === 16 ? n[13] : 0; }
+    /* how much of the scroller's top the page's sticky tools cover (the page scrolls only outside the play view) */
+    function covered(v) { return v.el === window ? parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop) || 0 : 0; }
+    /* whatever scrolls the game: the play view's scrollport, the stage in full screen, or the page */
     function view(root) {
-      var fs = !!root && root.classList.contains("is-fs");
-      return fs ? { fs: true, el: root, y: root.scrollTop, top: root.getBoundingClientRect().top, h: root.clientHeight }
+      var port = api.scrollport ? api.scrollport() : root && root.classList.contains("is-fs") ? root : null;
+      return port ? { fs: port === root, el: port, y: port.scrollTop, top: port.getBoundingClientRect().top, h: port.clientHeight }
         : { fs: false, el: window, y: window.pageYOffset, top: 0, h: window.innerHeight };
     }
 

@@ -187,6 +187,14 @@ export default function createDialog(ctx) {
           ctx.h("p", {
             text: ctx.W.consentAutoDetails,
           }),
+          // A locked box says why it is locked (the feedback layer keeps
+          // this line in step with the boxes).
+          ctx.h("p", {
+            class: "cb-consent__why",
+            "data-pg-consent-why": "",
+            hidden: !!consent.scores,
+            text: ctx.W.consentAutoNeedsScores,
+          }),
         ]),
       );
     }
@@ -281,14 +289,8 @@ export default function createDialog(ctx) {
       wrap.appendChild(note);
       wrap.appendChild(undo);
       ctx.say(ctx.W.erased);
+      // Undo stays until the grown-up moves on: "This game has no timers".
       undo.focus();
-      ctx.setTimeout(function () {
-        if (undo.isConnected) {
-          var had = ctx.document.activeElement === undo;
-          undo.remove();
-          if (had) note.focus();
-        }
-      }, 10000);
     });
     var no = ctx.btn(ctx.W.noKeep, "", function () {
       grownBody(wrap, changed).focus();

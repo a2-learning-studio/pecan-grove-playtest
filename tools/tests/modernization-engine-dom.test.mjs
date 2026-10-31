@@ -410,14 +410,19 @@ test("all settings tabs have matching ARIA panels, separate bus controls and wor
       const panel = d.querySelector("#" + tab.getAttribute("aria-controls"));
       assert.equal(panel.getAttribute("aria-labelledby"), tab.id);
     }
-    assert.equal(d.querySelectorAll('input[type="range"]').length, 4);
-    assert.equal(
-      d
-        .querySelector('input[type="range"]:disabled')
-        .closest(".cb-engine-setting")
-        .querySelector("label").textContent,
-      "Music volume",
+    // PG-UX-C26: the game has no music yet, so its disabled slider and switch
+    // ("Music coming soon") are no longer shown to children. The three real
+    // buses keep their own sliders.
+    assert.deepEqual(
+      [...d.querySelectorAll('input[type="range"]')].map(
+        (input) =>
+          input.closest(".cb-engine-setting").querySelector("label")
+            .textContent,
+      ),
+      ["Master volume", "Voice volume", "Sound effects volume"],
     );
+    assert.equal(d.querySelector('input[type="range"]:disabled'), null);
+    assert.doesNotMatch(d.textContent, /Music coming soon/);
     tabs[0].dispatchEvent(
       new h.dom.window.KeyboardEvent("keydown", {
         key: "ArrowRight",

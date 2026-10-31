@@ -8,24 +8,20 @@ export function prefersFindCards(ctx) {
 
 export function showCallout(ctx, anchor, content, options = {}) {
   ctx.root.querySelector(".cb-callout")?.dismiss?.();
+  const body = (Array.isArray(content) ? content : [content]).filter(Boolean);
+  // A plain labelled section. A live region inserted already filled is often
+  // not read, so the words go through the game's one persistent live region.
   const panel = ctx.h(
     "section",
-    {
-      class: "cb-callout",
-      role: "status",
-      "aria-live": "polite",
-      "aria-atomic": "true",
-      "aria-label": options.title || "",
-    },
-    [
-      ctx.h("h3", { text: options.title || "" }),
-      ...(Array.isArray(content) ? content : [content]),
-    ],
+    { class: "cb-callout", "aria-label": options.title || "" },
+    [ctx.h("h3", { text: options.title || "" }), ...body],
   );
   // A finding stays until the player moves on: Close, Escape, a tap elsewhere,
   // the next finding or a new scene. "This game has no timers" (WCAG 2.2.1).
   let closed = false,
     positionFrame = null,
+    slot = null,
+    revealed = null,
     offBack = () => {};
   function close() {
     if (closed) return;
@@ -40,34 +36,68 @@ export function showCallout(ctx, anchor, content, options = {}) {
     ctx.window.visualViewport?.removeEventListener("scroll", schedulePlace);
     offBack();
     if (ctx.vEl && panel.contains(ctx.vEl)) ctx.vStop();
+    slot?.remove();
     panel.remove();
     options.onClose?.();
   }
+  // Keep looking, Escape or Back: return to the scene where the player was
+  // searching, with the chosen thing in view (a tap elsewhere just closes).
   function dismiss() {
+    const wasOpen = !closed;
     close();
-    if (anchor.isConnected) anchor.focus({ preventScroll: true });
+    if (!anchor.isConnected) return;
+    if (wasOpen) {
+      for (const [box, top] of revealed || [])
+        if (box.isConnected !== false) box.scrollTop = top;
+      if (!inView(anchor.getBoundingClientRect()))
+        anchor.scrollIntoView?.({ block: "nearest", behavior: "auto" });
+    }
+    anchor.focus({ preventScroll: true });
+  }
+  function inView(r) {
+    const viewport = ctx.window.visualViewport,
+      top = viewport?.offsetTop || 0,
+      bottom = top + (viewport?.height || ctx.window.innerHeight);
+    return r.height > 0 && r.top >= top && r.bottom <= bottom;
   }
   function outside(event) {
+    // A click in the game's own dialog (Resume in Pause, Close in Settings)
+    // is not a tap elsewhere: the finding waits under the dialog, so the
+    // focus the dialog gives back still has "Keep looking" to land on.
+    const dialog = event.target.closest?.("dialog[open]");
+    if (dialog && ctx.root.contains(dialog)) return;
     if (!panel.contains(event.target) && !anchor.contains(event.target))
       close();
   }
   function escape(event) {
-    if (event.key !== "Escape") return;
+    // The engine's input handles Escape first when it runs (main.js back()).
+    if (event.key !== "Escape" || event.defaultPrevented) return;
+    // Escape typed in a text box (the fields input.js leaves alone), or
+    // anywhere outside the game (the feedback form, the play-view tools), is
+    // not for the finding.
+    const target = event.target;
+    if (
+      target.closest?.(
+        'input, textarea, select, [contenteditable]:not([contenteditable="false"]), [data-pg-native]',
+      ) ||
+      (target !== ctx.document.body && !ctx.root.contains(target))
+    )
+      return;
     event.preventDefault();
     event.stopImmediatePropagation();
     dismiss();
   }
-  panel.appendChild(
-    ctx.btn(
-      options.closeLabel || ctx.W.close,
-      "cb-btn--quiet",
-      dismiss,
-      "close",
-    ),
+  // The next step, not a cancel: a plain pill, like the classic card's button.
+  const keep = ctx.btn(
+    options.closeLabel || ctx.W.close,
+    "cb-btn--primary",
+    dismiss,
   );
-  panel.lastElementChild.setAttribute("data-cb-novoice", "");
+  keep.setAttribute("data-cb-novoice", "");
+  panel.appendChild(keep);
   ctx.root.appendChild(panel);
   panel.dismiss = close;
+  panel.back = dismiss;
   // Prefer beside the chosen item, then either edge. Keep all actions reachable.
   function schedulePlace() {
     // Scroll handlers only schedule work. Geometry and position writes happen
@@ -77,6 +107,35 @@ export function showCallout(ctx, anchor, content, options = {}) {
       positionFrame = null;
       place();
     });
+  }
+  // An in-flow finding below the fold is brought into view at once, down to
+  // "Keep looking" (no smooth scroll: it would float the finding mid-way).
+  // Dismissing it scrolls back to where the player was looking. Returns
+  // whether the view moved.
+  function reveal() {
+    if (closed || !panel.classList.contains("is-flow")) return false;
+    if (inView(panel.getBoundingClientRect())) return false;
+    const boxes = [];
+    for (let box = panel.parentElement; box; box = box.parentElement)
+      if (box.scrollHeight > box.clientHeight) boxes.push([box, box.scrollTop]);
+    const page = ctx.document.scrollingElement;
+    if (page && !boxes.some(([box]) => box === page))
+      boxes.push([page, page.scrollTop]);
+    revealed = boxes;
+    panel.scrollIntoView?.({ block: "nearest", behavior: "auto" });
+    // Taller than a short window: "Keep looking" is what must stay reachable.
+    if (!inView(keep.getBoundingClientRect()))
+      keep.scrollIntoView?.({ block: "nearest", behavior: "auto" });
+    return true;
+  }
+  // Moving the finding between the board and the game root must not drop
+  // keyboard focus from "Keep looking" to the page.
+  function move(parent, before = null) {
+    const active = ctx.document.activeElement,
+      held = panel.contains(active) ? active : null;
+    parent.insertBefore(panel, before);
+    if (held && ctx.document.activeElement !== held)
+      held.focus({ preventScroll: true });
   }
   function place() {
     if (closed || !anchor.isConnected) {
@@ -90,41 +149,50 @@ export function showCallout(ctx, anchor, content, options = {}) {
     const left = viewport?.offsetLeft || 0,
       top = viewport?.offsetTop || 0;
     panel.style.maxWidth = Math.max(1, vw - gap * 2) + "px";
-    panel.style.width = Math.min(350, Math.max(1, vw - gap * 2)) + "px";
+    // A short window (a phone on its side, a zoomed laptop) has width to
+    // spare and little height: wider lines keep the finding on one screen.
+    panel.style.width =
+      Math.min(vh < 480 ? 520 : 350, Math.max(1, vw - gap * 2)) + "px";
     panel.style.maxHeight = Math.max(80, vh - gap * 2) + "px";
     const a = anchor.getBoundingClientRect(),
       p = panel.getBoundingClientRect();
     const clamp = (v, low, high) =>
       Math.max(low, Math.min(v, Math.max(low, high)));
+    // A floating finding stays inside the game where the game is in view, so
+    // on a wide screen it never lands in the window corner beside the stage.
+    const game = ctx.root.getBoundingClientRect(),
+      span = (low, high, from, to, size) =>
+        Math.min(to, high) - Math.max(from, low) >= size + gap * 2
+          ? [Math.max(from, low), Math.min(to, high)]
+          : [low, high];
+    const [x0, x1] = span(left, left + vw, game.left, game.right, p.width),
+      [y0, y1] = span(top, top + vh, game.top, game.bottom, p.height);
     const candidates = [
       [a.left, a.bottom + gap],
       [a.left, a.top - p.height - gap],
       [a.right + gap, a.top],
       [a.left - p.width - gap, a.top],
-      [left + gap, top + gap],
-      [left + vw - p.width - gap, top + vh - p.height - gap],
+      [x0 + gap, y0 + gap],
+      [x1 - p.width - gap, y1 - p.height - gap],
     ].map(([x, y]) => ({
-      left: clamp(x, left + gap, left + vw - p.width - gap),
-      top: clamp(y, top + gap, top + vh - p.height - gap),
+      left: clamp(x, x0 + gap, x1 - p.width - gap),
+      top: clamp(y, y0 + gap, y1 - p.height - gap),
       width: p.width,
       height: p.height,
     }));
+    // Every control on the play stage is an obstacle: the game, its toolbar and
+    // the feedback form below the game stay reachable. So are the instruction
+    // the player is following, the action bar with its count, and the thing
+    // just chosen: a finding never covers what it explains.
     const controls =
-        'button, a[href], input:not([type="hidden"]), select, textarea, summary, [role="button"]',
-      toolbar = ctx.root
-        .closest("[data-playtest-stage]")
-        ?.querySelector(".pt-toolbar"),
-      obstacles = [
-        ...ctx.root.querySelectorAll(controls),
-        ...(toolbar?.querySelectorAll(controls) || []),
-      ]
+        'button, a[href], input:not([type="hidden"]), select, textarea, summary, [role="button"], .cb-coach, .cb-actions',
+      stage = ctx.root.closest("[data-playtest-stage]"),
+      toolbar = stage?.querySelector(".pt-toolbar"),
+      obstacles = [...(stage || ctx.root).querySelectorAll(controls)]
         .filter(
-          (node) =>
-            node !== anchor &&
-            !panel.contains(node) &&
-            !node.closest("[hidden], [inert]"),
+          (node) => !panel.contains(node) && !node.closest("[hidden], [inert]"),
         )
-        .map((node) => node.getBoundingClientRect())
+        .map((node) => (node === anchor ? a : node.getBoundingClientRect()))
         .filter((rect) => rect.width > 0 && rect.height > 0);
     const area = (a, b) =>
       Math.max(
@@ -142,12 +210,51 @@ export function showCallout(ctx, anchor, content, options = {}) {
     );
     // When a dense small scene has no free rectangle, place the callout beside
     // the board in normal flow instead of obscuring an action or navigation.
-    const inline = score(chosen) > 0;
+    let inline = score(chosen) > 0;
+    // Once a finding has been in flow, its place below the board is kept: by
+    // the finding, or by a slot of the same size while it floats. Moving
+    // between that place and a free corner then never changes the height or
+    // scroll position of the stage, which this choice is made from. Without
+    // the slot, floating at the bottom of a phone stage made the scroller
+    // clamp, a control moved under the corner, the finding went back into
+    // flow, scroll anchoring restored the offset, and it jumped every frame.
+    if (slot && !slot.isConnected) slot = null;
+    const home = panel.classList.contains("is-flow") ? panel : slot;
+    if (home && !inline) {
+      // Where the player can already read the whole finding, down to "Keep
+      // looking", is where it stays. Its padding and border may be cut off.
+      const h = home.getBoundingClientRect(),
+        box = ctx.window.getComputedStyle(panel),
+        inset = (side) =>
+          (parseFloat(box["padding" + side]) || 0) +
+          (parseFloat(box["border" + side + "Width"]) || 0),
+        upper = Math.max(top, toolbar?.getBoundingClientRect().bottom ?? top);
+      inline =
+        h.top + inset("Top") >= upper - 1 &&
+        h.bottom - inset("Bottom") <= top + vh + 1 &&
+        h.left >= left - 1 &&
+        h.right <= left + vw + 1;
+    }
     panel.classList.toggle("is-flow", inline);
     if (inline) {
-      if (panel.parentNode !== ctx.main) ctx.main.appendChild(panel);
+      if (slot) {
+        move(slot.parentNode, slot);
+        slot.remove();
+        slot = null;
+      } else if (panel.parentNode !== ctx.main) move(ctx.main);
     } else {
-      if (panel.parentNode !== ctx.root) ctx.root.appendChild(panel);
+      if (home === panel) {
+        slot = ctx.h("div", {
+          class: "cb-callout-slot",
+          "aria-hidden": "true",
+        });
+        panel.before(slot);
+      }
+      if (slot) {
+        slot.style.width = p.width + "px";
+        slot.style.height = p.height + "px";
+      }
+      if (panel.parentNode !== ctx.root) move(ctx.root);
       panel.style.left = chosen.left + "px";
       panel.style.top = chosen.top + "px";
     }
@@ -178,7 +285,20 @@ export function showCallout(ctx, anchor, content, options = {}) {
     );
   ctx.activeLifecycle?.cleanup(close);
   place();
-  anchor.focus({ preventScroll: true });
+  // When the view moved to show the finding, the chosen thing may now be out
+  // of sight. A keyboard or gamepad player then lands on "Keep looking", which
+  // brings them back to it; a pointer player's focus stays on the thing.
+  const moved = reveal(),
+    device = ctx.root.dataset.input;
+  (moved && (device === "keyboard" || device === "gamepad")
+    ? keep
+    : anchor
+  ).focus({ preventScroll: true });
+  const words = [options.title, ...body.map((node) => node.textContent)]
+    .map((text) => String(text || "").trim())
+    .filter(Boolean);
+  if (options.announce) words.push(options.announce);
+  ctx.say?.(words.join(" "));
   if (ctx.vOn)
     Promise.resolve(ctx.vLoad()).then(
       () => {

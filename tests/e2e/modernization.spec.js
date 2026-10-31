@@ -339,6 +339,228 @@ test('Library / Class mode chosen on the page keeps each Stop 1 finding on scree
   await page.waitForTimeout(6500);await expect(card).toBeVisible();
   await page.keyboard.press('Escape');await expect(card).toHaveCount(0);
 });
+// 2026-10-30 UI/UX round (PG-UX-C02): one Escape closes the open finding only; Pause needs a second Escape.
+for(const {lang,file} of languages)test(`${lang}: Escape on an open Stop 1 finding closes the finding and does not open Pause`,async({page})=>{
+  await start(page,file);await stop(page,1);await startStop1Today(page);
+  await page.waitForTimeout(400);const spot=page.locator('.cb-s01-spot[data-spot="3"]');
+  await spot.focus();await page.keyboard.press('Enter');await expect(page.locator('.cb-callout')).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(page.locator('.cb-callout')).toHaveCount(0);await expect(page.locator('.cb-pause')).toHaveCount(0);await expect(spot).toBeFocused();
+  await page.keyboard.press('Escape');await expect(page.locator('.cb-pause')).toBeVisible();
+});
+// PG-UX-C01 / C03: a finding opens in view down to Keep looking, on a laptop and a phone, and Keep looking brings the
+// chosen thing back into view.
+for(const [lang,file,width,height] of [['en','index.html',1366,768],['es','espanol.html',390,844]])test(`${lang} ${width}x${height}: a Stop 1 finding opens in view, and Keep looking returns to the scene`,async({page})=>{
+  await page.setViewportSize({width,height});await start(page,file);await stop(page,1);await startStop1Today(page);
+  for(const index of [5,11]){
+    await page.waitForTimeout(400);const spot=page.locator(`.cb-s01-spot[data-spot="${index}"]`);
+    await spot.click();const finding=page.locator('.cb-callout'),keep=finding.locator('.cb-btn');
+    await expect(keep).toBeInViewport({ratio:1});
+    await expect(finding.locator('h3')).toBeInViewport({ratio:1});
+    await keep.click();await expect(finding).toHaveCount(0);
+    await expect(spot).toBeInViewport();await expect(spot).toBeFocused();
+  }
+});
+// Repair after the round's reviews. A keyboard player's focus must stay in view when a finding opens (it used to stay
+// on the chosen thing, which the reveal had scrolled 350-1280 px out of sight), and Keep looking brings them back.
+for(const [lang,file,width,height] of [['en','index.html',1366,768],['es','espanol.html',390,844]])test(`${lang} ${width}x${height}: a keyboard player's focus stays in view when a Stop 1 finding opens`,async({page})=>{
+  await page.setViewportSize({width,height});await start(page,file);await stop(page,1);await startStop1Today(page);
+  // Items 0, 4 and 7 sit high in the scene: before the repair their focus ended 85-171 px above the view.
+  for(const index of [0,4,7]){
+    await page.waitForTimeout(400);const spot=page.locator(`.cb-s01-spot[data-spot="${index}"]`);
+    await spot.focus();await page.keyboard.press('Enter');await expect(page.locator('.cb-callout')).toBeVisible();
+    await expect(page.locator(':focus')).toBeInViewport({ratio:1});
+    if(await page.locator('.cb-callout .cb-btn').evaluate(node=>node===document.activeElement))await page.keyboard.press('Enter');
+    else await page.keyboard.press('Escape');
+    await expect(page.locator('.cb-callout')).toHaveCount(0);await expect(spot).toBeFocused();await expect(spot).toBeInViewport();
+  }
+});
+// Tapping one thing and then the next without Keep looking floated the second finding over the thing just tapped and
+// the "Signs found" count, at 1366-1920.
+for(const {lang,file} of languages)test(`${lang}: a second Stop 1 tap without Keep looking never hides the tapped thing or the count`,async({page})=>{
+  await page.setViewportSize({width:1366,height:768});await start(page,file);await stop(page,1);await startStop1Today(page);
+  const box=locator=>locator.evaluate(node=>{const r=node.getBoundingClientRect();return{left:r.left,top:r.top,right:r.right,bottom:r.bottom};});
+  const apart=(a,b)=>a.right<=b.left||b.right<=a.left||a.bottom<=b.top||b.bottom<=a.top;
+  for(const index of [0,1,2,3]){
+    await page.waitForTimeout(450);const spot=page.locator(`.cb-s01-spot[data-spot="${index}"]`);await spot.click();
+    const finding=page.locator('.cb-callout');await expect(finding).toBeVisible();
+    const panel=await box(finding);
+    expect(apart(panel,await box(spot)),`finding ${index} leaves the tapped thing visible`).toBe(true);
+    expect(apart(panel,await box(page.locator('.cb-s01-board .cb-msg'))),`finding ${index} leaves the count readable`).toBe(true);
+  }
+});
+// In phone landscape a finding was taller than the play view: Keep looking sat below the fold on 2 of 12.
+test('en 640x360: every Stop 1 finding opens with Keep looking on screen',async({page})=>{
+  await page.setViewportSize({width:640,height:360});await start(page);await stop(page,1);await startStop1Today(page);
+  for(let index=0;index<12;index++){
+    await page.waitForTimeout(400);await page.locator(`.cb-s01-spot[data-spot="${index}"]`).click();
+    const keep=page.locator('.cb-callout .cb-btn');await expect(keep).toBeInViewport({ratio:1});await keep.click();
+    await expect(page.locator('.cb-callout')).toHaveCount(0);
+  }
+});
+// Stop 2 on phones: after Start the view jumped to the top of the game, and the worry the child must turn into a
+// question (which has focus) sat 205-436 px below the fold.
+// Measured with reduced motion, as the review found it (the view jumps at once).
+for(const [lang,file,width,height] of [['es','espanol.html',390,844],['en','index.html',360,640]])test(`${lang} ${width}x${height}: after Start in Stop 2 the focused worry is on screen`,async({page})=>{
+  await page.emulateMedia({reducedMotion:'reduce'});await page.setViewportSize({width,height});await start(page,file);await stop(page,2);
+  await page.waitForTimeout(450);await page.locator('.cb-s02-intro .cb-btn--go').click();
+  const worry=page.locator('[data-s02="worry"]');await expect(worry).toBeFocused();
+  await expect(worry).toBeInViewport({ratio:1});
+});
+// Stop 2 at the 1366x768 floor: once the question can be asked, "Ask it" comes into view (it sat fully below the fold).
+for(const {lang,file} of languages)test(`${lang} 1366x768: Stop 2's Ask it comes into view once the question can be asked`,async({page})=>{
+  await page.setViewportSize({width:1366,height:768});await start(page,file);await stop(page,2);
+  await page.waitForTimeout(450);await page.locator('.cb-s02-intro .cb-btn--go').click();await page.waitForTimeout(450);
+  await expect(page.locator('[data-s02="worry"]')).toBeInViewport({ratio:1});
+  await page.locator('.cb-s02-row[data-row="start"] .cb-s02-tile').first().click();
+  await page.locator('.cb-s02-row[data-row="topic"] .cb-s02-tile').first().click();
+  await expect(page.locator('.cb-s02-strip .cb-s02-ask')).toBeInViewport({ratio:1});
+  await expect(page.locator('.cb-s02-row[data-row="topic"] .cb-s02-tile').first()).toBeInViewport();
+});
+// Stop 2 at the 1366x768 floor, after Ask: the answer opened at the top of the play view, but "Fix my question" and
+// "Next worry" sat under the taller side column, 34-116 px below the bottom edge (802-862 EN, 824-884 ES of 768).
+// The start of the judged question, the neighbor's answer and both buttons must share the first screen of the play view.
+for(const {lang,file} of languages)test(`${lang} 1366x768: after Ask in Stop 2 the question, the answer and both buttons are in view`,async({page})=>{
+  await page.setViewportSize({width:1366,height:768});await start(page,file);await stop(page,2);
+  await page.waitForTimeout(450);await page.locator('.cb-s02-intro .cb-btn--go').click();await page.waitForTimeout(450);
+  // seed 42's first tiles make a question with tips, so both "Fix my question" and "Next worry" are offered
+  for(const row of ['start','topic','detail'])await page.locator(`.cb-s02-row[data-row="${row}"] .cb-s02-tile`).first().click();
+  await page.locator('.cb-s02-ask').click();
+  const answer=page.locator('[data-s02="answer"]'),buttons=page.locator('.cb-s02-strip.is-done .cb-btn');
+  await expect(answer).toBeFocused();await expect(buttons).toHaveCount(2);
+  // the play view scrolls itself (smoothly unless motion is reduced): judge the place it comes to rest
+  const scrollTop=()=>answer.evaluate(node=>{let box=node.parentElement;while(box&&!(/auto|scroll/.test(getComputedStyle(box).overflowY)&&box.scrollHeight>box.clientHeight))box=box.parentElement;return box?box.scrollTop:scrollY;});
+  await expect.poll(async()=>{const before=await scrollTop();await page.waitForTimeout(250);return before===await scrollTop();},'the play view stops scrolling').toBe(true);
+  // inside the visible play area (the play view's scrollport, clipped to the window), not only the window
+  const outside=()=>answer.evaluate(node=>{
+    let port=node.parentElement;while(port&&!(/auto|scroll/.test(getComputedStyle(port).overflowY)&&port.scrollHeight>port.clientHeight))port=port.parentElement;
+    const p=port&&port.getBoundingClientRect(),top=p?Math.max(0,p.top+port.clientTop):0,bottom=p?Math.min(innerHeight,p.top+port.clientTop+port.clientHeight):innerHeight;
+    const range=document.createRange();range.selectNodeContents(node.querySelector('.cb-s02-you'));
+    const parts=[['the first line of the judged question',range.getClientRects()[0]],['the answer',node.querySelector('.cb-s02-reply__line').getBoundingClientRect()]]
+      .concat([...document.querySelectorAll('.cb-s02-strip.is-done .cb-btn')].map(button=>[button.textContent.trim(),button.getBoundingClientRect()]));
+    return parts.filter(([,r])=>!(r.top>=top-0.5&&r.bottom<=bottom+0.5)).map(([name,r])=>`${name} at ${Math.round(r.top)}-${Math.round(r.bottom)} of ${Math.round(top)}-${Math.round(bottom)}`);
+  });
+  await expect.poll(outside,'everything the child needs after Ask is in the play view').toEqual([]);
+  for(const index of [0,1])await expect(buttons.nth(index)).toBeInViewport({ratio:1});
+  await expect(answer).toBeInViewport();
+});
+// The title at 200% browser zoom on the laptop floor (1366x768 seen as 683x384): New game was 258 px below the fold.
+for(const {lang,file} of languages)test(`${lang} 683x384: New game is on the first screen of the title`,async({page})=>{
+  await page.setViewportSize({width:683,height:384});await startStage(page,file);
+  const words=await page.evaluate(()=>window.PecanGroveEngine.i18n.messages);
+  await expect(page.locator('.cb-engine-title-actions').getByRole('button',{name:words.newGame,exact:true})).toBeInViewport({ratio:1});
+});
+// A tooltip stays while the pointer moves onto it (WCAG 1.4.13 Hoverable), with a real mouse path; touch shows none.
+test('a hover tooltip stays while the mouse moves onto it, and leaves with the mouse',async({page})=>{
+  await page.setViewportSize({width:1366,height:768});await start(page);await stop(page,2);
+  // hover() waits until the HUD stops moving. Measured: in a full Chromium run the stop's smooth scroll to its top was
+  // still running, so a pointer placed at a box read too early landed on the toolbar instead (1 of 3 runs).
+  const icon=page.locator('.cb-stophud .cb-setbtn');await icon.hover();const b=await icon.boundingBox();
+  await page.mouse.move(b.x+b.width/2,b.y+b.height/2,{steps:4});
+  if(!await page.evaluate(()=>matchMedia('(hover: hover)').matches)){
+    await page.waitForTimeout(700);await expect(page.locator('.cb-tooltip')).toHaveCount(0);return;
+  }
+  const tip=page.locator('.cb-tooltip');await expect(tip).toBeVisible();
+  const t=await tip.boundingBox();
+  await page.mouse.move(t.x+Math.min(t.width/2,b.width/2),t.y+t.height/2,{steps:12});
+  await page.waitForTimeout(300);await expect(tip).toBeVisible();
+  await page.mouse.move(t.x+t.width/2,t.y+t.height+160,{steps:6});
+  await expect(page.locator('.cb-tooltip')).toHaveCount(0);
+});
+// Phones: the play tools are one row that scrolls sideways. A tool reached with Tab lands fully on screen.
+for(const {lang,file} of languages)test(`${lang} 360x640: every play tool reached with Tab is fully on screen`,async({page})=>{
+  await page.setViewportSize({width:360,height:640});await start(page,file);
+  // The last review of the round made only keyboard focus (:focus-visible) scroll the row, because a tap focuses a tool
+  // too and must not slide it out from under the finger. Focus set by a script after a tap is not keyboard focus, so
+  // the tools after the first are now reached with the Tab key itself, as this test's name says.
+  const [first,...rest]=['#pt-review-tab','#pt-library-tab','#pt-grownups-tab','#pt-exit'].map(id=>page.locator(id));
+  await first.focus();await expect(first).toBeFocused();await expect(first).toBeInViewport({ratio:1});
+  for(const tool of rest){await page.keyboard.press('Tab');await expect(tool).toBeFocused();await expect(tool).toBeInViewport({ratio:1});}
+});
+// Last review of the round. On a phone a press on a tool that peeks past the row's edge focused it, the row then
+// scrolled it fully into view under the finger, and the press ended beside it: nothing opened (EN 360: For grown-ups).
+for(const [lang,file,width,height] of [['en','index.html',360,640],['es','espanol.html',412,915]])test(`${lang} ${width}x${height}: a press on a play tool that peeks past the row's edge opens it`,async({page},testInfo)=>{
+  await page.setViewportSize({width,height});await start(page,file);
+  const peek=await page.locator('.pt-toolbar').evaluate(row=>{
+    const b=row.getBoundingClientRect(),tool=[...row.querySelectorAll('.pt-tool')].find(n=>{const r=n.getBoundingClientRect();return r.left<b.right-12&&r.right>b.right+12;});
+    if(!tool)return null;const r=tool.getBoundingClientRect();return{id:tool.id,x:Math.round((r.left+b.right)/2),y:Math.round(b.top+b.height/2)};
+  });
+  expect(peek,'a tool peeks past the edge of the row').not.toBeNull();
+  if(testInfo.project.use.hasTouch)await page.touchscreen.tap(peek.x,peek.y);else await page.mouse.click(peek.x,peek.y,{delay:80});
+  if(peek.id==='pt-exit')await expect(page.locator('#pt-stage')).not.toHaveClass(/is-playing/);
+  else await expect(page.locator('dialog[open]').first()).toBeVisible();
+});
+// Last review of the round: the row's fade stuck to its content edge, 8 px short of the bar's edge, and the pill under
+// it showed again in that strip ("Fo|gr" in English, "cla|e" in Spanish at 360).
+for(const {lang,file} of languages)test(`${lang} 360x640: the play tools' fade reaches the bar's edge`,async({page})=>{
+  await page.setViewportSize({width:360,height:640});await start(page,file);
+  const clip=await page.locator('.pt-toolbar').evaluate(row=>{row.scrollLeft=0;const r=row.getBoundingClientRect();return{x:Math.floor(r.right)-6,y:Math.round(r.top+r.height/2-8),width:6,height:16};});
+  await page.waitForTimeout(100);
+  const {data,info}=await require('sharp')(await page.screenshot({clip})).raw().toBuffer({resolveWithObject:true});
+  let worst=0;for(let i=0;i<data.length;i+=info.channels)worst=Math.max(worst,Math.abs(data[i]-22)+Math.abs(data[i+1]-58)+Math.abs(data[i+2]-48));
+  expect(worst,'the last 6 px of the bar are its own pine (#163a30), with no pill showing past the fade').toBeLessThanOrEqual(12);
+});
+// Last review of the round: at 1100 px of game and wider the steps row sat in the title column only, and its caption ran
+// under the HUD's Pause button (Spanish Stops 3-10 at 1366x768: 9-91 px; at 1180: up to 151 px; English Stop 10: 38 px).
+for(const [lang,file,stops] of [['es','espanol.html',[3,10]],['en','index.html',[10]]])test(`${lang}: a stop's steps never run under the HUD on a wide stage`,async({page})=>{
+  await page.setViewportSize({width:1366,height:768});await start(page,file);
+  for(const n of stops){
+    await stop(page,n);await page.waitForTimeout(450);
+    const go=page.locator('.cb-board .cb-btn--go.cb-btn--big').last();await go.focus();await page.keyboard.press('Enter');
+    await expect(page.locator('.cb-stophud__steps')).toBeVisible();
+    for(const [width,height] of [[1366,768],[1180,800]]){
+      await page.setViewportSize({width,height});await page.waitForTimeout(250);
+      const clash=await page.locator('.cb-stophud').evaluate(head=>{
+        const hud=head.querySelector(':scope > .cb-engine-hud').getBoundingClientRect();
+        return[...head.querySelectorAll('.cb-stophud__steps *')].filter(n=>!n.closest('.cb-vh')).map(n=>({text:n.textContent.trim().slice(0,30),r:n.getBoundingClientRect()}))
+          .filter(({r})=>r.width&&r.height&&r.left<hud.right&&r.right>hud.left&&r.top<hud.bottom&&r.bottom>hud.top).map(({text})=>text);
+      });
+      expect(clash,`Stop ${n} at ${width}x${height}: nothing in the steps row is under the HUD`).toEqual([]);
+    }
+    await page.setViewportSize({width:1366,height:768});await backToMap(page);
+  }
+});
+// Last review of the round: a finished stop's number is ink on its chapter colour. On green (3.65:1) and pink (4.08:1)
+// it was 16.7 px, under large text, so it failed 4.5:1 on phone maps and in the All stops list (Stops 10-15).
+for(const {lang,file} of languages)test(`${lang} 390x844: every finished stop's number is readable on its chapter colour`,async({page})=>{
+  await page.setViewportSize({width:390,height:844});await start(page,file);
+  await page.evaluate(()=>{const core=window.CommunityBuilders,state=core.getState(),player=state.store.players[state.store.current];core.getAPI().STOPS.forEach(stop=>{player.stops[stop.id]={best:90,rounds:1};});core.showMap();});
+  await waitStageReady(page,'map');
+  await page.evaluate(()=>document.querySelectorAll('.cb details').forEach(d=>{d.open=true;}));
+  const discs=await page.evaluate(()=>[...document.querySelectorAll('.cb-stop[data-state="done"] .cb-stop__disc')].filter(disc=>disc.getBoundingClientRect().width>0).map(disc=>{
+    const number=disc.querySelector(':scope > span:not([class])'),style=getComputedStyle(number);
+    return{n:disc.closest('.cb-stop').dataset.stopN,list:!!disc.closest('.cb-stops--list'),size:parseFloat(style.fontSize),weight:Number(style.fontWeight),color:style.color,fill:getComputedStyle(disc).backgroundColor};
+  }));
+  const {parseColor,contrastRatio}=require('./contrast-probe.cjs');
+  expect(discs.filter(d=>d.list).length,'finished stops in the All stops list').toBe(15);expect(discs.filter(d=>!d.list).length,'finished stops on the map').toBe(15);
+  for(const d of discs){
+    const ratio=contrastRatio(parseColor(d.color),parseColor(d.fill)),large=d.size>=24||(d.weight>=700&&d.size>=18.66);
+    expect(ratio,`Stop ${d.n} (${d.list?'list':'map'}): ${d.size}px at weight ${d.weight}`).toBeGreaterThanOrEqual(large?3:4.5);
+  }
+});
+// Last review of the round: P with a finding open, then Enter on Resume. Resume's click counted as a tap outside the
+// finding, which closed it and removed Keep looking, where Pause had to give focus back: focus fell to the page.
+for(const [lang,file,width,height] of [['en','index.html',1366,768],['es','espanol.html',390,844]])test(`${lang} ${width}x${height}: Resume brings a keyboard player back to the open finding`,async({page})=>{
+  await page.setViewportSize({width,height});await start(page,file);await stop(page,1);await startStop1Today(page);
+  await page.waitForTimeout(400);const spot=page.locator('.cb-s01-spot[data-spot="0"]');
+  await spot.focus();await page.keyboard.press('Enter');const finding=page.locator('.cb-callout');await expect(finding).toBeVisible();
+  const focused=await page.evaluate(()=>document.activeElement.textContent.trim());
+  await page.keyboard.press('p');await expect(page.locator('.cb-pause')).toBeVisible();
+  await page.keyboard.press('Enter');await expect(page.locator('.cb-pause')).toHaveCount(0);
+  await expect(finding).toBeVisible();
+  expect(await page.evaluate(()=>document.activeElement===document.body?'(the page)':document.activeElement.textContent.trim()),'focus is back where it was before Pause').toBe(focused);
+  await expect(page.locator(':focus')).toBeInViewport();
+});
+// The first-stop badge toast covered the result line on a phone and ran past the game's edge on a laptop. It now stays
+// inside the game and off the result line, and the screen behind it still reads.
+for(const [width,height] of [[1366,768],[390,844]])test(`es ${width}x${height}: the new-badge toast stays inside the game and off the result line`,async({page})=>{
+  await page.setViewportSize({width,height});await start(page,'espanol.html');await stop(page,1);await startStop1Today(page);
+  await findStop1Items(page,0,12);await finishStop1(page);
+  const toast=page.locator('.cb-engine-toast');await expect(toast).toBeVisible();await page.waitForTimeout(700);
+  const [t,can,game]=await Promise.all(['.cb-engine-toast','.cb-card__can','#community-builders'].map(sel=>page.locator(sel).first().evaluate(node=>{const r=node.getBoundingClientRect();return{left:r.left,top:r.top,right:r.right,bottom:r.bottom};})));
+  expect(t.right).toBeLessThanOrEqual(game.right);expect(t.left).toBeGreaterThanOrEqual(game.left);
+  expect(t.bottom<=can.top||t.top>=can.bottom||t.right<=can.left||t.left>=can.right,'the result line stays readable').toBe(true);
+});
 test('language switch mid-stop retains the current step and selected tiles',async({page})=>{
   await start(page);await stop(page,2);await page.locator('.cb-s02-intro .cb-btn--go').click();await page.locator('.cb-s02-row[data-row="topic"] .cb-s02-tile').first().click();
   const selected=await page.locator('.cb-s02-tile[aria-pressed="true"]').getAttribute('data-id');
@@ -346,6 +568,7 @@ test('language switch mid-stop retains the current step and selected tiles',asyn
   if(await language.isVisible())await language.click();
   else{await page.locator('.cb-hud-more').click();await page.locator('.cb-hud-more-dialog').getByRole('button',{name:'ES, Español',exact:true}).click();}
   await expect(page.locator('html')).toHaveAttribute('lang','es');await expect(page.locator('.cb-s02-play')).toBeVisible();await expect(page.locator('.cb-s02-tile[aria-pressed="true"]')).toHaveAttribute('data-id',selected);
+  await expect(page.locator('#community-builders')).toHaveAttribute('aria-label','Juego'); // PG-UX-A09
   await page.locator('#pt-review-tab').click();await expect(page.locator('#pt-feedback-h')).toHaveText('Comentarios de la prueba');await expect(page.locator('#pt-feedback-save-draft')).toHaveText('Guardar borrador en este dispositivo');await expect(page.locator('#pt-feedback-category option[value="art"]')).toHaveText('Imágenes o diseño');
 });
 test('pause/resume preserves selected choices and native Tab access',async({page})=>{
@@ -573,6 +796,19 @@ test('leaving Facilitator close-out and coming back with Back shows no note text
     await expect(page.locator('#pt-feedback-fix')).toHaveValue('BFCACHE SECRET NOTE');
     expect(problems).toEqual([]);
   }finally{await browser.close();}
+});
+// Last review of the round: the intro's "turn on the box above first" line stayed the second score box's description
+// after the box unlocked (Chromium's accessibility tree read it on the unlocked box, in English and Spanish).
+for(const {lang,file} of languages)test(`${lang}: the second score box is described by its lock only while it is locked`,async({page,noNetwork})=>{
+  await openIntro(page,file);
+  const scores=page.locator('#pt-consent-options input[data-pg-consent="scores"]'),auto=page.locator('#pt-consent-options input[data-pg-consent="autoScores"]');
+  const why=(await page.locator('#pt-consent-why').textContent()).trim();
+  await expect(auto).toBeDisabled();await expect(auto).toHaveAccessibleDescription(why);
+  await scores.click();await page.locator('#pt-consent-confirm').click();await expect(scores).toBeChecked();
+  await expect(auto).toBeEnabled();await expect(auto).toHaveAccessibleDescription('');
+  await scores.click();await expect(scores).not.toBeChecked();
+  await expect(auto).toBeDisabled();await expect(auto).toHaveAccessibleDescription(why);
+  await assertLocalOnly(page,noNetwork);
 });
 test('turning on score sharing from the start page waits for a grown-up confirmation',async({page,noNetwork})=>{
   await openIntro(page,'espanol.html');const box=page.locator('#pt-consent-options input[data-pg-consent="scores"]');

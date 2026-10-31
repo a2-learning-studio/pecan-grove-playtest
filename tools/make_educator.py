@@ -21,6 +21,13 @@ CSS_FILE = "educator.css"
 CSP = "default-src 'none'; style-src 'self'; img-src 'self' data:; base-uri 'none'; form-action 'none'; object-src 'none'"
 STAMPS = {"sun": "b0001", "half": "b0002", "hour": "b0003", "seed": "b0004"}
 DEBRIEF_STOPS = (4, 6, 11)
+
+
+def lead_in(label):
+    """A label before its text takes a colon, unless it already ends in a question or exclamation mark."""
+    return label if label.rstrip().endswith(("?", "!")) else label + ":"
+
+
 MONTHS = {
     "en": ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October",
            "November", "December"],
@@ -348,7 +355,7 @@ def sheet(lang, flavor="playtest", privacy="", root=ROOT, site_url="", image_alt
         (desks[name], desks[line]) for name, line in
         (("b0008", "b0009"), ("b0011", "b0012"), ("b0014", "b0015"), ("b0016", "b0017"), ("b0018", "b0019"),
          ("b0020", "b0021"))]
-    debrief = "".join(f'<li><b>{e(t["stop"].format(n=n, name=stops[n - 1]["name"]))}:</b> {e(stops[n - 1]["real"])}</li>'
+    debrief = "".join(f'<li><b>{e(lead_in(t["stop"].format(n=n, name=stops[n - 1]["name"])))}</b> {e(stops[n - 1]["real"])}</li>'
                       for n in DEBRIEF_STOPS)
     email = register["corrections"]["email"]
     other = "es" if lang == "en" else "en"

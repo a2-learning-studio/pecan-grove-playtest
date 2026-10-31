@@ -9,8 +9,12 @@ export function visible(node) {
     !node.disabled
   );
 }
+// Arrow keys and the d-pad skip what is hidden from screen readers (a
+// pointer-only duplicate, such as Stop 2's floating Ask), as Tab does.
 export function focusables(scope) {
-  return [...scope.querySelectorAll(SELECTOR)].filter(visible);
+  return [...scope.querySelectorAll(SELECTOR)].filter(
+    (node) => visible(node) && !node.closest('[aria-hidden="true"]'),
+  );
 }
 export function mapStops(scope) {
   if (!scope || typeof scope.querySelector !== "function") return null;

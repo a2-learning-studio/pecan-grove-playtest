@@ -550,8 +550,16 @@
       if (!document.querySelectorAll) return;
       Array.from(document.querySelectorAll("[data-pg-consent]")).forEach(function (input) {
         var key = input.getAttribute("data-pg-consent"); input.checked = consent[key] === true;
-        if (key === "autoScores") input.disabled = !consent.scores;
+        if (key !== "autoScores") return;
+        input.disabled = !consent.scores;
+        // The "turn on the box above first" line describes the box only while it is locked. A hidden line that
+        // aria-describedby points to is still read, so the link goes when the box unlocks and comes back with the lock.
+        var why = input.getAttribute("data-pg-why") || input.getAttribute("aria-describedby");
+        if (why !== "pt-consent-why") return;
+        input.setAttribute("data-pg-why", why);
+        if (consent.scores) input.removeAttribute("aria-describedby"); else input.setAttribute("aria-describedby", why);
       });
+      Array.from(document.querySelectorAll("[data-pg-consent-why]")).forEach(function (line) { line.hidden = !!consent.scores; });
     }
     function setConsent(value) {
       var next = { scores: value && value.scores === true, autoScores: value && value.scores === true && value.autoScores === true, at: new Date().toISOString(), build: root.dataset.build || "", sessionId: model.active() };
@@ -574,6 +582,15 @@
     var newDialog = document.getElementById("pt-new-player-dialog"), newTitle = document.getElementById("pt-new-player-title"), newMessage = document.getElementById("pt-new-player-message"), newCancel = document.getElementById("pt-new-player-cancel"), newConfirm = document.getElementById("pt-new-player-confirm"), newOpener = null, newVoiceSuspended = false;
     var useNewDialog = !!(newDialog && typeof newDialog.showModal === "function" && newTitle && newMessage && newCancel && newConfirm);
     function label(n) { return n ? W.stop + " " + n : W.general; }
+    // The status line is a polite live region. Opening the page, a language switch or redrawing the same words only
+    // restates it, so those changes are made with the region quiet; news (saved, sent, failed) is still announced.
+    var statusQuiet = true;
+    function showStatus(value) {
+      if (status.textContent === value) return;
+      if (!statusQuiet) { status.textContent = value; return; }
+      status.setAttribute("aria-live", "off"); status.textContent = value;
+      window.setTimeout(function () { status.setAttribute("aria-live", "polite"); }, 0);
+    }
     function setStatus() {
       if (model.changedSession()) {
         closeNewPlayerDialog();
@@ -597,7 +614,9 @@
       // After a reload nothing retries by itself, so an unconfirmed note says so instead of "waiting". Earlier players'
       // notes are left only for the facilitator's close-out, or by an older version of the game.
       var others = model.entries(true).some(function (e) { return e.sessionId !== model.active() && e.kind === "feedback" && hasContent(e) && !received(e); });
-      status.textContent = (model.recovery ? W.recovery : "") + (!endpointAllowed(endpoint) ? W.local : (pending ? (retry ? (attempts < 3 ? W.retrying : W.failed) : (inflight || sending ? W.queued : W.unsent)) : (acknowledged ? W.synced : W.draftSaved))) + (others ? " " + (closeoutReady ? W.othersKept : W.othersWaiting) : "");
+      // Before anything is written, the line says where drafts stay instead of claiming a draft was saved.
+      var written = hasContent(model.find("feedback", contextStop)) || !!(rating.value || category.value || worked.value.trim() || fix.value.trim());
+      showStatus((model.recovery ? W.recovery : "") + (!endpointAllowed(endpoint) ? W.local : (pending ? (retry ? (attempts < 3 ? W.retrying : W.failed) : (inflight || sending ? W.queued : W.unsent)) : (acknowledged ? W.synced : written ? W.draftSaved : W.idle))) + (others ? " " + (closeoutReady ? W.othersKept : W.othersWaiting) : ""));
     }
     function render() {
       if (player) player.textContent = W.player + " " + model.active().slice(-6).toUpperCase();
@@ -747,10 +766,15 @@
       if (useNewDialog) { text(newTitle, W.newTitle); text(newCancel, W.newCancel); if (!newDialog.open) text(newConfirm, W.newConfirmLabel); }
       root.dataset.lang = lang; root.setAttribute("lang", SPOKEN[lang] || lang);
     }
+    // Send now is drawn as an outlined, secondary button until the grown-up ticks the check, and filled once it is
+    // ready. It stays a working button: pressed early it explains what is missing (finishSend), so the gate itself is
+    // unchanged, and its text keeps full contrast.
+    function syncSendReady() { if (send && checkBox) send.setAttribute("data-ready", checkBox.checked ? "true" : "false"); }
     function invalidatePreview() {
       previewEntry = null; if (preview) preview.hidden = true;
       if (checkBox) checkBox.checked = false;
       if (checkStatus) checkStatus.textContent = W.checkStatus;
+      syncSendReady();
     }
     function showPreview() {
       flush(); if (model.warning() || model.changedSession()) return;
@@ -763,7 +787,7 @@
       previewText.textContent = W.worked + ":\n" + previewEntry.worked + "\n\n" + W.fix + ":\n" + previewEntry.fix;
       var flags = privacyFlags(previewEntry.worked + "\n" + previewEntry.fix);
       if (previewFlags) { previewFlags.textContent = flags.length ? W.flagged.replace("{words}", flags.join(", ")) : ""; previewFlags.hidden = !flags.length; }
-      checkBox.checked = false; checkStatus.textContent = W.checkStatus; preview.hidden = false;
+      checkBox.checked = false; checkStatus.textContent = W.checkStatus; preview.hidden = false; syncSendReady();
       // Start at the heading so a phone keeps the "remove any names" prompt in view.
       if (typeof preview.scrollIntoView === "function") preview.scrollIntoView({ block: "start" });
       if (previewHeading) previewHeading.focus({ preventScroll: true });
@@ -786,7 +810,7 @@
     }
     if (send) send.addEventListener("click", finishSend);
     if (checkBox) {
-      checkBox.addEventListener("change", function () { checkStatus.textContent = W.checkStatus; });
+      checkBox.addEventListener("change", function () { checkStatus.textContent = W.checkStatus; syncSendReady(); });
       // Enter on a checkbox would submit the form and rebuild the preview.
       checkBox.addEventListener("keydown", function (event) { if (event.key === "Enter") event.preventDefault(); });
     }
@@ -798,7 +822,7 @@
       var next = event.detail && event.detail.language;
       if ((next !== "en" && next !== "es") || next === lang) return;
       var wasPreviewing = preview && !preview.hidden;
-      flush(); lang = next; W = WORDS[lang]; translateForm(); render();
+      flush(); lang = next; W = WORDS[lang]; statusQuiet = true; translateForm(); render(); statusQuiet = false;
       if (playerReady) playerReady.textContent = W.playerReady;
       if (deviceDialog && deviceDialog.open) renderDevice();
       // A redrawn close-out list clears the grown-up check: read it again in the new language.
@@ -1176,6 +1200,7 @@
       // autocomplete="off", but not a one-time code: so the browser never keeps the code or fills it in for a child.
       askInput.type = "password"; askInput.name = "pt-closeout-otp"; askInput.setAttribute("autocomplete", "one-time-code"); askInput.setAttribute("autocapitalize", "off"); askInput.setAttribute("spellcheck", "false"); askInput.setAttribute("aria-describedby", "pt-closeout-ask-message pt-closeout-ask-status");
       askInput.addEventListener("keydown", function (event) { if (event.key === "Enter") { event.preventDefault(); checkCode(); } });
+      askInput.addEventListener("input", function () { askInput.setAttribute("aria-invalid", "false"); if (askStatus && askStatus.classList) askStatus.classList.remove("is-error"); });
       field.appendChild(node("span", "", W.codeLabel)); field.appendChild(askInput);
       askStatus = politeStatus("pt-closeout-ask-status");
       actions.appendChild(action(W.closeoutNo, "pt-btn", "pt-closeout-ask-cancel", function () { answerCloseout(false); }));
@@ -1219,6 +1244,8 @@
         // Five wrong codes on this device, then a one-minute wait before the next try.
         writeTries(count >= CODE_TRIES ? { count: 0, until: Date.now() + CODE_WAIT } : { count: count, until: 0 });
         askStatus.textContent = count >= CODE_TRIES ? W.codeWait : W.codeWrong.replace("{count}", CODE_TRIES - count);
+        // A wrong code is an error on the field, not more help text.
+        askInput.setAttribute("aria-invalid", "true"); if (askStatus.classList) askStatus.classList.add("is-error");
         askInput.focus();
       }, function () { checking = false; askStatus.textContent = W.codeUnavailable; });
     }
@@ -1277,6 +1304,7 @@
       if (!closeoutDialog) {
         closeoutDialog = node("dialog", "pt-player-dialog pt-device", "", "pt-closeout-dialog"); closeoutDialog.setAttribute("aria-labelledby", "pt-closeout-title");
         closeoutDialog.addEventListener("cancel", function (event) { event.preventDefault(); closeCloseout(); });
+        // The privacy close stays as it was: only typing, a tap or a change restarts the 10 minutes.
         ["keydown", "pointerdown", "input"].forEach(function (type) { closeoutDialog.addEventListener(type, armIdle); });
         closeoutTitle = node("h2", "", "", "pt-closeout-title"); closeoutTitle.tabIndex = -1;
         closeoutIntro = node("p"); closeoutBody = node("div", "pt-closeout__body", "", "pt-closeout-body"); closeoutStatus = politeStatus("pt-closeout-status");
@@ -1404,7 +1432,7 @@
     });
     model.upsert("session", 0, { phase: "start", language: lang });
     var initial = game && Number(game.dataset.currentStop);
-    translateForm(); loadContext(Number.isInteger(initial) && initial >= 0 && initial <= 15 ? initial : 0); updateConsentControls();
+    translateForm(); loadContext(Number.isInteger(initial) && initial >= 0 && initial <= 15 ? initial : 0); updateConsentControls(); statusQuiet = false;
     var runtime = { model: model, flush: flush, sync: sync, getConsent: consentCopy, setConsent: setConsent, showPreview: showPreview, openDevice: openDevice,
       requestNewPlayer: function (opener) { newPlayer({ currentTarget: opener }); } };
     // Facilitator close-out (For grown-ups) exists only in a build with a close-out code.

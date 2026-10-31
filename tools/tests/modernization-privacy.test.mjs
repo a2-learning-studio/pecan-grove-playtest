@@ -22,6 +22,7 @@ class Node {
   get childNodes() { return this.children; }
   setAttribute(key, value) { this.attrs[key] = String(value); if (key.startsWith('data-')) this.dataset[key.slice(5).replace(/-([a-z])/g, (_, c) => c.toUpperCase())] = String(value); }
   getAttribute(key) { return this.attrs[key] ?? null; }
+  removeAttribute(key) { delete this.attrs[key]; }
   focus() { this.document.activeElement = this; }
   click() { this.fire('click'); }
   remove() { this.parentNode?.removeChild(this); }
@@ -345,6 +346,20 @@ test('turning on score sharing waits for a grown-up confirmation; turning it off
   auto.checked = true; b.doc.fire('change', null, {target: auto}); assert.match(b.id('pt-consent-message').textContent, /as soon as a stop is finished/);
   b.id('pt-consent-confirm').click(); assert.equal(b.app.getConsent().autoScores, true);
   box.checked = false; b.doc.fire('change', null, {target: box}); assert.equal(dialog.open, false); assert.equal(b.app.getConsent().scores, false); assert.equal(b.app.getConsent().autoScores, false);
+  assert.equal(b.requests.length, 0);
+});
+// Review of the 2026-10-30 round: the intro's "turn on the box above first" line stayed linked to the second box after
+// the box unlocked, and Chromium still read it as that box's description (measured: "To use this, turn on the box above
+// first." / "Para usar esta casilla, marca primero la de arriba." on the unlocked checkbox).
+for (const lang of ['en', 'es']) test(`${lang}: the locked score box's reason describes it only while it is locked`, () => {
+  const b = browser({lang, autoMount: false}), box = b.id('consent-scores'), auto = b.id('consent-autoScores');
+  auto.setAttribute('aria-describedby', 'pt-consent-why');
+  api.mount(b.doc, b.win);
+  assert.equal(auto.disabled, true); assert.equal(auto.getAttribute('aria-describedby'), 'pt-consent-why');
+  box.checked = true; b.doc.fire('change', null, {target: box}); b.id('pt-consent-confirm').click();
+  assert.equal(auto.disabled, false); assert.equal(auto.getAttribute('aria-describedby'), null, 'an unlocked box is not told to turn on the box above');
+  box.checked = false; b.doc.fire('change', null, {target: box});
+  assert.equal(auto.disabled, true); assert.equal(auto.getAttribute('aria-describedby'), 'pt-consent-why', 'the reason comes back with the lock');
   assert.equal(b.requests.length, 0);
 });
 // The next child on a shared computer must never read, download, send or bring back the last child's notes.
@@ -697,4 +712,30 @@ test('the close-out closes by itself when the tab is hidden and after ten minute
   await openCloseout(b); b.win.Blob = class {}; b.id('pt-closeout-download').click(); await b.tick(600000);
   assert.equal(dialog.open, true); assert.match(b.id('pt-closeout-files').textContent, /Delete them from the Downloads folder/); assert.doesNotMatch(textOf(dialog), /private note/);
   await b.tick(600000); assert.equal(dialog.open, false);
+});
+
+// 2026-10-30 UI/UX round. PG-UX-C16: before anything is written the line says where drafts stay (not "Draft saved"),
+// and redrawing the same words is not announced again. PG-UX-C17: Send now looks unavailable until the check is
+// ticked; the gate itself (finishSend) is unchanged. PG-UX-C32: a wrong close-out code marks the field invalid.
+for (const lang of ['en', 'es']) test(`${lang}: the status line says where drafts stay until a note is written, and Send now waits for the check`, async () => {
+  const shell = JSON.parse(fs.readFileSync(new URL(`../../assets/playtest/locales/${lang}.json`, import.meta.url), 'utf8'));
+  const b = browser({lang});
+  assert.equal(b.el('status').textContent, shell.feedback_status, 'nothing written yet: drafts stay on this device until Send');
+  b.el('fix').value = 'test'; b.el('fix').fire('input'); await b.tick(2000);
+  assert.notEqual(b.el('status').textContent, shell.feedback_status, 'a written note is saved as a draft');
+  b.el('form').fire('submit');
+  assert.equal(b.el('send').getAttribute('data-ready'), 'false', 'Send now is drawn as not ready before the grown-up check');
+  assert.notEqual(b.el('send').getAttribute('aria-disabled'), 'true', 'but stays a working button that explains the check');
+  b.el('confirm').checked = true; b.el('confirm').fire('change');
+  assert.equal(b.el('send').getAttribute('data-ready'), 'true');
+  b.el('confirm').checked = false; b.el('confirm').fire('change');
+  b.el('send').click(); await b.tick(2000); assert.equal(b.requests.length, 0, 'the gate is unchanged: nothing is sent without the check');
+});
+test('a wrong close-out code marks the code field invalid until it is typed again', async () => {
+  const b = browser({closeout: CODE});
+  b.app.openCloseout(b.doc.createElement('button'));
+  b.id('pt-closeout-code').value = 'test'; b.id('pt-closeout-ask-confirm').click(); await digestDone();
+  assert.equal(b.id('pt-closeout-code').getAttribute('aria-invalid'), 'true');
+  b.id('pt-closeout-code').fire('input');
+  assert.equal(b.id('pt-closeout-code').getAttribute('aria-invalid'), 'false');
 });

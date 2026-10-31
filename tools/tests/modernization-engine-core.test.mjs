@@ -163,7 +163,10 @@ test('native settings/library dialogs preserve the session, save quiet settings 
     dialog.close();assert.equal(r.w.document.activeElement,opener);
     r.core.updateSettings({calm:true,cap:true,voice:false,rate:1.15});const stored=JSON.parse(r.w.localStorage.getItem('pecan-grove-settings'));
     assert.equal(stored.voice,false);assert.equal(stored.cap,true);assert.equal(stored.rate,1.15);assert.equal(r.core.motionAllowed(),false);
-    dialog=r.core.openLibraryMode(opener);assert.ok(dialog.querySelector('.cb-library'));dialog.querySelector('.cb-library .cb-btn--go').click();
+    // PG-UX-C28: with the voice already off, Use quiet mode shows as the current state and Settings is the main (go)
+    // action, so the quiet button is found by its words rather than by the go colour.
+    dialog=r.core.openLibraryMode(opener);assert.ok(dialog.querySelector('.cb-library'));const quietButton=[...dialog.querySelectorAll('.cb-library .cb-btn')].find(b=>b.textContent.includes(r.core.getAPI().X.libraryQuiet));
+    assert.equal(quietButton.getAttribute('aria-pressed'),'true');assert.equal(quietButton.classList.contains('cb-btn--go'),false);quietButton.click();
     assert.equal(r.core.getState().quiet,true);assert.equal(r.core.getState().session,session);assert.equal(r.root.querySelectorAll('dialog[open]').length,0);
     assert.equal(r.core.getAPI().prefersFindCards(),true,'Library mode enables classic finding cards');
     await r.core.startStop('notice-the-signs');r.main().querySelector('.cb-s01-intro .cb-btn--go').click();r.main().querySelector('[data-view="today"]').click();r.main().querySelector('[data-spot="0"]').click();
@@ -195,6 +198,8 @@ test('native lazy-stop failure renders a usable retry and the next attempt loads
     r.core.enterPlay({quiet:true});assert.equal(await r.core.startStop('fact-or-rumor'),false);await r.tick();
     assert.deepEqual(unavailable,['fact-or-rumor'],'the offline layer is asked to look for a newer release');
     assert.match(r.main().textContent,/could not load/);assert.equal(r.main().querySelector('.cb-btn--go').textContent,'Try again');
+    // PG-UX-C13: the failure takes focus on Try again, so keyboard and screen-reader players are not left on the page.
+    assert.equal(r.w.document.activeElement,r.main().querySelector('.cb-btn--go'));
     r.main().querySelector('.cb-btn--go').click();await r.tick();await r.tick();
     assert.ok(r.main().querySelector('.cb-intro'));assert.equal(r.core.getState().stopId,'fact-or-rumor');assert.equal(r.requests.filter(name=>name==='04-fact-or-rumor.js').length,2);assert.equal(r.errors.length,0,String(r.errors));
   }finally{r.close();}

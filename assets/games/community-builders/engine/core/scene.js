@@ -153,8 +153,12 @@ export default function createScene(ctx) {
           type: "button",
           class: "cb-chip",
           "aria-label": ctx.W.playing(a.name),
+          // The same picker as the map's Switch player button (with its
+          // next-person step); Library groups keep their own dialog.
           onclick: function () {
-            ctx.openWho(c);
+            var engine = ctx.window.PecanGroveEngine;
+            if (engine && engine.openSlots) engine.openSlots(c);
+            else ctx.openWho(c);
           },
         },
         [animalFace(a), ctx.h("span", { text: ctx.W.playing(a.name) })],

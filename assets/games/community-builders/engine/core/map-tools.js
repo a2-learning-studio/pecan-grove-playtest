@@ -116,7 +116,11 @@ export default function createMapTools(ctx) {
             }),
           ),
         ])
-      : ctx.h("p", { text: ctx.W.open(Object.keys(ctx.PLAYABLE).length) });
+      : ctx.h("div", null, [
+          // Before any play the dialog says why it is empty.
+          ctx.h("p", { text: ctx.W.last5Empty }),
+          ctx.h("p", { text: ctx.W.open(Object.keys(ctx.PLAYABLE).length) }),
+        ]);
     ctx.dialog(ctx.W.last5, [body], opener, null, { wide: true });
   }
   ctx.publish({ nextSuggested, pathD, starRow, comingSoon, openLast5 });
