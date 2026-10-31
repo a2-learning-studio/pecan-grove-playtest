@@ -61,12 +61,28 @@ export function showCallout(ctx, anchor, content, options = {}) {
     return r.height > 0 && r.top >= top && r.bottom <= bottom;
   }
   function outside(event) {
+    // A click in the game's own dialog (Resume in Pause, Close in Settings)
+    // is not a tap elsewhere: the finding waits under the dialog, so the
+    // focus the dialog gives back still has "Keep looking" to land on.
+    const dialog = event.target.closest?.("dialog[open]");
+    if (dialog && ctx.root.contains(dialog)) return;
     if (!panel.contains(event.target) && !anchor.contains(event.target))
       close();
   }
   function escape(event) {
     // The engine's input handles Escape first when it runs (main.js back()).
     if (event.key !== "Escape" || event.defaultPrevented) return;
+    // Escape typed in a text box (the fields input.js leaves alone), or
+    // anywhere outside the game (the feedback form, the play-view tools), is
+    // not for the finding.
+    const target = event.target;
+    if (
+      target.closest?.(
+        'input, textarea, select, [contenteditable]:not([contenteditable="false"]), [data-pg-native]',
+      ) ||
+      (target !== ctx.document.body && !ctx.root.contains(target))
+    )
+      return;
     event.preventDefault();
     event.stopImmediatePropagation();
     dismiss();
