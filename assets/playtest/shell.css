@@ -97,6 +97,9 @@ body.pt-playing { overflow: hidden; }
   /* More tools wait to the right: the row fades into the bar's own pine at its right edge (a cut-off pill under a fade
      reads as "scroll for more"), and a tool reached with Tab scrolls fully clear of the fade. */
   .pt-toolbar { scroll-padding-inline: 1rem 3rem; }
+  /* The fade sticks to the row's content edge, so the row keeps no end padding: the fade then reaches the bar's own
+     edge, with no strip of the pill beyond it. Its 2.5rem is the end gap. */
+  .pt-toolbar { padding-inline-end: 0; }
   .pt-toolbar::after { content: ""; position: sticky; right: 0; flex: 0 0 2.5rem; align-self: stretch; background: linear-gradient(90deg, transparent, var(--pg-ink) 75%); pointer-events: none; }
 }
 @media (max-width: 560px) { .pt-feedback-dock-header { padding: .75rem; } .pt-feedback-dock-header > strong { flex-basis: 100%; } .pt-feedback-dock-header .pt-tool { flex: 1 1 110px; min-width: 0; padding: .6rem .7rem; font-size: .85rem; } }

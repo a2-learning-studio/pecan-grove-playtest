@@ -7,8 +7,14 @@
     var el = function (id) { return document.getElementById('pt-' + id); };
     var intro = el('intro'), game = document.getElementById('community-builders');
     // Phones: the tools are one row that scrolls sideways. A tool reached with Tab comes fully into view, clear of the fade.
+    // A press with a finger or a mouse focuses the tool too, but scrolling then would slide it out from under the
+    // pointer before the press ends, and the tap would open nothing: only keyboard focus (:focus-visible) scrolls.
     var toolRow = stage.querySelector ? stage.querySelector('.pt-toolbar') : null;
-    if (toolRow) toolRow.addEventListener('focusin', function (event) { if (toolRow.scrollWidth > toolRow.clientWidth && event.target.scrollIntoView) event.target.scrollIntoView({ block: 'nearest', inline: 'nearest' }); });
+    if (toolRow) toolRow.addEventListener('focusin', function (event) {
+      var target = event.target, keyboard = true;
+      try { keyboard = target.matches(':focus-visible'); } catch (e) { keyboard = true; }
+      if (keyboard && toolRow.scrollWidth > toolRow.clientWidth && target.scrollIntoView) target.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    });
     var startVersion = 0, artWarmed = false, nativeWanted = false, nativeRequest = null;
     function warmArt() {
       if (artWarmed || !window.PG_ASSET_MAP) return;
