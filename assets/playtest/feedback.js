@@ -550,7 +550,14 @@
       if (!document.querySelectorAll) return;
       Array.from(document.querySelectorAll("[data-pg-consent]")).forEach(function (input) {
         var key = input.getAttribute("data-pg-consent"); input.checked = consent[key] === true;
-        if (key === "autoScores") input.disabled = !consent.scores;
+        if (key !== "autoScores") return;
+        input.disabled = !consent.scores;
+        // The "turn on the box above first" line describes the box only while it is locked. A hidden line that
+        // aria-describedby points to is still read, so the link goes when the box unlocks and comes back with the lock.
+        var why = input.getAttribute("data-pg-why") || input.getAttribute("aria-describedby");
+        if (why !== "pt-consent-why") return;
+        input.setAttribute("data-pg-why", why);
+        if (consent.scores) input.removeAttribute("aria-describedby"); else input.setAttribute("aria-describedby", why);
       });
       Array.from(document.querySelectorAll("[data-pg-consent-why]")).forEach(function (line) { line.hidden = !!consent.scores; });
     }

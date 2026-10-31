@@ -63,18 +63,17 @@ export class Tooltips {
     this.control = control;
     this.timer = setTimeout(() => {
       if (!control.isConnected) return this.hide();
+      // The tip only shows the control's own name, which screen readers
+      // already say: linked as a description it was read twice ("Settings,
+      // button, Settings"), so it is drawn for the eyes only.
       const tip = h("span", {
         id: "cb-tooltip-" + ++this.uid,
         role: "tooltip",
         class: "cb-tooltip",
         text: label,
+        "aria-hidden": "true",
         "data-cb-novoice": "",
       });
-      this.description = control.getAttribute("aria-describedby");
-      control.setAttribute(
-        "aria-describedby",
-        [this.description, tip.id].filter(Boolean).join(" "),
-      );
       // Inside a dialog the tip joins the dialog, which is drawn above the game.
       (control.closest("dialog") || this.root).append(tip);
       this.place(control, tip);
@@ -131,14 +130,8 @@ export class Tooltips {
   }
   hide() {
     clearTimeout(this.timer);
-    if (this.tip && this.control) {
-      if (this.description)
-        this.control.setAttribute("aria-describedby", this.description);
-      else this.control.removeAttribute("aria-describedby");
-    }
     this.tip?.remove();
     this.tip = this.control = null;
-    this.description = null;
   }
   destroy() {
     this.hide();
