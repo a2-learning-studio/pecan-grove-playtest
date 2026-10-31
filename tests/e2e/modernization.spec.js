@@ -348,9 +348,29 @@ for(const {lang,file} of languages)test(`${lang}: Escape on an open Stop 1 findi
   await expect(page.locator('.cb-callout')).toHaveCount(0);await expect(page.locator('.cb-pause')).toHaveCount(0);await expect(spot).toBeFocused();
   await page.keyboard.press('Escape');await expect(page.locator('.cb-pause')).toBeVisible();
 });
+// The round's longer tests outgrow the shared 45 s cap on CI's two WebKit engines (webkit: Desktop Safari, and
+// iphone: iPhone 14), mostly at 1366x768, where the iPhone profile draws at device scale 3. Nothing hangs: in the
+// traces of PR #34's run 41217602842 the screencast ran about 1 frame a second, a click took 1.5-6 s, waiting for its
+// target to hold still (Stop 1's Start 7-8 s), and each test ran out of time with steps left; no console or page error.
+// A same-PC A/B of this round against its base (f7503bd) found no slowdown in the game (older iPhone tests
+// 0.97-0.99x). CI durations, iPhone then WebKit, shard 2 (each includes up to 6 s of teardown after the test body):
+// - a Stop 1 finding opens in view, EN 1366x768: timed out at 45 s on both tries in the last finding's checks, about
+//   52 s needed; 33.6 s. ES 390x844: 26.8 s, 20.3 s.
+// - a keyboard player's focus stays in view, EN 1366x768: 50.0 s, 30.3 s. ES 390x844: 25.6 s, 18.1 s.
+// - a second Stop 1 tap, EN and ES: timed out at 45 s on all four tries, on the 3rd or 4th of 4 taps (each tap 2-6 s),
+//   about 50-52 s needed; 33.5 s and 32.6 s.
+// - every Stop 1 finding at 640x360: 45.3 s; 36.0 s.
+// - Stop 2's Ask it comes into view, EN and ES: 35.3 s and 37.9 s; 22.9 s and 24.1 s.
+// - after Ask in Stop 2, EN and ES: 45.3 s and 42.0 s; 31.2 s and 29.4 s.
+// - a stop's steps never run under the HUD, ES (Stops 3 and 10): timed out at 45 s on both tries on its last click (Back
+//   to the map, 4-5 s), about 50 s needed; 34.0 s. EN (Stop 10): 28.9 s, 24.9 s.
+// 90 s is about 1.7-1.8 times the slowest need (about 52 s). The new-badge toast test needs more and passes its own
+// budget, with its evidence beside it. Chromium, Firefox and Pixel keep the shared 45 s.
+const webKitBudget=(testInfo,ms=90000)=>{if(['webkit','iphone'].includes(testInfo.project.name))test.setTimeout(ms);};
 // PG-UX-C01 / C03: a finding opens in view down to Keep looking, on a laptop and a phone, and Keep looking brings the
 // chosen thing back into view.
-for(const [lang,file,width,height] of [['en','index.html',1366,768],['es','espanol.html',390,844]])test(`${lang} ${width}x${height}: a Stop 1 finding opens in view, and Keep looking returns to the scene`,async({page})=>{
+for(const [lang,file,width,height] of [['en','index.html',1366,768],['es','espanol.html',390,844]])test(`${lang} ${width}x${height}: a Stop 1 finding opens in view, and Keep looking returns to the scene`,async({page},testInfo)=>{
+  webKitBudget(testInfo);
   await page.setViewportSize({width,height});await start(page,file);await stop(page,1);await startStop1Today(page);
   for(const index of [5,11]){
     await page.waitForTimeout(400);const spot=page.locator(`.cb-s01-spot[data-spot="${index}"]`);
@@ -363,7 +383,8 @@ for(const [lang,file,width,height] of [['en','index.html',1366,768],['es','espan
 });
 // Repair after the round's reviews. A keyboard player's focus must stay in view when a finding opens (it used to stay
 // on the chosen thing, which the reveal had scrolled 350-1280 px out of sight), and Keep looking brings them back.
-for(const [lang,file,width,height] of [['en','index.html',1366,768],['es','espanol.html',390,844]])test(`${lang} ${width}x${height}: a keyboard player's focus stays in view when a Stop 1 finding opens`,async({page})=>{
+for(const [lang,file,width,height] of [['en','index.html',1366,768],['es','espanol.html',390,844]])test(`${lang} ${width}x${height}: a keyboard player's focus stays in view when a Stop 1 finding opens`,async({page},testInfo)=>{
+  webKitBudget(testInfo);
   await page.setViewportSize({width,height});await start(page,file);await stop(page,1);await startStop1Today(page);
   // Items 0, 4 and 7 sit high in the scene: before the repair their focus ended 85-171 px above the view.
   for(const index of [0,4,7]){
@@ -377,7 +398,8 @@ for(const [lang,file,width,height] of [['en','index.html',1366,768],['es','espan
 });
 // Tapping one thing and then the next without Keep looking floated the second finding over the thing just tapped and
 // the "Signs found" count, at 1366-1920.
-for(const {lang,file} of languages)test(`${lang}: a second Stop 1 tap without Keep looking never hides the tapped thing or the count`,async({page})=>{
+for(const {lang,file} of languages)test(`${lang}: a second Stop 1 tap without Keep looking never hides the tapped thing or the count`,async({page},testInfo)=>{
+  webKitBudget(testInfo);
   await page.setViewportSize({width:1366,height:768});await start(page,file);await stop(page,1);await startStop1Today(page);
   const box=locator=>locator.evaluate(node=>{const r=node.getBoundingClientRect();return{left:r.left,top:r.top,right:r.right,bottom:r.bottom};});
   const apart=(a,b)=>a.right<=b.left||b.right<=a.left||a.bottom<=b.top||b.bottom<=a.top;
@@ -390,7 +412,8 @@ for(const {lang,file} of languages)test(`${lang}: a second Stop 1 tap without Ke
   }
 });
 // In phone landscape a finding was taller than the play view: Keep looking sat below the fold on 2 of 12.
-test('en 640x360: every Stop 1 finding opens with Keep looking on screen',async({page})=>{
+test('en 640x360: every Stop 1 finding opens with Keep looking on screen',async({page},testInfo)=>{
+  webKitBudget(testInfo);
   await page.setViewportSize({width:640,height:360});await start(page);await stop(page,1);await startStop1Today(page);
   for(let index=0;index<12;index++){
     await page.waitForTimeout(400);await page.locator(`.cb-s01-spot[data-spot="${index}"]`).click();
@@ -408,7 +431,8 @@ for(const [lang,file,width,height] of [['es','espanol.html',390,844],['en','inde
   await expect(worry).toBeInViewport({ratio:1});
 });
 // Stop 2 at the 1366x768 floor: once the question can be asked, "Ask it" comes into view (it sat fully below the fold).
-for(const {lang,file} of languages)test(`${lang} 1366x768: Stop 2's Ask it comes into view once the question can be asked`,async({page})=>{
+for(const {lang,file} of languages)test(`${lang} 1366x768: Stop 2's Ask it comes into view once the question can be asked`,async({page},testInfo)=>{
+  webKitBudget(testInfo);
   await page.setViewportSize({width:1366,height:768});await start(page,file);await stop(page,2);
   await page.waitForTimeout(450);await page.locator('.cb-s02-intro .cb-btn--go').click();await page.waitForTimeout(450);
   await expect(page.locator('[data-s02="worry"]')).toBeInViewport({ratio:1});
@@ -420,7 +444,8 @@ for(const {lang,file} of languages)test(`${lang} 1366x768: Stop 2's Ask it comes
 // Stop 2 at the 1366x768 floor, after Ask: the answer opened at the top of the play view, but "Fix my question" and
 // "Next worry" sat under the taller side column, 34-116 px below the bottom edge (802-862 EN, 824-884 ES of 768).
 // The start of the judged question, the neighbor's answer and both buttons must share the first screen of the play view.
-for(const {lang,file} of languages)test(`${lang} 1366x768: after Ask in Stop 2 the question, the answer and both buttons are in view`,async({page})=>{
+for(const {lang,file} of languages)test(`${lang} 1366x768: after Ask in Stop 2 the question, the answer and both buttons are in view`,async({page},testInfo)=>{
+  webKitBudget(testInfo);
   await page.setViewportSize({width:1366,height:768});await start(page,file);await stop(page,2);
   await page.waitForTimeout(450);await page.locator('.cb-s02-intro .cb-btn--go').click();await page.waitForTimeout(450);
   // seed 42's first tiles make a question with tips, so both "Fix my question" and "Next worry" are offered
@@ -502,7 +527,8 @@ for(const {lang,file} of languages)test(`${lang} 360x640: the play tools' fade r
 });
 // Last review of the round: at 1100 px of game and wider the steps row sat in the title column only, and its caption ran
 // under the HUD's Pause button (Spanish Stops 3-10 at 1366x768: 9-91 px; at 1180: up to 151 px; English Stop 10: 38 px).
-for(const [lang,file,stops] of [['es','espanol.html',[3,10]],['en','index.html',[10]]])test(`${lang}: a stop's steps never run under the HUD on a wide stage`,async({page})=>{
+for(const [lang,file,stops] of [['es','espanol.html',[3,10]],['en','index.html',[10]]])test(`${lang}: a stop's steps never run under the HUD on a wide stage`,async({page},testInfo)=>{
+  webKitBudget(testInfo);
   await page.setViewportSize({width:1366,height:768});await start(page,file);
   for(const n of stops){
     await stop(page,n);await page.waitForTimeout(450);
@@ -553,7 +579,13 @@ for(const [lang,file,width,height] of [['en','index.html',1366,768],['es','espan
 });
 // The first-stop badge toast covered the result line on a phone and ran past the game's edge on a laptop. It now stays
 // inside the game and off the result line, and the screen behind it still reads.
-for(const [width,height] of [[1366,768],[390,844]])test(`es ${width}x${height}: the new-badge toast stays inside the game and off the result line`,async({page})=>{
+// It plays all 12 findings and the result. In PR #34's CI run 41217602842 the 1366x768 case timed out at 45 s on both
+// tries on both WebKit engines. The iPhone had 7 findings left both times, at 2.3 and 3.4 s a finding: about 65-75 s
+// needed with Finish and the toast. Desktop WebKit had 1 and 4 left at 2.2 and 2.6 s: about 51-58 s. The 390x844 case
+// passed in 44.6 s (iPhone) and 32.5 s (WebKit). Even on a faster local PC the 1366x768 case took 39.3, 43.3 and 45.5 s
+// on the iPhone profile. 135 s is about 1.8 times the slowest need (about 75 s), on WebKit only.
+for(const [width,height] of [[1366,768],[390,844]])test(`es ${width}x${height}: the new-badge toast stays inside the game and off the result line`,async({page},testInfo)=>{
+  webKitBudget(testInfo,135000);
   await page.setViewportSize({width,height});await start(page,'espanol.html');await stop(page,1);await startStop1Today(page);
   await findStop1Items(page,0,12);await finishStop1(page);
   const toast=page.locator('.cb-engine-toast');await expect(toast).toBeVisible();await page.waitForTimeout(700);
