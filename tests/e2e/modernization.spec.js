@@ -1011,4 +1011,19 @@ for(const {lang,file}of languages){
   await stop(page,2);await probeLabels(page,'.cb-s02-nb__name');await page.locator('.cb-s02-intro .cb-btn--go').click();await probeLabels(page,'.cb-s02-nb__name');
   for(const viewport of [{width:360,height:640},{width:600,height:500}]){await page.setViewportSize(viewport);await probeLabels(page,'.cb-s02-nb__name');}
  });
+ // Calm keeps the game still. Opening a stop raises the game's text from 17 to 18px, and any
+ // transition Calm leaves on, however short, starts on each element only after its parent's
+ // has ended: the text grew one page level per frame (about nine frames), and on CI's WebKit
+ // the Stop 2 intro took over 5 s to settle. Count every transition the game starts.
+ test(`${lang}: Calm opens, starts and narrows Stop 2 without starting a transition`,async({page})=>{
+  test.setTimeout(120000);await start(page,file);await page.evaluate(()=>window.PecanGroveEngine.settings.update({calm:true}));
+  await expect(page.locator('#community-builders')).toHaveClass(/\bis-calm\b/);
+  await page.evaluate(()=>{window.__pgCalmRuns=[];document.getElementById('community-builders').addEventListener('transitionrun',event=>window.__pgCalmRuns.push(`${event.target.nodeName}.${event.target.getAttribute('class')||''}${event.pseudoElement} ${event.propertyName}`),true);});
+  const frames=count=>page.evaluate(count=>new Promise(resolve=>{const tick=left=>left?requestAnimationFrame(()=>tick(left-1)):resolve();tick(count);}),count);
+  await stop(page,2);await frames(12);
+  await page.locator('.cb-s02-intro .cb-btn--go').click();await frames(12);
+  await page.setViewportSize({width:360,height:640});await frames(12);
+  const runs=await page.evaluate(()=>window.__pgCalmRuns);
+  expect(runs.length,`Transitions started in Calm: ${runs.slice(0,16).join(' | ')}`).toBe(0);
+ });
 }

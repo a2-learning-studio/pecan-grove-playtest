@@ -366,9 +366,11 @@
 .cb-set__end { padding-top: 6px; }
 @media (max-width: 480px) { .cb-set__row--vol { flex-wrap: wrap; } .cb-set__volume { justify-content: flex-start; } }
 
-/* calm motion (Settings → Helpers): the game holds still, as it does when the device asks for less motion */
+/* calm motion (Settings → Helpers): the game holds still, as it does when the device asks for less motion.
+   Transitions take no time at all, so none starts: even a 0.01ms one made a stop's larger text grow
+   one page level per frame, each element only after its parent had finished */
 .cb.is-calm *, .cb.is-calm *::before, .cb.is-calm *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; animation-delay: 0s !important;
-  transition-duration: 0.01ms !important; transition-delay: 0s !important; scroll-behavior: auto !important; }
+  transition-duration: 0s !important; transition-delay: 0s !important; scroll-behavior: auto !important; }
 /* full-screen game: short screens grow the board down to the footer.
    The hint strip keeps one height so it cannot shove the footer, and the
    scene itself scrolls so a control below the fold can still finish its move. */
