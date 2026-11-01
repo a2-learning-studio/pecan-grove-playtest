@@ -1016,7 +1016,7 @@ for(const {lang,file}of languages){
  // has ended: the text grew one page level per frame (about nine frames), and on CI's WebKit
  // the Stop 2 intro took over 5 s to settle. Count every transition the game starts.
  test(`${lang}: Calm opens, starts and narrows Stop 2 without starting a transition`,async({page})=>{
-  test.setTimeout(120000);await start(page,file);await page.evaluate(()=>window.PecanGroveEngine.settings.update({calm:true}));
+  await start(page,file);await page.evaluate(()=>window.PecanGroveEngine.settings.update({calm:true}));
   await expect(page.locator('#community-builders')).toHaveClass(/\bis-calm\b/);
   await page.evaluate(()=>{window.__pgCalmRuns=[];document.getElementById('community-builders').addEventListener('transitionrun',event=>window.__pgCalmRuns.push(`${event.target.nodeName}.${event.target.getAttribute('class')||''}${event.pseudoElement} ${event.propertyName}`),true);});
   const frames=count=>page.evaluate(count=>new Promise(resolve=>{const tick=left=>left?requestAnimationFrame(()=>tick(left-1)):resolve();tick(count);}),count);
