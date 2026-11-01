@@ -115,6 +115,124 @@ for(const label of ['I am done looking','Ya terminé de buscar'])test(`an in-flo
  }finally{r.close();}
 });
 
+// The browser's part in the next tests. Content scrolls with view.top. In flow the finding sits at placeY below the
+// board, and its slot keeps that same box while it floats; room() says whether that place takes space in the stage.
+function placeModel(r,{width,height,pw,ph,placeY}){
+ Object.defineProperties(r.w,{innerWidth:{value:width,configurable:true},innerHeight:{value:height,configurable:true}});
+ const view={top:0},native=r.w.HTMLElement.prototype.getBoundingClientRect,x=(width-pw)/2;
+ r.w.HTMLElement.prototype.getBoundingClientRect=function(){
+  if(this.classList.contains('cb-callout-slot')||(this.classList.contains('cb-callout')&&this.classList.contains('is-flow')))return rect(x,placeY-view.top,pw,ph);
+  if(this.classList.contains('cb-callout'))return rect(Number.parseFloat(this.style.left)||0,Number.parseFloat(this.style.top)||0,pw,ph);
+  return native.call(this);
+ };
+ const at=(node,left,top,w,h)=>{node.getBoundingClientRect=()=>rect(left,top-view.top,w,h);return node;};
+ const room=()=>!!r.ctx.main.querySelector('.cb-callout.is-flow, .cb-callout-slot');
+ const scroll=top=>{view.top=top;r.anchor.dispatchEvent(new r.w.Event('scroll',{bubbles:true}));};
+ // A player resting at the bottom: losing the room clamps the scroller, getting it back lets scroll anchoring
+ // restore the bottom. Returns how often the finding moved between flow and floating, frame by frame.
+ const atBottom=(panel,withRoom,withoutRoom,frames=20)=>{
+  const states=[];scroll(withRoom);
+  for(let i=0;i<frames;i++){r.frame();states.push(panel.classList.contains('is-flow'));const next=room()?withRoom:withoutRoom;if(next!==view.top)scroll(next);}
+  return{states,moves:states.filter((s,i)=>s!==(i?states[i-1]:true)).length};
+ };
+ return{view,at,room,scroll,atBottom};
+}
+function sceneButton(r,label,left,top,w,h,m){const b=r.ctx.btn(label,'cb-btn',()=>{});return m?m.at(b,left,top,w,h):Object.assign(b,{getBoundingClientRect:()=>rect(left,top,w,h)});}
+
+// Pixel 7 geometry from CI run 40793399662 (es, finding 5). With the finding's place taking room the stage scrolls
+// to 973; without it the stage is 260 px shorter and clamps to 713, where the bottom-right corner touches the done
+// button by 1 px. 594e9a2 floated into that corner and back every frame (20 moves in 20 frames).
+test('a finding at the bottom of a phone stage moves at most once and then holds still',()=>{
+ const r=setup();try{
+  const m=placeModel(r,{width:412,height:839,pw:350,ph:236,placeY:1317});m.view.top=600;
+  const back=sceneButton(r,'Map',0,0,412,105),other=sceneButton(r,'Another sign',10,600,392,600,m),done=sceneButton(r,'Ya terminé de buscar',37,1245,337,60,m);
+  m.at(r.anchor,40,1000,44,44);r.ctx.main.append(back,other,done);
+  const panel=showCallout(r.ctx,r.anchor,r.ctx.h('p',{text:'Un aviso nuevo en un tablero.'}));
+  assert.equal(panel.classList.contains('is-flow'),true,'No corner is free, so the finding opens in flow');
+  const{states,moves}=m.atBottom(panel,973,713);
+  assert.ok(moves<=1,`The finding settles after at most one move (moved ${moves} times)`);
+  assert.ok(states.slice(-10).every(s=>s===states.at(-1)),'and then holds still');
+  assert.equal(m.view.top,973,'Where the finding goes never changes the scroll position');
+  if(!panel.classList.contains('is-flow'))for(const b of[back,other,done])assert.ok(!overlaps(panel.getBoundingClientRect(),b.getBoundingClientRect()),'A floating finding covers no control');
+  panel.dismiss();assert.equal(r.frames.size,0);assert.equal(r.ctx.main.querySelector('.cb-callout-slot'),null);
+ }finally{r.close();}
+});
+
+// A tall feedback form below the board. At the bottom of the stage the finding's place is off screen and the
+// bottom-right corner is free, but without that place the stage would clamp by 260 px and pull a feedback field
+// under the corner. The finding floats once, keeps its place, and never covers the field.
+for(const label of['What should we change?','¿Qué deberíamos cambiar?'])test(`a finding that floats at the bottom of the stage keeps its place and leaves "${label}" uncovered`,()=>{
+ const r=setup();try{
+  const m=placeModel(r,{width:412,height:839,pw:350,ph:236,placeY:832});
+  const stage=r.ctx.h('section',{'data-playtest-stage':''}),home=r.ctx.h('div',{id:'pt-feedback-home'});
+  r.ctx.root.before(stage);stage.append(r.ctx.root,home);
+  const other=sceneButton(r,'Another sign',10,100,392,600,m),done=sceneButton(r,'I am done looking',37,760,337,60,m),dock=sceneButton(r,'Expand feedback',16,1100,380,48,m);
+  const field=m.at(r.ctx.h('textarea',{'aria-label':label}),16,1700,380,200);
+  m.at(r.anchor,40,300,44,44);r.ctx.main.append(other,done);home.append(dock,field);
+  const panel=showCallout(r.ctx,r.anchor,r.ctx.h('p',{text:'A sign.'}));
+  assert.equal(panel.classList.contains('is-flow'),true);
+  const{states,moves}=m.atBottom(panel,1461,1201);
+  assert.ok(moves<=1,`The finding settles after at most one move (moved ${moves} times)`);
+  assert.ok(states.slice(-10).every(s=>s===states.at(-1)),'and then holds still');
+  assert.equal(m.view.top,1461,'Floating keeps the finding\'s place, so the stage does not clamp');
+  assert.equal(panel.classList.contains('is-flow'),false,'Its place is off screen and the corner is free, so it floats into view');
+  assert.ok(!overlaps(panel.getBoundingClientRect(),field.getBoundingClientRect()),'The feedback field stays uncovered');
+  assert.equal(r.ctx.main.querySelector('.cb-callout-slot').style.height,'236px');
+  panel.dismiss();assert.equal(r.ctx.main.querySelector('.cb-callout-slot'),null);
+ }finally{r.close();}
+});
+
+// 1280 x 720: a dense board opens the finding in flow below the fold. A little scrolling frees the bottom-right
+// corner and the finding floats there, in view; once its own place is fully on screen it settles back into it.
+test('on a wide screen an off-screen finding floats into view on scroll, settles into its place, and keeps focus',()=>{
+ const r=setup();try{
+  const m=placeModel(r,{width:1280,height:720,pw:350,ph:205,placeY:900});
+  const stage=r.ctx.h('section',{'data-playtest-stage':''}),tools=r.ctx.h('div',{class:'pt-toolbar'}),review=sceneButton(r,'Review',16,8,120,44);
+  r.ctx.root.before(stage);stage.append(tools,r.ctx.root);tools.append(review);tools.getBoundingClientRect=()=>rect(0,0,1280,60);
+  const board=sceneButton(r,'A busy board',0,60,1280,500,m),done=sceneButton(r,'I am done looking',850,600,380,50,m);
+  m.at(r.anchor,918,450,44,44);r.ctx.main.append(board,done);
+  const panel=showCallout(r.ctx,r.anchor,r.ctx.h('p',{text:'A sign.'})),keep=panel.querySelector('button');
+  assert.equal(panel.classList.contains('is-flow'),true,'No free spot at first, so the finding opens in flow, off screen');
+  keep.focus();assert.equal(r.w.document.activeElement,keep);
+  m.scroll(150);r.frame();
+  assert.equal(panel.classList.contains('is-flow'),false,'The freed corner shows the finding');assert.equal(panel.parentNode,r.ctx.root);
+  assert.deepEqual([panel.style.left,panel.style.top],['918px','503px']);
+  const slot=r.ctx.main.querySelector('.cb-callout-slot');
+  assert.ok(slot,'Its place below the board is kept');assert.deepEqual([slot.style.width,slot.style.height,slot.getAttribute('aria-hidden')],['350px','205px','true']);
+  assert.equal(r.w.document.activeElement,keep,'Moving the finding keeps focus on Keep looking');
+  m.scroll(300);r.frame();
+  assert.equal(panel.classList.contains('is-flow'),false,'Its place is still partly off screen');assert.equal(panel.style.top,'503px');
+  // cb.css gives a finding 16 px of padding and a 2 px border; only those may be cut off for its place to count as seen.
+  panel.style.padding='16px';panel.style.border='2px solid';
+  m.scroll(358);r.frame();
+  assert.equal(panel.classList.contains('is-flow'),false,'The bottom of the text is still below the screen');
+  m.scroll(375);r.frame();
+  assert.equal(panel.classList.contains('is-flow'),true,'Only its padding is off screen: the player can read it all where it is');
+  assert.equal(r.w.document.activeElement,keep);
+  m.scroll(300);r.frame();
+  assert.equal(panel.classList.contains('is-flow'),false,'Scrolled back, it floats in view again');assert.equal(r.w.document.activeElement,keep);
+  m.scroll(450);r.frame();
+  assert.equal(panel.classList.contains('is-flow'),true,'Its place is on screen, so it settles there');
+  assert.equal(panel.parentNode,r.ctx.main);assert.equal(r.ctx.main.querySelector('.cb-callout-slot'),null);assert.equal(r.ctx.main.lastElementChild,panel);
+  assert.equal(r.w.document.activeElement,keep);
+  for(let i=0;i<5;i++)r.frame();assert.equal(r.frames.size,0,'No input, no work');
+  keep.dispatchEvent(new r.w.KeyboardEvent('keydown',{key:'Escape',bubbles:true,cancelable:true}));
+  assert.equal(panel.isConnected,false);assert.equal(r.w.document.activeElement,r.anchor,'Escape closes and returns focus to the spot');
+ }finally{r.close();}
+});
+
+for(const label of['Expand feedback','Expandir comentarios'])test(`a floating finding leaves the "${label}" feedback control below the game reachable`,()=>{
+ const r=setup();try{
+  Object.defineProperties(r.w,{innerWidth:{value:1280},innerHeight:{value:720}});panelSize(r);
+  const stage=r.ctx.h('section',{'data-playtest-stage':''}),home=r.ctx.h('div',{id:'pt-feedback-home'}),dock=sceneButton(r,label,900,560,368,48);
+  r.ctx.root.before(stage);stage.append(r.ctx.root,home);home.append(dock);
+  r.anchor.getBoundingClientRect=()=>rect(918,450,44,44);
+  const panel=showCallout(r.ctx,r.anchor,r.ctx.h('p',{text:'A sign.'}));
+  assert.ok(panel.classList.contains('is-flow')||!overlaps(panelBox(panel),dock.getBoundingClientRect()),'The feedback control stays uncovered');
+  assert.equal(panel.classList.contains('is-flow'),false,'A free spot is still used');
+ }finally{r.close();}
+});
+
 test('the next finding click dismisses its predecessor before opening the new finding',()=>{
  const r=setup();try{
   const next=r.ctx.btn('Another sign','cb-s01-spot',()=>{

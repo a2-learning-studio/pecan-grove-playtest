@@ -734,7 +734,9 @@
 .cb-callout { position: fixed; z-index: 150; box-sizing: border-box; padding: 1rem; border: 2px solid var(--pine, var(--pg-color-173d31)); border-radius: 1rem; background: var(--paper, var(--pg-color-fffcf4)); color: var(--ink, var(--pg-color-173d31)); box-shadow: 0 8px 24px rgb(0 0 0 / .2); max-height: min(55vh, 360px); overflow: auto; }
 .cb-callout h3 { margin: 0 0 .5rem; font-size: 1rem; }
 .cb-callout { overflow: auto; }
-.cb-callout.is-flow { position: relative; left: auto !important; top: auto !important; margin: 12px auto; }
+.cb-callout.is-flow { position: relative; left: auto !important; top: auto !important; }
+/* While an in-flow finding floats, its slot keeps the same box so the stage keeps its height. */
+.cb-callout.is-flow, .cb-callout-slot { margin: 12px auto; }
 .cb-callout p { margin: .5rem 0; }
 .cb-callout .cb-btn { min-height: 44px; }
 @media (forced-colors: active) { .cb-callout { border-color: CanvasText; background: Canvas; color: CanvasText; } }
