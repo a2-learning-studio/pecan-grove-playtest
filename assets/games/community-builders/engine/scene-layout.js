@@ -1,3 +1,18 @@
+/* The box that scrolls the game: the game root in full screen, the play
+   view's scrollport, or null when the page itself scrolls. */
+export function scrollport(root) {
+  const view = root?.ownerDocument?.defaultView;
+  for (let box = root; box?.parentElement; box = box.parentElement) {
+    const y = view?.getComputedStyle?.(box).overflowY || "";
+    if (
+      /auto|scroll/.test(y) &&
+      box.clientHeight > 0 &&
+      (box.scrollHeight > box.clientHeight || box.matches(".pt-stage-content"))
+    )
+      return box;
+  }
+  return null;
+}
 /* Finish a scene after its DOM and map geometry have committed in one paint. */
 export function createSceneLayout(ctx) {
   let request = null,

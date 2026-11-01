@@ -73,6 +73,14 @@ class EducatorSheetTest(unittest.TestCase):
             self.assertIn(sheets.PLAY[lang], hrefs)
             self.assertIn("mailto:" + REGISTER["corrections"]["email"], hrefs)
 
+    def test_a_label_ending_in_a_question_mark_takes_no_extra_colon(self):
+        # PG-UX-C37: "Stop 4, Fact or Rumor?:" printed both marks.
+        self.assertEqual(sheets.lead_in("Stop 4, Fact or Rumor?"), "Stop 4, Fact or Rumor?")
+        self.assertEqual(sheets.lead_in("Parada 11, Piensa en ventajas"), "Parada 11, Piensa en ventajas:")
+        files = self.built()
+        for name in ("educator.html", "educador.html"):
+            self.assertNotRegex(Text(files[name]).joined(), r"[?!]:")
+
     def test_no_sheet_names_the_close_out_or_an_address_switch(self):
         # The sheets are published beside the game, where a child can open them: facilitator close-out is
         # documented only in the README and docs/.

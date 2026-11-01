@@ -276,9 +276,8 @@ export default function createVoiceScan(ctx) {
         class:
           "cb-btn cb-btn--onstage cb-setbtn" + (iconOnly ? " cb-fs--icon" : ""),
         "aria-label": ctx.X.settings,
-        "data-cb-shortcut": "pause",
+        // Escape opens Pause (Settings is one step in), so no shortcut is named here.
         "aria-haspopup": "dialog",
-        title: ctx.X.settings + " (Esc)",
         onclick: function (e) {
           ctx.openSettings(e.currentTarget);
         },

@@ -92,14 +92,20 @@ function updateNotice() {
   bar.append(restart, later); languageRegions.add(bar); document.getElementById('pt-stage')?.append(bar);
 }
 const chip = make('span', '', { id: 'pg-offline-chip', role: 'status', 'aria-live': 'polite', class: 'pg-offline-chip' });
+// One offline chip at a time: the game's own HUD chip on the map and in stops, this one elsewhere. When offline setup
+// failed, the chip is a short note that shares the toolbar row instead of a pill on a row of its own.
+let setupFailed = false;
 function connectivity() {
-  chip.hidden = navigator.onLine !== false;
-  chip.textContent = text('pwa_offline');
+  const offline = navigator.onLine === false, hud = !!document.querySelector('#community-builders .cb-engine-offline');
+  chip.classList.toggle('is-note', !offline && setupFailed);
+  chip.hidden = offline ? hud : !setupFailed;
+  chip.textContent = text(offline ? 'pwa_offline' : 'pwa_offline_setup_unavailable_play_can_continue');
 }
 (document.querySelector('.pt-toolbar') || document.getElementById('community-builders'))?.append(chip);
 window.addEventListener('online', connectivity); window.addEventListener('offline', connectivity); connectivity();
 document.addEventListener('pg:language-change', connectivity);
 document.addEventListener('cb:screen', () => {
+  setTimeout(connectivity, 0); // after the game has drawn its HUD for this screen
   if (!safeScreen()) document.getElementById('pg-update-notice')?.remove(); else considerUpdate();
 });
 // A page left open across a release cannot open files that release removed. Look for the new release when a stop
@@ -123,7 +129,7 @@ if ('serviceWorker' in navigator && document.querySelector('meta[name="pg-offlin
     registration = value; considerUpdate();
     value.addEventListener('updatefound', () => value.installing?.addEventListener('statechange', considerUpdate));
   }).catch(() => {
-    chip.hidden = false; chip.textContent = text('pwa_offline_setup_unavailable_play_can_continue');
+    setupFailed = true; connectivity();
   });
   navigator.serviceWorker.addEventListener('controllerchange', () => {
     if (!requestedUpdate || reloading) return; reloading = true;

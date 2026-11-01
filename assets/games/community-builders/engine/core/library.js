@@ -24,9 +24,11 @@ export default function createLibrary(ctx) {
       role: "status",
       text: !ctx.vOn ? ctx.X.libraryActive : "",
     });
+    // When quiet mode is already on, it shows as the current state and the
+    // settings button (the way to change sound) becomes the main action.
     var quiet = ctx.btn(
       ctx.X.libraryQuiet,
-      "cb-btn--go",
+      ctx.vOn ? "cb-btn--go" : "",
       function () {
         quietMode(true);
         status.textContent = ctx.X.libraryActive;
@@ -37,7 +39,7 @@ export default function createLibrary(ctx) {
     quiet.setAttribute("aria-pressed", !ctx.vOn ? "true" : "false");
     var settings = ctx.btn(
       ctx.X.librarySettings,
-      "",
+      ctx.vOn ? "" : "cb-btn--go",
       function () {
         d.close();
         ctx.openSettings(opener);

@@ -1,5 +1,6 @@
 const PATHS = {
-  "first-stop": "M8 6h3v6H8Zm5 6h3v6h-3Z",
+  // A flag on a post: the first stop reached.
+  "first-stop": "M7 21V4m0 1h10l-2.5 4L17 13H7",
   "chapter-1": "M4 12q8-10 16 0-8 10-16 0Zm8-3v6",
   "chapter-2": "M5 6h14v10h-7l-5 4v-4H5Z",
   "chapter-3": "m5 15 5-5 4 3 5-8M15 5h4v4",
@@ -35,7 +36,7 @@ export function badgeIcon(id) {
     d: PATHS[id] || PATHS["first-stop"],
     fill: "none",
     stroke: "currentColor",
-    "stroke-width": "1.6",
+    "stroke-width": "2",
     "stroke-linecap": "round",
     "stroke-linejoin": "round",
   }))

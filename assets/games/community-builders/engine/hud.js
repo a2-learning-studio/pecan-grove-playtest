@@ -104,21 +104,8 @@ export class HUD {
           ),
         );
       }
-      const steps = [...stopHud.querySelectorAll(".cb-step")];
-      const current = steps.findIndex(
-        (s) => s.getAttribute("aria-current") === "step",
-      );
-      const done = steps.filter(
-        (s) => s.getAttribute("data-s") === "done",
-      ).length;
-      if (steps.length)
-        node.append(
-          h("progress", {
-            max: steps.length,
-            value: current >= 0 ? current + 1 : done,
-            "aria-label": this.i18n.t("stopProgress"),
-          }),
-        );
+      // The stop's numbered stepper already shows the progress, with
+      // aria-current; a second bar only pushed the task down a row.
     } else {
       const slotButton = button(this.i18n.t("slots"), () =>
         this.onSlots(document.activeElement),

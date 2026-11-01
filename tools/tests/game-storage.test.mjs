@@ -12,24 +12,6 @@ const saved = (value) => ({
 });
 const warnings = (r) =>
   r.root.querySelectorAll(".cb-engine-save-warning, .cb-storage-warning");
-function deleteWith(r, id) {
-  r.engine.openSlots(null);
-  const card = [
-    ...r.root.querySelectorAll("dialog[open] .cb-engine-slot"),
-  ].find(
-    (node) =>
-      node.querySelector(".cb-engine-slot-pick").textContent.trim() ===
-      r.core.getAPI().ANIMALS.find((animal) => animal.id === id).name,
-  );
-  [...card.querySelectorAll("button")].at(-1).click();
-  const turtle = r.core
-    .getAPI()
-    .ANIMALS.find((animal) => animal.id === "turtle");
-  [...r.root.querySelectorAll("dialog[open] button")]
-    .find((button) => button.textContent.trim() === turtle.name)
-    .click();
-}
-
 test("blocked site data still starts the game, with one save notice", async () => {
   const r = await mountedGame("en", null, { blockStorage: true });
   try {
@@ -142,6 +124,9 @@ test("another tab's finished stops, badges and new games survive this tab's next
   }
 });
 
+// PG-UX-A03: the Undo for a deleted game no longer sits in the toast corner on a 10 s timer (out of the Tab path, and
+// against "This game has no timers"). It replaces the deleted game's card in the open player dialog, takes focus and
+// stays until the dialog closes. Each Undo still restores its own game and never replaces a newer one.
 test("each Undo restores its own deleted game, refuses to replace a newer one, and goes away", async () => {
   const store = {
     version: 2,
@@ -154,33 +139,65 @@ test("each Undo restores its own deleted game, refuses to replace a newer one, a
   };
   const r = await mountedGame("en", saved(store));
   const realSet = globalThis.setTimeout,
-    expiries = [];
+    timers = [];
   globalThis.setTimeout = (fn, ms, ...args) =>
-    ms === 10000 ? expiries.push(fn) : realSet(fn, ms, ...args);
+    ms >= 5000 ? timers.push(ms) : realSet(fn, ms, ...args);
   try {
+    const dialog = r.engine.openSlots(null);
+    const name = (id) =>
+      r.core.getAPI().ANIMALS.find((animal) => animal.id === id).name;
+    const card = (id) =>
+      [...dialog.querySelectorAll(".cb-engine-slot")].find(
+        (node) =>
+          node.querySelector(".cb-engine-slot-pick")?.textContent.trim() ===
+          name(id),
+      );
+    const deleteIn = (id) => {
+      const remove = card(id).querySelector('[aria-label^="Delete slot"]');
+      assert.equal(remove.getAttribute("aria-label"), "Delete slot: " + name(id));
+      remove.click();
+      [...r.root.querySelectorAll("dialog[open] button")]
+        .find((button) => button.textContent.trim() === name("turtle"))
+        .click();
+    };
     const undo = () => [
-      ...r.root.querySelectorAll(".cb-engine-toast-host > button"),
-    ];
-    deleteWith(r, "fox");
-    deleteWith(r, "owl");
+      ...dialog.querySelectorAll(".cb-engine-slot > button:not(.cb-engine-slot-pick)"),
+    ].filter((button) => /^Undo delete/.test(button.textContent));
+    deleteIn("fox");
+    assert.equal(r.w.document.activeElement, undo()[0], "Undo takes focus");
+    deleteIn("owl");
     assert.deepEqual(
       undo().map((button) => button.textContent),
       ["Undo delete: Fox", "Undo delete: Owl"],
     );
+    assert.equal(dialog.open, true, "the player dialog stays open");
+    assert.equal(
+      r.root.querySelectorAll(".cb-engine-toast-host > button").length,
+      0,
+      "nothing waits in the toast corner",
+    );
+    // Fox was being played. Deleting Fox passed play to Owl, then to Bee; Undo makes Fox the player again (last review
+    // of the round: play went on in Bee's slot, so Fox's next stars went into Bee's record).
+    assert.equal(r.core.getState().store.current, "bee");
     undo()[0].click();
     const players = r.core.getState().store.players;
     assert.equal(players.fox.stops.a.best, 90, "Fox comes back, not Owl");
+    assert.equal(r.core.getState().store.current, "fox", "and Fox is the one playing again");
     assert.equal(players.owl, undefined);
+    assert.ok(card("fox"), "Fox's card is back in the dialog");
     assert.equal(r.engine.store.create("owl"), true);
     undo()[0].click();
     assert.deepEqual(r.core.getState().store.players.owl.stops, {});
-    deleteWith(r, "bee");
+    const playing = r.core.getState().store.current;
+    deleteIn("bee");
     assert.equal(undo().length, 1);
-    undo()[0].focus();
-    for (const expire of expiries) expire();
-    assert.equal(undo().length, 1, "a focused Undo waits until focus leaves");
-    undo()[0].dispatchEvent(new r.w.Event("blur"));
-    assert.equal(undo().length, 0);
+    undo()[0].click();
+    assert.equal(r.core.getState().store.current, playing, "Undo for a game not being played leaves the player as it was");
+    deleteIn("bee");
+    assert.deepEqual(timers, [], "no Undo goes away on a timer");
+    dialog.close();
+    assert.equal(r.root.querySelectorAll("dialog[open]").length, 0);
+    assert.equal(undo()[0]?.isConnected ?? false, false, "Undo goes with the dialog");
   } finally {
     globalThis.setTimeout = realSet;
     r.close();

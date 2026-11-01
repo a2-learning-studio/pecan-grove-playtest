@@ -223,13 +223,18 @@ export default function createLoadingView(ctx) {
         ctx.clearTimeout(timer);
         ctx.clear(tip);
         tip.textContent = labels.fail;
-        panel.appendChild(
-          ctx.btn(labels.retry, "cb-btn--go", function () {
-            finish();
-            retry();
-          }),
-        );
+        var again = ctx.btn(labels.retry, "cb-btn--go", function () {
+          finish();
+          retry();
+        });
+        panel.appendChild(again);
         ctx.root.removeAttribute("aria-busy");
+        // The message and Try again come into view and take focus, wherever
+        // the map was scrolled when the stop failed to load: Try again sits in
+        // the middle of the screen with the message just above it.
+        if (again.scrollIntoView)
+          again.scrollIntoView({ block: "center", behavior: "auto" });
+        again.focus({ preventScroll: true });
       },
     };
     ctx.activeLoading = task;

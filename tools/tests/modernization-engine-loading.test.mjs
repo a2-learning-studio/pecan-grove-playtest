@@ -215,9 +215,18 @@ test("art contributes its weight only after decode; retry is explicit and replac
     decoded();
     await ready;
     assert.equal(r.root.querySelector("progress").value, 35);
+    let centred = null;
+    r.ctx.window.HTMLElement.prototype.scrollIntoView = function (options) {
+      centred = [this.textContent, options.block];
+    };
     load.fail();
     assert.match(r.root.textContent, /Something didn't load/);
     assert.equal(attempts, 0);
+    // PG-UX-C13: wherever the map was scrolled, Try again comes into view and
+    // takes focus, with the message above it.
+    const again = r.root.querySelector(".cb-loading-overlay button");
+    assert.equal(r.ctx.document.activeElement, again);
+    assert.deepEqual(centred, [again.textContent, "center"]);
     r.root.querySelector("button").click();
     assert.equal(attempts, 1);
     assert.equal(r.root.querySelector("progress"), null);

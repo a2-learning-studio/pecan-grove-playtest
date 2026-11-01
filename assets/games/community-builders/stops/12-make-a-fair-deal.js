@@ -182,11 +182,12 @@
     function scene(cls, rect, kids) { return api.crop(rect || TABLE, "cb-s12-scene" + (cls ? " " + cls : ""), kids); }
     function bar(info, btnEl) { return h("div", { "class": "cb-actions cb-s12-bar" }, [h("div", { "class": "cb-actions__info" }, info), btnEl || null]); }
 
-    /* Ana's chair on the builders' side: her painted portrait (she already wears her hard hat) and a plate that says who she speaks for */
+    /* Ana's chair on the builders' side: her painted portrait (she already wears her hard hat) and a plate that says who she speaks for.
+       The narrated "crew" line already names her, so it is the plate's one line (no second copy of her name above it). */
     function chair() {
       return h("span", { "class": "cb-s12-chair" }, [
         h("span", { "class": "cb-s12-chair__row", "aria-hidden": "true" }, [h("span", { "class": "cb-s12-chair__face" }, [api.img(ANA.img, "")])]),
-        h("span", { "class": "cb-s12-plate" }, [h("b", { text: api.nmCap(ANA) }), h("small", { text: T.crew })])]);
+        h("span", { "class": "cb-s12-plate" }, [h("b", { "class": "cb-s12-plate__who", text: T.crew })])]);
     }
     function anaEl(line, fresh) {
       return h("div", { "class": "cb-s12-ana" }, [chair(), line ? h("div", { "class": "cb-s12-say" + (fresh ? " is-new" : "") }, [

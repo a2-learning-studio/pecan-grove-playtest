@@ -5,6 +5,12 @@
 .cb[data-screen="stop"] {
   font-size: calc(var(--pg-type-body) * var(--cb-text-scale));
 }
+/* Settings > Text size scales a stop's words. Stop rules size text in rem,
+   which ignores the font-size above, so they multiply by --cb-ts; it is set
+   on the board and the finding only, so the HUD and dialogs keep their size. */
+.cb[data-screen="stop"] :is(.cb-board, .cb-callout) {
+  --cb-ts: var(--cb-text-scale, 1);
+}
 .cb :where(button, a, input, select, [tabindex="0"]):focus-visible,
 .cb .is-kbd-focus,
 .cb[data-input="gamepad"] :focus {
@@ -80,6 +86,27 @@
   min-height: 56px;
   margin: 10px 0;
 }
+.cb-pause__rule {
+  margin: 16px 0 6px;
+  border-top: 1px solid var(--cb-line);
+}
+.cb-pause-confirm {
+  max-width: 480px;
+}
+.cb-pause-confirm h2 {
+  margin: 0 0 20px;
+  font-size: 1.25rem;
+  font-weight: 680;
+  text-wrap: pretty;
+}
+.cb-pause-confirm__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.cb-pause-confirm__actions .cb-btn {
+  flex: 1 1 10rem;
+}
 .cb-engine-tabs {
   display: flex;
   gap: 4px;
@@ -147,6 +174,13 @@
 .cb-engine-note {
   font-size: var(--pg-type-small);
   margin: 4px 0 0;
+}
+/* A fact about the game in the settings list ("no timers"), not a control. */
+.cb-engine-settings-panel > .cb-engine-note {
+  margin: 0;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--cb-line-strong);
+  color: var(--cb-ink-2);
 }
 .cb-engine-bindings {
   width: 100%;
@@ -258,7 +292,7 @@
 .cb-choice {
   position: relative;
 }
-.cb[data-input="keyboard"] .cb-keycap {
+.cb[data-input="keyboard"] .cb-choices-keyed .cb-keycap {
   display: inline-flex;
 }
 .cb .cb-choice[aria-pressed="true"],
@@ -361,6 +395,22 @@
 .cb-engine-badge.is-earned {
   border: 3px solid var(--cb-stage);
   background: var(--cb-pine-soft);
+}
+/* Each badge's mark sits in a disc like a stop medallion: gold ring once earned. */
+.cb-engine-dialog .cb-engine-badge > svg {
+  box-sizing: content-box;
+  width: 28px;
+  height: 28px;
+  padding: 7px;
+  border: 3px solid var(--cb-line-strong);
+  border-radius: 50%;
+  background: var(--cb-sunken);
+  color: var(--cb-ink-2);
+}
+.cb-engine-dialog .cb-engine-badge.is-earned > svg {
+  border-color: var(--cb-gold);
+  background: var(--cb-card);
+  color: var(--cb-ink);
 }
 .cb-engine-badge h3,
 .cb-engine-badge p {

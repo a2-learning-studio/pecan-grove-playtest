@@ -7,6 +7,7 @@
   "synced": "Your submitted feedback was received by the playtest team.",
   "thanks": "Thanks, feedback received",
   "draftSaved": "Draft saved on this device. Press Send to share it.",
+  "idle": "Drafts stay on this device until you choose Send.",
   "failed": "Your submitted feedback could not be sent. You can try Send again.",
   "retrying": "Your submitted feedback could not be sent. A limited retry is scheduled while this page stays open.",
   "storage": "This browser cannot save feedback on this device right now, so keep this page open. Next player on this computer can erase this device's Pecan Grove data and start over.",

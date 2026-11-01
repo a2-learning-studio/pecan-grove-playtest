@@ -14,10 +14,28 @@ export function annotateChoices(root, { settings, pad } = {}) {
     ...(root.matches?.("[data-cb-choices]") ? [root] : []),
     ...root.querySelectorAll("[data-cb-choices]"),
   ];
+  // Number keys act on one group (focus.js choice()): the focused one, else
+  // the first one in view. Only that group shows its keycaps, so two "1"s
+  // never sit on one screen.
+  const scope = [...root.querySelectorAll("dialog[open]")].at(-1) || root,
+    focusedGroup =
+      root.ownerDocument.activeElement?.closest?.("[data-cb-choices]"),
+    shown = (node) =>
+      !node.closest("[hidden], [inert]") &&
+      node.getBoundingClientRect().width > 0,
+    keyed =
+      (scope.contains(focusedGroup) && focusedGroup) ||
+      groups.find((group) => scope.contains(group) && shown(group));
   for (const group of groups) {
+    group.classList.toggle("cb-choices-keyed", group === keyed);
+    // A secondary button in a card (data-cb-choice-skip) takes no number.
     const choices = [
       ...group.querySelectorAll("button:not(:disabled), [data-cb-choice]"),
-    ].filter((node) => node.closest("[data-cb-choices]") === group);
+    ].filter(
+      (node) =>
+        node.closest("[data-cb-choices]") === group &&
+        !node.hasAttribute("data-cb-choice-skip"),
+    );
     choices.slice(0, 9).forEach((node, i) => {
       const n = node.dataset.cbChoice || String(i + 1);
       node.dataset.cbChoice = n;
@@ -52,7 +70,6 @@ export function syncShortcutLabels(root, bindings) {
   const entries = [
     [".cb-voice", "voice.toggle"],
     [".cb-vbtn", "voice.replay"],
-    [".cb-setbtn", "pause"],
     [".cb-fs", "fullscreen.toggle"],
     [".cb-engine-zoom", "map.zoom"],
     ["[data-cb-shortcut]", null],

@@ -106,13 +106,15 @@ export default function createMap(ctx) {
       var disc = ctx.h(
         "span",
         { class: "cb-stop__disc", "aria-hidden": "true" },
+        // A finished stop keeps its number (a phone or iPad map shows no
+        // plates) and wears a small check, like the lock on a locked stop.
         [
-          state === "done"
-            ? ctx.ico("check")
-            : ctx.h("span", { text: String(s.n) }),
+          ctx.h("span", { text: String(s.n) }),
           state === "locked"
             ? ctx.h("span", { class: "cb-stop__lock" }, [ctx.ico("lock")])
-            : null,
+            : state === "done"
+              ? ctx.h("span", { class: "cb-stop__done" }, [ctx.ico("check")])
+              : null,
         ],
       );
       var plate = ctx.h(

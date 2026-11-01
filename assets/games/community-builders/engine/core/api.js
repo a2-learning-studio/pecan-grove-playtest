@@ -1,4 +1,5 @@
 import { showCallout, prefersFindCards } from "../callout.js";
+import { scrollport } from "../scene-layout.js";
 import { annotateChoices } from "../choice-hints.js";
 export default function createApi(ctx) {
   var API = {
@@ -171,6 +172,9 @@ export default function createApi(ctx) {
   };
   API.prefersFindCards = function () {
     return prefersFindCards(ctx);
+  };
+  API.scrollport = function () {
+    return scrollport(ctx.root);
   };
   API.callout = function (anchor, content, options) {
     return showCallout(ctx, anchor, content, options);

@@ -1,0 +1,516 @@
+// The 2026-10-30 UI/UX round, on the real mounted game (engine + core + stops in JSDOM).
+// Each test names the audit finding it guards (PG-UX-C.., A.., B..).
+import test from "node:test";
+import assert from "node:assert/strict";
+import { setTimeout as sleep } from "node:timers/promises";
+import { mountedGame, until } from "./modernization-mounted-game-fixture.mjs";
+import {
+  Tooltips,
+  saysItAlready,
+} from "../../assets/games/community-builders/engine/tooltips.js";
+import { annotateChoices } from "../../assets/games/community-builders/engine/choice-hints.js";
+import { scrollport } from "../../assets/games/community-builders/engine/scene-layout.js";
+
+// The fixture answers every media query with "reduce" (reduced motion), which
+// also reads as forced colors and so as classic find cards. These tests want
+// the default nonmodal finding: reduced motion on, forced colors off.
+function motionOnly(r) {
+  r.w.matchMedia = (query) => ({
+    matches: /reduced-motion/.test(query),
+    addEventListener() {},
+    removeEventListener() {},
+  });
+}
+function key(r, target, name) {
+  const event = new r.w.KeyboardEvent("keydown", {
+    key: name,
+    code: name,
+    bubbles: true,
+    cancelable: true,
+  });
+  target.dispatchEvent(event);
+  return event;
+}
+async function stop1Today(r) {
+  motionOnly(r);
+  r.core.enterPlay({ quiet: true });
+  // Quiet play from the page also picks classic cards (Library mode); these tests want the nonmodal finding.
+  r.engine.settings.update({ findCards: false });
+  await r.core.startStop("notice-the-signs");
+  r.main().querySelector(".cb-s01-intro .cb-btn--go").click();
+  r.main().querySelector('[data-view="today"]').click();
+}
+const words = {
+  en: { map: "Town map", cancel: "Cancel", keep: "Keep looking" },
+  es: { map: "Mapa del pueblo", cancel: "Cancelar", keep: "Sigue buscando" },
+};
+
+for (const language of ["en", "es"]) {
+  test(`${language}: Escape on an open finding closes the finding only; the next Escape opens Pause (PG-UX-C02)`, async () => {
+    const r = await mountedGame(language);
+    try {
+      await stop1Today(r);
+      const spot = r.main().querySelector('[data-spot="0"]');
+      spot.focus();
+      spot.click();
+      const finding = r.root.querySelector(".cb-callout");
+      assert.ok(finding, "the nonmodal finding is open");
+      assert.equal(finding.querySelector(".cb-btn").textContent, words[language].keep);
+      key(r, spot, "Escape");
+      assert.equal(r.root.querySelector(".cb-callout"), null, "Escape closed the finding");
+      assert.equal(r.root.querySelector(".cb-pause"), null, "and did not open Pause");
+      assert.equal(r.w.document.activeElement, spot, "focus is back on the chosen thing");
+      key(r, spot, "Escape");
+      assert.ok(r.root.querySelector(".cb-pause[open]"), "with nothing else open, Escape is Pause");
+      assert.equal(r.runtimeErrors.length, 0, String(r.runtimeErrors));
+    } finally {
+      r.close();
+    }
+  });
+
+  test(`${language}: a finding is one polite announcement through the game's live region, and each item's name starts with its visible tag (PG-UX-C14, PG-UX-C11)`, async () => {
+    const r = await mountedGame(language);
+    try {
+      await stop1Today(r);
+      for (const spot of r.main().querySelectorAll(".cb-s01-spot")) {
+        const tag = spot.querySelector(".cb-s01-tag__n").textContent;
+        assert.ok(
+          spot.getAttribute("aria-label").toLowerCase().startsWith(tag.toLowerCase()),
+          `"${spot.getAttribute("aria-label")}" starts with "${tag}" (WCAG 2.5.3)`,
+        );
+      }
+      const sign = r.w.__stopTestFlow.spots.find((spot) => spot.item.sign);
+      r.main().querySelector(`[data-spot="${sign.i}"]`).click();
+      const finding = r.root.querySelector(".cb-callout");
+      assert.equal(finding.getAttribute("role"), null);
+      assert.equal(finding.hasAttribute("aria-live"), false);
+      assert.ok(finding.querySelector(".cb-s01-line .cb-ico"), "the lesson row has its check icon, as on the classic card");
+      assert.ok(finding.querySelector(".cb-callout__sub"), "a sign's finding names the thing");
+      assert.ok(finding.querySelector(".cb-btn--primary"), "Keep looking is a pill, not a quiet close");
+      const live = r.root.querySelector(".cb-main ~ .cb-live, .cb-live"),
+        title = finding.querySelector("h3").textContent;
+      await until(() => live.textContent.startsWith(title), "the live region speaks the finding");
+      assert.match(live.textContent, /1/, "the count is part of the same announcement");
+      assert.ok(live.textContent.includes(finding.querySelector("h3").textContent));
+      assert.equal(live.textContent.includes(words[language].keep), false, "the button is not read as the lesson");
+    } finally {
+      r.close();
+    }
+  });
+
+  test(`${language}: Pause leads with Resume and asks before leaving with the action's own name, safe choice focused (PG-UX-C12, PG-UX-B09)`, async () => {
+    const r = await mountedGame(language);
+    try {
+      motionOnly(r);
+      r.core.enterPlay({ quiet: true });
+      await r.core.startStop("ask-a-good-question");
+      r.engine.pause.open();
+      const pause = r.root.querySelector(".cb-pause[open]");
+      const items = [...pause.children].filter((node) => node.tagName !== "H2");
+      assert.ok(items[0].classList.contains("cb-btn--primary"), "Resume is the main choice");
+      assert.equal(r.w.document.activeElement, items[0]);
+      const rule = items.findIndex((node) => node.classList.contains("cb-pause__rule"));
+      const leave = items.slice(rule + 1).map((node) => node.textContent);
+      assert.ok(leave.includes(words[language].map), "the ways out sit below the line");
+      [...pause.querySelectorAll(".cb-btn")].find((b) => b.textContent === words[language].map).click();
+      const confirm = [...r.root.querySelectorAll("dialog[open]")].at(-1);
+      const name = r.w.document.getElementById(confirm.getAttribute("aria-labelledby"));
+      assert.equal(name.tagName, "H2", "the question names the dialog");
+      const buttons = [...confirm.querySelectorAll("button")].map((b) => b.textContent);
+      assert.deepEqual(buttons, [words[language].cancel, words[language].map]);
+      assert.equal(r.w.document.activeElement.textContent, words[language].cancel, "Enter keeps the round");
+      assert.equal(r.core.getState().mode, "stop");
+    } finally {
+      r.close();
+    }
+  });
+}
+
+test("Escape and Back close a tooltip first, then Pause; tooltips skip words already on screen and touch (PG-UX-A01, PG-UX-C22)", async () => {
+  const r = await mountedGame("en");
+  try {
+    motionOnly(r);
+    r.core.enterPlay({ quiet: true });
+    await r.core.startStop("ask-a-good-question");
+    const icon = r.root.querySelector(".cb-stophud .cb-setbtn");
+    assert.equal(icon.getAttribute("aria-keyshortcuts"), null, "Settings names no Escape shortcut (Escape is Pause)");
+    assert.equal(icon.hasAttribute("title"), false);
+    icon.focus();
+    await until(() => r.root.querySelector(".cb-tooltip"), "an icon-only button shows its name");
+    key(r, icon, "Escape");
+    assert.equal(r.root.querySelector(".cb-tooltip"), null, "Escape dismissed the tooltip (WCAG 1.4.13)");
+    assert.equal(r.root.querySelector(".cb-pause"), null, "without opening Pause");
+    key(r, icon, "Escape");
+    assert.ok(r.root.querySelector(".cb-pause[open]"));
+  } finally {
+    r.close();
+  }
+});
+
+test("tooltip rules: visible words, touch and the pointer resting on the tip (PG-UX-A01)", async () => {
+  const r = await mountedGame("en");
+  const tips = r.engine.tooltips;
+  try {
+    motionOnly(r);
+    const host = r.w.document.createElement("div");
+    host.innerHTML =
+      '<button aria-label="Stop 2, Ask a Good Question, not played"><span>2</span><b>Ask a Good Question</b></button>' +
+      '<button aria-label="Pause"><svg></svg></button>';
+    r.root.append(host);
+    const [named, icon] = host.querySelectorAll("button");
+    assert.equal(saysItAlready(named, named.getAttribute("aria-label")), true);
+    assert.equal(saysItAlready(icon, "Pause"), false);
+    named.dispatchEvent(new r.w.Event("focusin", { bubbles: true }));
+    await sleep(450);
+    assert.equal(r.root.querySelector(".cb-tooltip"), null, "a stop whose plate shows its name needs no tooltip");
+    r.root.dataset.input = "touch";
+    icon.dispatchEvent(new r.w.Event("focusin", { bubbles: true }));
+    await sleep(450);
+    assert.equal(r.root.querySelector(".cb-tooltip"), null, "a tap gives no tooltip to clear");
+    r.root.dataset.input = "mouse";
+    icon.dispatchEvent(new r.w.Event("pointerover", { bubbles: true }));
+    await until(() => r.root.querySelector(".cb-tooltip"), "a mouse hover shows the name");
+    const tip = r.root.querySelector(".cb-tooltip");
+    assert.equal(icon.hasAttribute("title"), false, "no second, native tooltip");
+    icon.dispatchEvent(new r.w.MouseEvent("pointerout", { bubbles: true, relatedTarget: tip }));
+    assert.ok(tip.isConnected, "moving onto the tooltip keeps it");
+    tip.dispatchEvent(new r.w.MouseEvent("pointerout", { bubbles: true, relatedTarget: r.w.document.body }));
+    assert.equal(tip.isConnected, false);
+  } finally {
+    tips.hide();
+    r.close();
+  }
+});
+
+test("number keys: only the group they act on shows keycaps, and a card's second button takes no number (PG-UX-B07, PG-UX-C23)", async () => {
+  const r = await mountedGame("en");
+  try {
+    const host = r.w.document.createElement("div");
+    host.innerHTML =
+      '<ul data-cb-choices id="a"><li><button>One</button></li><li><button>Two</button></li></ul>' +
+      '<ul data-cb-choices id="b"><li><button>Fix</button><button data-cb-choice-skip>Did it work?</button></li><li><button>Other fix</button><button data-cb-choice-skip>Did it work?</button></li></ul>';
+    r.main().append(host);
+    for (const node of host.querySelectorAll("ul"))
+      node.getBoundingClientRect = () => ({ width: 300, height: 100, top: 0, left: 0, right: 300, bottom: 100 });
+    annotateChoices(r.root, {});
+    const a = host.querySelector("#a"),
+      b = host.querySelector("#b");
+    assert.equal(a.classList.contains("cb-choices-keyed"), true, "the first group in view is keyed");
+    assert.equal(b.classList.contains("cb-choices-keyed"), false);
+    assert.deepEqual(
+      [...b.querySelectorAll("[data-cb-choice]")].map((node) => node.textContent.replace(/\d+$/, "")),
+      ["Fix", "Other fix"],
+    );
+    assert.deepEqual([...b.querySelectorAll("[data-cb-choice]")].map((node) => node.dataset.cbChoice), ["1", "2"]);
+    b.querySelector("button").focus();
+    annotateChoices(r.root, {});
+    assert.equal(b.classList.contains("cb-choices-keyed"), true, "focus moves the keycaps to its group");
+    assert.equal(a.classList.contains("cb-choices-keyed"), false);
+  } finally {
+    r.close();
+  }
+});
+
+test("Settings: Calm shows on and says why when the device asks for less motion; no placeholder music rows (PG-UX-A04, PG-UX-C26)", async () => {
+  for (const language of ["en", "es"]) {
+    const r = await mountedGame(language);
+    try {
+      motionOnly(r);
+      globalThis.matchMedia = r.w.matchMedia;
+      const d = r.engine.settings.open(null, "accessibility");
+      const calm = d.querySelector('[data-panel="accessibility"] input[type="checkbox"]');
+      assert.equal(calm.checked, true);
+      assert.equal(calm.disabled, true);
+      const hint = r.w.document.getElementById(calm.getAttribute("aria-describedby"));
+      assert.equal(hint.textContent, r.engine.i18n.t("calmSystem"));
+      assert.equal(d.querySelector('[data-panel="audio"]').textContent.includes(r.engine.i18n.t("musicSoon")), false);
+      for (const reset of d.querySelectorAll(".cb-engine-reset"))
+        assert.equal(reset.classList.contains("cb-btn--quiet"), false, "the reset buttons look pressable");
+      d.close();
+    } finally {
+      r.close();
+    }
+  }
+});
+
+test("the round result reads the score first and puts Play again before the tips (PG-UX-A07, PG-UX-C21)", async () => {
+  const r = await mountedGame("es");
+  try {
+    await stop1Today(r);
+    const flow = r.w.__stopTestFlow;
+    for (const spot of flow.spots) r.main().querySelector(`[data-spot="${spot.i}"]`).click();
+    r.root.querySelector(".cb-callout")?.dismiss();
+    [...r.main().querySelectorAll(".cb-btn--go")].at(-1).click();
+    await until(() => r.main().querySelector(".cb-card__can"), "the result card");
+    const score = r.main().querySelector(".cb-card__score");
+    assert.equal(r.w.document.activeElement, score, "focus starts on the score and stars line");
+    const actions = r.main().querySelector(".cb-card__btns"),
+      tip = r.main().querySelector(".cb-tipcard");
+    if (tip)
+      assert.ok(actions.compareDocumentPosition(tip) & r.w.Node.DOCUMENT_POSITION_FOLLOWING, "Play again comes before the tips");
+    const host = r.root.querySelector(".cb-engine-toast-host");
+    assert.equal(host.getAttribute("aria-live"), "polite", "one polite region for the badge toasts");
+    for (const toast of host.querySelectorAll(".cb-engine-toast"))
+      assert.equal(toast.getAttribute("role"), null);
+  } finally {
+    r.close();
+  }
+});
+
+// Review of the round: the first version of this test could pass with no toast on screen at all. It now proves the
+// toast is there first, and that its new words are not read out again as news (PG-UX-C20, review).
+test("a toast shows in the language on screen, even after a switch, and is not read again (PG-UX-C20)", async () => {
+  const r = await mountedGame("en");
+  try {
+    r.engine.badge.notify?.("quiet-pro");
+    r.engine.store.current().badges["quiet-pro"] = true;
+    // The badge notifier queues a function, so the text is built when it shows.
+    const host = r.root.querySelector(".cb-engine-toast-host");
+    await until(() => host.querySelector(".cb-engine-toast"), "the badge toast is on screen");
+    assert.match(host.textContent, /New badge/);
+    assert.equal(host.getAttribute("aria-live"), "polite");
+    r.w.document.documentElement.lang = "es";
+    await r.engine.i18n.load("es");
+    r.w.document.dispatchEvent(new r.w.CustomEvent("pg:language-change", { detail: { language: "es" } }));
+    await until(() => /Nueva insignia/.test(host.textContent), "the visible toast follows the language");
+    assert.ok(host.querySelector(".cb-engine-toast"), "the same toast, still on screen");
+    assert.equal(host.getAttribute("aria-live"), "off", "the switch is not announced as a new toast");
+    await until(() => host.getAttribute("aria-live") === "polite", "the region is live again for the next toast");
+  } finally {
+    r.close();
+  }
+});
+
+test("the map keeps each finished stop's number and adds a check; Last 5 explains an empty list (PG-UX-B10, PG-UX-C36)", async () => {
+  for (const language of ["en", "es"]) {
+    const r = await mountedGame(language);
+    try {
+      r.core.enterPlay({ quiet: true });
+      const state = r.core.getState(),
+        player = state.store.players[state.store.current] || state.store.players.you;
+      r.core.getAPI().STOPS.slice(0, 2).forEach((stop) => (player.stops[stop.id] = { best: 90, rounds: 1, last5: [90] }));
+      r.core.showMap();
+      await sleep(20);
+      const done = r.main().querySelector('.cb-stop[data-state="done"]');
+      assert.ok(done);
+      assert.equal(done.querySelector(".cb-stop__disc > span").textContent, done.dataset.stopN);
+      assert.ok(done.querySelector(".cb-stop__done svg"));
+      for (const stop of Object.keys(player.stops)) delete player.stops[stop];
+      r.core.getAPI();
+      const opener = r.main().querySelector(".cb-jscore");
+      opener.click();
+      const dialog = [...r.root.querySelectorAll("dialog[open]")].at(-1);
+      assert.match(dialog.textContent, language === "es" ? /Todavía no hay intentos/ : /No tries yet/);
+    } finally {
+      r.close();
+    }
+  }
+});
+
+test("the engine finds the box that scrolls the game (PG-UX-A02)", async () => {
+  const r = await mountedGame("en");
+  try {
+    const stage = r.root.closest("[data-playtest-stage]");
+    assert.equal(scrollport(r.root), null, "with nothing scrollable, the page scrolls");
+    const port = r.w.document.createElement("div");
+    port.className = "pt-stage-content";
+    r.root.before(port);
+    port.append(r.root);
+    r.w.getComputedStyle = (node) => ({ overflowY: node === port ? "auto" : "visible" });
+    Object.defineProperty(port, "clientHeight", { value: 600, configurable: true });
+    Object.defineProperty(port, "scrollHeight", { value: 1400, configurable: true });
+    assert.equal(scrollport(r.root), port, "the play view's own scrollport");
+    assert.equal(r.core.getAPI().scrollport(), port, "stops reach it through the API");
+    assert.ok(stage);
+  } finally {
+    r.close();
+  }
+});
+
+test("the Settings language list switches the game and comes back to itself (PG-UX-A05)", async () => {
+  const r = await mountedGame("en");
+  try {
+    r.core.enterPlay({ quiet: true });
+    r.engine.settings.open(null, "language");
+    const select = r.root.querySelector("#cb-engine-language");
+    select.value = "es";
+    select.dispatchEvent(new r.w.Event("change", { bubbles: true }));
+    await until(() => r.w.document.documentElement.lang === "es" && r.root.querySelector(".cb-engine-settings[open]"), "Settings reopens after the switch", 4000);
+    const dialog = r.root.querySelector(".cb-engine-settings[open]");
+    assert.equal(dialog.querySelector('[role="tab"][aria-selected="true"]').dataset.tab, "language");
+    assert.equal(r.w.document.activeElement.id, "cb-engine-language");
+    assert.equal(dialog.querySelector("h2").textContent, "Ajustes");
+  } finally {
+    r.close();
+  }
+});
+
+// ── Repair after the round's reviews ──────────────────────────────────────────────────────────────────────────────
+
+test("a tooltip inside a dialog is drawn in the dialog; Escape spends a press only on a tooltip the player can see, and P is Pause (review of PG-UX-A01)", async () => {
+  const r = await mountedGame("en");
+  try {
+    motionOnly(r);
+    r.core.enterPlay({ quiet: true });
+    await r.core.startStop("ask-a-good-question");
+    r.core.openGrownups(null);
+    const dialog = [...r.root.querySelectorAll("dialog[open]")].at(-1);
+    const x = dialog.querySelector(".cb-dlg__x");
+    assert.ok(x, "the dialog's icon-only close button");
+    r.root.dataset.input = "keyboard";
+    x.focus();
+    x.dispatchEvent(new r.w.Event("focusin", { bubbles: true }));
+    await until(() => r.root.querySelector(".cb-tooltip"), "the close button shows its name");
+    const tip = r.root.querySelector(".cb-tooltip");
+    assert.equal(tip.closest("dialog"), dialog, "the tip joins the dialog, above the game");
+    assert.equal(r.engine.tooltips.shown(), true);
+    key(r, x, "Escape");
+    assert.equal(r.root.querySelector(".cb-tooltip"), null, "the first Escape clears the tip the player sees");
+    assert.equal(dialog.open, true);
+    key(r, x, "Escape");
+    assert.equal(dialog.open, false, "the next Escape closes the dialog");
+
+    // A tip left under a modal dialog is not something the player can see: Escape goes straight to the dialog.
+    const icon = r.root.querySelector(".cb-stophud .cb-setbtn");
+    icon.focus();
+    icon.dispatchEvent(new r.w.Event("focusin", { bubbles: true }));
+    await until(() => r.root.querySelector(".cb-tooltip"), "the HUD's Settings icon shows its name");
+    r.core.openGrownups(null);
+    const over = [...r.root.querySelectorAll("dialog[open]")].at(-1);
+    assert.equal(r.engine.tooltips.shown(), false, "covered by the dialog");
+    key(r, over, "Escape");
+    assert.equal(over.open, false, "one Escape closes the dialog");
+
+    // P is Pause itself: a tooltip is cleared on the way, and Pause opens on the first press.
+    icon.focus();
+    icon.dispatchEvent(new r.w.Event("focusin", { bubbles: true }));
+    await until(() => r.root.querySelector(".cb-tooltip"), "the tip again");
+    icon.dispatchEvent(new r.w.KeyboardEvent("keydown", { key: "p", code: "KeyP", bubbles: true, cancelable: true }));
+    assert.equal(r.root.querySelector(".cb-tooltip"), null);
+    assert.ok(r.root.querySelector(".cb-pause[open]"), "P opened Pause on the first press");
+    assert.equal(r.runtimeErrors.length, 0, String(r.runtimeErrors));
+  } finally {
+    r.close();
+  }
+});
+
+for (const language of ["en", "es"])
+  test(`${language}: P pauses at once with a Stop 1 finding open, which waits under Pause (review of PG-UX-C02)`, async () => {
+    const r = await mountedGame(language);
+    try {
+      await stop1Today(r);
+      const spot = r.main().querySelector('[data-spot="0"]');
+      spot.focus();
+      spot.click();
+      assert.ok(r.root.querySelector(".cb-callout"));
+      spot.dispatchEvent(new r.w.KeyboardEvent("keydown", { key: "p", code: "KeyP", bubbles: true, cancelable: true }));
+      assert.ok(r.root.querySelector(".cb-pause[open]"), "P is Pause");
+      assert.ok(r.root.querySelector(".cb-callout"), "the finding waits under Pause");
+    } finally {
+      r.close();
+    }
+  });
+
+// Last review of the round: P with a finding open, then Enter on Resume. The click on Resume counted as a tap outside
+// the finding, which closed it and removed Keep looking, the button Pause had to give focus back to; focus fell to the
+// page (measured in Chromium at 1366x768 EN and 390x844 ES). Settings closed with its button did the same.
+for (const language of ["en", "es"])
+  test(`${language}: closing Pause or Settings over an open finding gives focus back to Keep looking (review of PG-UX-C02)`, async () => {
+    const r = await mountedGame(language);
+    try {
+      await stop1Today(r);
+      const spot = r.main().querySelector('[data-spot="0"]');
+      spot.focus();
+      spot.click();
+      const keep = r.root.querySelector(".cb-callout .cb-btn");
+      assert.equal(keep.textContent, words[language].keep);
+      // Where a keyboard player lands when the finding had to scroll into view.
+      keep.focus();
+      keep.dispatchEvent(new r.w.KeyboardEvent("keydown", { key: "p", code: "KeyP", bubbles: true, cancelable: true }));
+      const pause = r.root.querySelector(".cb-pause[open]");
+      assert.ok(pause, "P is Pause");
+      pause.querySelector("[data-cb-nav-entry]").click();
+      assert.equal(r.root.querySelector(".cb-pause[open]"), null, "Resume closed Pause");
+      assert.ok(r.root.querySelector(".cb-callout"), "the finding is still open");
+      assert.equal(r.w.document.activeElement, keep, "focus is back on Keep looking");
+      r.engine.settings.open(keep);
+      const settings = [...r.root.querySelectorAll("dialog[open]")].at(-1),
+        close = [...settings.querySelectorAll("button")].find((b) => b.textContent.trim() === r.engine.i18n.t("close"));
+      assert.ok(close, "Settings has its Close button");
+      close.click();
+      assert.equal(r.root.querySelectorAll("dialog[open]").length, 0);
+      assert.ok(r.root.querySelector(".cb-callout"), "the finding is still open after Settings");
+      assert.equal(r.w.document.activeElement, keep, "and focus is back on Keep looking");
+      // A tap elsewhere in the game still closes the finding.
+      r.main().querySelector(".cb-stophud__h").click();
+      assert.equal(r.root.querySelector(".cb-callout"), null, "a tap elsewhere in the game still closes the finding");
+      assert.equal(r.runtimeErrors.length, 0, String(r.runtimeErrors));
+    } finally {
+      r.close();
+    }
+  });
+
+test("arrow keys and the d-pad skip a pointer-only button hidden from screen readers (review of PG-UX-A08)", async () => {
+  const { focusables } = await import("../../assets/games/community-builders/engine/focus.js");
+  const r = await mountedGame("en");
+  try {
+    const host = r.w.document.createElement("div");
+    host.innerHTML =
+      '<button class="inline">Ask it</button><button class="float" tabindex="-1" aria-hidden="true">Ask it</button>';
+    r.main().append(host);
+    for (const b of host.querySelectorAll("button"))
+      b.getBoundingClientRect = () => ({ width: 56, height: 56, top: 0, left: 0, right: 56, bottom: 56 });
+    assert.deepEqual(focusables(host).map((b) => b.className), ["inline"]);
+  } finally {
+    r.close();
+  }
+});
+
+test("Stop 2's floating Ask is out of arrow-key reach in the real stop (review of PG-UX-A08)", async () => {
+  const { focusables } = await import("../../assets/games/community-builders/engine/focus.js");
+  const r = await mountedGame("es");
+  try {
+    motionOnly(r);
+    r.core.enterPlay({ quiet: true });
+    await r.core.startStop("ask-a-good-question");
+    r.main().querySelector(".cb-s02-intro .cb-btn--go").click();
+    await until(() => r.main().querySelector(".cb-s02-ask-float"), "the play screen");
+    const float = r.main().querySelector(".cb-s02-ask-float");
+    float.hidden = false;
+    float.getBoundingClientRect = () => ({ width: 56, height: 56, top: 0, left: 0, right: 56, bottom: 56 });
+    assert.equal(focusables(r.root).includes(float), false);
+  } finally {
+    r.close();
+  }
+});
+
+for (const language of ["en", "es"])
+  test(`${language}: every Stop 1 thing's name carries the words painted on it, and Stop 10 problem cards start with the neighbor shown first (review of PG-UX-C11)`, async () => {
+    const r = await mountedGame(language);
+    try {
+      await stop1Today(r);
+      let painted = 0;
+      for (const spot of r.main().querySelectorAll(".cb-s01-spot")) {
+        const face = spot.querySelector(".cb-s01-brd__face");
+        if (!face) continue;
+        painted++;
+        assert.ok(
+          spot.getAttribute("aria-label").toLowerCase().includes(face.textContent.trim().toLowerCase()),
+          `"${spot.getAttribute("aria-label")}" includes "${face.textContent.trim()}"`,
+        );
+      }
+      assert.ok(painted > 0, "this round has at least one thing with painted words");
+      await r.core.startStop("match-a-fix");
+      r.main().querySelector(".cb-board .cb-btn--go.cb-btn--big")?.click();
+      await until(() => r.main().querySelector(".cb-s10-prob"), "the problem cards");
+      for (const card of r.main().querySelectorAll(".cb-s10-prob")) {
+        const who = card.querySelector(".cb-s10-prob__who").textContent,
+          what = card.querySelector(".cb-s10-prob__text").textContent;
+        const name = card.getAttribute("aria-label");
+        assert.ok(name.startsWith(who), `"${name}" starts with "${who}"`);
+        assert.ok(name.includes(what));
+      }
+    } finally {
+      r.close();
+    }
+  });

@@ -104,6 +104,7 @@
   "consent_hint": "Adds the stop number and score. Never names. A grown-up confirms before this turns on, and you can turn it off at any time.",
   "consent_auto": "Also send each score as soon as a stop is finished",
   "consent_auto_hint": "Sends right away, without a grown-up review. Never notes or names.",
+  "consent_auto_needs_scores": "To use this, turn on the box above first.",
   "game_tools": "Game tools",
   "game_label": "Game",
   "play_area": "Play area",

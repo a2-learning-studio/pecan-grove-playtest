@@ -15,14 +15,37 @@ function setup({voice=false}={}) {
   return{dom,w,ctx,anchor,advance,tasks,frames,frame,cleanups,close:()=>w.close()};
 }
 
+// PG-UX-C14: a live region inserted already filled is often never read, and the old one read "Keep looking" as part
+// of the lesson. The finding is now a plain labelled section; its words go once through the game's persistent polite
+// region (ctx.say), without the button. This replaces the earlier role="status" assertion on the section.
 test('findings are polite and nonmodal, retain the chosen target, and never close on a timer (WCAG 2.2.1)',()=>{
- const r=setup();try{const p=showCallout(r.ctx,r.anchor,r.ctx.h('p',{text:'The sign tells us a meeting date.'}),{title:'A meeting sign'});assert.equal(p.getAttribute('role'),'status');assert.equal(r.w.document.activeElement,r.anchor);assert.equal(r.ctx.root.querySelector('dialog'),null);assert.equal(r.tasks.size,0,'no dismissal clock');r.advance(600000);assert.equal(p.isConnected,true,'a quiet reader keeps the finding as long as needed');}finally{r.close();}
+ const r=setup();try{const said=[];r.ctx.say=t=>said.push(t);const p=showCallout(r.ctx,r.anchor,r.ctx.h('p',{text:'The sign tells us a meeting date.'}),{title:'A meeting sign',closeLabel:'Keep looking',announce:'Signs found: 1 of 6'});
+  assert.equal(p.getAttribute('role'),null);assert.equal(p.hasAttribute('aria-live'),false);assert.equal(p.getAttribute('aria-label'),'A meeting sign');
+  assert.deepEqual(said,['A meeting sign The sign tells us a meeting date. Signs found: 1 of 6'],'one polite announcement: title, lesson and count, never the button');
+  assert.equal(r.w.document.activeElement,r.anchor);assert.equal(r.ctx.root.querySelector('dialog'),null);assert.equal(r.tasks.size,0,'no dismissal clock');r.advance(600000);assert.equal(p.isConnected,true,'a quiet reader keeps the finding as long as needed');}finally{r.close();}
 });
 test('a finding stays open after its narration ends',async()=>{
  const r=setup({voice:true});try{const p=showCallout(r.ctx,r.anchor,r.ctx.h('p',{text:'A sign.'}));await Promise.resolve();r.advance(20000);assert.equal(p.isConnected,true);r.ctx.vAudio=null;r.ctx.vEl=null;r.advance(600000);assert.equal(p.isConnected,true);p.dismiss();assert.equal(p.isConnected,false);}finally{r.close();}
 });
 test('Escape and stop cleanup dismiss once and remove all timers',()=>{
  const r=setup();try{let closed=0;const p=showCallout(r.ctx,r.anchor,r.ctx.h('p',{text:'A sign.'}),{onClose:()=>closed++});r.anchor.dispatchEvent(new r.w.KeyboardEvent('keydown',{key:'Escape',bubbles:true,cancelable:true}));r.cleanups.forEach(fn=>fn());assert.equal(closed,1);assert.equal(p.isConnected,false);assert.equal(r.tasks.size,0);assert.equal(r.w.document.activeElement,r.anchor);}finally{r.close();}
+});
+// Last review of the round: Escape typed in the feedback form under the game closed the finding, scrolled the play view
+// back and moved focus out of the text box onto the Stop 1 thing (measured in Chromium at 1366x768 EN); Escape on a
+// play-view tool was spent on the finding too. Only Escape in the game, or with nothing focused, is for the finding.
+test('Escape typed in a text box or outside the game leaves the finding open',()=>{
+ const r=setup();try{
+  const note=r.w.document.createElement('textarea'),tool=r.w.document.createElement('button'),field=r.w.document.createElement('input');
+  r.w.document.body.append(note,tool);r.ctx.main.append(field);
+  const p=showCallout(r.ctx,r.anchor,r.ctx.h('p',{text:'A sign.'}),{closeLabel:'Keep looking'});
+  for(const target of [note,tool,field]){
+   target.focus();const e=new r.w.KeyboardEvent('keydown',{key:'Escape',bubbles:true,cancelable:true});target.dispatchEvent(e);
+   assert.equal(p.isConnected,true,`the finding stays for Escape in ${target.tagName}`);assert.equal(e.defaultPrevented,false,'the key goes on to its own target');assert.equal(r.w.document.activeElement,target,'focus stays where the player is typing');
+  }
+  r.w.document.activeElement.blur();
+  r.w.document.body.dispatchEvent(new r.w.KeyboardEvent('keydown',{key:'Escape',bubbles:true,cancelable:true}));
+  assert.equal(p.isConnected,false,'with nothing focused, Escape still closes the finding');assert.equal(r.w.document.activeElement,r.anchor);
+ }finally{r.close();}
 });
 test('classic-card preference follows the setting and conservative forced-colors preference',()=>{
  const r=setup();try{r.w.matchMedia=()=>({matches:false});assert.equal(prefersFindCards(r.ctx),false);r.ctx.CFG.findCards=true;assert.equal(prefersFindCards(r.ctx),true);r.ctx.CFG.findCards=false;r.w.matchMedia=()=>({matches:true});assert.equal(prefersFindCards(r.ctx),true);}finally{r.close();}
@@ -244,4 +267,130 @@ test('the next finding click dismisses its predecessor before opening the new fi
   next.dispatchEvent(new r.w.MouseEvent('click',{bubbles:true,cancelable:true,detail:1}));
   assert.equal(first.isConnected,false);assert.equal(second.isConnected,true);assert.equal(r.ctx.root.querySelectorAll('.cb-callout').length,1);assert.equal(r.w.document.activeElement,next);
  }finally{r.close();}
+});
+
+// PG-UX-C01 / C03 (2026-10-30 round): at 1366x768 almost every finding opened in flow below the board, out of view,
+// and Keep looking left the player at the footer. Now an in-flow finding below the fold is scrolled into view at once
+// (down to Keep looking), and Keep looking, Escape or Back scroll back to where the player was looking.
+test('a finding placed below the fold comes into view at once, and Keep looking scrolls back to the chosen spot',()=>{
+ const r=setup();try{
+  const m=placeModel(r,{width:1366,height:768,pw:350,ph:300,placeY:1150});
+  const port=r.ctx.h('div',{class:'pt-stage-content'});r.ctx.root.before(port);port.append(r.ctx.root);
+  Object.defineProperties(port,{scrollHeight:{value:2400,configurable:true},clientHeight:{value:768,configurable:true},scrollTop:{get:()=>m.view.top,set:v=>{m.view.top=v;},configurable:true}});
+  let reveals=0;r.w.HTMLElement.prototype.scrollIntoView=function(){if(this.classList.contains('cb-callout')){reveals++;port.scrollTop=1150+300-768;}};
+  const board=sceneButton(r,'A busy board',0,60,1366,700,m);m.at(r.anchor,600,650,44,44);r.ctx.main.append(board);
+  const panel=showCallout(r.ctx,r.anchor,r.ctx.h('p',{text:'A sign.'}),{closeLabel:'Keep looking'});
+  assert.equal(panel.classList.contains('is-flow'),true,'No free corner: the finding opens in its place below the board');
+  assert.equal(reveals,1);assert.equal(m.view.top,682);
+  const box=panel.getBoundingClientRect();assert.ok(box.top>=0&&box.bottom<=768,'the whole finding, down to Keep looking, is on screen');
+  assert.equal(r.w.document.activeElement,r.anchor,'focus stays on the chosen thing');
+  r.frame();assert.equal(panel.classList.contains('is-flow'),true,'and it stays in its place');
+  panel.querySelector('button').click();
+  assert.equal(panel.isConnected,false);assert.equal(m.view.top,0,'Keep looking goes back to where the player was looking');
+  assert.equal(r.w.document.activeElement,r.anchor);
+ }finally{r.close();}
+});
+test('a finding already in view is not scrolled, and a tap elsewhere only closes it',()=>{
+ const r=setup();try{
+  const m=placeModel(r,{width:1366,height:768,pw:350,ph:200,placeY:500});
+  let reveals=0;r.w.HTMLElement.prototype.scrollIntoView=function(){reveals++;};
+  const board=sceneButton(r,'A busy board',0,0,1366,768,m);m.at(r.anchor,600,300,44,44);r.ctx.main.append(board);
+  const panel=showCallout(r.ctx,r.anchor,r.ctx.h('p',{text:'A sign.'}));
+  assert.equal(panel.classList.contains('is-flow'),true);assert.equal(reveals,0,'its place below the board is on screen already');
+  board.dispatchEvent(new r.w.MouseEvent('click',{bubbles:true,cancelable:true,detail:1}));
+  assert.equal(panel.isConnected,false);assert.equal(reveals,0);
+ }finally{r.close();}
+});
+// PG-UX-C15: on a 1920 screen a floating finding went to the window's corner, outside the 1208px game; and it could
+// cover the instruction the child was following.
+test('a floating finding stays inside the game on a wide screen',()=>{
+ const r=setup();try{
+  Object.defineProperties(r.w,{innerWidth:{value:1920},innerHeight:{value:1080}});panelSize(r);
+  r.ctx.root.getBoundingClientRect=()=>rect(356,80,1208,1000);
+  r.anchor.getBoundingClientRect=()=>rect(1500,200,44,44);
+  const panel=showCallout(r.ctx,r.anchor,r.ctx.h('p',{text:'A sign.'}));
+  assert.equal(panel.classList.contains('is-flow'),false);
+  const left=Number.parseFloat(panel.style.left),top=Number.parseFloat(panel.style.top);
+  assert.ok(left>=356+12&&left+350<=356+1208-12,`inside the game horizontally (left ${left})`);
+  assert.ok(top>=80+12&&top+205<=80+1000-12,`and vertically (top ${top})`);
+ }finally{r.close();}
+});
+test('the instruction card counts as something a floating finding must not cover',()=>{
+ const r=setup();try{
+  Object.defineProperties(r.w,{innerWidth:{value:1280},innerHeight:{value:720}});panelSize(r);
+  r.anchor.getBoundingClientRect=()=>rect(100,100,44,44);
+  const coach=r.ctx.h('p',{class:'cb-coach'});coach.getBoundingClientRect=()=>rect(0,150,1280,100);r.ctx.main.prepend(coach);
+  const panel=showCallout(r.ctx,r.anchor,r.ctx.h('p',{text:'A sign.'}));
+  assert.equal(panel.classList.contains('is-flow'),false);
+  assert.ok(!overlaps(panelBox(panel),coach.getBoundingClientRect()),'"Tap only the new things..." stays readable');
+ }finally{r.close();}
+});
+
+// Review of the 2026-10-30 round: after the reveal scroll a keyboard player's focus stayed on the chosen thing, now
+// scrolled out of sight (354-1282 px at 1366 and on phones). When the view moved, keyboard and gamepad focus lands on
+// Keep looking, which leads back to the thing; a pointer player's focus stays on the thing.
+for(const device of ['keyboard','gamepad'])test(`a ${device} player lands on Keep looking when the finding had to scroll into view, and Keep looking returns to the thing`,()=>{
+ const r=setup();try{
+  const m=placeModel(r,{width:1366,height:768,pw:350,ph:300,placeY:1150});
+  const port=r.ctx.h('div',{class:'pt-stage-content'});r.ctx.root.before(port);port.append(r.ctx.root);
+  Object.defineProperties(port,{scrollHeight:{value:2400,configurable:true},clientHeight:{value:768,configurable:true},scrollTop:{get:()=>m.view.top,set:v=>{m.view.top=v;},configurable:true}});
+  r.w.HTMLElement.prototype.scrollIntoView=function(){if(this.classList.contains('cb-callout'))port.scrollTop=1150+300-768;};
+  const board=sceneButton(r,'A busy board',0,60,1366,700,m);m.at(r.anchor,600,650,44,44);r.ctx.main.append(board);
+  r.ctx.root.dataset.input=device;
+  const panel=showCallout(r.ctx,r.anchor,r.ctx.h('p',{text:'A sign.'}),{closeLabel:'Keep looking'});
+  const keep=panel.querySelector('button');
+  assert.equal(m.view.top,682,'the finding scrolled into view');
+  assert.equal(r.w.document.activeElement,keep,'focus is on Keep looking, which is in view');
+  keep.click();
+  assert.equal(m.view.top,0);assert.equal(r.w.document.activeElement,r.anchor,'and Keep looking brings focus back to the thing');
+ }finally{r.close();}
+});
+test('a keyboard player keeps focus on the thing when the finding is already in view',()=>{
+ const r=setup();try{
+  const m=placeModel(r,{width:1366,height:768,pw:350,ph:200,placeY:500});
+  r.w.HTMLElement.prototype.scrollIntoView=function(){};
+  const board=sceneButton(r,'A busy board',0,0,1366,768,m);m.at(r.anchor,600,300,44,44);r.ctx.main.append(board);
+  r.ctx.root.dataset.input='keyboard';
+  showCallout(r.ctx,r.anchor,r.ctx.h('p',{text:'A sign.'}));
+  assert.equal(r.w.document.activeElement,r.anchor);
+ }finally{r.close();}
+});
+// Review: tapping one thing and then the next without Keep looking floated the second finding right over the thing
+// just tapped (100% at 1366-1920), and over the "Signs found" count, because neither counted as an obstacle.
+test('a floating finding never covers the thing it explains, nor the action bar with the count',()=>{
+ const r=setup();try{
+  Object.defineProperties(r.w,{innerWidth:{value:800},innerHeight:{value:600}});panelSize(r);
+  r.anchor.getBoundingClientRect=()=>rect(20,20,100,100);
+  // Everything below y=240 is busy, so the place below the thing and the bottom corner are taken. The place above it
+  // is clamped down over the thing itself and is free of anything else: it scored 0 while the thing was not counted
+  // (last review of the round: this half used to pass on the old code). The place to its right is truly free.
+  const busy=r.ctx.btn('Busy','cb-btn',()=>{});busy.getBoundingClientRect=()=>rect(0,240,800,360);r.ctx.main.append(busy);
+  const panel=showCallout(r.ctx,r.anchor,r.ctx.h('p',{text:'A sign.'}));
+  assert.equal(panel.classList.contains('is-flow'),false,'there is a free place, so the finding floats');
+  assert.ok(!overlaps(panelBox(panel),r.anchor.getBoundingClientRect()),'the tapped thing stays visible');
+  assert.ok(!overlaps(panelBox(panel),busy.getBoundingClientRect()),'and so does everything else');
+ }finally{r.close();}
+ const s=setup();try{
+  Object.defineProperties(s.w,{innerWidth:{value:800},innerHeight:{value:600}});panelSize(s);
+  s.anchor.getBoundingClientRect=()=>rect(400,40,60,60);
+  const bar=s.ctx.h('div',{class:'cb-actions'},[s.ctx.h('p',{class:'cb-msg',text:'Signs found: 4 of 6'})]);bar.getBoundingClientRect=()=>rect(0,112,800,80);s.ctx.main.append(bar);
+  const panel=showCallout(s.ctx,s.anchor,s.ctx.h('p',{text:'A sign.'}));
+  assert.ok(panel.classList.contains('is-flow')||!overlaps(panelBox(panel),bar.getBoundingClientRect()),'the count stays readable');
+ }finally{s.close();}
+});
+// Review: in phone landscape (640x360) a finding was taller than the play view, so Keep looking sat 41 px below the
+// fold on 2 of 12. Short windows get wider lines, and the reveal makes sure Keep looking itself is on screen.
+test('a short window gives the finding wider lines',()=>{
+ const r=setup();try{
+  Object.defineProperties(r.w,{innerWidth:{value:640},innerHeight:{value:360}});panelSize(r,520,200);
+  r.anchor.getBoundingClientRect=()=>rect(100,100,44,44);
+  const panel=showCallout(r.ctx,r.anchor,r.ctx.h('p',{text:'A sign.'}));
+  assert.equal(panel.style.width,'520px');
+ }finally{r.close();}
+ const t=setup();try{
+  Object.defineProperties(t.w,{innerWidth:{value:1366},innerHeight:{value:768}});panelSize(t);
+  t.anchor.getBoundingClientRect=()=>rect(100,100,44,44);
+  const panel=showCallout(t.ctx,t.anchor,t.ctx.h('p',{text:'A sign.'}));
+  assert.equal(panel.style.width,'350px','a laptop keeps the 350 px finding');
+ }finally{t.close();}
 });

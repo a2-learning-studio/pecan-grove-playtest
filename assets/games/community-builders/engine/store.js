@@ -109,7 +109,11 @@ export class Slots {
   remove(id) {
     const store = this.store();
     if (!store.players[id]) return null;
-    const deleted = { id, player: structuredClone(store.players[id]) };
+    const deleted = {
+      id,
+      player: structuredClone(store.players[id]),
+      current: store.current === id,
+    };
     this.deleted = deleted;
     delete store.players[id];
     if (store.current === id)
@@ -133,6 +137,9 @@ export class Slots {
     )
       return false;
     store.players[deleted.id] = deleted.player;
+    // The game being played comes back as the one being played: deleting it
+    // had passed play to another player's slot (or the empty default one).
+    if (deleted.current) store.current = deleted.id;
     return this.save();
   }
   resume(record) {

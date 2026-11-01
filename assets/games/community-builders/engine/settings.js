@@ -70,25 +70,34 @@ export class Settings {
     return this.i18n.t(key, params);
   }
   row(key, control, hint) {
+    const note = hint
+      ? h("p", {
+          class: "cb-engine-note",
+          id: control.id + "-hint",
+          text: hint,
+        })
+      : null;
+    if (note) control.setAttribute("aria-describedby", note.id);
     return h("div", { class: "cb-engine-setting" }, [
       h("div", {}, [
         h("label", { for: control.id, text: this.label(key) }),
-        hint ? h("p", { class: "cb-engine-note", text: hint }) : null,
+        note,
       ]),
       control,
     ]);
   }
-  toggle(key, disabled = false) {
+  // A locked box shows what is really on and says why it is locked.
+  toggle(key, disabled = false, { checked, hint } = {}) {
     const input = h("input", {
       type: "checkbox",
       id: "cb-engine-setting-" + ++this.uid,
       disabled,
     });
-    input.checked = !!this.value[key];
+    input.checked = checked ?? !!this.value[key];
     input.addEventListener("change", () =>
       this.update({ [key]: input.checked }),
     );
-    return this.row(key, input);
+    return this.row(key, input, hint);
   }
   range(key) {
     const id = "cb-engine-setting-" + ++this.uid,
@@ -214,7 +223,7 @@ export class Settings {
           this.update({ ...SETTINGS_DEFAULTS });
           this.refresh();
         },
-        { class: "cb-btn cb-btn--quiet" },
+        { class: "cb-btn cb-engine-reset" },
       ),
     );
     this.root.append(d);
@@ -256,10 +265,10 @@ export class Settings {
   fill(panel, name) {
     const append = (...nodes) => panel.append(...nodes);
     if (name === "audio") {
+      // The game has no music yet: its volume, switch and ducking stay out of
+      // the list until it does (their saved values are kept).
       append(
-        ...["master", "voiceVolume", "music", "sfx"].map((key) =>
-          this.range(key),
-        ),
+        ...["master", "voiceVolume", "sfx"].map((key) => this.range(key)),
         this.toggle("voice"),
         this.toggle("auto"),
         this.select("rate", [
@@ -272,9 +281,6 @@ export class Settings {
           this.audio?.mute(false);
           this.core()?.performAction?.("voice.sample");
         }),
-        this.toggle("musicOn", true),
-        h("p", { text: this.label("musicSoon") }),
-        this.toggle("duck"),
       );
       if (this.root.classList.contains("is-quiet"))
         append(h("p", { text: this.label("quietNote") }));
@@ -349,16 +355,21 @@ export class Settings {
       );
     }
     if (name === "accessibility") {
+      // The device's reduced-motion setting keeps Calm on: say so.
+      const system = !!globalThis.matchMedia?.(
+        "(prefers-reduced-motion: reduce)",
+      ).matches;
       append(
         this.toggle(
           "calm",
-          !!globalThis.matchMedia?.("(prefers-reduced-motion: reduce)").matches,
+          system,
+          system ? { checked: true, hint: this.label("calmSystem") } : {},
         ),
         this.toggle("circles"),
-        h("p", { text: this.label("noFlashing") }),
+        h("p", { class: "cb-engine-note", text: this.label("noFlashing") }),
         this.toggle("findCards"),
         this.toggle("focusThick"),
-        h("p", { text: this.label("noTimers") }),
+        h("p", { class: "cb-engine-note", text: this.label("noTimers") }),
       );
     }
     if (name === "language") {
@@ -367,9 +378,26 @@ export class Settings {
         h("option", { value: "es", text: "Español" }),
       ]);
       select.value = this.i18n.language;
-      select.addEventListener("change", () =>
-        this.core()?.setLanguage?.(select.value),
-      );
+      // Switching the language re-renders the game and closes its dialogs.
+      // Come back to this list, in the new language, so a keyboard or screen
+      // reader player keeps their place (WCAG 3.2.2).
+      select.addEventListener("change", async () => {
+        const language = select.value,
+          paused = !!this.root.querySelector(".cb-pause[open]"),
+          engine = globalThis.PecanGroveEngine;
+        await this.core()?.setLanguage?.(language);
+        // The old dialog's close event is a task of its own: let it run first.
+        await new Promise((resolve) => setTimeout(resolve, 0));
+        if (globalThis.document.documentElement.lang !== language) return;
+        if (this.dialog) return;
+        if (this.i18n.language !== language)
+          await this.i18n.load(language).catch(() => {});
+        if (this.dialog) return;
+        if (paused && !engine?.pause?.dialog) engine?.pause?.open();
+        this.open(globalThis.document.activeElement, "language");
+        const again = this.dialog?.querySelector("#cb-engine-language");
+        if (again) this.focus.focus(again);
+      });
       append(this.row("language", select));
       const offline = h("div", { id: "pg-offline-voice-controls" });
       append(offline);
@@ -421,7 +449,7 @@ export class Settings {
           );
           this.refresh();
         },
-        { class: "cb-btn cb-btn--quiet" },
+        { class: "cb-btn cb-engine-reset" },
       ),
     );
   }

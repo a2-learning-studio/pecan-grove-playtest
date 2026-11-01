@@ -356,7 +356,8 @@
     }
 
     /* ── scrolling that also works in the game's full-screen mode ───── */
-    function fsEl() { return document.fullscreenElement || document.webkitFullscreenElement || null; }
+    /* whatever scrolls the game: the play view's scrollport, the stage in full screen, or the page */
+    function fsEl() { return (api.scrollport && api.scrollport()) || document.fullscreenElement || document.webkitFullscreenElement || null; }
     function view() { var s = fsEl(); return s ? { top: s.getBoundingClientRect().top, h: s.clientHeight } : { top: 0, h: window.innerHeight || 0 }; }
     function scrollBy(dy) {
       if (Math.abs(dy) < 4) return;

@@ -37,6 +37,7 @@
     "languageNote": "You will keep your place in this stop.",
     "languageGo": "Continue in Español",
     "last5": "Last 5 tries",
+    "last5Empty": "No tries yet. Finish a stop, and its last 5 tries show here.",
     "best": "Best",
     "library": "Library / Class mode",
     "who": "Who's playing?",
@@ -156,6 +157,7 @@
     "consentDetails": "Adds the stop number and score. Never names. A grown-up confirms before this turns on, and you can turn it off at any time.",
     "consentAutoScores": "Also send each score as soon as a stop is finished",
     "consentAutoDetails": "Sends right away, without a grown-up review. Never notes or names.",
+    "consentAutoNeedsScores": "To use this, turn on the box above first.",
     "devicePanel": "Privacy and notes on this device",
     "nextPlayer": "Next player on this computer",
     "facilitatorCloseout": "Facilitator close-out"

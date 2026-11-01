@@ -7,6 +7,7 @@
   "synced": "El equipo de prueba recibió los comentarios que enviaste.",
   "thanks": "Gracias, recibimos tus comentarios.",
   "draftSaved": "Borrador guardado en este dispositivo. Pulsa Enviar para compartirlo.",
+  "idle": "Los borradores se quedan aquí hasta que elijas Enviar.",
   "failed": "No se pudieron enviar tus comentarios. Puedes volver a pulsar Enviar.",
   "retrying": "No se pudieron enviar tus comentarios. Se ha programado un reintento limitado mientras esta página siga abierta.",
   "storage": "Este navegador no puede guardar comentarios en este dispositivo ahora mismo, así que mantén esta página abierta. Siguiente jugador en esta computadora puede borrar los datos de Pecan Grove de este dispositivo y empezar de cero.",

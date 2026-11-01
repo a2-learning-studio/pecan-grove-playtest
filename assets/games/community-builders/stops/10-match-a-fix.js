@@ -180,7 +180,8 @@
     function triedFor(p, f) { return !!(p && state[p] && state[p].misses.indexOf(f) >= 0); }
 
     /* ── cards ── */
-    function probLabel(c) { var d = DD[c] || OD[c]; return S.probL + t2(d.p) + " " + api.nmCap(nbOf(c)); }
+    /* the card shows the neighbor's name first, then the problem: the name follows that order (WCAG 2.5.3) */
+    function probLabel(c) { var d = DD[c] || OD[c]; return api.nmCap(nbOf(c)) + ". " + S.probL + t2(d.p); }
     function fixLabel(c) { return S.fixL + t2(DD[c].f) + ". " + t2(DD[c].pl); }
     function edgePin(kind, c, n) { var a = { "class": "cb-s10-edge", "aria-hidden": "true", text: String(n) }; a["data-pin-" + kind] = c; return h("span", a); }
     function face(nb) { return h("span", { "class": "cb-s10-face", "aria-hidden": "true" }, [api.img(nb.img, "", null, true)]); }
@@ -219,7 +220,7 @@
         h("span", { "class": "cb-s10-fix__name", text: t2(d.f) }),
         h("span", { "class": "cb-s10-fix__place" }, [icon("pin"), h("span", { text: t2(d.pl) })]),
         chips.length ? h("span", { "class": "cb-s10-chips" }, chips) : null]);
-      var flap = h("button", { type: "button", "class": "cb-s10-flap" + (opened[c] ? " is-seen" : ""), "data-c": c, "aria-label": S.check + " " + t2(d.f), "aria-haspopup": "dialog",
+      var flap = h("button", { type: "button", "class": "cb-s10-flap" + (opened[c] ? " is-seen" : ""), "data-c": c, "data-cb-choice-skip": "", "aria-label": S.check + " " + t2(d.f), "aria-haspopup": "dialog",
         onclick: function () { openNote(c, flap, '[data-c="' + c + '"]'); } }, [h("span", { "class": "cb-s10-flap__ic", "aria-hidden": "true" }, [icon("stamp"), opened[c] ? h("i", null, [icon("check")]) : null]),
         h("span", { text: S.check })]);
       return h("li", { "class": "cb-s10-fix", "data-s": s }, [lp ? edgePin("f", c, state[lp].n) : null, main, flap]);

@@ -1,4 +1,5 @@
 import { h, button, icon } from "./dom.js";
+import { scrollport } from "./scene-layout.js";
 export class Pause {
   constructor({
     root,
@@ -43,36 +44,42 @@ export class Pause {
       h("h2", { id: "cb-engine-pause-title", text: this.i18n.t("pause") }),
     );
     const item = (key, run, attrs = {}) => button(this.i18n.t(key), run, attrs);
-    d.append(item("resume", () => this.close(), { "data-cb-nav-entry": "" }));
+    // Back to play first and marked as the main choice, then the safe
+    // places, then, below a line, the ways out of this round.
+    d.append(
+      item("resume", () => this.close(), {
+        class: "cb-btn cb-btn--primary",
+        "data-cb-nav-entry": "",
+      }),
+      item("settings", () => this.settings.open(document.activeElement)),
+      item("badges", () => this.onBadges(document.activeElement)),
+      item("slots", () => this.onSlots(document.activeElement)),
+      h("div", { class: "cb-pause__rule", "aria-hidden": "true" }),
+    );
     if (inStop)
       d.append(
         item("restart", () =>
-          this.confirm("restartQuestion", () => {
+          this.confirm("restartQuestion", "restart", () => {
             this.close();
             this.core()?.startStop?.(state.stopId);
           }),
         ),
-      );
-    d.append(
-      item("settings", () => this.settings.open(document.activeElement)),
-    );
-    if (inStop)
-      d.append(
         item("map", () =>
-          this.confirm("mapQuestion", () => {
+          this.confirm("mapQuestion", "map", () => {
             this.close();
             this.core()?.showMap?.();
           }),
         ),
       );
     d.append(
-      item("badges", () => this.onBadges(document.activeElement)),
-      item("slots", () => this.onSlots(document.activeElement)),
       item("quit", () => {
         this.close();
         this.onQuit();
       }),
     );
+    // Pausing never moves the scene: the scroll position comes back with play.
+    const port = scrollport(this.root);
+    this.scroll = port ? [port, port.scrollTop] : null;
     for (const node of this.root.children)
       if (node !== d && node.tagName !== "DIALOG") {
         this.background.push([node, node.inert]);
@@ -103,23 +110,35 @@ export class Pause {
     for (const [node, inert] of this.background) node.inert = inert;
     this.background = [];
     this.root.classList.remove("is-paused");
+    const [port, top] = this.scroll || [];
+    if (port?.isConnected && Math.abs(port.scrollTop - top) > 1)
+      port.scrollTop = top;
+    this.scroll = null;
     this.focus.pop(d);
     d.remove();
     if (!this.settings.dialog?.open) this.core()?.resumePlay?.();
     this.fx?.pause(false);
     this.audio?.mute(document.hidden);
   }
-  confirm(key, run) {
+  // The question names the dialog; the safe choice comes first and has focus,
+  // and the other button says what it does ("Town map", "Restart stop").
+  confirm(key, action, run) {
+    const id = "cb-engine-confirm-" + key;
     const d = h(
       "dialog",
-      { class: "cb-engine-dialog", "aria-label": this.i18n.t("pause") },
+      { class: "cb-engine-dialog cb-pause-confirm", "aria-labelledby": id },
       [
-        h("p", { text: this.i18n.t(key) }),
-        button(this.i18n.t("yes"), () => {
-          d.close();
-          run();
-        }),
-        button(this.i18n.t("cancel"), () => d.close()),
+        h("h2", { id, text: this.i18n.t(key) }),
+        h("div", { class: "cb-pause-confirm__actions" }, [
+          button(this.i18n.t("cancel"), () => d.close(), {
+            class: "cb-btn cb-btn--go",
+            "data-cb-nav-entry": "",
+          }),
+          button(this.i18n.t(action), () => {
+            d.close();
+            run();
+          }),
+        ]),
       ],
     );
     this.root.append(d);

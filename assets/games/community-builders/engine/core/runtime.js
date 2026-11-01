@@ -80,23 +80,29 @@ export default function createRuntime(ctx) {
           // A page left open across a release asks for files that release
           // removed; the offline layer checks for it and offers a restart.
           ctx.emit("cb:stop-unavailable", { id: id });
+          // The message and Try again open at the top of the play view, with
+          // focus, wherever the map was scrolled (weak school Wi-Fi).
           if (ctx.feedbackStop === id)
-            ctx.screen([
-              ctx.h("div", { class: "cb-board" }, [
-                ctx.h("p", {
-                  role: "status",
-                  text: ctx.window.CBLocale.t("core", ctx.L, "bank.b0042"),
-                }),
-                ctx.btn(
-                  ctx.window.CBLocale.t("core", ctx.L, "bank.b0043"),
-                  "cb-btn--go",
-                  function () {
-                    startStop(id);
-                  },
-                ),
-                ctx.btn(ctx.W.back, "", ctx.showMap),
-              ]),
-            ]);
+            ctx.screen(
+              [
+                ctx.h("div", { class: "cb-board" }, [
+                  ctx.h("p", {
+                    role: "status",
+                    text: ctx.window.CBLocale.t("core", ctx.L, "bank.b0042"),
+                  }),
+                  ctx.btn(
+                    ctx.window.CBLocale.t("core", ctx.L, "bank.b0043"),
+                    "cb-btn--go",
+                    function () {
+                      startStop(id);
+                    },
+                  ),
+                  ctx.btn(ctx.W.back, "", ctx.showMap),
+                ]),
+              ],
+              ".cb-board .cb-btn--go",
+            );
+          if (ctx.feedbackStop === id) ctx.frame();
           return false;
         },
       )
