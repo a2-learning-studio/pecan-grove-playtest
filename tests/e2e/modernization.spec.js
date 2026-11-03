@@ -293,24 +293,44 @@ for(const {lang,file} of languages) {
     // 8d2 WebKit ES advances through item5 at41.365s and starts its final
     // axe.finishRun at44.859s. Bound that real audit work with another actual
     // partial checkpoint instead of dropping a screen audit or raising45s.
-    test('Stop1 intro, Today and findings0-2',async({page,noNetwork})=>{
-      checkpoint=null;await start(page,file);await stop(page,1);await audit(page);await startStop1Today(page);await audit(page);await findStop1Items(page,0,3,()=>audit(page));checkpoint=await captureJourneyCheckpoint(page);expect([...checkpoint.snapshot.state.found,...checkpoint.snapshot.state.tapped]).toHaveLength(3);await assertLocalOnly(page,noNetwork);
+    // Decision CI-1 (2026-11-01). CI #34 run 2, WebKit ES: findings0-2 timed out at 47.9 s (retry 37.0 s); findings6-11
+    // 42.2 s; Stop2 0-1 41.6 s; Stop2 2-3 38.4 s; iPhone up to 34.7 s. Every case over 36 s now ends at a real persisted
+    // checkpoint; every audit is kept and the limit stays 45 s.
+    test('Stop1 intro, Today and finding0',async({page,noNetwork})=>{
+      checkpoint=null;await start(page,file);await stop(page,1);await audit(page);await startStop1Today(page);await audit(page);await findStop1Items(page,0,1,()=>audit(page));checkpoint=await captureJourneyCheckpoint(page);expect([...checkpoint.snapshot.state.found,...checkpoint.snapshot.state.tapped]).toHaveLength(1);await assertLocalOnly(page,noNetwork);
+    });
+    test('Continue Stop1 findings1-2',async({page,noNetwork})=>{
+      await continueJourneyCheckpoint(page,file,checkpoint);await findStop1Items(page,1,3,()=>audit(page));checkpoint=await captureJourneyCheckpoint(page);expect([...checkpoint.snapshot.state.found,...checkpoint.snapshot.state.tapped]).toHaveLength(3);await assertLocalOnly(page,noNetwork);
     });
     test('Continue Stop1 findings3-5',async({page,noNetwork})=>{
       await continueJourneyCheckpoint(page,file,checkpoint);await findStop1Items(page,3,6,()=>audit(page));checkpoint=await captureJourneyCheckpoint(page);expect([...checkpoint.snapshot.state.found,...checkpoint.snapshot.state.tapped]).toHaveLength(6);await assertLocalOnly(page,noNetwork);
     });
-    test('Continue Stop1 findings6-11 and result',async({page,noNetwork})=>{
-      await continueJourneyCheckpoint(page,file,checkpoint);await findStop1Items(page,6,12,()=>audit(page));await finishStop1(page,()=>audit(page));await backToMap(page);checkpoint=await captureJourneyCheckpoint(page,'notice-the-signs');await assertLocalOnly(page,noNetwork);
+    test('Continue Stop1 findings6-8',async({page,noNetwork})=>{
+      await continueJourneyCheckpoint(page,file,checkpoint);await findStop1Items(page,6,9,()=>audit(page));checkpoint=await captureJourneyCheckpoint(page);expect([...checkpoint.snapshot.state.found,...checkpoint.snapshot.state.tapped]).toHaveLength(9);await assertLocalOnly(page,noNetwork);
     });
-    test('Continue to Stop2 intro and questions0-1',async({page,noNetwork})=>{
-      await continueJourneyCheckpoint(page,file,checkpoint);await beginStop2(page,()=>audit(page));await answerStop2Rounds(page,2,()=>audit(page));checkpoint=await captureJourneyCheckpoint(page);await assertLocalOnly(page,noNetwork);
+    test('Continue Stop1 findings9-11 and result',async({page,noNetwork})=>{
+      await continueJourneyCheckpoint(page,file,checkpoint);await findStop1Items(page,9,12,()=>audit(page));await finishStop1(page,()=>audit(page));await backToMap(page);checkpoint=await captureJourneyCheckpoint(page,'notice-the-signs');await assertLocalOnly(page,noNetwork);
     });
-    test('Continue Stop2 questions2-3, result and feedback',async({page,noNetwork})=>{
-      await continueJourneyCheckpoint(page,file,checkpoint);await answerStop2Rounds(page,2,()=>audit(page));await expect(page.locator('.cb-card__can')).toBeVisible();await audit(page);await page.locator('#pt-review-tab').click();await audit(page);await assertLocalOnly(page,noNetwork);
+    test('Continue to Stop2 intro and question0',async({page,noNetwork})=>{
+      await continueJourneyCheckpoint(page,file,checkpoint);await beginStop2(page,()=>audit(page));await answerStop2Rounds(page,1,()=>audit(page));checkpoint=await captureJourneyCheckpoint(page);await assertLocalOnly(page,noNetwork);
+    });
+    test('Continue Stop2 question1',async({page,noNetwork})=>{
+      await continueJourneyCheckpoint(page,file,checkpoint);await answerStop2Rounds(page,1,()=>audit(page));checkpoint=await captureJourneyCheckpoint(page);await assertLocalOnly(page,noNetwork);
+    });
+    test('Continue Stop2 question2',async({page,noNetwork})=>{
+      await continueJourneyCheckpoint(page,file,checkpoint);await answerStop2Rounds(page,1,()=>audit(page));checkpoint=await captureJourneyCheckpoint(page);await assertLocalOnly(page,noNetwork);
+    });
+    test('Continue Stop2 question3, result and feedback',async({page,noNetwork})=>{
+      await continueJourneyCheckpoint(page,file,checkpoint);await answerStop2Rounds(page,1,()=>audit(page));await expect(page.locator('.cb-card__can')).toBeVisible();await audit(page);await page.locator('#pt-review-tab').click();await audit(page);await assertLocalOnly(page,noNetwork);
     });
   });
   for(const viewport of [{width:360,height:640},{width:600,height:500},{width:600,height:800},{width:1280,height:800},{width:1920,height:1080}]) {
-    test(`${lang}: layout ${viewport.width}x${viewport.height} keeps map and Stop2 choices reachable`,async({page})=>{
+    // Decision CI-1 (2026-11-01). iPhone CI: 1920x1080 26.3-29.8 s on main before #33, 42.7-46.4 s on #33 and #34;
+    // 1280x800 21.7-23.0 then 33.6-37.5 s; 360x640 rose the same way (8.0-9.0 then 13.5-16.5 s), so the runner changed,
+    // not this test. The cost is drawing a desktop-size page at device scale 3; a split would not bound it.
+    // No assertion changes.
+    test(`${lang}: layout ${viewport.width}x${viewport.height} keeps map and Stop2 choices reachable`,async({page},testInfo)=>{
+      if(viewport.width>=1280)webKitBudget(testInfo);
       await page.setViewportSize(viewport); await start(page,file);
       expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
       await stop(page,2); await page.locator('.cb-s02-intro .cb-btn--go').click();
