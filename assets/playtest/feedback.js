@@ -583,13 +583,15 @@
     var useNewDialog = !!(newDialog && typeof newDialog.showModal === "function" && newTitle && newMessage && newCancel && newConfirm);
     function label(n) { return n ? W.stop + " " + n : W.general; }
     // The status line is a polite live region. Opening the page, a language switch or redrawing the same words only
-    // restates it, so those changes are made with the region quiet; news (saved, sent, failed) is still announced.
-    var statusQuiet = true;
+    // restates it, so those changes are made with the region quiet for 300 ms, as the badge messages do; news (saved,
+    // sent, failed) turns the region polite before its words change, so it is announced (Decision D17).
+    var statusQuiet = true, statusQuietTimer = null;
     function showStatus(value) {
       if (status.textContent === value) return;
-      if (!statusQuiet) { status.textContent = value; return; }
+      window.clearTimeout(statusQuietTimer);
+      if (!statusQuiet) { status.setAttribute("aria-live", "polite"); status.textContent = value; return; }
       status.setAttribute("aria-live", "off"); status.textContent = value;
-      window.setTimeout(function () { status.setAttribute("aria-live", "polite"); }, 0);
+      statusQuietTimer = window.setTimeout(function () { status.setAttribute("aria-live", "polite"); }, 300);
     }
     function setStatus() {
       if (model.changedSession()) {
