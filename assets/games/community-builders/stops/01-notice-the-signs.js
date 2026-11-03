@@ -276,6 +276,26 @@
       li.style.setProperty("--i", String(s.i));                 // the order the things pop in when Today first opens
       return li;
     }
+    /* at large text sizes a thing low in the scene can push its tag past the bottom edge, which clips: lift it just
+       enough (Decision SO-5). Layout boxes, not screen boxes, so the arrival animation and hover never skew the measure */
+    var tagWatch = null;
+    function fitTags(sc) {
+      if (!sc || !sc.isConnected) return;
+      var room = sc.clientHeight - 4;
+      [].forEach.call(sc.querySelectorAll(".cb-s01-spot"), function (b) {
+        var y = 0, n = b.parentNode;
+        for (; n && n !== sc; n = n.offsetParent) y += n.offsetTop;
+        var over = y + b.offsetHeight / 2 - room;
+        if (n && over > 0) b.style.setProperty("--s01-lift", Math.min(over, b.offsetHeight) + "px"); else b.style.removeProperty("--s01-lift");
+      });
+    }
+    function watchTags(sc) {
+      if (tagWatch) tagWatch.disconnect();
+      tagWatch = window.ResizeObserver ? new window.ResizeObserver(function () { fitTags(sc); }) : null;
+      if (tagWatch) [sc].concat([].slice.call(sc.querySelectorAll(".cb-s01-spot"))).forEach(function (n) { tagWatch.observe(n); });
+      fitTags(sc);
+    }
+    if (lifecycle.cleanup) lifecycle.cleanup(function () { if (tagWatch) tagWatch.disconnect(); });
     function scene(past, freshFn) {
       var ul = h("ul", { "class": "cb-s01-spots" }, spots.map(function (s) { return makeSpot(s, freshFn ? freshFn(s) : false); }));
       var art = api.crop(CROP, "cb-s01-scene" + (past ? " is-past" : "") + (reviewing ? " is-review" : ""), [ul]);
@@ -324,7 +344,7 @@
       }
       /* an inline finding speaks the count with its own words, in one announcement */
       var inline = inlineFindings();
-      if (fresh) { paint(s, true); if (it.sign) progress(true, inline); }
+      if (fresh) { paint(s, true); if (it.sign) progress(true, inline); fitTags(s.btn.closest(".cb-s01-scene")); }
       card(s, function () { quiet(); }, fresh && it.sign && inline ? msgEl.textContent : "");
       if (!inlineFindings()) quiet();
     }
@@ -388,6 +408,7 @@
         h("div", { "class": "cb-s01-top" }, [coachEl, views]), sc,
         h("div", { "class": "cb-actions" }, [h("div", { "class": "cb-actions__info" }, progressBits()),
           api.btn(T.done, "cb-btn--go cb-btn--big", doneLooking, "go", true)])])]);
+      watchTags(sc);
       api.frame(true);                                 // the whole board (scene + action bar) in view
       quiet();
     }
@@ -403,6 +424,7 @@
         api.coach(T.review, "bulb"), sc,
         h("div", { "class": "cb-actions" }, [h("div", { "class": "cb-actions__info" }, progressBits()),
           api.btn(T.seeScore, "cb-btn--go cb-btn--big", finish, "go", true)])])], '[data-spot="' + missed[0].i + '"]');
+      watchTags(sc);
       api.frame(true);
       api.say(T.review);
       quiet();

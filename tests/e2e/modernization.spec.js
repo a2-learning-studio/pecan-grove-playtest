@@ -1160,3 +1160,18 @@ for(const {lang,file} of languages)test(`${lang}: the phone map's journey score 
     else await expect.poll(async()=>{const box=await more();return box.h<=1&&box.w<=1;},`${width}x${height}: the line is hidden visually`).toBe(true);
   }
 });
+// Decision SO-5 (2026-11-01): at 200% text a Stop 1 thing low in the scene (the bird feeder, once its second line says
+// what it turned out to be) is lifted just enough that its tag stays inside the scene, which clips. Measured locally:
+// 21.1 s (en) and 34.7 s (es) on WebKit, 20.4 and 22.4 s on the iPhone profile; 34.7 s is above 80% of 45 s, so these
+// cases have the file's WebKit budget (90 s).
+for(const {lang,file} of languages)test(`${lang} 1366x768 at 200% text: after tapping the bird feeder every Stop 1 tag stays inside the scene`,async({page},testInfo)=>{
+  webKitBudget(testInfo);
+  await page.setViewportSize({width:1366,height:768});await start(page,file);
+  await page.evaluate(()=>{document.documentElement.style.fontSize='200%';});
+  await stop(page,1);await startStop1Today(page);
+  const feeder=page.locator('.cb-s01-spot',{has:page.locator('.cb-s01-tag__n',{hasText:lang==='en'?'Bird feeder':'Comedero de pájaros'})});
+  await expect(feeder,'seed 42 draws the bird feeder').toHaveCount(1);
+  await page.waitForTimeout(400);await feeder.click();await expect(feeder).toHaveClass(/is-not(?:\s|$)/);
+  const outside=()=>page.locator('.cb-s01-scene').evaluate(scene=>{const s=scene.getBoundingClientRect();return[...scene.querySelectorAll('.cb-s01-tag')].map(tag=>[tag.textContent,tag.getBoundingClientRect()]).filter(([,t])=>t.top<s.top-1||t.bottom>s.bottom+1||t.left<s.left-1||t.right>s.right+1).map(([text,t])=>`${text} ${Math.round(t.bottom-s.bottom)}`);});
+  await expect.poll(outside,'every tag lies inside the scene').toEqual([]);
+});
