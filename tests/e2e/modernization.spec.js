@@ -1047,3 +1047,18 @@ for(const {lang,file}of languages){
   expect(runs.length,`Transitions started in Calm: ${runs.slice(0,16).join(' | ')}`).toBe(0);
  });
 }
+// Decision D3 (2026-11-01): Pause > Quit runs the play view's Exit, so it has the toolbar button's name, and it still
+// leaves to the intro; Start again offers Continue.
+for(const {lang,file} of languages)test(`${lang}: Pause's way out has the play view's Exit name, leaves to the intro, and Start offers Continue`,async({page})=>{
+  await start(page,file);await stop(page,2);
+  await page.locator('.cb-engine-pause-button:visible').first().click();
+  const pause=page.locator('.cb-pause');await expect(pause).toBeVisible();
+  const exitName=(await page.locator('#pt-exit').textContent()).replace(/\s+/g,' ').trim();
+  expect(exitName).toBe(lang==='en'?'Exit play view':'Salir de la vista de juego');
+  const out=pause.locator('button').last();await expect(out).toHaveAccessibleName(exitName);
+  await out.click();
+  await expect(page.locator('#pt-intro')).toBeVisible();await expect(page.locator('#pt-h')).toBeFocused();
+  await page.locator('#pt-start').click();
+  await expect(page.locator('.cb-hero')).toBeVisible();
+  await expect(page.locator('.cb-engine-title-actions .cb-continue')).toBeVisible();
+});

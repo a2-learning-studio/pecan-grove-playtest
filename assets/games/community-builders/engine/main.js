@@ -402,6 +402,11 @@ export async function mount(
       if (exit) exit.click();
       else core().showTitle?.();
     },
+    quitLabel: () =>
+      document
+        .getElementById("pt-exit")
+        ?.textContent.replace(/\s+/g, " ")
+        .trim() || "",
   });
   let pad = { pad: null, rumble() {} };
   function attachGamepad() {
