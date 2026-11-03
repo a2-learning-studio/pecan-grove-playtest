@@ -604,6 +604,23 @@ for(const [lang,file,width,height] of [['en','index.html',1366,768],['es','espan
 // needed with Finish and the toast. Desktop WebKit had 1 and 4 left at 2.2 and 2.6 s: about 51-58 s. The 390x844 case
 // passed in 44.6 s (iPhone) and 32.5 s (WebKit). Even on a faster local PC the 1366x768 case took 39.3, 43.3 and 45.5 s
 // on the iPhone profile. 135 s is about 1.8 times the slowest need (about 75 s), on WebKit only.
+// Decision D10 (2026-11-01): where Play again sits on the result's first screen. It must end at or above the visible
+// bottom of the play view (the window, or the play view's own scroller if that ends higher) and no fixed or sticky
+// element may cover it. The play view may scroll itself to the result first: judge where it comes to rest.
+async function playAgainOnFirstScreen(page){
+  const button=page.locator('.cb-card__btns .cb-btn').first();await expect(button).toBeVisible();
+  const top=()=>button.evaluate(node=>{let box=node.parentElement;while(box&&!(/auto|scroll/.test(getComputedStyle(box).overflowY)&&box.scrollHeight>box.clientHeight))box=box.parentElement;return box?box.scrollTop:scrollY;});
+  await expect.poll(async()=>{const before=await top();await page.waitForTimeout(250);return before===await top();},'the play view stops scrolling').toBe(true);
+  return button.evaluate(node=>{
+    const r=node.getBoundingClientRect();let box=node.parentElement;
+    while(box&&!(/auto|scroll/.test(getComputedStyle(box).overflowY)&&box.scrollHeight>box.clientHeight))box=box.parentElement;
+    const viewBottom=Math.min(innerHeight,box?box.getBoundingClientRect().bottom:innerHeight);
+    const covers=[...document.querySelectorAll('body *')].filter(el=>!el.contains(node)&&['fixed','sticky'].includes(getComputedStyle(el).position))
+      .map(el=>[el,el.getBoundingClientRect()]).filter(([,b])=>b.width&&b.height&&b.left<r.right&&b.right>r.left&&b.top<r.bottom&&b.bottom>r.top)
+      .map(([el,b])=>`${el.id||el.className} ${Math.round(b.top)}-${Math.round(b.bottom)}`);
+    return{bottom:Math.round(r.bottom*10)/10,viewBottom,covers};
+  });
+}
 for(const [width,height] of [[1366,768],[390,844]])test(`es ${width}x${height}: the new-badge toast stays inside the game and off the result line`,async({page},testInfo)=>{
   webKitBudget(testInfo,135000);
   await page.setViewportSize({width,height});await start(page,'espanol.html');await stop(page,1);await startStop1Today(page);
@@ -612,6 +629,22 @@ for(const [width,height] of [[1366,768],[390,844]])test(`es ${width}x${height}: 
   const [t,can,game]=await Promise.all(['.cb-engine-toast','.cb-card__can','#community-builders'].map(sel=>page.locator(sel).first().evaluate(node=>{const r=node.getBoundingClientRect();return{left:r.left,top:r.top,right:r.right,bottom:r.bottom};})));
   expect(t.right).toBeLessThanOrEqual(game.right);expect(t.left).toBeGreaterThanOrEqual(game.left);
   expect(t.bottom<=can.top||t.top>=can.bottom||t.right<=can.left||t.left>=can.right,'the result line stays readable').toBe(true);
+  if(width===390){
+    // Decision D10: Play again is on the first screen at 390x844
+    const again=await playAgainOnFirstScreen(page);
+    expect(again.bottom,`Play again ends at ${again.bottom} of ${again.viewBottom}`).toBeLessThanOrEqual(again.viewBottom);
+    expect(again.covers,'no fixed or sticky element covers Play again').toEqual([]);
+  }
+});
+// Decision D10 (2026-11-01): the same check in English. It plays all 12 findings and the result like the test above,
+// so it has that test's WebKit budget and timing evidence (135 s, about 1.8 times the slowest need of about 75 s).
+test('en 390x844: Play again is on the first screen of the Stop 1 result',async({page},testInfo)=>{
+  webKitBudget(testInfo,135000);
+  await page.setViewportSize({width:390,height:844});await start(page,'index.html');await stop(page,1);await startStop1Today(page);
+  await findStop1Items(page,0,12);await finishStop1(page);
+  const again=await playAgainOnFirstScreen(page);
+  expect(again.bottom,`Play again ends at ${again.bottom} of ${again.viewBottom}`).toBeLessThanOrEqual(again.viewBottom);
+  expect(again.covers,'no fixed or sticky element covers Play again').toEqual([]);
 });
 test('language switch mid-stop retains the current step and selected tiles',async({page})=>{
   await start(page);await stop(page,2);await page.locator('.cb-s02-intro .cb-btn--go').click();await page.locator('.cb-s02-row[data-row="topic"] .cb-s02-tile').first().click();
@@ -1047,6 +1080,7 @@ for(const {lang,file}of languages){
   expect(runs.length,`Transitions started in Calm: ${runs.slice(0,16).join(' | ')}`).toBe(0);
  });
 }
+
 // Decision D3 (2026-11-01): Pause > Quit runs the play view's Exit, so it has the toolbar button's name, and it still
 // leaves to the intro; Start again offers Continue.
 for(const {lang,file} of languages)test(`${lang}: Pause's way out has the play view's Exit name, leaves to the intro, and Start offers Continue`,async({page})=>{

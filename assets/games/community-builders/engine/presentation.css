@@ -254,6 +254,17 @@
   .cb-engine-stars {
     white-space: nowrap;
   }
+  /* Phones: the result card drops its extra space, so Play again is on the
+     first screen at 390x844 (Decision D10). */
+  .cb .cb-card {
+    gap: 16px;
+  }
+  .cb .cb-card__can {
+    margin-bottom: 0;
+  }
+  .cb .cb-card .cb-medal {
+    margin-bottom: 0;
+  }
 }
 @media (prefers-reduced-motion: reduce) {
   .cb .cb-hero__art {
