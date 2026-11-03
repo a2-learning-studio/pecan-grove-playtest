@@ -514,3 +514,21 @@ for (const language of ["en", "es"])
       r.close();
     }
   });
+
+// Decision D5 (2026-11-01): one dialog surface. DESIGN.md says "Dialog .cb-dlg: white"; the engine's dialogs (Pause,
+// Settings, Badges, the slot picker) move from the paper board to the same white card token, with no new colour.
+test("every dialog is white: the engine dialog and the stop dialog share the card token (Decision D5)", async () => {
+  const { default: postcss } = await import("postcss");
+  const { readFile } = await import("node:fs/promises");
+  const background = async (file, selector) => {
+    const css = await readFile(new URL(`../../assets/games/community-builders/${file}`, import.meta.url), "utf8");
+    const values = [];
+    postcss.parse(css).walkRules((rule) => {
+      if (rule.parent?.type === "root" && rule.selectors.includes(selector))
+        rule.walkDecls("background", (decl) => values.push(decl.value));
+    });
+    return values;
+  };
+  assert.deepEqual(await background("engine/engine.css", ".cb-engine-dialog"), ["var(--cb-card)"]);
+  assert.deepEqual(await background("cb.css", ".cb-dlg"), ["var(--cb-card)"]);
+});
