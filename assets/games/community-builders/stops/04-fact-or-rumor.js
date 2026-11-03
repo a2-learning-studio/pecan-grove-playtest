@@ -123,7 +123,27 @@
           h("div", { "class": "cb-row" }, [peekBtn]), peekBox])]),
         baskets,
         done ? h("div", { "class": "cb-actions" }, [h("div", { "class": "cb-actions__info" }, [fb(feedback, ok)]), nextBtn]) : null])]);
-      if (feedback) { say(feedback + " " + S4.sorted(ci + 1)); nextBtn.focus(); } else frame();
+      if (feedback) { say(feedback + " " + S4.sorted(ci + 1)); nextBtn.focus({ preventScroll: true }); frameClaim(nextBtn); } else frame();
+    }
+    /* after a sort: the claim's speaker line, the claim, its answer and Next claim come into view together when they fit;
+       when they do not, Next claim sits whole above the bottom, as before (Decision SO-3). The board is measured less
+       the new screen's entry rise, as Stop 2 measures its worry */
+    function reduced() { return api.motionAllowed ? !api.motionAllowed() : api.REDUCED; }
+    function covered(v) { return v.el === window ? parseFloat(window.getComputedStyle(document.documentElement).scrollPaddingTop) || 0 : 0; }
+    function view(root) {
+      var port = api.scrollport ? api.scrollport() : root && root.classList.contains("is-fs") ? root : null;
+      return port ? { fs: port === root, el: port, y: port.scrollTop, top: port.getBoundingClientRect().top, h: port.clientHeight }
+        : { fs: false, el: window, y: window.pageYOffset, top: 0, h: window.innerHeight };
+    }
+    function rising(el) { var n = (String(window.getComputedStyle(el).transform || "").match(/-?[\d.]+(?:e-?\d+)?/g) || []).map(Number); return n.length === 6 ? n[5] : n.length === 16 ? n[13] : 0; }
+    function frameClaim(btn) {
+      var root = btn.closest(".cb"), board = btn.closest(".cb-board"), from = board && board.querySelector(".cb-claim__from"), bar = btn.closest(".cb-actions");
+      if (!root || !from || !bar) return;
+      var v = view(root), lift = rising(btn.closest(".cb-main") || board),
+        top = from.getBoundingClientRect().top - lift - v.top - covered(v) - 12,
+        bottom = bar.getBoundingClientRect().bottom - lift - v.top + 16,
+        d = bottom - top <= v.h ? (top < 0 ? top : Math.max(0, bottom - v.h)) : bottom - v.h;
+      if (Math.abs(d) > 4 && v.el.scrollBy) v.el.scrollBy({ top: d, behavior: reduced() ? "auto" : "smooth" });
     }
     function finish() {
       phase = "result";

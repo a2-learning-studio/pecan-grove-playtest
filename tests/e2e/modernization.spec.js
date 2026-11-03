@@ -1096,3 +1096,52 @@ for(const {lang,file} of languages)test(`${lang}: Pause's way out has the play v
   await expect(page.locator('.cb-hero')).toBeVisible();
   await expect(page.locator('.cb-engine-title-actions .cb-continue')).toBeVisible();
 });
+// Decision SO-3 (2026-11-01): after a Stop 4 sort, the claim's speaker line, the claim, the answer and Next claim are
+// framed together when they fit the play view; when they do not, Next claim stays fully in view, as before. A claim
+// from the plan opens its source excerpt and may not fit, so the first claim without one is judged.
+async function sortStop4PlainClaim(page){
+  // the game ignores a tap within 350 ms of the tap that changed the scene (touch ghost-click guard)
+  await page.waitForTimeout(450);await page.locator('.cb-intro .cb-btn--go').click();
+  for(let index=0;index<5;index++){
+    await page.waitForTimeout(450);
+    await page.locator('.cb-peekbtn').click();
+    const excerpt=await page.locator('.cb-source-excerpt:visible').count();
+    await page.locator('.cb-basket').first().click();
+    const next=page.locator('.cb-board .cb-actions .cb-btn--go');await expect(next).toBeFocused();
+    if(!excerpt)return next;
+    await page.waitForTimeout(450);await next.click();
+  }
+  throw new Error('every claim had a source excerpt');
+}
+async function stop4Framing(page,next){
+  const top=()=>next.evaluate(node=>{let box=node.parentElement;while(box&&!(/auto|scroll/.test(getComputedStyle(box).overflowY)&&box.scrollHeight>box.clientHeight))box=box.parentElement;return box?box.scrollTop:scrollY;});
+  await expect.poll(async()=>{const before=await top();await page.waitForTimeout(250);return before===await top();},'the play view stops scrolling').toBe(true);
+  return next.evaluate(node=>{
+    let box=node.parentElement;while(box&&!(/auto|scroll/.test(getComputedStyle(box).overflowY)&&box.scrollHeight>box.clientHeight))box=box.parentElement;
+    const port=box?box.getBoundingClientRect():{top:0},h=box?box.clientHeight:innerHeight,viewTop=Math.max(0,port.top),viewBottom=Math.min(innerHeight,port.top+h);
+    const from=node.closest('.cb-board').querySelector('.cb-claim__from').getBoundingClientRect(),bar=node.closest('.cb-actions').getBoundingClientRect(),b=node.getBoundingClientRect();
+    // the stop's own margins: 12 px above the speaker line, 16 px below the action bar
+    return{fits:bar.bottom+16-(from.top-12)<=h,fromInView:from.top>=viewTop-1&&from.bottom<=viewBottom+1,nextInView:b.top>=viewTop-1&&b.bottom<=viewBottom+1,focused:document.activeElement===node};
+  });
+}
+// One case per language, so neither carries two game loads; the last case checks that the "fits" branch was taken in
+// at least one language. Measured locally with both languages in one case: 48.1 s on WebKit and 84 s on the iPhone
+// profile, so one language takes up to about 42 s there; each language case has the file's WebKit budget (90 s).
+test.describe.serial('1366x768: after a Stop 4 sort the claim and its answer are framed together, with Next claim in view',()=>{
+  const fitted=[];
+  for(const {lang,file} of languages)test(`${lang}: the speaker line through Next claim when they fit, Next claim always`,async({page},testInfo)=>{
+    webKitBudget(testInfo);
+    await page.setViewportSize({width:1366,height:768});await start(page,file);await stop(page,4);
+    const frame=await stop4Framing(page,await sortStop4PlainClaim(page));
+    expect(frame.focused,`${lang}: Next claim has focus`).toBe(true);expect(frame.nextInView,`${lang}: Next claim is fully in view`).toBe(true);
+    if(frame.fits){expect(frame.fromInView,`${lang}: the claim's speaker line is in view with its answer`).toBe(true);fitted.push(lang);}
+  });
+  test('the claim and its answer fit together in at least one language',()=>{
+    expect(fitted,'the claim and its answer fit together at 1366x768 in at least one language').not.toEqual([]);
+  });
+});
+for(const {lang,file} of languages)test(`${lang} 390x844: after a Stop 4 sort Next claim is in view and focused`,async({page})=>{
+  await page.setViewportSize({width:390,height:844});await start(page,file);await stop(page,4);
+  const frame=await stop4Framing(page,await sortStop4PlainClaim(page));
+  expect(frame.focused).toBe(true);expect(frame.nextInView).toBe(true);
+});
