@@ -89,3 +89,26 @@ test('a stop that cannot load after a release looks for that release and offers 
   assert.match(notice.textContent, /Restart to open it/);
   dom.window.close();
 });
+// Decision D7 (2026-11-01): the "Offline setup unavailable; play can continue" line is a polite live region that the page
+// checks after every screen. Writing the same words again replaces its text node, which a screen reader can announce
+// again at every screen, so its text is written only when it changes. Going offline still writes the offline line.
+test('the offline setup line is written once, not again at every screen, and going offline still changes it', async()=>{
+  const source = read('assets/playtest/pwa.js').replace(/^import .*;$/m, 'const trustedWorkerURL = () => "/sw.js";');
+  const dom = new JSDOM('<!doctype html><html lang="en"><head><meta name="pg-offline" content="enabled"><meta name="content-build-id" content="build-a"></head><body><nav class="pt-toolbar"></nav><section id="pt-stage"></section></body></html>', {url:'https://game.test/', runScripts:'outside-only'});
+  const w = dom.window, en = JSON.parse(read('assets/playtest/locales/en.json'));
+  Object.defineProperty(w.navigator, 'serviceWorker', {configurable:true, value:{ register: async()=>{ throw new Error('blocked'); }, addEventListener(){}, removeEventListener(){} }});
+  w.PGShellLocale = {en, es: JSON.parse(read('assets/playtest/locales/es.json'))};
+  vm.runInContext(source, dom.getInternalVMContext());
+  try {
+  const chip = w.document.getElementById('pg-offline-chip'), records = [];
+  assert.equal(chip.textContent, en.pwa_offline_setup_unavailable_play_can_continue, 'the first write');
+  new w.MutationObserver(list => records.push(...list)).observe(chip, {childList:true, characterData:true, subtree:true});
+  await settle(); await new Promise(resolve => setTimeout(resolve, 5));
+  assert.equal(chip.hidden, false, 'offline setup failed, so the line shows');
+  for (let i = 0; i < 2; i++) { w.document.dispatchEvent(new w.CustomEvent('cb:screen', {detail:{stopN:1, phase:'playing'}})); await new Promise(resolve => setTimeout(resolve, 5)); await settle(); }
+  assert.equal(records.length, 0, 'the same words are not written again');
+  Object.defineProperty(w.navigator, 'onLine', {configurable:true, get: () => false});
+  w.dispatchEvent(new w.Event('offline')); await settle();
+  assert.ok(records.length > 0); assert.equal(chip.textContent, en.pwa_offline);
+  } finally { dom.window.close(); }
+});
