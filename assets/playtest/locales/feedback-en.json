@@ -107,6 +107,8 @@
   "closeoutIntro": "Read every player's notes on this device before you send them. The Excel file has the notes with contact details and other details removed, but that check can miss things, so keep the file private and delete it when you are done.",
   "closeoutChanged": "Some notes changed after this list was shown, so it was drawn again. Read it again before you send.",
   "closeoutFiles": "Files were downloaded on this computer during this turn: {files}. Delete them from the Downloads folder before a child uses this computer.",
+  "closeoutIdleWarn": "This view closes in one minute to keep notes private. Choose Keep reading to keep it open.",
+  "closeoutKeepReading": "Keep reading",
   "restoreTitle": "Bring back a player",
   "restoreIntro": "If Next player was chosen by mistake, bring back an earlier player's game and notes. The player playing now stays saved on this device.",
   "restorePlayer": "Bring back player {code} (last saved {time})",
