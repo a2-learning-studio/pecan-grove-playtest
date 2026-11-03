@@ -434,3 +434,19 @@
     border-color: CanvasText;
   }
 }
+/* Decision SO-4: in the map's control bar on a screen at least 500 px tall,
+   the journey score card has room for its "Last 5 tries" line. */
+@media (min-height: 500px) {
+  .cb-map-controls .cb-jscore__more {
+    position: static;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    clip-path: none;
+    white-space: normal;
+    display: flex;
+    flex-wrap: wrap;
+    padding-top: 6px;
+    border-top: 1px solid var(--cb-line);
+  }
+}

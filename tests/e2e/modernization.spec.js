@@ -1145,3 +1145,18 @@ for(const {lang,file} of languages)test(`${lang} 390x844: after a Stop 4 sort Ne
   const frame=await stop4Framing(page,await sortStop4PlainClaim(page));
   expect(frame.focused).toBe(true);expect(frame.nextInView).toBe(true);
 });
+// Decision SO-4 (2026-11-01): on phones the journey score card shows "Last 5 tries" where the screen is 500 px tall or
+// more; where it stays hidden (short landscape screens) the words stay in the button's name, for voice control and
+// screen readers.
+for(const {lang,file} of languages)test(`${lang}: the phone map's journey score shows Last 5 tries when tall enough and always names it`,async({page})=>{
+  const words=lang==='en'?'Last 5 tries':'Últimos 5 intentos';
+  await page.setViewportSize({width:390,height:844});await start(page,file);
+  for(const [width,height,shown] of [[390,844,true],[360,640,true],[844,390,false]]){
+    await page.setViewportSize({width,height});await waitStageReady(page,'map');
+    const score=page.locator('.cb-jscore').first();
+    await expect(score,`${width}x${height}: the name says ${words}`).toHaveAccessibleName(new RegExp(words));
+    const more=()=>score.locator('.cb-jscore__more').evaluate(node=>{const r=node.getBoundingClientRect(),c=node.closest('.cb-jscore').getBoundingClientRect();return{w:r.width,h:r.height,inside:r.left>=c.left-1&&r.right<=c.right+1&&r.top>=c.top-1&&r.bottom<=c.bottom+1};});
+    if(shown){await expect.poll(async()=>(await more()).h>10,`${width}x${height}: the line is shown`).toBe(true);expect((await more()).inside,`${width}x${height}: inside the card`).toBe(true);}
+    else await expect.poll(async()=>{const box=await more();return box.h<=1&&box.w<=1;},`${width}x${height}: the line is hidden visually`).toBe(true);
+  }
+});
