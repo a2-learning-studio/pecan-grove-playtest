@@ -1118,18 +1118,21 @@ async function sortStop4PlainClaim(page){
 // that place before it scrolled to the claim, and the old check, two reads 250 ms apart, read it there: CI's WebKit draws
 // about one frame a second and showed such a place for at least 0.4 to 1.0 s (on the iPhone profile, by the trace
 // snapshots, for up to 1.9 s). So each sort is watched from the tap: where the player was, the place every following
-// frame shows, and where the view comes to rest, once it has held for 6 frames and 2.5 s. With moveOnClear the case
+// frame shows, and where the view comes to rest, once it has held for 6 frames and 2.5 s. With move 'top' the case
 // itself moves the view to the top as the sort clears the screen, as WebKit does at 390x844, so every engine meets it.
-async function watchStop4Sorts(page,moveOnClear=false){
-  await page.evaluate(moveOnClear=>{
+// With running the case starts a smooth scroll to the end of the play view as the sort is pressed, before the game
+// handles it: a scroll still running when the player sorts.
+async function watchStop4Sorts(page,{move=null,running=false}={}){
+  await page.evaluate(({move,running})=>{
     const sorts=window.__pgStop4Sorts=[],clear=Element.prototype.replaceChildren,at=sort=>sort.box?sort.box.scrollTop:scrollY;let current=null;
     const scroller=node=>{let box=node.parentElement;while(box&&!(/auto|scroll/.test(getComputedStyle(box).overflowY)&&box.scrollHeight>box.clientHeight))box=box.parentElement;return box;};
-    if(moveOnClear)Element.prototype.replaceChildren=function(...nodes){const move=current&&this.matches('.cb-main')&&at(current)>4;clear.apply(this,nodes);if(move){if(current.box)current.box.scrollTop=0;else scrollTo(0,0);current.moved=true;}};
+    if(move==='top')Element.prototype.replaceChildren=function(...nodes){const moving=current&&this.matches('.cb-main')&&at(current)>4;clear.apply(this,nodes);if(moving){if(current.box)current.box.scrollTop=0;else scrollTo(0,0);current.moved=true;}};
     document.addEventListener('click',event=>{const basket=event.target.closest&&event.target.closest('.cb-basket');if(!basket)return;
-      for(const sort of sorts)sort.done=true;current={box:scroller(basket),moved:false,path:[]};current.tap=at(current);sorts.push(current);},true);
+      for(const sort of sorts)sort.done=true;current={box:scroller(basket),moved:false,running:false,path:[]};current.tap=at(current);sorts.push(current);
+      if(running&&current.box&&current.box.scrollHeight-current.box.clientHeight-current.tap>4){current.box.scrollTo({top:current.box.scrollHeight,behavior:'smooth'});current.running=true;}},true);
     addEventListener('click',()=>{const sort=current;current=null;if(!sort)return;
       const tick=()=>{if(sort.done)return;sort.path.push([performance.now(),at(sort)]);requestAnimationFrame(tick);};tick();});
-  },moveOnClear);
+  },{move,running});
 }
 async function stop4Framing(page,next){
   const frame=await next.evaluate(node=>new Promise(resolve=>{
@@ -1143,7 +1146,7 @@ async function stop4Framing(page,next){
       const port=box?box.getBoundingClientRect():{top:0},h=box?box.clientHeight:innerHeight,viewTop=Math.max(0,port.top),viewBottom=Math.min(innerHeight,port.top+h);
       const from=node.closest('.cb-board').querySelector('.cb-claim__from').getBoundingClientRect(),bar=node.closest('.cb-actions').getBoundingClientRect(),b=node.getBoundingClientRect();
       // the stop's own margins: 12 px above the speaker line, 16 px below the action bar
-      resolve({settled,tap:Math.round(sort.tap),rest:Math.round(y),path:path.map(([,top])=>Math.round(top)),moved:sort.moved,
+      resolve({settled,tap:Math.round(sort.tap),rest:Math.round(y),path:path.map(([,top])=>Math.round(top)),moved:sort.moved,running:sort.running,
         fits:bar.bottom+16-(from.top-12)<=h,fromInView:from.top>=viewTop-1&&from.bottom<=viewBottom+1,nextInView:b.top>=viewTop-1&&b.bottom<=viewBottom+1,focused:document.activeElement===node});
     };
     requestAnimationFrame(settle);
@@ -1199,7 +1202,7 @@ for(const {lang,file} of languages)test(`${lang} 390x844: after a Stop 4 sort Ne
 for(const {lang,file} of languages){
   test(`${lang} 1366x768: when the new screen moves the play view, the sorted claim is framed from where the player was`,async({page},testInfo)=>{
     webKitBudget(testInfo);
-    await page.setViewportSize({width:1366,height:768});await start(page,file);await stop(page,4);await watchStop4Sorts(page,true);
+    await page.setViewportSize({width:1366,height:768});await start(page,file);await stop(page,4);await watchStop4Sorts(page,{move:'top'});
     const frame=await stop4Framing(page,await sortStop4PlainClaim(page));
     expect(frame.moved,'the case moved the play view as the sort cleared the screen').toBe(true);
     expect(frame.focused).toBe(true);expect(frame.nextInView).toBe(true);if(frame.fits)expect(frame.fromInView).toBe(true);expectStop4Path(frame,lang);
@@ -1207,12 +1210,33 @@ for(const {lang,file} of languages){
   test(`${lang} 390x844 in Calm: when the new screen moves the play view, Next claim is still framed and focused`,async({page},testInfo)=>{
     webKitBudget(testInfo);
     await page.setViewportSize({width:390,height:844});await start(page,file);await page.evaluate(()=>window.PecanGroveEngine.settings.update({calm:true}));
-    await stop(page,4);await watchStop4Sorts(page,true);
+    await stop(page,4);await watchStop4Sorts(page,{move:'top'});
     const frame=await stop4Framing(page,await sortStop4PlainClaim(page));
     expect(frame.moved,'the case moved the play view as the sort cleared the screen').toBe(true);
     expect(frame.focused).toBe(true);expect(frame.nextInView).toBe(true);expectStop4Path(frame,lang);
   });
 }
+// Decision SO-3, review finding: a scroll still running when the player sorts does not carry the framed claim away. The
+// engine's own smooth scroll to the top after Next claim is one, when the player sorts at once by keyboard: on Chromium
+// at 1366x768, sorted at 151 on the way, the view came to rest at 0 with Next claim out of view, as Stop 4 had no distance
+// to scroll and left that scroll running. At 1366x1024 the sorted claim fits where the player is, so there is no distance
+// to scroll either; a smooth scroll to the end of the play view starts as the sort is pressed, and the view must still
+// come to rest with the speaker line through Next claim in view. Measured locally: 13.9 to 15.5 s on WebKit and 27.0 to
+// 27.5 s on the iPhone profile, the same as the 1366x768 cases above that do the same work and reached 72 s when this PC
+// was short of memory, so these have the file's WebKit budget (90 s) too.
+for(const {lang,file} of languages)test(`${lang} 1366x1024: a scroll still running when the player sorts does not carry the Stop 4 claim away`,async({page},testInfo)=>{
+  webKitBudget(testInfo);
+  await page.setViewportSize({width:1366,height:1024});await start(page,file);await stop(page,4);await watchStop4Sorts(page,{running:true});
+  await page.waitForTimeout(450);await page.locator('.cb-intro .cb-btn--go').click();
+  // sorted by keyboard from where the player is: the basket takes focus without scrolling, and Enter sorts
+  await page.waitForTimeout(450);await page.locator('.cb-basket').first().evaluate(node=>node.focus({preventScroll:true}));await page.keyboard.press('Enter');
+  const next=page.locator('.cb-board .cb-actions .cb-btn--go');await expect(next).toBeFocused();
+  const frame=await stop4Framing(page,next);
+  expect(frame.running,'a smooth scroll to the end was running when the player sorted').toBe(true);
+  expect(frame.fits,`${lang}: the claim and its answer fit at 1366x1024`).toBe(true);
+  expect(frame.focused,`${lang}: Next claim has focus`).toBe(true);expect(frame.nextInView,`${lang}: Next claim is fully in view`).toBe(true);
+  expect(frame.fromInView,`${lang}: the claim's speaker line is in view with its answer`).toBe(true);expectStop4Path(frame,lang);
+});
 // Decision SO-4 (2026-11-01): on phones the journey score card shows "Last 5 tries" where the screen is 500 px tall or
 // more; where it stays hidden (short landscape screens) the words stay in the button's name, for voice control and
 // screen readers.
