@@ -1113,16 +1113,48 @@ async function sortStop4PlainClaim(page){
   }
   throw new Error('every claim had a source excerpt');
 }
+// Decision SO-3, CI finding (run 41766388371): WebKit moves the play view as it lays out the sorted claim's screen (at
+// 1366x768 from 395 to 1209, onto the feedback form below the game; at 390x844 from 580 to the top), so the view showed
+// that place before it scrolled to the claim, and the old check, two reads 250 ms apart, read it there: CI's WebKit draws
+// about one frame a second and showed such a place for at least 0.4 to 1.0 s (on the iPhone profile, by the trace
+// snapshots, for up to 1.9 s). So each sort is watched from the tap: where the player was, the place every following
+// frame shows, and where the view comes to rest, once it has held for 6 frames and 2.5 s. With moveOnClear the case
+// itself moves the view to the top as the sort clears the screen, as WebKit does at 390x844, so every engine meets it.
+async function watchStop4Sorts(page,moveOnClear=false){
+  await page.evaluate(moveOnClear=>{
+    const sorts=window.__pgStop4Sorts=[],clear=Element.prototype.replaceChildren,at=sort=>sort.box?sort.box.scrollTop:scrollY;let current=null;
+    const scroller=node=>{let box=node.parentElement;while(box&&!(/auto|scroll/.test(getComputedStyle(box).overflowY)&&box.scrollHeight>box.clientHeight))box=box.parentElement;return box;};
+    if(moveOnClear)Element.prototype.replaceChildren=function(...nodes){const move=current&&this.matches('.cb-main')&&at(current)>4;clear.apply(this,nodes);if(move){if(current.box)current.box.scrollTop=0;else scrollTo(0,0);current.moved=true;}};
+    document.addEventListener('click',event=>{const basket=event.target.closest&&event.target.closest('.cb-basket');if(!basket)return;
+      for(const sort of sorts)sort.done=true;current={box:scroller(basket),moved:false,path:[]};current.tap=at(current);sorts.push(current);},true);
+    addEventListener('click',()=>{const sort=current;current=null;if(!sort)return;
+      const tick=()=>{if(sort.done)return;sort.path.push([performance.now(),at(sort)]);requestAnimationFrame(tick);};tick();});
+  },moveOnClear);
+}
 async function stop4Framing(page,next){
-  const top=()=>next.evaluate(node=>{let box=node.parentElement;while(box&&!(/auto|scroll/.test(getComputedStyle(box).overflowY)&&box.scrollHeight>box.clientHeight))box=box.parentElement;return box?box.scrollTop:scrollY;});
-  await expect.poll(async()=>{const before=await top();await page.waitForTimeout(250);return before===await top();},'the play view stops scrolling').toBe(true);
-  return next.evaluate(node=>{
-    let box=node.parentElement;while(box&&!(/auto|scroll/.test(getComputedStyle(box).overflowY)&&box.scrollHeight>box.clientHeight))box=box.parentElement;
-    const port=box?box.getBoundingClientRect():{top:0},h=box?box.clientHeight:innerHeight,viewTop=Math.max(0,port.top),viewBottom=Math.min(innerHeight,port.top+h);
-    const from=node.closest('.cb-board').querySelector('.cb-claim__from').getBoundingClientRect(),bar=node.closest('.cb-actions').getBoundingClientRect(),b=node.getBoundingClientRect();
-    // the stop's own margins: 12 px above the speaker line, 16 px below the action bar
-    return{fits:bar.bottom+16-(from.top-12)<=h,fromInView:from.top>=viewTop-1&&from.bottom<=viewBottom+1,nextInView:b.top>=viewTop-1&&b.bottom<=viewBottom+1,focused:document.activeElement===node};
-  });
+  const frame=await next.evaluate(node=>new Promise(resolve=>{
+    const sort=window.__pgStop4Sorts[window.__pgStop4Sorts.length-1],end=performance.now()+20000;
+    const settle=()=>{
+      const path=sort.path,y=path[path.length-1][1];let held=path.length-1;while(held>0&&path[held-1][1]===y)held--;
+      const settled=path.length-1-held>=6&&path[path.length-1][0]-path[held][0]>=2500;
+      if(!settled&&performance.now()<end)return requestAnimationFrame(settle);
+      sort.done=true;
+      let box=node.parentElement;while(box&&!(/auto|scroll/.test(getComputedStyle(box).overflowY)&&box.scrollHeight>box.clientHeight))box=box.parentElement;
+      const port=box?box.getBoundingClientRect():{top:0},h=box?box.clientHeight:innerHeight,viewTop=Math.max(0,port.top),viewBottom=Math.min(innerHeight,port.top+h);
+      const from=node.closest('.cb-board').querySelector('.cb-claim__from').getBoundingClientRect(),bar=node.closest('.cb-actions').getBoundingClientRect(),b=node.getBoundingClientRect();
+      // the stop's own margins: 12 px above the speaker line, 16 px below the action bar
+      resolve({settled,tap:Math.round(sort.tap),rest:Math.round(y),path:path.map(([,top])=>Math.round(top)),moved:sort.moved,
+        fits:bar.bottom+16-(from.top-12)<=h,fromInView:from.top>=viewTop-1&&from.bottom<=viewBottom+1,nextInView:b.top>=viewTop-1&&b.bottom<=viewBottom+1,focused:document.activeElement===node});
+    };
+    requestAnimationFrame(settle);
+  }));
+  expect(frame.settled,'the play view comes to rest').toBe(true);
+  return frame;
+}
+// every place the view showed after the tap lies between where the player was and where the claim is framed
+function expectStop4Path(frame,lang){
+  const low=Math.min(frame.tap,frame.rest)-1,high=Math.max(frame.tap,frame.rest)+1;
+  expect(frame.path.filter(top=>top<low||top>high),`${lang}: from where the player tapped (${frame.tap}) the play view moves only toward the claim (${frame.rest})`).toEqual([]);
 }
 // One case per language, so neither carries two game loads; the last case checks that the "fits" branch was taken in
 // at least one language. Measured locally with both languages in one case: 48.1 s on WebKit and 84 s on the iPhone
@@ -1130,11 +1162,11 @@ async function stop4Framing(page,next){
 test.describe.serial('1366x768: after a Stop 4 sort the claim and its answer are framed together, with Next claim in view',()=>{
   const fits=new Map();
   async function judge(page,lang,file){
-    await page.setViewportSize({width:1366,height:768});await start(page,file);await stop(page,4);
+    await page.setViewportSize({width:1366,height:768});await start(page,file);await stop(page,4);await watchStop4Sorts(page);
     const frame=await stop4Framing(page,await sortStop4PlainClaim(page));
     expect(frame.focused,`${lang}: Next claim has focus`).toBe(true);expect(frame.nextInView,`${lang}: Next claim is fully in view`).toBe(true);
     if(frame.fits)expect(frame.fromInView,`${lang}: the claim's speaker line is in view with its answer`).toBe(true);
-    fits.set(lang,frame.fits);
+    expectStop4Path(frame,lang);fits.set(lang,frame.fits);
   }
   for(const {lang,file} of languages)test(`${lang}: the speaker line through Next claim when they fit, Next claim always`,async({page},testInfo)=>{
     webKitBudget(testInfo);await judge(page,lang,file);
@@ -1153,10 +1185,34 @@ test.describe.serial('1366x768: after a Stop 4 sort the claim and its answer are
   });
 });
 for(const {lang,file} of languages)test(`${lang} 390x844: after a Stop 4 sort Next claim is in view and focused`,async({page})=>{
-  await page.setViewportSize({width:390,height:844});await start(page,file);await stop(page,4);
+  await page.setViewportSize({width:390,height:844});await start(page,file);await stop(page,4);await watchStop4Sorts(page);
   const frame=await stop4Framing(page,await sortStop4PlainClaim(page));
-  expect(frame.focused).toBe(true);expect(frame.nextInView).toBe(true);
+  expect(frame.focused).toBe(true);expect(frame.nextInView).toBe(true);expectStop4Path(frame,lang);
 });
+// Decision SO-3, CI finding: the same frames on every engine, with the play view moved to the top as the sort clears the
+// screen (WebKit's move at 390x844; Chromium keeps the view still). Framed from that place, the next frame showed the
+// top of the stage before the view came back to the claim (on Chromium at 1366x768: tapped at 392, then 0 to 112). In
+// Calm the frame is reached at once, so the view must still land there. Measured locally, the 1366x768 cases took 15.1
+// to 15.4 s on WebKit and 27.6 to 28.8 s on the iPhone profile, and up to 72 s there when this PC was short of memory;
+// the 390x844 cases took 7.7 to 11.6 s, and 41.4 s late in a full WebKit run. Both are above 80% of 45 s at times, so
+// all four have the file's WebKit budget (90 s).
+for(const {lang,file} of languages){
+  test(`${lang} 1366x768: when the new screen moves the play view, the sorted claim is framed from where the player was`,async({page},testInfo)=>{
+    webKitBudget(testInfo);
+    await page.setViewportSize({width:1366,height:768});await start(page,file);await stop(page,4);await watchStop4Sorts(page,true);
+    const frame=await stop4Framing(page,await sortStop4PlainClaim(page));
+    expect(frame.moved,'the case moved the play view as the sort cleared the screen').toBe(true);
+    expect(frame.focused).toBe(true);expect(frame.nextInView).toBe(true);if(frame.fits)expect(frame.fromInView).toBe(true);expectStop4Path(frame,lang);
+  });
+  test(`${lang} 390x844 in Calm: when the new screen moves the play view, Next claim is still framed and focused`,async({page},testInfo)=>{
+    webKitBudget(testInfo);
+    await page.setViewportSize({width:390,height:844});await start(page,file);await page.evaluate(()=>window.PecanGroveEngine.settings.update({calm:true}));
+    await stop(page,4);await watchStop4Sorts(page,true);
+    const frame=await stop4Framing(page,await sortStop4PlainClaim(page));
+    expect(frame.moved,'the case moved the play view as the sort cleared the screen').toBe(true);
+    expect(frame.focused).toBe(true);expect(frame.nextInView).toBe(true);expectStop4Path(frame,lang);
+  });
+}
 // Decision SO-4 (2026-11-01): on phones the journey score card shows "Last 5 tries" where the screen is 500 px tall or
 // more; where it stays hidden (short landscape screens) the words stay in the button's name, for voice control and
 // screen readers.
