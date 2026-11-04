@@ -1128,15 +1128,27 @@ async function stop4Framing(page,next){
 // at least one language. Measured locally with both languages in one case: 48.1 s on WebKit and 84 s on the iPhone
 // profile, so one language takes up to about 42 s there; each language case has the file's WebKit budget (90 s).
 test.describe.serial('1366x768: after a Stop 4 sort the claim and its answer are framed together, with Next claim in view',()=>{
-  const fitted=[];
-  for(const {lang,file} of languages)test(`${lang}: the speaker line through Next claim when they fit, Next claim always`,async({page},testInfo)=>{
-    webKitBudget(testInfo);
+  const fits=new Map();
+  async function judge(page,lang,file){
     await page.setViewportSize({width:1366,height:768});await start(page,file);await stop(page,4);
     const frame=await stop4Framing(page,await sortStop4PlainClaim(page));
     expect(frame.focused,`${lang}: Next claim has focus`).toBe(true);expect(frame.nextInView,`${lang}: Next claim is fully in view`).toBe(true);
-    if(frame.fits){expect(frame.fromInView,`${lang}: the claim's speaker line is in view with its answer`).toBe(true);fitted.push(lang);}
+    if(frame.fits)expect(frame.fromInView,`${lang}: the claim's speaker line is in view with its answer`).toBe(true);
+    fits.set(lang,frame.fits);
+  }
+  for(const {lang,file} of languages)test(`${lang}: the speaker line through Next claim when they fit, Next claim always`,async({page},testInfo)=>{
+    webKitBudget(testInfo);await judge(page,lang,file);
   });
-  test('the claim and its answer fit together in at least one language',()=>{
+  // Decision SO-3: run on its own (for example with -g), this case has no results from the cases above, so it judges
+  // each missing language itself, with the same assertions, instead of failing on an empty list. In a full run it only
+  // reads their results. Both languages in one case measured 48.1 s on WebKit and 84 s on the iPhone profile locally
+  // (this case alone: 7.6 s on Chromium, 34.5 s on the iPhone profile), so only that stand-alone path takes the file's
+  // 135 s WebKit budget.
+  test('the claim and its answer fit together in at least one language',async({page},testInfo)=>{
+    const missing=languages.filter(({lang})=>!fits.has(lang));
+    if(missing.length)webKitBudget(testInfo,135000);
+    for(const {lang,file} of missing)await judge(page,lang,file);
+    const fitted=languages.map(({lang})=>lang).filter(lang=>fits.get(lang));
     expect(fitted,'the claim and its answer fit together at 1366x768 in at least one language').not.toEqual([]);
   });
 });
