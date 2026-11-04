@@ -42,7 +42,8 @@
   border: 2px solid var(--cb-line-strong);
   border-radius: var(--pg-radius-3);
   padding: var(--pg-space-5);
-  background: var(--cb-board);
+  /* One dialog surface: white, like .cb-dlg (DESIGN.md). */
+  background: var(--cb-card);
   color: var(--cb-ink);
   font-family: var(--pg-font-body);
   font-size: 1rem;

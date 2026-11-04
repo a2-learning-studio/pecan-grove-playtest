@@ -234,7 +234,7 @@
   .cb-jscore { gap: 2px 10px; padding: 8px 12px 8px 8px; border-radius: 14px; }
   .cb-jscore__ico { width: 32px; height: 32px; padding: 6px; }
   .cb-jscore strong { font-size: 1.25rem; }
-  .cb-jscore__more { display: none; }
+  .cb-jscore__more { position: absolute; width: 1px; height: 1px; padding: 0; border: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }   /* hidden on screen, still in the button's name (Decision SO-4) */
   .cb-toast { top: 76px; white-space: normal; width: max-content; max-width: calc(100% - 24px); text-align: center; }
   .cb-journey { display: block; background: var(--cb-board); }
   .cb-journey > summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 60px; padding: 0 18px; list-style: none; cursor: pointer; font-family: var(--a2-font-display); font-size: 1.0625rem; font-weight: 680; color: var(--cb-ink); }

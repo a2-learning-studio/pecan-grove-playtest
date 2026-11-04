@@ -99,7 +99,9 @@ function connectivity() {
   const offline = navigator.onLine === false, hud = !!document.querySelector('#community-builders .cb-engine-offline');
   chip.classList.toggle('is-note', !offline && setupFailed);
   chip.hidden = offline ? hud : !setupFailed;
-  chip.textContent = text(offline ? 'pwa_offline' : 'pwa_offline_setup_unavailable_play_can_continue');
+  // Written only when the words change: rewriting a live region can make a screen reader read it again (Decision D7).
+  const next = text(offline ? 'pwa_offline' : 'pwa_offline_setup_unavailable_play_can_continue');
+  if (chip.textContent !== next) chip.textContent = next;
 }
 (document.querySelector('.pt-toolbar') || document.getElementById('community-builders'))?.append(chip);
 window.addEventListener('online', connectivity); window.addEventListener('offline', connectivity); connectivity();

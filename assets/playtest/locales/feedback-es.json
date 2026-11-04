@@ -107,6 +107,8 @@
   "closeoutIntro": "Lee las notas de todos los jugadores de este dispositivo antes de enviarlas. El archivo de Excel tiene las notas sin datos de contacto ni otros datos personales, pero esa revisión puede fallar, así que guarda el archivo en privado y bórralo cuando termines.",
   "closeoutChanged": "Algunas notas cambiaron después de mostrar esta lista, así que se volvió a mostrar. Léela otra vez antes de enviar.",
   "closeoutFiles": "Durante este turno se descargaron archivos en esta computadora: {files}. Bórralos de la carpeta Descargas antes de que un niño use esta computadora.",
+  "closeoutIdleWarn": "Esta vista se cierra en un minuto para proteger las notas. Elige Seguir leyendo para dejarla abierta.",
+  "closeoutKeepReading": "Seguir leyendo",
   "restoreTitle": "Traer de vuelta a un jugador",
   "restoreIntro": "Si se eligió Siguiente jugador por error, trae de vuelta la partida y las notas de un jugador anterior. El jugador que juega ahora se queda guardado en este dispositivo.",
   "restorePlayer": "Traer de vuelta al jugador {code} (guardado por última vez: {time})",

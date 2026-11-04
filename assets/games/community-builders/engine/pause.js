@@ -12,6 +12,7 @@ export class Pause {
     onBadges = () => {},
     onSlots = () => {},
     onQuit = () => {},
+    quitLabel = () => "",
   }) {
     Object.assign(this, {
       root,
@@ -24,6 +25,7 @@ export class Pause {
       onBadges,
       onSlots,
       onQuit,
+      quitLabel,
     });
     this.dialog = null;
     this.background = [];
@@ -71,8 +73,10 @@ export class Pause {
           }),
         ),
       );
+    // The way out runs the play view's own Exit, so it carries that name where
+    // there is one (Decision D3); without a play-view shell it stays Quit.
     d.append(
-      item("quit", () => {
+      button(this.quitLabel() || this.i18n.t("quit"), () => {
         this.close();
         this.onQuit();
       }),

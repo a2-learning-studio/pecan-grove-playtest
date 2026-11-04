@@ -354,8 +354,9 @@ class PlaytestBuilderTests(unittest.TestCase):
             self.assertIn(f'data-language-url="{destination}"', page)
             self.assertIn('id="pt-start" type="button"', page)
             self.assertIn('href="#pt-h"', page)
-            self.assertIn('<details class="pt-guide" id="pt-guide">', page)
-            self.assertNotIn('<details class="pt-guide" open', page)
+            # Decision D4 (2026-11-01): the play-test instructions open by default; they follow Start, so Start stays first. Accessibility stays closed.
+            self.assertIn('<details class="pt-guide" id="pt-guide" open>', page)
+            self.assertIn('<details class="pt-guide" id="pt-access">', page)
             # PG-UX-B01: the test's instructions follow Start, before the story and the small print; no eyebrow.
             self.assertLess(page.index('id="pt-start"'), page.index('id="pt-guide"'))
             self.assertLess(page.index('id="pt-guide"'), page.index('class="pt-lead"'))

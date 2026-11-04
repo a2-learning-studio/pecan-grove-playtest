@@ -586,3 +586,27 @@ test('The collector README example lists exactly the fields the game sends (cont
   assert.deepEqual(Object.keys(example.entries[0]).sort(), Object.keys(body.entries[0]).sort());
   assert.equal(example.schemaVersion, body.schemaVersion);
 });
+// Decision D17 (2026-11-01): after a language change the status line keeps the badge messages' 300 ms quiet window, so
+// the accessibility tree has seen the restated words before the region is polite again; news (saved, sent, failed) that
+// arrives inside that window turns the region polite before its words change, so it is announced.
+test('After a language change the status line stays quiet for 300 ms, and news inside that window is announced', () => {
+  const b = browser(), status = b.field('status');
+  b.doc.fire('pg:language-change', { language: 'es', previousLanguage: 'en' });
+  assert.equal(status.getAttribute('aria-live'), 'off', 'the restated line is written with the region quiet');
+  b.run(0); assert.equal(status.getAttribute('aria-live'), 'off', 'still quiet at 0 ms');
+  for (const ms of new Set([...b.timers.values()].map(item => item.ms).filter(ms => ms < 300))) b.run(ms);
+  assert.equal(status.getAttribute('aria-live'), 'off', 'still quiet at 299 ms');
+  b.run(300); assert.equal(status.getAttribute('aria-live'), 'polite', 'polite again at 300 ms');
+  // A copy with a receiver: a saved draft changes the line (a copy without one always says notes stay here).
+  const c = browser({ backup: endpoint }), line = c.field('status'), writes = [];
+  let text = line.textContent;
+  Object.defineProperty(line, 'textContent', { configurable: true, get: () => text, set: value => { writes.push({ value, live: line.getAttribute('aria-live') }); text = value; } });
+  c.doc.fire('pg:language-change', { language: 'es', previousLanguage: 'en' });
+  const quiet = writes.at(-1); assert.ok(quiet); assert.equal(quiet.live, 'off');
+  // A change saves at once, so the news arrives while the 300 ms quiet timer is still pending.
+  assert.ok([...c.timers.values()].some(item => item.ms === 300), 'inside the quiet window');
+  c.field('worked').value = 'test'; c.field('worked').fire('change');
+  const news = writes.at(-1); assert.notEqual(news.value, quiet.value, 'a saved note is news');
+  assert.equal(news.live, 'polite', 'news turns the region polite before its words change');
+  c.run(300); assert.equal(line.getAttribute('aria-live'), 'polite', 'a pending quiet timer never turns the news off');
+});

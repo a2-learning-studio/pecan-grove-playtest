@@ -338,7 +338,7 @@ def page(lang, form, revision="preview", build_date=None, feedback_endpoint="", 
     <h1 id="pt-h" tabindex="-1">{e(w["h1"])}</h1>
     <label class="pt-quiet-choice" for="pt-quiet"><input type="checkbox" id="pt-quiet"><span><b>{e(w['quiet'])}</b><small>{e(w['quiet_hint'])}</small></span></label>
     <div class="pt-actions"><button class="pt-btn" id="pt-start" type="button">{e(w["play"])}</button></div>
-    <details class="pt-guide" id="pt-guide"><summary>{e(w["instructions"])}</summary>
+    <details class="pt-guide" id="pt-guide" open><summary>{e(w["instructions"])}</summary>
       <p class="pt-goal">{e(w["goal"])}</p>
       <ol class="pt-steps">{steps}</ol>
       <p>{e(w['external_noise'])}</p>

@@ -1,7 +1,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { JSDOM } from "jsdom";
-import { createSceneLayout } from "../../assets/games/community-builders/engine/scene-layout.js";
+import {
+  createSceneLayout,
+  keepScroll,
+} from "../../assets/games/community-builders/engine/scene-layout.js";
 
 function fixture(expanded = true) {
   const dom = new JSDOM(
@@ -210,6 +213,49 @@ test("unstarted and disconnected scenes never gain delayed focus", () => {
     r.paint();
     assert.deepEqual(r.calls, []);
     assert.equal(r.root.dataset.sceneLayout, "ready");
+  } finally {
+    r.close();
+  }
+});
+
+test("a screen swap puts the play view back where the player was when laying out the new screen moved it", () => {
+  const r = fixture();
+  try {
+    r.scrollport.style.overflowY = "auto";
+    Object.defineProperty(r.scrollport, "clientHeight", { value: 600 });
+    r.scrollport.scrollTop = 166;
+    let restore = keepScroll(r.root);
+    r.scrollport.scrollTop = 167;
+    restore();
+    assert.deepEqual(r.calls, [], "A pixel of rounding is left alone");
+    restore = keepScroll(r.root);
+    // WebKit's scroll anchoring at 1366x768: Next claim pressed at 166 showed 827
+    r.scrollport.scrollTop = 827;
+    restore();
+    assert.deepEqual(r.calls, [["scrollport", { top: 167, behavior: "auto" }]]);
+  } finally {
+    r.close();
+  }
+});
+
+test("a screen swap leaves the page's own scroll and a removed scrollport alone", () => {
+  const r = fixture();
+  try {
+    const restore = keepScroll(r.root);
+    r.scrollport.scrollTop = 300;
+    restore();
+    assert.deepEqual(
+      r.calls,
+      [],
+      "Without a scrollport the page scrolls itself",
+    );
+    r.scrollport.style.overflowY = "auto";
+    Object.defineProperty(r.scrollport, "clientHeight", { value: 600 });
+    const gone = keepScroll(r.root);
+    r.scrollport.scrollTop = 0;
+    r.stage.remove();
+    gone();
+    assert.deepEqual(r.calls, []);
   } finally {
     r.close();
   }

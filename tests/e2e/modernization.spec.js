@@ -293,24 +293,44 @@ for(const {lang,file} of languages) {
     // 8d2 WebKit ES advances through item5 at41.365s and starts its final
     // axe.finishRun at44.859s. Bound that real audit work with another actual
     // partial checkpoint instead of dropping a screen audit or raising45s.
-    test('Stop1 intro, Today and findings0-2',async({page,noNetwork})=>{
-      checkpoint=null;await start(page,file);await stop(page,1);await audit(page);await startStop1Today(page);await audit(page);await findStop1Items(page,0,3,()=>audit(page));checkpoint=await captureJourneyCheckpoint(page);expect([...checkpoint.snapshot.state.found,...checkpoint.snapshot.state.tapped]).toHaveLength(3);await assertLocalOnly(page,noNetwork);
+    // Decision CI-1 (2026-11-01). CI #34 run 2, WebKit ES: findings0-2 timed out at 47.9 s (retry 37.0 s); findings6-11
+    // 42.2 s; Stop2 0-1 41.6 s; Stop2 2-3 38.4 s; iPhone up to 34.7 s. Every case over 36 s now ends at a real persisted
+    // checkpoint; every audit is kept and the limit stays 45 s.
+    test('Stop1 intro, Today and finding0',async({page,noNetwork})=>{
+      checkpoint=null;await start(page,file);await stop(page,1);await audit(page);await startStop1Today(page);await audit(page);await findStop1Items(page,0,1,()=>audit(page));checkpoint=await captureJourneyCheckpoint(page);expect([...checkpoint.snapshot.state.found,...checkpoint.snapshot.state.tapped]).toHaveLength(1);await assertLocalOnly(page,noNetwork);
+    });
+    test('Continue Stop1 findings1-2',async({page,noNetwork})=>{
+      await continueJourneyCheckpoint(page,file,checkpoint);await findStop1Items(page,1,3,()=>audit(page));checkpoint=await captureJourneyCheckpoint(page);expect([...checkpoint.snapshot.state.found,...checkpoint.snapshot.state.tapped]).toHaveLength(3);await assertLocalOnly(page,noNetwork);
     });
     test('Continue Stop1 findings3-5',async({page,noNetwork})=>{
       await continueJourneyCheckpoint(page,file,checkpoint);await findStop1Items(page,3,6,()=>audit(page));checkpoint=await captureJourneyCheckpoint(page);expect([...checkpoint.snapshot.state.found,...checkpoint.snapshot.state.tapped]).toHaveLength(6);await assertLocalOnly(page,noNetwork);
     });
-    test('Continue Stop1 findings6-11 and result',async({page,noNetwork})=>{
-      await continueJourneyCheckpoint(page,file,checkpoint);await findStop1Items(page,6,12,()=>audit(page));await finishStop1(page,()=>audit(page));await backToMap(page);checkpoint=await captureJourneyCheckpoint(page,'notice-the-signs');await assertLocalOnly(page,noNetwork);
+    test('Continue Stop1 findings6-8',async({page,noNetwork})=>{
+      await continueJourneyCheckpoint(page,file,checkpoint);await findStop1Items(page,6,9,()=>audit(page));checkpoint=await captureJourneyCheckpoint(page);expect([...checkpoint.snapshot.state.found,...checkpoint.snapshot.state.tapped]).toHaveLength(9);await assertLocalOnly(page,noNetwork);
     });
-    test('Continue to Stop2 intro and questions0-1',async({page,noNetwork})=>{
-      await continueJourneyCheckpoint(page,file,checkpoint);await beginStop2(page,()=>audit(page));await answerStop2Rounds(page,2,()=>audit(page));checkpoint=await captureJourneyCheckpoint(page);await assertLocalOnly(page,noNetwork);
+    test('Continue Stop1 findings9-11 and result',async({page,noNetwork})=>{
+      await continueJourneyCheckpoint(page,file,checkpoint);await findStop1Items(page,9,12,()=>audit(page));await finishStop1(page,()=>audit(page));await backToMap(page);checkpoint=await captureJourneyCheckpoint(page,'notice-the-signs');await assertLocalOnly(page,noNetwork);
     });
-    test('Continue Stop2 questions2-3, result and feedback',async({page,noNetwork})=>{
-      await continueJourneyCheckpoint(page,file,checkpoint);await answerStop2Rounds(page,2,()=>audit(page));await expect(page.locator('.cb-card__can')).toBeVisible();await audit(page);await page.locator('#pt-review-tab').click();await audit(page);await assertLocalOnly(page,noNetwork);
+    test('Continue to Stop2 intro and question0',async({page,noNetwork})=>{
+      await continueJourneyCheckpoint(page,file,checkpoint);await beginStop2(page,()=>audit(page));await answerStop2Rounds(page,1,()=>audit(page));checkpoint=await captureJourneyCheckpoint(page);await assertLocalOnly(page,noNetwork);
+    });
+    test('Continue Stop2 question1',async({page,noNetwork})=>{
+      await continueJourneyCheckpoint(page,file,checkpoint);await answerStop2Rounds(page,1,()=>audit(page));checkpoint=await captureJourneyCheckpoint(page);await assertLocalOnly(page,noNetwork);
+    });
+    test('Continue Stop2 question2',async({page,noNetwork})=>{
+      await continueJourneyCheckpoint(page,file,checkpoint);await answerStop2Rounds(page,1,()=>audit(page));checkpoint=await captureJourneyCheckpoint(page);await assertLocalOnly(page,noNetwork);
+    });
+    test('Continue Stop2 question3, result and feedback',async({page,noNetwork})=>{
+      await continueJourneyCheckpoint(page,file,checkpoint);await answerStop2Rounds(page,1,()=>audit(page));await expect(page.locator('.cb-card__can')).toBeVisible();await audit(page);await page.locator('#pt-review-tab').click();await audit(page);await assertLocalOnly(page,noNetwork);
     });
   });
   for(const viewport of [{width:360,height:640},{width:600,height:500},{width:600,height:800},{width:1280,height:800},{width:1920,height:1080}]) {
-    test(`${lang}: layout ${viewport.width}x${viewport.height} keeps map and Stop2 choices reachable`,async({page})=>{
+    // Decision CI-1 (2026-11-01). iPhone CI: 1920x1080 26.3-29.8 s on main before #33, 42.7-46.4 s on #33 and #34;
+    // 1280x800 21.7-23.0 then 33.6-37.5 s; 360x640 rose the same way (8.0-9.0 then 13.5-16.5 s), so the runner changed,
+    // not this test. The cost is drawing a desktop-size page at device scale 3; a split would not bound it.
+    // No assertion changes.
+    test(`${lang}: layout ${viewport.width}x${viewport.height} keeps map and Stop2 choices reachable`,async({page},testInfo)=>{
+      if(viewport.width>=1280)webKitBudget(testInfo);
       await page.setViewportSize(viewport); await start(page,file);
       expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
       await stop(page,2); await page.locator('.cb-s02-intro .cb-btn--go').click();
@@ -584,6 +604,23 @@ for(const [lang,file,width,height] of [['en','index.html',1366,768],['es','espan
 // needed with Finish and the toast. Desktop WebKit had 1 and 4 left at 2.2 and 2.6 s: about 51-58 s. The 390x844 case
 // passed in 44.6 s (iPhone) and 32.5 s (WebKit). Even on a faster local PC the 1366x768 case took 39.3, 43.3 and 45.5 s
 // on the iPhone profile. 135 s is about 1.8 times the slowest need (about 75 s), on WebKit only.
+// Decision D10 (2026-11-01): where Play again sits on the result's first screen. It must end at or above the visible
+// bottom of the play view (the window, or the play view's own scroller if that ends higher) and no fixed or sticky
+// element may cover it. The play view may scroll itself to the result first: judge where it comes to rest.
+async function playAgainOnFirstScreen(page){
+  const button=page.locator('.cb-card__btns .cb-btn').first();await expect(button).toBeVisible();
+  const top=()=>button.evaluate(node=>{let box=node.parentElement;while(box&&!(/auto|scroll/.test(getComputedStyle(box).overflowY)&&box.scrollHeight>box.clientHeight))box=box.parentElement;return box?box.scrollTop:scrollY;});
+  await expect.poll(async()=>{const before=await top();await page.waitForTimeout(250);return before===await top();},'the play view stops scrolling').toBe(true);
+  return button.evaluate(node=>{
+    const r=node.getBoundingClientRect();let box=node.parentElement;
+    while(box&&!(/auto|scroll/.test(getComputedStyle(box).overflowY)&&box.scrollHeight>box.clientHeight))box=box.parentElement;
+    const viewBottom=Math.min(innerHeight,box?box.getBoundingClientRect().bottom:innerHeight);
+    const covers=[...document.querySelectorAll('body *')].filter(el=>!el.contains(node)&&['fixed','sticky'].includes(getComputedStyle(el).position))
+      .map(el=>[el,el.getBoundingClientRect()]).filter(([,b])=>b.width&&b.height&&b.left<r.right&&b.right>r.left&&b.top<r.bottom&&b.bottom>r.top)
+      .map(([el,b])=>`${el.id||el.className} ${Math.round(b.top)}-${Math.round(b.bottom)}`);
+    return{bottom:Math.round(r.bottom*10)/10,viewBottom,covers};
+  });
+}
 for(const [width,height] of [[1366,768],[390,844]])test(`es ${width}x${height}: the new-badge toast stays inside the game and off the result line`,async({page},testInfo)=>{
   webKitBudget(testInfo,135000);
   await page.setViewportSize({width,height});await start(page,'espanol.html');await stop(page,1);await startStop1Today(page);
@@ -592,6 +629,22 @@ for(const [width,height] of [[1366,768],[390,844]])test(`es ${width}x${height}: 
   const [t,can,game]=await Promise.all(['.cb-engine-toast','.cb-card__can','#community-builders'].map(sel=>page.locator(sel).first().evaluate(node=>{const r=node.getBoundingClientRect();return{left:r.left,top:r.top,right:r.right,bottom:r.bottom};})));
   expect(t.right).toBeLessThanOrEqual(game.right);expect(t.left).toBeGreaterThanOrEqual(game.left);
   expect(t.bottom<=can.top||t.top>=can.bottom||t.right<=can.left||t.left>=can.right,'the result line stays readable').toBe(true);
+  if(width===390){
+    // Decision D10: Play again is on the first screen at 390x844
+    const again=await playAgainOnFirstScreen(page);
+    expect(again.bottom,`Play again ends at ${again.bottom} of ${again.viewBottom}`).toBeLessThanOrEqual(again.viewBottom);
+    expect(again.covers,'no fixed or sticky element covers Play again').toEqual([]);
+  }
+});
+// Decision D10 (2026-11-01): the same check in English. It plays all 12 findings and the result like the test above,
+// so it has that test's WebKit budget and timing evidence (135 s, about 1.8 times the slowest need of about 75 s).
+test('en 390x844: Play again is on the first screen of the Stop 1 result',async({page},testInfo)=>{
+  webKitBudget(testInfo,135000);
+  await page.setViewportSize({width:390,height:844});await start(page,'index.html');await stop(page,1);await startStop1Today(page);
+  await findStop1Items(page,0,12);await finishStop1(page);
+  const again=await playAgainOnFirstScreen(page);
+  expect(again.bottom,`Play again ends at ${again.bottom} of ${again.viewBottom}`).toBeLessThanOrEqual(again.viewBottom);
+  expect(again.covers,'no fixed or sticky element covers Play again').toEqual([]);
 });
 test('language switch mid-stop retains the current step and selected tiles',async({page})=>{
   await start(page);await stop(page,2);await page.locator('.cb-s02-intro .cb-btn--go').click();await page.locator('.cb-s02-row[data-row="topic"] .cb-s02-tile').first().click();
@@ -1027,3 +1080,238 @@ for(const {lang,file}of languages){
   expect(runs.length,`Transitions started in Calm: ${runs.slice(0,16).join(' | ')}`).toBe(0);
  });
 }
+
+// Decision D3 (2026-11-01): Pause > Quit runs the play view's Exit, so it has the toolbar button's name, and it still
+// leaves to the intro; Start again offers Continue.
+for(const {lang,file} of languages)test(`${lang}: Pause's way out has the play view's Exit name, leaves to the intro, and Start offers Continue`,async({page})=>{
+  await start(page,file);await stop(page,2);
+  await page.locator('.cb-engine-pause-button:visible').first().click();
+  const pause=page.locator('.cb-pause');await expect(pause).toBeVisible();
+  const exitName=(await page.locator('#pt-exit').textContent()).replace(/\s+/g,' ').trim();
+  expect(exitName).toBe(lang==='en'?'Exit play view':'Salir de la vista de juego');
+  const out=pause.locator('button').last();await expect(out).toHaveAccessibleName(exitName);
+  await out.click();
+  await expect(page.locator('#pt-intro')).toBeVisible();await expect(page.locator('#pt-h')).toBeFocused();
+  await page.locator('#pt-start').click();
+  await expect(page.locator('.cb-hero')).toBeVisible();
+  await expect(page.locator('.cb-engine-title-actions .cb-continue')).toBeVisible();
+});
+// Decision SO-3 (2026-11-01): after a Stop 4 sort, the claim's speaker line, the claim, the answer and Next claim are
+// framed together when they fit the play view; when they do not, Next claim stays fully in view, as before. A claim
+// from the plan opens its source excerpt and may not fit, so the first claim without one is judged.
+async function sortStop4PlainClaim(page){
+  // the game ignores a tap within 350 ms of the tap that changed the scene (touch ghost-click guard)
+  await page.waitForTimeout(450);await page.locator('.cb-intro .cb-btn--go').click();
+  for(let index=0;index<5;index++){
+    await page.waitForTimeout(450);
+    await page.locator('.cb-peekbtn').click();
+    const excerpt=await page.locator('.cb-source-excerpt:visible').count();
+    await page.locator('.cb-basket').first().click();
+    const next=page.locator('.cb-board .cb-actions .cb-btn--go');await expect(next).toBeFocused();
+    if(!excerpt)return next;
+    await page.waitForTimeout(450);await next.click();
+  }
+  throw new Error('every claim had a source excerpt');
+}
+// Decision SO-3, CI finding (run 41766388371): WebKit moves the play view as it lays out the sorted claim's screen (at
+// 1366x768 from 395 to 1209, onto the feedback form below the game; at 390x844 from 580 to the top), so the view showed
+// that place before it scrolled to the claim, and the old check, two reads 250 ms apart, read it there: CI's WebKit draws
+// about one frame a second and showed such a place for at least 0.4 to 1.0 s (on the iPhone profile, by the trace
+// snapshots, for up to 1.9 s). So each sort, and each press of Next claim, is watched from the press: where the player
+// was, the place every following frame shows, and where the view comes to rest, once it has held for 6 frames and 2.5 s.
+// With move 'top' the case itself moves the view to the top as the press clears the screen, as WebKit does at 390x844,
+// and with 'end' to the end of the play view, as WebKit's scroll anchoring does at 1366x768, so every engine meets the
+// move; stop4Move changes it between presses. With running the case starts a smooth scroll to the end of the play view
+// as the sort is pressed, before the game handles it: a scroll still running when the player sorts.
+async function watchStop4Sorts(page,{move=null,running=false}={}){
+  await page.evaluate(({move,running})=>{
+    const presses=window.__pgStop4Presses=[],clear=Element.prototype.replaceChildren,at=press=>press.box?press.box.scrollTop:scrollY;let current=null;
+    const scroller=node=>{let box=node.parentElement;while(box&&!(/auto|scroll/.test(getComputedStyle(box).overflowY)&&box.scrollHeight>box.clientHeight))box=box.parentElement;return box;};
+    window.__pgStop4Move=move;
+    Element.prototype.replaceChildren=function(...nodes){const to=current&&this.matches('.cb-main')?window.__pgStop4Move:null,from=to?at(current):0;clear.apply(this,nodes);
+      if(to==='end'||to==='top'&&from>4){const y=to==='top'?0:1e6;if(current.box)current.box.scrollTop=y;else scrollTo(0,y);current.moved=Math.abs(at(current)-from)>4;}};
+    document.addEventListener('click',event=>{const control=event.target.closest&&event.target.closest('.cb-basket, .cb-board .cb-actions .cb-btn--go');if(!control)return;
+      for(const press of presses)press.done=true;current={box:scroller(control),moved:false,running:false,path:[],since:performance.now()};current.tap=at(current);presses.push(current);
+      if(running&&control.matches('.cb-basket')&&current.box&&current.box.scrollHeight-current.box.clientHeight-current.tap>4){current.box.scrollTo({top:current.box.scrollHeight,behavior:'smooth'});current.running=true;}},true);
+    addEventListener('click',()=>{const press=current;current=null;if(!press)return;
+      const tick=()=>{if(press.done)return;press.path.push([performance.now(),at(press)]);requestAnimationFrame(tick);};tick();});
+    // the view after the last press, once it has come to rest. The wait stops after 20 s and the case then fails as not
+    // at rest (before, the check polled within the file's 10 s expect timeout). Measured locally from the press to rest:
+    // 2.5 to 3.4 s on Chromium, WebKit and the iPhone profile, with WebKit drawing 4 to 60 frames a second. CI's WebKit
+    // drew about one frame a second in run 41766388371, so there the 6 held frames alone take about 6 s, after a scroll
+    // of 2 to 3 frames: about 9 s, and 20 s is twice that and more.
+    window.__pgStop4Rest=()=>new Promise(resolve=>{
+      const press=presses[presses.length-1],end=performance.now()+20000;
+      const settle=()=>{
+        const path=press.path,y=path[path.length-1][1];let held=path.length-1;while(held>0&&path[held-1][1]===y)held--;
+        const settled=path.length-1-held>=6&&path[path.length-1][0]-path[held][0]>=2500;
+        if(!settled&&performance.now()<end)return requestAnimationFrame(settle);
+        press.done=true;
+        resolve({settled,tap:Math.round(press.tap),rest:Math.round(y),path:path.map(([,top])=>Math.round(top)),moved:press.moved,running:press.running,ms:Math.round(performance.now()-press.since)});
+      };
+      requestAnimationFrame(settle);
+    });
+  },{move,running});
+}
+async function stop4Move(page,move){await page.evaluate(move=>{window.__pgStop4Move=move;},move);}
+async function stop4Framing(page,next){
+  const frame=await next.evaluate(async node=>{
+    const rest=await window.__pgStop4Rest();
+    let box=node.parentElement;while(box&&!(/auto|scroll/.test(getComputedStyle(box).overflowY)&&box.scrollHeight>box.clientHeight))box=box.parentElement;
+    const port=box?box.getBoundingClientRect():{top:0},h=box?box.clientHeight:innerHeight,viewTop=Math.max(0,port.top),viewBottom=Math.min(innerHeight,port.top+h);
+    const from=node.closest('.cb-board').querySelector('.cb-claim__from').getBoundingClientRect(),bar=node.closest('.cb-actions').getBoundingClientRect(),b=node.getBoundingClientRect();
+    // the stop's own margins: 12 px above the speaker line, 16 px below the action bar
+    return {...rest,fits:bar.bottom+16-(from.top-12)<=h,fromInView:from.top>=viewTop-1&&from.bottom<=viewBottom+1,nextInView:b.top>=viewTop-1&&b.bottom<=viewBottom+1,focused:document.activeElement===node};
+  });
+  expect(frame.settled,`the play view comes to rest (watched for ${frame.ms} ms)`).toBe(true);
+  return frame;
+}
+// after Next claim, once the view is at rest: is the next claim's speaker line in view?
+async function stop4NextClaim(page){
+  const frame=await page.evaluate(async()=>{
+    const rest=await window.__pgStop4Rest(),node=document.querySelector('.cb-board .cb-claim__from');
+    let box=node.parentElement;while(box&&!(/auto|scroll/.test(getComputedStyle(box).overflowY)&&box.scrollHeight>box.clientHeight))box=box.parentElement;
+    const port=box?box.getBoundingClientRect():{top:0},h=box?box.clientHeight:innerHeight,viewTop=Math.max(0,port.top),viewBottom=Math.min(innerHeight,port.top+h),from=node.getBoundingClientRect();
+    return {...rest,fromInView:from.top>=viewTop-1&&from.bottom<=viewBottom+1};
+  });
+  expect(frame.settled,`the play view comes to rest (watched for ${frame.ms} ms)`).toBe(true);
+  return frame;
+}
+// every place the view showed after the tap lies between where the player was and where the claim is framed
+function expectStop4Path(frame,lang){
+  const low=Math.min(frame.tap,frame.rest)-1,high=Math.max(frame.tap,frame.rest)+1;
+  expect(frame.path.filter(top=>top<low||top>high),`${lang}: from where the player tapped (${frame.tap}) the play view moves only toward the claim (${frame.rest})`).toEqual([]);
+}
+// One case per language, so neither carries two game loads; the last case checks that the "fits" branch was taken in
+// at least one language. Measured locally with both languages in one case: 48.1 s on WebKit and 84 s on the iPhone
+// profile, so one language takes up to about 42 s there; each language case has the file's WebKit budget (90 s).
+test.describe.serial('1366x768: after a Stop 4 sort the claim and its answer are framed together, with Next claim in view',()=>{
+  const fits=new Map();
+  async function judge(page,lang,file){
+    await page.setViewportSize({width:1366,height:768});await start(page,file);await stop(page,4);await watchStop4Sorts(page);
+    const frame=await stop4Framing(page,await sortStop4PlainClaim(page));
+    expect(frame.focused,`${lang}: Next claim has focus`).toBe(true);expect(frame.nextInView,`${lang}: Next claim is fully in view`).toBe(true);
+    if(frame.fits)expect(frame.fromInView,`${lang}: the claim's speaker line is in view with its answer`).toBe(true);
+    expectStop4Path(frame,lang);fits.set(lang,frame.fits);
+  }
+  for(const {lang,file} of languages)test(`${lang}: the speaker line through Next claim when they fit, Next claim always`,async({page},testInfo)=>{
+    webKitBudget(testInfo);await judge(page,lang,file);
+  });
+  // Decision SO-3: run on its own (for example with -g), this case has no results from the cases above, so it judges
+  // each missing language itself, with the same assertions, instead of failing on an empty list. In a full run it only
+  // reads their results. Both languages in one case measured 48.1 s on WebKit and 84 s on the iPhone profile locally
+  // (this case alone: 7.6 s on Chromium, 34.5 s on the iPhone profile), so only that stand-alone path takes the file's
+  // 135 s WebKit budget.
+  test('the claim and its answer fit together in at least one language',async({page},testInfo)=>{
+    const missing=languages.filter(({lang})=>!fits.has(lang));
+    if(missing.length)webKitBudget(testInfo,135000);
+    for(const {lang,file} of missing)await judge(page,lang,file);
+    const fitted=languages.map(({lang})=>lang).filter(lang=>fits.get(lang));
+    expect(fitted,'the claim and its answer fit together at 1366x768 in at least one language').not.toEqual([]);
+  });
+});
+// These two cases keep the shared 45 s although each now waits for the view to rest (6 frames and 2.5 s). Measured
+// locally: 8.7 to 9.0 s on WebKit and 10.6 to 11.3 s on the iPhone profile. In CI run 41766388371 they took 12.1 to 13.9 s
+// on WebKit and 17.7 to 20.5 s on the iPhone profile; the wait for rest takes about 9 s at one frame a second, so about
+// 30 s at most, below 80% of 45 s (36 s).
+for(const {lang,file} of languages)test(`${lang} 390x844: after a Stop 4 sort Next claim is in view and focused`,async({page})=>{
+  await page.setViewportSize({width:390,height:844});await start(page,file);await stop(page,4);await watchStop4Sorts(page);
+  const frame=await stop4Framing(page,await sortStop4PlainClaim(page));
+  expect(frame.focused).toBe(true);expect(frame.nextInView).toBe(true);expectStop4Path(frame,lang);
+});
+// Decision SO-3, CI finding: the same frames on every engine, with the play view moved to the top as the sort clears the
+// screen (WebKit's move at 390x844; Chromium keeps the view still). Framed from that place, the next frame showed the
+// top of the stage before the view came back to the claim (on Chromium at 1366x768: tapped at 392, then 0 to 112). In
+// Calm the frame is reached at once, so the view must still land there. Measured locally, the 1366x768 cases took 15.1
+// to 15.4 s on WebKit and 27.6 to 28.8 s on the iPhone profile, and up to 72 s there when this PC was short of memory;
+// the 390x844 cases took 7.7 to 11.6 s, and 41.4 s late in a full WebKit run. Both are above 80% of 45 s at times, so
+// all four have the file's WebKit budget (90 s).
+for(const {lang,file} of languages){
+  test(`${lang} 1366x768: when the new screen moves the play view, the sorted claim is framed from where the player was`,async({page},testInfo)=>{
+    webKitBudget(testInfo);
+    await page.setViewportSize({width:1366,height:768});await start(page,file);await stop(page,4);await watchStop4Sorts(page,{move:'top'});
+    const frame=await stop4Framing(page,await sortStop4PlainClaim(page));
+    expect(frame.moved,'the case moved the play view as the sort cleared the screen').toBe(true);
+    expect(frame.focused).toBe(true);expect(frame.nextInView).toBe(true);if(frame.fits)expect(frame.fromInView).toBe(true);expectStop4Path(frame,lang);
+  });
+  test(`${lang} 390x844 in Calm: when the new screen moves the play view, Next claim is still framed and focused`,async({page},testInfo)=>{
+    webKitBudget(testInfo);
+    await page.setViewportSize({width:390,height:844});await start(page,file);await page.evaluate(()=>window.PecanGroveEngine.settings.update({calm:true}));
+    await stop(page,4);await watchStop4Sorts(page,{move:'top'});
+    const frame=await stop4Framing(page,await sortStop4PlainClaim(page));
+    expect(frame.moved,'the case moved the play view as the sort cleared the screen').toBe(true);
+    expect(frame.focused).toBe(true);expect(frame.nextInView).toBe(true);expectStop4Path(frame,lang);
+  });
+}
+// Decision SO-3, review finding: a scroll still running when the player sorts does not carry the framed claim away. The
+// engine's own smooth scroll to the top after Next claim is one, when the player sorts at once by keyboard: on Chromium
+// at 1366x768, sorted at 151 on the way, the view came to rest at 0 with Next claim out of view, as Stop 4 had no distance
+// to scroll and left that scroll running. At 1366x1024 the sorted claim fits where the player is, so there is no distance
+// to scroll either; a smooth scroll to the end of the play view starts as the sort is pressed, and the view must still
+// come to rest with the speaker line through Next claim in view. Measured locally: 13.8 to 15.5 s on WebKit and 27.0 to
+// 43.2 s on the iPhone profile, above 80% of 45 s there, like the 1366x768 cases above that do the same work and reached
+// 72 s when this PC was short of memory, so these have the file's WebKit budget (90 s) too.
+for(const {lang,file} of languages)test(`${lang} 1366x1024: a scroll still running when the player sorts does not carry the Stop 4 claim away`,async({page},testInfo)=>{
+  webKitBudget(testInfo);
+  await page.setViewportSize({width:1366,height:1024});await start(page,file);await stop(page,4);await watchStop4Sorts(page,{running:true});
+  await page.waitForTimeout(450);await page.locator('.cb-intro .cb-btn--go').click();
+  // sorted by keyboard from where the player is: the basket takes focus without scrolling, and Enter sorts
+  await page.waitForTimeout(450);await page.locator('.cb-basket').first().evaluate(node=>node.focus({preventScroll:true}));await page.keyboard.press('Enter');
+  const next=page.locator('.cb-board .cb-actions .cb-btn--go');await expect(next).toBeFocused();
+  const frame=await stop4Framing(page,next);
+  expect(frame.running,'a smooth scroll to the end was running when the player sorted').toBe(true);
+  expect(frame.fits,`${lang}: the claim and its answer fit at 1366x1024`).toBe(true);
+  expect(frame.focused,`${lang}: Next claim has focus`).toBe(true);expect(frame.nextInView,`${lang}: Next claim is fully in view`).toBe(true);
+  expect(frame.fromInView,`${lang}: the claim's speaker line is in view with its answer`).toBe(true);expectStop4Path(frame,lang);
+});
+// Decision SO-3, review finding: WebKit moves the play view as it lays out any new screen, not only a sorted claim's. At
+// 1366x768, Next claim pressed at 166 moved the view to 827, onto the feedback form below the game, and the engine's
+// scroll to the top then ran from there (frames 819, 629, 194, 0; in Spanish 818, 622, 203, 0). The engine now keeps
+// the view where the player was across a screen swap, so it moves only from there to the next claim. Each case presses
+// Next claim twice: once as the browser lays out the new screen, and once with the view moved to the end of the play
+// view as the press clears the screen, so every engine meets the move. Measured locally: 15.2 to 16.1 s on Chromium,
+// 23.4 to 25.4 s on WebKit and 31.1 to 38.6 s on the iPhone profile, above 80% of 45 s there, so these have the file's
+// WebKit budget (90 s).
+for(const {lang,file} of languages)test(`${lang} 1366x768: after Next claim in Stop 4 the play view moves only from where the player was to the next claim`,async({page},testInfo)=>{
+  webKitBudget(testInfo);
+  await page.setViewportSize({width:1366,height:768});await start(page,file);await stop(page,4);await watchStop4Sorts(page);
+  const next=await sortStop4PlainClaim(page);
+  for(const move of [null,'end']){
+    if(move){await page.waitForTimeout(450);await page.locator('.cb-basket').first().click();await expect(next).toBeFocused();}
+    await stop4Framing(page,next);await stop4Move(page,move);
+    await page.waitForTimeout(450);await next.click();
+    const frame=await stop4NextClaim(page);
+    if(move)expect(frame.moved,'the case moved the play view as Next claim cleared the screen').toBe(true);
+    expect(frame.fromInView,`${lang}: the next claim's speaker line is in view`).toBe(true);expectStop4Path(frame,lang);
+  }
+});
+// Decision SO-4 (2026-11-01): on phones the journey score card shows "Last 5 tries" where the screen is 500 px tall or
+// more; where it stays hidden (short landscape screens) the words stay in the button's name, for voice control and
+// screen readers.
+for(const {lang,file} of languages)test(`${lang}: the phone map's journey score shows Last 5 tries when tall enough and always names it`,async({page})=>{
+  const words=lang==='en'?'Last 5 tries':'Últimos 5 intentos';
+  await page.setViewportSize({width:390,height:844});await start(page,file);
+  for(const [width,height,shown] of [[390,844,true],[360,640,true],[844,390,false]]){
+    await page.setViewportSize({width,height});await waitStageReady(page,'map');
+    const score=page.locator('.cb-jscore').first();
+    await expect(score,`${width}x${height}: the name says ${words}`).toHaveAccessibleName(new RegExp(words));
+    const more=()=>score.locator('.cb-jscore__more').evaluate(node=>{const r=node.getBoundingClientRect(),c=node.closest('.cb-jscore').getBoundingClientRect();return{w:r.width,h:r.height,inside:r.left>=c.left-1&&r.right<=c.right+1&&r.top>=c.top-1&&r.bottom<=c.bottom+1};});
+    if(shown){await expect.poll(async()=>(await more()).h>10,`${width}x${height}: the line is shown`).toBe(true);expect((await more()).inside,`${width}x${height}: inside the card`).toBe(true);}
+    else await expect.poll(async()=>{const box=await more();return box.h<=1&&box.w<=1;},`${width}x${height}: the line is hidden visually`).toBe(true);
+  }
+});
+// Decision SO-5 (2026-11-01): at 200% text a Stop 1 thing low in the scene (the bird feeder, once its second line says
+// what it turned out to be) is lifted just enough that its tag stays inside the scene, which clips. Measured locally:
+// 21.1 s (en) and 34.7 s (es) on WebKit, 20.4 and 22.4 s on the iPhone profile; 34.7 s is above 80% of 45 s, so these
+// cases have the file's WebKit budget (90 s).
+for(const {lang,file} of languages)test(`${lang} 1366x768 at 200% text: after tapping the bird feeder every Stop 1 tag stays inside the scene`,async({page},testInfo)=>{
+  webKitBudget(testInfo);
+  await page.setViewportSize({width:1366,height:768});await start(page,file);
+  await page.evaluate(()=>{document.documentElement.style.fontSize='200%';});
+  await stop(page,1);await startStop1Today(page);
+  const feeder=page.locator('.cb-s01-spot',{has:page.locator('.cb-s01-tag__n',{hasText:lang==='en'?'Bird feeder':'Comedero de pájaros'})});
+  await expect(feeder,'seed 42 draws the bird feeder').toHaveCount(1);
+  await page.waitForTimeout(400);await feeder.click();await expect(feeder).toHaveClass(/is-not(?:\s|$)/);
+  const outside=()=>page.locator('.cb-s01-scene').evaluate(scene=>{const s=scene.getBoundingClientRect();return[...scene.querySelectorAll('.cb-s01-tag')].map(tag=>[tag.textContent,tag.getBoundingClientRect()]).filter(([,t])=>t.top<s.top-1||t.bottom>s.bottom+1||t.left<s.left-1||t.right>s.right+1).map(([text,t])=>`${text} ${Math.round(t.bottom-s.bottom)}`);});
+  await expect.poll(outside,'every tag lies inside the scene').toEqual([]);
+});

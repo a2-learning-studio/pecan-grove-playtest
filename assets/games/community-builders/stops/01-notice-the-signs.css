@@ -36,7 +36,7 @@
 .cb-s01-spots { position: absolute; inset: 0; margin: 0; padding: 0; list-style: none; transition: opacity 0.4s var(--cb-ease); }
 .cb-s01-scene.is-past .cb-s01-spots { visibility: hidden; opacity: 0; transition: opacity 0.2s, visibility 0s linear 0.2s; }
 .cb-s01-spots li { position: absolute; left: var(--x); top: var(--y); width: 0; height: 0; }
-.cb-s01-spot { position: absolute; left: 0; top: 0; display: block; padding: 0; border: 0; background: none; color: var(--cb-ink); transform: translate(-50%, -50%); }
+.cb-s01-spot { position: absolute; left: 0; top: 0; display: block; padding: 0; border: 0; background: none; color: var(--cb-ink); transform: translate(-50%, calc(-50% - var(--s01-lift, 0px))); }   /* --s01-lift: set by the stop when large text would push the tag past the scene's bottom */
 
 /* the things on the road: painted-style pictures standing on the ground, each named on a small paper tag.
    No discs or cards behind them, so they read as part of the painting; a thin cream edge and a soft

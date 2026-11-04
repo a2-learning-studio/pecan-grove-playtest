@@ -400,6 +400,36 @@ test("pause makes background inert; settings stacks and closes back to pause", a
     h.cleanup();
   }
 });
+// Decision D3 (2026-11-01): Pause's last button runs the play view's own #pt-exit, so where that shell exists it carries
+// the same name ("Exit play view"), read at each open so it follows a language change; without a shell it stays Quit.
+test("pause names its way out like the play view's Exit button, or Quit where there is none", async () => {
+  const h = await harness();
+  try {
+    const main = h.root.querySelector("main");
+    const last = () => [...h.engine.pause.dialog.querySelectorAll("button")].at(-1);
+    h.engine.pause.open(main.querySelector("button"));
+    assert.equal(last().textContent, messages.quit);
+    h.engine.pause.close();
+    const exit = h.dom.window.document.createElement("button");
+    exit.id = "pt-exit";
+    exit.textContent = " Exit play\n  view ";
+    let exits = 0;
+    exit.addEventListener("click", () => exits++);
+    h.dom.window.document.body.append(exit);
+    h.engine.pause.open(main.querySelector("button"));
+    assert.equal(last().textContent, "Exit play view");
+    exit.textContent = "Salir de la vista de juego";
+    h.engine.pause.close();
+    h.engine.pause.open(main.querySelector("button"));
+    assert.equal(last().textContent, "Salir de la vista de juego");
+    last().click();
+    assert.equal(exits, 1, "the button still runs the toolbar's Exit");
+    assert.equal(h.engine.pause.dialog, null);
+    exit.remove();
+  } finally {
+    h.cleanup();
+  }
+});
 test("all settings tabs have matching ARIA panels, separate bus controls and working native tabs", async () => {
   const h = await harness();
   try {

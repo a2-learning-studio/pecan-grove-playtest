@@ -34,3 +34,26 @@ test('A language change while paused defers narration until Resume',async()=>{
     r.core.resumePlay();await r.tick();assert.ok(media.length>before);assert.equal(media.at(-1).paused,false);assert.match(media.at(-1).src,/es\/s01-start\.mp3$/);
   }finally{r.close();}
 });
+// Decision D14 (2026-11-01): a stop's intro must show every word its start clip says, or the clip stops matching or says
+// more than the screen (Stops 6, 10 and 11 drifted on 13 Oct 2026). The screen may say more (Stops 12 and 13).
+const START_CLIPS=['notice-the-signs','ask-a-good-question','fact-or-rumor','map-what-could-change','who-decides','speak-up-kindly','disagree-kindly','include-every-voice','match-a-fix','weigh-the-tradeoffs','make-a-fair-deal','spread-the-word-right'];
+for(const lang of ['en','es'])test(`${lang}: every stop intro with a start clip shows every word the clip says after its title, in order`,async()=>{
+  const r=await fullCore(lang,42,false,null,{voice:true});
+  const tok=word=>word.toLowerCase().replace(/[^0-9a-záéíóúüñ']/g,'');
+  const drift=[];
+  try{
+    const stops=r.core.getAPI().STOPS;
+    for(const id of START_CLIPS){
+      const n=stops.find(stop=>stop.id===id).n,file=`${lang}/s${String(n).padStart(2,'0')}-start.mp3`,clip=r.w.CB_VOICE.clips[file];
+      assert.ok(clip,`${file} exists`);
+      await r.core.startStop(id);await r.tick();
+      const main=r.main(),voiced=main.querySelectorAll(`[data-cb-voiced="${file}"]`);
+      if(!voiced.length||!main.querySelector('.cb-vbtn')){drift.push(`${file}: the clip does not attach to the intro`);continue;}
+      const shown=[...main.querySelectorAll(`[data-cb-voiced="${file}"] .cb-w`)].map(node=>tok(node.textContent)).filter(Boolean);
+      const spoken=clip.s.split(' ').slice(clip.h).map(tok).filter(Boolean);
+      let at=0;const missing=spoken.filter(word=>{const found=shown.indexOf(word,at);if(found<0)return true;at=found+1;return false;});
+      if(missing.length)drift.push(`${file}: said but not shown, in order: ${missing.join(' ')}`);
+    }
+  }finally{r.close();}
+  assert.deepEqual(drift,[]);
+});

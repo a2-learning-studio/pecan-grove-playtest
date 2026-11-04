@@ -713,6 +713,57 @@ test('the close-out closes by itself when the tab is hidden and after ten minute
   assert.equal(dialog.open, true); assert.match(b.id('pt-closeout-files').textContent, /Delete them from the Downloads folder/); assert.doesNotMatch(textOf(dialog), /private note/);
   await b.tick(600000); assert.equal(dialog.open, false);
 });
+// Decision D2 (2026-11-01): the ten-minute privacy close stays, with the same three triggers (typing, a tap, a change).
+// At nine minutes the dialog's own status line warns and Keep reading appears; it never takes focus. Focus and scrolling
+// still do not count as activity, and the Enter or tap that chooses Keep reading never hides the button it is on.
+for (const lang of ['en', 'es']) test(`${lang}: the close-out warns a minute before its privacy close, and Keep reading keeps it open without losing focus`, async () => {
+  const W = JSON.parse(fs.readFileSync(new URL(`../../assets/playtest/locales/feedback-${lang}.json`, import.meta.url), 'utf8'));
+  assert.ok(W.closeoutIdleWarn && W.closeoutKeepReading);
+  const b = browser({lang, closeout: CODE}); b.el('worked').value = 'private note'; b.app.flush();
+  await openCloseout(b);
+  const dialog = b.id('pt-closeout-dialog'), status = b.id('pt-closeout-status'), keep = b.id('pt-closeout-keep');
+  assert.ok(keep, 'the dialog has a Keep reading button'); assert.equal(keep.hidden, true); assert.equal(keep.textContent, W.closeoutKeepReading);
+  const focused = b.doc.activeElement;
+  await b.tick(539000); assert.equal(keep.hidden, true); assert.notEqual(status.textContent, W.closeoutIdleWarn);
+  await b.tick(1000); assert.equal(status.textContent, W.closeoutIdleWarn); assert.equal(keep.hidden, false);
+  assert.equal(b.doc.activeElement, focused, 'the warning never moves focus');
+  // Keyboard: the Enter keydown reaches the dialog before the button's click.
+  keep.focus(); dialog.fire('keydown', undefined, {target: keep, key: 'Enter'}); assert.equal(keep.hidden, false); keep.click();
+  assert.equal(keep.hidden, false); assert.equal(b.doc.activeElement, keep); assert.equal(status.textContent, '');
+  keep.fire('blur'); assert.equal(keep.hidden, true); assert.equal(status.textContent, '');
+  await b.tick(599000); assert.equal(dialog.open, true, 'Keep reading starts the ten minutes again');
+  await b.tick(1000); assert.equal(dialog.open, false); assert.doesNotMatch(textOf(dialog), /private note/); assert.equal(keep.hidden, true);
+  // Pointer: pointerdown on the button, then its click.
+  await openCloseout(b); await b.tick(540000); assert.equal(keep.hidden, false);
+  keep.focus(); dialog.fire('pointerdown', undefined, {target: keep}); assert.equal(keep.hidden, false); keep.click();
+  assert.equal(keep.hidden, false); assert.equal(b.doc.activeElement, keep); assert.equal(status.textContent, '');
+  keep.fire('blur'); assert.equal(keep.hidden, true);
+  await b.tick(599000); assert.equal(dialog.open, true);
+  await b.tick(1000); assert.equal(dialog.open, false);
+  // No action: it closes at ten minutes exactly as before, with no note text left.
+  await openCloseout(b); await b.tick(599000); assert.equal(dialog.open, true); assert.equal(status.textContent, W.closeoutIdleWarn);
+  await b.tick(1000); assert.equal(dialog.open, false); assert.doesNotMatch(textOf(dialog), /private note/); assert.equal(keep.hidden, true); assert.equal(status.textContent, '');
+  // Focus and scrolling are not activity.
+  await openCloseout(b); await b.tick(300000); dialog.fire('focusin'); dialog.fire('scroll');
+  await b.tick(300000); assert.equal(dialog.open, false, 'focus or scrolling never keeps the notes on screen');
+  // After a download: the Downloads reminder clears the warning, which comes back before the final close.
+  await openCloseout(b); b.win.Blob = class {}; b.id('pt-closeout-download').click();
+  await b.tick(540000); assert.equal(status.textContent, W.closeoutIdleWarn);
+  await b.tick(60000); assert.equal(dialog.open, true); assert.ok(b.id('pt-closeout-files'));
+  assert.notEqual(status.textContent, W.closeoutIdleWarn); assert.equal(keep.hidden, true);
+  await b.tick(539000); assert.equal(keep.hidden, true);
+  await b.tick(1000); assert.equal(status.textContent, W.closeoutIdleWarn); assert.equal(keep.hidden, false);
+  await b.tick(60000); assert.equal(dialog.open, false);
+});
+test('a language change during the close-out warning relabels Keep reading and says the warning in the new language', async () => {
+  const words = lang => JSON.parse(fs.readFileSync(new URL(`../../assets/playtest/locales/feedback-${lang}.json`, import.meta.url), 'utf8'));
+  const b = browser({closeout: CODE}); await openCloseout(b);
+  await b.tick(540000); assert.equal(b.id('pt-closeout-status').textContent, words('en').closeoutIdleWarn);
+  b.doc.fire('pg:language-change', {language: 'es', previousLanguage: 'en'});
+  assert.equal(b.id('pt-closeout-keep').textContent, words('es').closeoutKeepReading);
+  assert.equal(b.id('pt-closeout-status').textContent, words('es').closeoutIdleWarn);
+  assert.equal(b.id('pt-closeout-keep').hidden, false);
+});
 
 // 2026-10-30 UI/UX round. PG-UX-C16: before anything is written the line says where drafts stay (not "Draft saved"),
 // and redrawing the same words is not announced again. PG-UX-C17: Send now looks unavailable until the check is

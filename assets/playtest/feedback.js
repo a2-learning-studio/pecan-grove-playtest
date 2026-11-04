@@ -583,13 +583,15 @@
     var useNewDialog = !!(newDialog && typeof newDialog.showModal === "function" && newTitle && newMessage && newCancel && newConfirm);
     function label(n) { return n ? W.stop + " " + n : W.general; }
     // The status line is a polite live region. Opening the page, a language switch or redrawing the same words only
-    // restates it, so those changes are made with the region quiet; news (saved, sent, failed) is still announced.
-    var statusQuiet = true;
+    // restates it, so those changes are made with the region quiet for 300 ms, as the badge messages do; news (saved,
+    // sent, failed) turns the region polite before its words change, so it is announced (Decision D17).
+    var statusQuiet = true, statusQuietTimer = null;
     function showStatus(value) {
       if (status.textContent === value) return;
-      if (!statusQuiet) { status.textContent = value; return; }
+      window.clearTimeout(statusQuietTimer);
+      if (!statusQuiet) { status.setAttribute("aria-live", "polite"); status.textContent = value; return; }
       status.setAttribute("aria-live", "off"); status.textContent = value;
-      window.setTimeout(function () { status.setAttribute("aria-live", "polite"); }, 0);
+      statusQuietTimer = window.setTimeout(function () { status.setAttribute("aria-live", "polite"); }, 300);
     }
     function setStatus() {
       if (model.changedSession()) {
@@ -826,7 +828,8 @@
       if (playerReady) playerReady.textContent = W.playerReady;
       if (deviceDialog && deviceDialog.open) renderDevice();
       // A redrawn close-out list clears the grown-up check: read it again in the new language.
-      if (closeoutDialog && closeoutDialog.open) { filesWarned = false; renderCloseout(""); closeoutTitle.focus(); }
+      if (closeoutKeep) closeoutKeep.textContent = W.closeoutKeepReading;
+      if (closeoutDialog && closeoutDialog.open) { filesWarned = false; renderCloseout(closeoutWarned ? W.closeoutIdleWarn : ""); closeoutTitle.focus(); }
       if (askDialog && askDialog.open) renderAsk().focus();
       // Next player in the new language; a listed review clears its grown-up check, like the close-out list.
       if (useNewDialog && newDialog.open) renderNewPlayer(newState);
@@ -1293,11 +1296,30 @@
       }
     }
     // A close-out left open closes by itself after ten minutes without input, first with the Downloads reminder if a
-    // file was saved; it also closes when the tab is hidden.
-    var closeoutIdle = null;
+    // file was saved; it also closes when the tab is hidden. A minute before, its status line warns and Keep reading
+    // appears (Decision D2). Focus never moves, and a focused Keep reading stays until focus leaves it.
+    var closeoutIdle = null, closeoutWarn = null, closeoutKeep = null, closeoutWarned = false, keepOnBlur = false;
     function armIdle() {
-      window.clearTimeout(closeoutIdle);
-      closeoutIdle = closeoutDialog && closeoutDialog.open ? window.setTimeout(function () { closeCloseout(); armIdle(); }, 600000) : null;
+      window.clearTimeout(closeoutIdle); window.clearTimeout(closeoutWarn); hideIdleWarning();
+      var open = closeoutDialog && closeoutDialog.open;
+      closeoutWarn = open ? window.setTimeout(showIdleWarning, 540000) : null;
+      closeoutIdle = open ? window.setTimeout(function () { closeCloseout(); armIdle(); }, 600000) : null;
+    }
+    // The Enter or tap that chooses Keep reading reaches the dialog first; the button's own click does the work.
+    function onCloseoutActivity(event) {
+      var t = event && event.target;
+      if (t && (t === closeoutKeep || (closeoutKeep.contains && closeoutKeep.contains(t)))) return;
+      armIdle();
+    }
+    function showIdleWarning() {
+      if (!closeoutDialog.open) return;
+      closeoutWarned = true; keepOnBlur = false; closeoutStatus.textContent = W.closeoutIdleWarn; closeoutKeep.hidden = false;
+    }
+    function hideIdleWarning() {
+      closeoutWarned = false;
+      if (closeoutStatus && closeoutStatus.textContent === W.closeoutIdleWarn) closeoutStatus.textContent = "";
+      if (!closeoutKeep) return;
+      if (document.activeElement === closeoutKeep && !closeoutKeep.hidden) keepOnBlur = true; else closeoutKeep.hidden = true;
     }
     function openCloseout() {
       flush();
@@ -1305,10 +1327,14 @@
         closeoutDialog = node("dialog", "pt-player-dialog pt-device", "", "pt-closeout-dialog"); closeoutDialog.setAttribute("aria-labelledby", "pt-closeout-title");
         closeoutDialog.addEventListener("cancel", function (event) { event.preventDefault(); closeCloseout(); });
         // The privacy close stays as it was: only typing, a tap or a change restarts the 10 minutes.
-        ["keydown", "pointerdown", "input"].forEach(function (type) { closeoutDialog.addEventListener(type, armIdle); });
+        ["keydown", "pointerdown", "input"].forEach(function (type) { closeoutDialog.addEventListener(type, onCloseoutActivity); });
         closeoutTitle = node("h2", "", "", "pt-closeout-title"); closeoutTitle.tabIndex = -1;
         closeoutIntro = node("p"); closeoutBody = node("div", "pt-closeout__body", "", "pt-closeout-body"); closeoutStatus = politeStatus("pt-closeout-status");
-        var actions = node("div", "pt-actions"); closeoutClose = action(W.close, "pt-btn", "pt-closeout-close", closeCloseout); actions.appendChild(closeoutClose);
+        var actions = node("div", "pt-actions"); closeoutClose = action(W.close, "pt-btn", "pt-closeout-close", closeCloseout);
+        // Its click restarts the ten minutes itself: a screen reader's Enter in browse mode sends only a click.
+        closeoutKeep = action(W.closeoutKeepReading, "pt-btn pt-btn--secondary", "pt-closeout-keep", armIdle); closeoutKeep.hidden = true;
+        closeoutKeep.addEventListener("blur", function () { if (keepOnBlur && !closeoutWarned) closeoutKeep.hidden = true; keepOnBlur = false; });
+        actions.appendChild(closeoutKeep); actions.appendChild(closeoutClose);
         [closeoutTitle, closeoutIntro, closeoutBody, closeoutStatus, actions].forEach(function (n) { closeoutDialog.appendChild(n); });
         dialogHost().appendChild(closeoutDialog);
       }
@@ -1322,6 +1348,8 @@
       reviewed = []; closeoutSend = null;
       if (closeoutBody) while (closeoutBody.firstChild) closeoutBody.removeChild(closeoutBody.firstChild);
       if (closeoutStatus) closeoutStatus.textContent = "";
+      if (closeoutKeep) closeoutKeep.hidden = true;
+      closeoutWarned = keepOnBlur = false;
     }
     function closeCloseout(now) {
       if (!closeoutDialog) return;
@@ -1334,7 +1362,7 @@
         return;
       }
       if (closeoutDialog.open) { if (typeof closeoutDialog.close === "function") closeoutDialog.close(); else closeoutDialog.open = false; }
-      window.clearTimeout(closeoutIdle); emptyCloseout(); suspendNewPlayerVoice(false);
+      window.clearTimeout(closeoutIdle); window.clearTimeout(closeoutWarn); emptyCloseout(); suspendNewPlayerVoice(false);
       var opener = askOpener; askOpener = null;
       if (opener && typeof opener.focus === "function" && opener.isConnected !== false) opener.focus();
     }

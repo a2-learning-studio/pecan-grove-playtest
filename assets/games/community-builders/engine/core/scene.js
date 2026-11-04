@@ -1,5 +1,5 @@
 import { animateScene } from "../transitions.js";
-import { createSceneLayout } from "../scene-layout.js";
+import { createSceneLayout, keepScroll } from "../scene-layout.js";
 import { captureActionSave, saveAcceptedAction } from "../action-autosave.js";
 export default function createScene(ctx) {
   var sceneLayout = createSceneLayout(ctx);
@@ -221,6 +221,8 @@ export default function createScene(ctx) {
     return any ? group : null;
   }
   function screen(kids, focusSel) {
+    // the view stays where the player was until the scene frames itself
+    var keep = keepScroll(ctx.root);
     sceneLayout.reset();
     ctx.vMark(ctx.vEl, false);
     ctx.vEl = null; // a new screen: the voice stops unless the same line is shown again
@@ -257,6 +259,7 @@ export default function createScene(ctx) {
       mode === "stop" && !ctx.actionHistory.length ? "stop" : "step",
     );
     guard();
+    keep();
   }
   function progressEvent() {
     if (typeof ctx.restoring !== "undefined" && ctx.restoring) return;
