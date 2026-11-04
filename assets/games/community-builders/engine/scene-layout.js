@@ -13,6 +13,22 @@ export function scrollport(root) {
   }
   return null;
 }
+/* Note where the game's scrollport is before a screen swap; the function it
+   returns puts the view back if laying out the new screen moved it. WebKit
+   does (scroll anchoring at 1366x768: Next claim pressed at 166 showed 827,
+   the feedback form below the game; at 390x844 a sorted claim's screen went
+   from 580 to the top), and a slow renderer shows that place for a second
+   before the scene frames itself (Decision SO-3, review finding). Reading the
+   place lays the new screen out, so the move is undone in the same task,
+   before anything is painted. Chromium keeps the view still: no change there. */
+export function keepScroll(root) {
+  const box = scrollport(root),
+    y = box ? box.scrollTop : 0;
+  return () => {
+    if (box?.isConnected && Math.abs(box.scrollTop - y) > 1)
+      box.scrollTo({ top: y, behavior: "auto" });
+  };
+}
 /* Finish a scene after its DOM and map geometry have committed in one paint. */
 export function createSceneLayout(ctx) {
   let request = null,

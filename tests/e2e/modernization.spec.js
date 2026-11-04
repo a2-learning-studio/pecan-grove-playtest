@@ -1117,40 +1117,59 @@ async function sortStop4PlainClaim(page){
 // 1366x768 from 395 to 1209, onto the feedback form below the game; at 390x844 from 580 to the top), so the view showed
 // that place before it scrolled to the claim, and the old check, two reads 250 ms apart, read it there: CI's WebKit draws
 // about one frame a second and showed such a place for at least 0.4 to 1.0 s (on the iPhone profile, by the trace
-// snapshots, for up to 1.9 s). So each sort is watched from the tap: where the player was, the place every following
-// frame shows, and where the view comes to rest, once it has held for 6 frames and 2.5 s. With move 'top' the case
-// itself moves the view to the top as the sort clears the screen, as WebKit does at 390x844, so every engine meets it.
-// With running the case starts a smooth scroll to the end of the play view as the sort is pressed, before the game
-// handles it: a scroll still running when the player sorts.
+// snapshots, for up to 1.9 s). So each sort, and each press of Next claim, is watched from the press: where the player
+// was, the place every following frame shows, and where the view comes to rest, once it has held for 6 frames and 2.5 s.
+// With move 'top' the case itself moves the view to the top as the press clears the screen, as WebKit does at 390x844,
+// and with 'end' to the end of the play view, as WebKit's scroll anchoring does at 1366x768, so every engine meets the
+// move; stop4Move changes it between presses. With running the case starts a smooth scroll to the end of the play view
+// as the sort is pressed, before the game handles it: a scroll still running when the player sorts.
 async function watchStop4Sorts(page,{move=null,running=false}={}){
   await page.evaluate(({move,running})=>{
-    const sorts=window.__pgStop4Sorts=[],clear=Element.prototype.replaceChildren,at=sort=>sort.box?sort.box.scrollTop:scrollY;let current=null;
+    const presses=window.__pgStop4Presses=[],clear=Element.prototype.replaceChildren,at=press=>press.box?press.box.scrollTop:scrollY;let current=null;
     const scroller=node=>{let box=node.parentElement;while(box&&!(/auto|scroll/.test(getComputedStyle(box).overflowY)&&box.scrollHeight>box.clientHeight))box=box.parentElement;return box;};
-    if(move==='top')Element.prototype.replaceChildren=function(...nodes){const moving=current&&this.matches('.cb-main')&&at(current)>4;clear.apply(this,nodes);if(moving){if(current.box)current.box.scrollTop=0;else scrollTo(0,0);current.moved=true;}};
-    document.addEventListener('click',event=>{const basket=event.target.closest&&event.target.closest('.cb-basket');if(!basket)return;
-      for(const sort of sorts)sort.done=true;current={box:scroller(basket),moved:false,running:false,path:[]};current.tap=at(current);sorts.push(current);
-      if(running&&current.box&&current.box.scrollHeight-current.box.clientHeight-current.tap>4){current.box.scrollTo({top:current.box.scrollHeight,behavior:'smooth'});current.running=true;}},true);
-    addEventListener('click',()=>{const sort=current;current=null;if(!sort)return;
-      const tick=()=>{if(sort.done)return;sort.path.push([performance.now(),at(sort)]);requestAnimationFrame(tick);};tick();});
+    window.__pgStop4Move=move;
+    Element.prototype.replaceChildren=function(...nodes){const to=current&&this.matches('.cb-main')?window.__pgStop4Move:null,from=to?at(current):0;clear.apply(this,nodes);
+      if(to==='end'||to==='top'&&from>4){const y=to==='top'?0:1e6;if(current.box)current.box.scrollTop=y;else scrollTo(0,y);current.moved=Math.abs(at(current)-from)>4;}};
+    document.addEventListener('click',event=>{const control=event.target.closest&&event.target.closest('.cb-basket, .cb-board .cb-actions .cb-btn--go');if(!control)return;
+      for(const press of presses)press.done=true;current={box:scroller(control),moved:false,running:false,path:[]};current.tap=at(current);presses.push(current);
+      if(running&&control.matches('.cb-basket')&&current.box&&current.box.scrollHeight-current.box.clientHeight-current.tap>4){current.box.scrollTo({top:current.box.scrollHeight,behavior:'smooth'});current.running=true;}},true);
+    addEventListener('click',()=>{const press=current;current=null;if(!press)return;
+      const tick=()=>{if(press.done)return;press.path.push([performance.now(),at(press)]);requestAnimationFrame(tick);};tick();});
+    // the view after the last press, once it has come to rest
+    window.__pgStop4Rest=()=>new Promise(resolve=>{
+      const press=presses[presses.length-1],end=performance.now()+20000;
+      const settle=()=>{
+        const path=press.path,y=path[path.length-1][1];let held=path.length-1;while(held>0&&path[held-1][1]===y)held--;
+        const settled=path.length-1-held>=6&&path[path.length-1][0]-path[held][0]>=2500;
+        if(!settled&&performance.now()<end)return requestAnimationFrame(settle);
+        press.done=true;
+        resolve({settled,tap:Math.round(press.tap),rest:Math.round(y),path:path.map(([,top])=>Math.round(top)),moved:press.moved,running:press.running});
+      };
+      requestAnimationFrame(settle);
+    });
   },{move,running});
 }
+async function stop4Move(page,move){await page.evaluate(move=>{window.__pgStop4Move=move;},move);}
 async function stop4Framing(page,next){
-  const frame=await next.evaluate(node=>new Promise(resolve=>{
-    const sort=window.__pgStop4Sorts[window.__pgStop4Sorts.length-1],end=performance.now()+20000;
-    const settle=()=>{
-      const path=sort.path,y=path[path.length-1][1];let held=path.length-1;while(held>0&&path[held-1][1]===y)held--;
-      const settled=path.length-1-held>=6&&path[path.length-1][0]-path[held][0]>=2500;
-      if(!settled&&performance.now()<end)return requestAnimationFrame(settle);
-      sort.done=true;
-      let box=node.parentElement;while(box&&!(/auto|scroll/.test(getComputedStyle(box).overflowY)&&box.scrollHeight>box.clientHeight))box=box.parentElement;
-      const port=box?box.getBoundingClientRect():{top:0},h=box?box.clientHeight:innerHeight,viewTop=Math.max(0,port.top),viewBottom=Math.min(innerHeight,port.top+h);
-      const from=node.closest('.cb-board').querySelector('.cb-claim__from').getBoundingClientRect(),bar=node.closest('.cb-actions').getBoundingClientRect(),b=node.getBoundingClientRect();
-      // the stop's own margins: 12 px above the speaker line, 16 px below the action bar
-      resolve({settled,tap:Math.round(sort.tap),rest:Math.round(y),path:path.map(([,top])=>Math.round(top)),moved:sort.moved,running:sort.running,
-        fits:bar.bottom+16-(from.top-12)<=h,fromInView:from.top>=viewTop-1&&from.bottom<=viewBottom+1,nextInView:b.top>=viewTop-1&&b.bottom<=viewBottom+1,focused:document.activeElement===node});
-    };
-    requestAnimationFrame(settle);
-  }));
+  const frame=await next.evaluate(async node=>{
+    const rest=await window.__pgStop4Rest();
+    let box=node.parentElement;while(box&&!(/auto|scroll/.test(getComputedStyle(box).overflowY)&&box.scrollHeight>box.clientHeight))box=box.parentElement;
+    const port=box?box.getBoundingClientRect():{top:0},h=box?box.clientHeight:innerHeight,viewTop=Math.max(0,port.top),viewBottom=Math.min(innerHeight,port.top+h);
+    const from=node.closest('.cb-board').querySelector('.cb-claim__from').getBoundingClientRect(),bar=node.closest('.cb-actions').getBoundingClientRect(),b=node.getBoundingClientRect();
+    // the stop's own margins: 12 px above the speaker line, 16 px below the action bar
+    return {...rest,fits:bar.bottom+16-(from.top-12)<=h,fromInView:from.top>=viewTop-1&&from.bottom<=viewBottom+1,nextInView:b.top>=viewTop-1&&b.bottom<=viewBottom+1,focused:document.activeElement===node};
+  });
+  expect(frame.settled,'the play view comes to rest').toBe(true);
+  return frame;
+}
+// after Next claim, once the view is at rest: is the next claim's speaker line in view?
+async function stop4NextClaim(page){
+  const frame=await page.evaluate(async()=>{
+    const rest=await window.__pgStop4Rest(),node=document.querySelector('.cb-board .cb-claim__from');
+    let box=node.parentElement;while(box&&!(/auto|scroll/.test(getComputedStyle(box).overflowY)&&box.scrollHeight>box.clientHeight))box=box.parentElement;
+    const port=box?box.getBoundingClientRect():{top:0},h=box?box.clientHeight:innerHeight,viewTop=Math.max(0,port.top),viewBottom=Math.min(innerHeight,port.top+h),from=node.getBoundingClientRect();
+    return {...rest,fromInView:from.top>=viewTop-1&&from.bottom<=viewBottom+1};
+  });
   expect(frame.settled,'the play view comes to rest').toBe(true);
   return frame;
 }
@@ -1236,6 +1255,27 @@ for(const {lang,file} of languages)test(`${lang} 1366x1024: a scroll still runni
   expect(frame.fits,`${lang}: the claim and its answer fit at 1366x1024`).toBe(true);
   expect(frame.focused,`${lang}: Next claim has focus`).toBe(true);expect(frame.nextInView,`${lang}: Next claim is fully in view`).toBe(true);
   expect(frame.fromInView,`${lang}: the claim's speaker line is in view with its answer`).toBe(true);expectStop4Path(frame,lang);
+});
+// Decision SO-3, review finding: WebKit moves the play view as it lays out any new screen, not only a sorted claim's. At
+// 1366x768, Next claim pressed at 166 moved the view to 827, onto the feedback form below the game, and the engine's
+// scroll to the top then ran from there (frames 819, 629, 194, 0, in English and Spanish). The engine now keeps the view
+// where the player was across a screen swap, so it moves only from there to the next claim. Each case presses Next
+// claim twice: once as the browser lays out the new screen, and once with the view moved to the end of the play view as
+// the press clears the screen, so every engine meets the move. Measured locally: 15.2 to 15.8 s on Chromium, 23.7 to
+// 23.9 s on WebKit and 31.1 to 36.5 s on the iPhone profile, above 80% of 45 s there, so these have the file's WebKit
+// budget (90 s).
+for(const {lang,file} of languages)test(`${lang} 1366x768: after Next claim in Stop 4 the play view moves only from where the player was to the next claim`,async({page},testInfo)=>{
+  webKitBudget(testInfo);
+  await page.setViewportSize({width:1366,height:768});await start(page,file);await stop(page,4);await watchStop4Sorts(page);
+  const next=await sortStop4PlainClaim(page);
+  for(const move of [null,'end']){
+    if(move){await page.waitForTimeout(450);await page.locator('.cb-basket').first().click();await expect(next).toBeFocused();}
+    await stop4Framing(page,next);await stop4Move(page,move);
+    await page.waitForTimeout(450);await next.click();
+    const frame=await stop4NextClaim(page);
+    if(move)expect(frame.moved,'the case moved the play view as Next claim cleared the screen').toBe(true);
+    expect(frame.fromInView,`${lang}: the next claim's speaker line is in view`).toBe(true);expectStop4Path(frame,lang);
+  }
 });
 // Decision SO-4 (2026-11-01): on phones the journey score card shows "Last 5 tries" where the screen is 500 px tall or
 // more; where it stays hidden (short landscape screens) the words stay in the button's name, for voice control and

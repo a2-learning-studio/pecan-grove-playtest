@@ -130,7 +130,8 @@
        the new screen's entry rise, as Stop 2 measures its worry, and framed from where the player was. WebKit moves the
        play view while it lays out the new screen (1366x768: 395 to 1209, onto the feedback form; 390x844: 580 to the
        top), and CI's slow WebKit showed that place for about a second (CI finding, run 41766388371): the move is undone
-       before anything is painted, and the frame is a place (Stop 2's scrollTo), not a distance. With no distance to go
+       before anything is painted (the engine's screen swap now does this for every screen, and Stop 4 checks again
+       before it measures), and the frame is a place (Stop 2's scrollTo), not a distance. With no distance to go
        the view is still settled where it is, so a scroll still running (the engine's own to the top after Next claim,
        when the player sorts at once by keyboard) cannot carry the framed claim away (SO-3 review finding) */
     function reduced() { return api.motionAllowed ? !api.motionAllowed() : api.REDUCED; }
