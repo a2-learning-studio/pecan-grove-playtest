@@ -1131,11 +1131,15 @@ async function watchStop4Sorts(page,{move=null,running=false}={}){
     Element.prototype.replaceChildren=function(...nodes){const to=current&&this.matches('.cb-main')?window.__pgStop4Move:null,from=to?at(current):0;clear.apply(this,nodes);
       if(to==='end'||to==='top'&&from>4){const y=to==='top'?0:1e6;if(current.box)current.box.scrollTop=y;else scrollTo(0,y);current.moved=Math.abs(at(current)-from)>4;}};
     document.addEventListener('click',event=>{const control=event.target.closest&&event.target.closest('.cb-basket, .cb-board .cb-actions .cb-btn--go');if(!control)return;
-      for(const press of presses)press.done=true;current={box:scroller(control),moved:false,running:false,path:[]};current.tap=at(current);presses.push(current);
+      for(const press of presses)press.done=true;current={box:scroller(control),moved:false,running:false,path:[],since:performance.now()};current.tap=at(current);presses.push(current);
       if(running&&control.matches('.cb-basket')&&current.box&&current.box.scrollHeight-current.box.clientHeight-current.tap>4){current.box.scrollTo({top:current.box.scrollHeight,behavior:'smooth'});current.running=true;}},true);
     addEventListener('click',()=>{const press=current;current=null;if(!press)return;
       const tick=()=>{if(press.done)return;press.path.push([performance.now(),at(press)]);requestAnimationFrame(tick);};tick();});
-    // the view after the last press, once it has come to rest
+    // the view after the last press, once it has come to rest. The wait stops after 20 s and the case then fails as not
+    // at rest (before, the check polled within the file's 10 s expect timeout). Measured locally from the press to rest:
+    // 2.5 to 3.4 s on Chromium, WebKit and the iPhone profile, with WebKit drawing 4 to 60 frames a second. CI's WebKit
+    // drew about one frame a second in run 41766388371, so there the 6 held frames alone take about 6 s, after a scroll
+    // of 2 to 3 frames: about 9 s, and 20 s is twice that and more.
     window.__pgStop4Rest=()=>new Promise(resolve=>{
       const press=presses[presses.length-1],end=performance.now()+20000;
       const settle=()=>{
@@ -1143,7 +1147,7 @@ async function watchStop4Sorts(page,{move=null,running=false}={}){
         const settled=path.length-1-held>=6&&path[path.length-1][0]-path[held][0]>=2500;
         if(!settled&&performance.now()<end)return requestAnimationFrame(settle);
         press.done=true;
-        resolve({settled,tap:Math.round(press.tap),rest:Math.round(y),path:path.map(([,top])=>Math.round(top)),moved:press.moved,running:press.running});
+        resolve({settled,tap:Math.round(press.tap),rest:Math.round(y),path:path.map(([,top])=>Math.round(top)),moved:press.moved,running:press.running,ms:Math.round(performance.now()-press.since)});
       };
       requestAnimationFrame(settle);
     });
@@ -1159,7 +1163,7 @@ async function stop4Framing(page,next){
     // the stop's own margins: 12 px above the speaker line, 16 px below the action bar
     return {...rest,fits:bar.bottom+16-(from.top-12)<=h,fromInView:from.top>=viewTop-1&&from.bottom<=viewBottom+1,nextInView:b.top>=viewTop-1&&b.bottom<=viewBottom+1,focused:document.activeElement===node};
   });
-  expect(frame.settled,'the play view comes to rest').toBe(true);
+  expect(frame.settled,`the play view comes to rest (watched for ${frame.ms} ms)`).toBe(true);
   return frame;
 }
 // after Next claim, once the view is at rest: is the next claim's speaker line in view?
@@ -1170,7 +1174,7 @@ async function stop4NextClaim(page){
     const port=box?box.getBoundingClientRect():{top:0},h=box?box.clientHeight:innerHeight,viewTop=Math.max(0,port.top),viewBottom=Math.min(innerHeight,port.top+h),from=node.getBoundingClientRect();
     return {...rest,fromInView:from.top>=viewTop-1&&from.bottom<=viewBottom+1};
   });
-  expect(frame.settled,'the play view comes to rest').toBe(true);
+  expect(frame.settled,`the play view comes to rest (watched for ${frame.ms} ms)`).toBe(true);
   return frame;
 }
 // every place the view showed after the tap lies between where the player was and where the claim is framed
@@ -1206,6 +1210,10 @@ test.describe.serial('1366x768: after a Stop 4 sort the claim and its answer are
     expect(fitted,'the claim and its answer fit together at 1366x768 in at least one language').not.toEqual([]);
   });
 });
+// These two cases keep the shared 45 s although each now waits for the view to rest (6 frames and 2.5 s). Measured
+// locally: 8.7 to 9.0 s on WebKit and 10.6 to 11.3 s on the iPhone profile. In CI run 41766388371 they took 12.1 to 13.9 s
+// on WebKit and 17.7 to 20.5 s on the iPhone profile; the wait for rest takes about 9 s at one frame a second, so about
+// 30 s at most, below 80% of 45 s (36 s).
 for(const {lang,file} of languages)test(`${lang} 390x844: after a Stop 4 sort Next claim is in view and focused`,async({page})=>{
   await page.setViewportSize({width:390,height:844});await start(page,file);await stop(page,4);await watchStop4Sorts(page);
   const frame=await stop4Framing(page,await sortStop4PlainClaim(page));
@@ -1240,9 +1248,9 @@ for(const {lang,file} of languages){
 // at 1366x768, sorted at 151 on the way, the view came to rest at 0 with Next claim out of view, as Stop 4 had no distance
 // to scroll and left that scroll running. At 1366x1024 the sorted claim fits where the player is, so there is no distance
 // to scroll either; a smooth scroll to the end of the play view starts as the sort is pressed, and the view must still
-// come to rest with the speaker line through Next claim in view. Measured locally: 13.9 to 15.5 s on WebKit and 27.0 to
-// 27.5 s on the iPhone profile, the same as the 1366x768 cases above that do the same work and reached 72 s when this PC
-// was short of memory, so these have the file's WebKit budget (90 s) too.
+// come to rest with the speaker line through Next claim in view. Measured locally: 13.8 to 15.5 s on WebKit and 27.0 to
+// 43.2 s on the iPhone profile, above 80% of 45 s there, like the 1366x768 cases above that do the same work and reached
+// 72 s when this PC was short of memory, so these have the file's WebKit budget (90 s) too.
 for(const {lang,file} of languages)test(`${lang} 1366x1024: a scroll still running when the player sorts does not carry the Stop 4 claim away`,async({page},testInfo)=>{
   webKitBudget(testInfo);
   await page.setViewportSize({width:1366,height:1024});await start(page,file);await stop(page,4);await watchStop4Sorts(page,{running:true});
@@ -1258,12 +1266,12 @@ for(const {lang,file} of languages)test(`${lang} 1366x1024: a scroll still runni
 });
 // Decision SO-3, review finding: WebKit moves the play view as it lays out any new screen, not only a sorted claim's. At
 // 1366x768, Next claim pressed at 166 moved the view to 827, onto the feedback form below the game, and the engine's
-// scroll to the top then ran from there (frames 819, 629, 194, 0, in English and Spanish). The engine now keeps the view
-// where the player was across a screen swap, so it moves only from there to the next claim. Each case presses Next
-// claim twice: once as the browser lays out the new screen, and once with the view moved to the end of the play view as
-// the press clears the screen, so every engine meets the move. Measured locally: 15.2 to 15.8 s on Chromium, 23.7 to
-// 23.9 s on WebKit and 31.1 to 36.5 s on the iPhone profile, above 80% of 45 s there, so these have the file's WebKit
-// budget (90 s).
+// scroll to the top then ran from there (frames 819, 629, 194, 0; in Spanish 818, 622, 203, 0). The engine now keeps
+// the view where the player was across a screen swap, so it moves only from there to the next claim. Each case presses
+// Next claim twice: once as the browser lays out the new screen, and once with the view moved to the end of the play
+// view as the press clears the screen, so every engine meets the move. Measured locally: 15.2 to 16.1 s on Chromium,
+// 23.4 to 25.4 s on WebKit and 31.1 to 38.6 s on the iPhone profile, above 80% of 45 s there, so these have the file's
+// WebKit budget (90 s).
 for(const {lang,file} of languages)test(`${lang} 1366x768: after Next claim in Stop 4 the play view moves only from where the player was to the next claim`,async({page},testInfo)=>{
   webKitBudget(testInfo);
   await page.setViewportSize({width:1366,height:768});await start(page,file);await stop(page,4);await watchStop4Sorts(page);
